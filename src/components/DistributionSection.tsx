@@ -91,7 +91,7 @@ export const DistributionSection = () => {
                 </Button>
               </div>
               </div>
-            </a>
+            </Link>
           </ScrollReveal>
 
           {/* Promoción en Redes Sociales */}
