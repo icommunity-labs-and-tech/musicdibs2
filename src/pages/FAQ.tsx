@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 import {
   Accordion,
   AccordionContent,
@@ -105,6 +106,7 @@ const faqItems = [
 const FAQ = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+      <SEO title="FAQ" description="Preguntas frecuentes sobre MusicDibs: registro blockchain, distribución musical, certificados y más." path="/faq" />
       <Navbar />
 
       <div className="pt-32 pb-20 px-6">
