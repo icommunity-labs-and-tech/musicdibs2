@@ -7,22 +7,22 @@ import { Menu, X, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const Navbar = () => {
-  const [distOpen, setDistOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileDistOpen, setMobileDistOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const closeTimeout = useRef<number | null>(null);
 
-  const openDist = () => {
+  const openServices = () => {
     if (closeTimeout.current) {
       window.clearTimeout(closeTimeout.current);
       closeTimeout.current = null;
     }
-    setDistOpen(true);
+    setServicesOpen(true);
   };
 
-  const closeDistWithDelay = () => {
+  const closeServicesWithDelay = () => {
     closeTimeout.current = window.setTimeout(() => {
-      setDistOpen(false);
+      setServicesOpen(false);
     }, 150);
   };
 
@@ -56,42 +56,45 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</a>
 
-          {/* Distribución with submenu */}
+          {/* Servicios dropdown */}
           <div
             className="relative"
-            onMouseEnter={openDist}
-            onMouseLeave={closeDistWithDelay}
+            onMouseEnter={openServices}
+            onMouseLeave={closeServicesWithDelay}
           >
             <button
-              className="text-white/80 hover:text-white transition-colors"
+              className="text-white/80 hover:text-white transition-colors flex items-center gap-1"
               aria-haspopup="menu"
-              aria-expanded={distOpen}
+              aria-expanded={servicesOpen}
             >
-              {t('nav.distribution')}
+              {t('nav.services')}
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
             </button>
             <div
-              onMouseEnter={openDist}
-              onMouseLeave={closeDistWithDelay}
-              className={`absolute left-0 top-full w-56 rounded-md bg-white shadow-lg ring-1 ring-black/10 z-50 ${distOpen ? "block" : "hidden"}`}
+              onMouseEnter={openServices}
+              onMouseLeave={closeServicesWithDelay}
+              className={`absolute left-0 top-full w-56 rounded-md bg-white shadow-lg ring-1 ring-black/10 z-50 ${servicesOpen ? "block" : "hidden"}`}
             >
               <ul className="py-2 text-sm text-gray-700">
                 <li>
-                  <a href={links.distribution.access} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
-                    {t('nav.access')}
+                  <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
+                    {t('nav.distribution')}
                   </a>
                 </li>
                 <li>
-                  <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
-                    {t('nav.info')}
+                  <a href={links.market} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
+                    {t('nav.market')}
+                  </a>
+                </li>
+                <li>
+                  <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
+                    {t('nav.verifier')}
                   </a>
                 </li>
               </ul>
             </div>
           </div>
 
-          <a href={links.market} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.market')}</a>
-          
-          <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.verifier')}</a>
           <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
         </div>
 
@@ -125,26 +128,24 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
 
-          {/* Distribution accordion */}
+          {/* Services accordion */}
           <div>
             <button
-              onClick={() => setMobileDistOpen(!mobileDistOpen)}
+              onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
               className="flex items-center justify-between w-full text-white/90 hover:text-white py-2 transition-colors"
             >
-              {t('nav.distribution')}
-              <ChevronDown className={`w-4 h-4 transition-transform ${mobileDistOpen ? 'rotate-180' : ''}`} />
+              {t('nav.services')}
+              <ChevronDown className={`w-4 h-4 transition-transform ${mobileServicesOpen ? 'rotate-180' : ''}`} />
             </button>
-            {mobileDistOpen && (
+            {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
-                <a href={links.distribution.access} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.access')}</a>
-                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.info')}</a>
+                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.distribution')}</a>
+                <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
+                <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</a>
               </div>
             )}
           </div>
 
-          <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.market')}</a>
-          
-          <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.verifier')}</a>
           <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
 
           <Button
