@@ -29,6 +29,7 @@ const Contact = () => {
     phone: "",
     subject: "",
     message: "",
+    website: "", // honeypot
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -54,8 +55,8 @@ const Contact = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("send-contact-email", {
-        body: result.data,
+      const { data, error } = await supabase.functions.invoke("send-contact-email", {
+        body: { ...result.data, website: form.website },
       });
 
       if (error) throw error;
@@ -64,7 +65,7 @@ const Contact = () => {
         title: t("contact.success_title", "Message sent!"),
         description: t("contact.success_desc", "We'll get back to you soon."),
       });
-      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+      setForm({ name: "", email: "", phone: "", subject: "", message: "", website: "" });
     } catch {
       toast({
         title: t("contact.error_title", "Error"),
@@ -95,6 +96,20 @@ const Contact = () => {
             onSubmit={handleSubmit}
             className="space-y-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8"
           >
+            {/* Honeypot — hidden from real users, bots will fill it */}
+            <div className="absolute opacity-0 -z-10 h-0 overflow-hidden" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                value={form.website}
+                onChange={(e) => handleChange("website", e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-white flex items-center gap-2">
