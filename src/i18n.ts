@@ -45,7 +45,7 @@ const resources = {
         cta_how: 'Ver Cómo Funciona',
       },
       why: {
-        heading: '¿Por qué elegir Musicdibs?',
+        heading: 'Registra, distribuye y monetiza tus canciones en minutos',
         subheading: 'Genera ingresos reales de la forma más rápida, sencilla y segura.\nCreada para artistas amaterus y profesionales.',
         features: {
           legal: {
