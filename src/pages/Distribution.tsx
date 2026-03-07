@@ -127,6 +127,27 @@ const Distribution = () => {
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="py-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10" />
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            {t("distribution.cta_title", "¿Listo para distribuir tu música?")}
+          </h2>
+          <p className="text-lg text-white/70 mb-8">
+            {t("distribution.cta_desc", "Elige el plan que mejor se adapte a ti y empieza a llegar a millones de oyentes en todo el mundo.")}
+          </p>
+          <Link to="/#pricing">
+            <Button variant="hero" size="xl" className="font-semibold">
+              <span className="flex items-center gap-2">
+                {t("distribution.cta_button", "Ver planes y precios")}
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </Button>
+          </Link>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="py-16 px-6 bg-white/[0.02]">
         <div className="max-w-4xl mx-auto">
