@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Check, X, Minus } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 const competitors = ["musicdibs", "distrokid", "cdbaby", "tunecore"] as const;
 
@@ -17,75 +17,60 @@ const featureRows = [
 ] as const;
 
 function CellValue({ value, t }: { value: string; t: (key: string) => string }) {
-  if (value === "yes") return <Check className="w-5 h-5 text-emerald-400 mx-auto" />;
-  if (value === "no") return <X className="w-5 h-5 text-red-400/60 mx-auto" />;
-  if (value === "paid") return <span className="text-yellow-400 text-xs font-medium">{t("compare.paid")}</span>;
-  if (value === "highlight") return <span className="text-emerald-400 font-bold text-sm">{t("compare.included")}</span>;
-  return <span className="text-white font-semibold text-sm">{value}</span>;
+  if (value === "yes") return <Check className="w-4 h-4 text-emerald-400 mx-auto" />;
+  if (value === "no") return <X className="w-4 h-4 text-white/30 mx-auto" />;
+  if (value === "paid") return <span className="text-yellow-300 text-[11px] font-medium">{t("compare.paid")}</span>;
+  if (value === "highlight") return <span className="text-emerald-400 font-bold text-xs">{t("compare.included")}</span>;
+  return <span className="text-white font-semibold text-xs">{value}</span>;
 }
 
 export const ComparisonTable = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-16 px-4">
-      <div className="max-w-5xl mx-auto">
-        <h3 className="text-3xl md:text-4xl font-bold text-white text-center mb-3">
+    <section className="pt-12 pb-4 px-2">
+      <div className="max-w-3xl mx-auto">
+        <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-2">
           {t("compare.title")}
         </h3>
-        <p className="text-white/70 text-center mb-10 max-w-2xl mx-auto">
+        <p className="text-white/60 text-center mb-6 text-sm max-w-xl mx-auto">
           {t("compare.subtitle")}
         </p>
 
-        <div className="overflow-x-auto rounded-2xl border border-white/10">
-          <table className="w-full text-sm">
-            {/* Header */}
+        <div className="overflow-x-auto rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+          <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-white/10">
-                <th className="text-left p-4 text-white/60 font-medium min-w-[160px]">
+                <th className="text-left px-3 py-2.5 text-white/50 font-medium text-[11px] uppercase tracking-wider min-w-[120px]">
                   {t("compare.feature")}
                 </th>
                 {competitors.map((c) => (
                   <th
                     key={c}
-                    className={`p-4 text-center min-w-[110px] ${
-                      c === "musicdibs"
-                        ? "bg-pink-500/20 border-x border-pink-500/30"
-                        : ""
+                    className={`px-2 py-2.5 text-center min-w-[80px] ${
+                      c === "musicdibs" ? "bg-pink-500/15" : ""
                     }`}
                   >
-                    <span
-                      className={`font-bold text-sm ${
-                        c === "musicdibs" ? "text-pink-400" : "text-white/80"
-                      }`}
-                    >
+                    <span className={`font-bold text-xs ${c === "musicdibs" ? "text-pink-400" : "text-white/60"}`}>
                       {t(`compare.competitors.${c}`)}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
-
-            {/* Body */}
             <tbody>
               {featureRows.map((row, i) => (
                 <tr
                   key={row.key}
-                  className={`border-b border-white/5 ${
-                    i % 2 === 0 ? "bg-white/[0.02]" : ""
-                  }`}
+                  className={`border-b border-white/[0.04] ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}
                 >
-                  <td className="p-4 text-white/80 font-medium">
+                  <td className="px-3 py-2 text-white/70 font-medium text-xs">
                     {t(`compare.features.${row.key}`)}
                   </td>
                   {row.values.map((val, j) => (
                     <td
                       key={j}
-                      className={`p-4 text-center ${
-                        j === 0
-                          ? "bg-pink-500/10 border-x border-pink-500/20"
-                          : ""
-                      }`}
+                      className={`px-2 py-2 text-center ${j === 0 ? "bg-pink-500/10" : ""}`}
                     >
                       <CellValue value={val} t={t} />
                     </td>
@@ -96,7 +81,7 @@ export const ComparisonTable = () => {
           </table>
         </div>
 
-        <p className="text-white/40 text-xs text-center mt-4">
+        <p className="text-white/30 text-[10px] text-center mt-3">
           {t("compare.disclaimer")}
         </p>
       </div>
