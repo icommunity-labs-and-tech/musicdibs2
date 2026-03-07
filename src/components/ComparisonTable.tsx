@@ -6,7 +6,7 @@ const competitors = ["musicdibs", "distrokid", "cdbaby", "tunecore"] as const;
 const featureRows = [
   { key: "royalties", values: ["95%", "80%", "85%", "80%"] },
   { key: "annual_fee", values: ["highlight", "yes", "no", "yes"] },
-  { key: "per_release_fee", values: ["no", "no", "yes", "yes"] },
+  { key: "per_release_fee", values: ["highlight", "no", "yes", "yes"] },
   { key: "blockchain_cert", values: ["yes", "no", "no", "no"] },
   { key: "social_promo", values: ["yes", "no", "no", "no"] },
   { key: "cover_design", values: ["yes", "no", "no", "no"] },
