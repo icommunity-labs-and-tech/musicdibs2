@@ -81,7 +81,7 @@ export const ComparisonTable = () => {
           </table>
         </div>
 
-        <p className="text-white/30 text-[10px] text-center mt-3">
+        <p className="text-white text-[10px] text-center mt-3">
           {t("compare.disclaimer")}
         </p>
       </div>
