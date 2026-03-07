@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ const contactSchema = z.object({
 });
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,13 @@ const Contact = () => {
     message: "",
     website: "", // honeypot
   });
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason && REASON_KEYS.includes(reason as any)) {
+      setForm((prev) => ({ ...prev, reason }));
+    }
+  }, [searchParams]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string) => {
