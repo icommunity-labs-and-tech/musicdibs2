@@ -99,7 +99,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800">
+    <div className="min-h-screen page-bg">
       <SEO title="Contacto" description="¿Tienes preguntas? Contáctanos y nuestro equipo te responderá lo antes posible." path="/contact" />
       <Navbar />
 

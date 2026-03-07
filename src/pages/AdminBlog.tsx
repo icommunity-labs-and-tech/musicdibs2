@@ -183,7 +183,7 @@ const AdminBlog = () => {
   const showForm = editing || creating;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+    <div className="min-h-screen page-bg">
       {/* Header */}
       <header className="border-b border-white/10 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">

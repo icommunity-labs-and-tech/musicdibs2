@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import { ChatWidget } from "./components/ChatWidget";
 import { SocialProofPopup } from "./components/SocialProofPopup";
+import { ThemeProvider } from "./components/ThemeProvider";
 import Index from "./pages/Index";
 import Contact from "./pages/Contact";
 import SLA from "./pages/SLA";
@@ -28,35 +29,37 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <ChatWidget />
-        <SocialProofPopup />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/sla" element={<SLA />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/cookies" element={<Cookies />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/legal-validity" element={<LegalValidity />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="/verify" element={<Verify />} />
-          <Route path="/distribution" element={<Distribution />} />
-          <Route path="/marketing" element={<Marketing />} />
-          <Route path="/news" element={<News />} />
-          <Route path="/news/:slug" element={<NewsArticle />} />
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/blog" element={<AdminBlog />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <ChatWidget />
+          <SocialProofPopup />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/sla" element={<SLA />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/cookies" element={<Cookies />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/legal-validity" element={<LegalValidity />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/verify" element={<Verify />} />
+            <Route path="/distribution" element={<Distribution />} />
+            <Route path="/marketing" element={<Marketing />} />
+            <Route path="/news" element={<News />} />
+            <Route path="/news/:slug" element={<NewsArticle />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/blog" element={<AdminBlog />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "./LanguageSelector";
+import { useTheme } from "./ThemeProvider";
 import { getNavLinks } from "@/i18nLinks";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Sun, Moon } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export const Navbar = () => {
@@ -50,8 +51,10 @@ export const Navbar = () => {
     }
   };
 
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-40 px-6 py-4 transition-all duration-300 ${scrolled ? 'bg-black/80 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-40 px-6 py-4 transition-all duration-300 ${scrolled ? 'nav-scrolled bg-black/80 backdrop-blur-md shadow-lg' : 'bg-transparent'}`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center">
@@ -85,7 +88,14 @@ export const Navbar = () => {
         </div>
 
         {/* Language + CTA + Mobile toggle */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
+          </button>
           <LanguageSelector />
           <div
             className="relative hidden lg:block"

@@ -44,6 +44,16 @@ All colors MUST be HSL.
     --glass-bg: rgba(255, 255, 255, 0.1);
     --glass-border: rgba(255, 255, 255, 0.2);
 
+    /* Page theme variables — dark mode (default) */
+    --page-bg-from: #1a0a2e;
+    --page-bg-via: #16082a;
+    --page-bg-to: #0d0618;
+    --page-text: 0 0% 100%;
+    --page-text-muted: 0 0% 100% / 0.7;
+    --page-card-bg: 0 0% 100% / 0.05;
+    --page-card-border: 0 0% 100% / 0.1;
+    --page-nav-scrolled: 0 0% 0% / 0.8;
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -91,6 +101,18 @@ All colors MUST be HSL.
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* Light mode overrides for page-level theming */
+  .light-mode {
+    --page-bg-from: #f3f0ff;
+    --page-bg-via: #ede9fe;
+    --page-bg-to: #faf5ff;
+    --page-text: 260 20% 16%;
+    --page-text-muted: 260 10% 40%;
+    --page-card-bg: 260 30% 96%;
+    --page-card-border: 260 20% 88%;
+    --page-nav-scrolled: 0 0% 100% / 0.9;
+  }
 }
 
 @layer base {
@@ -101,4 +123,87 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Theme-aware page wrapper */
+.page-bg {
+  background: linear-gradient(to bottom right, var(--page-bg-from), var(--page-bg-via), var(--page-bg-to));
+  color: hsl(var(--page-text));
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+.page-bg .text-white {
+  color: hsl(var(--page-text));
+}
+
+.page-bg .text-white\/70,
+.page-bg .text-white\/80,
+.page-bg .text-white\/90 {
+  color: hsl(var(--page-text-muted));
+}
+
+.page-bg .text-white\/60,
+.page-bg .text-white\/50,
+.page-bg .text-white\/40 {
+  color: hsl(var(--page-text-muted));
+}
+
+/* Light mode specific overrides */
+.light-mode .page-bg .bg-white\/5,
+.light-mode .page-bg .bg-white\/10 {
+  background-color: hsl(var(--page-card-bg));
+}
+
+.light-mode .page-bg .border-white\/10,
+.light-mode .page-bg .border-white\/20 {
+  border-color: hsl(var(--page-card-border));
+}
+
+.light-mode .nav-scrolled {
+  background-color: hsl(var(--page-nav-scrolled)) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.light-mode .page-bg .bg-black\/70 {
+  background-color: hsl(0 0% 100% / 0.95);
+}
+
+/* Light mode footer */
+.light-mode footer {
+  background: linear-gradient(to bottom right, hsl(270 40% 94%), hsl(280 30% 92%), hsl(330 30% 94%)) !important;
+}
+
+.light-mode footer .text-white {
+  color: hsl(260 20% 20%);
+}
+
+.light-mode footer .text-white\/80,
+.light-mode footer .text-white\/60 {
+  color: hsl(260 10% 45%);
+}
+
+.light-mode footer .border-white\/20 {
+  border-color: hsl(260 20% 85%);
+}
+
+.light-mode footer .bg-white\/10 {
+  background-color: hsl(260 30% 88%);
+}
+
+/* Light mode gradient text fix — keep gradient text visible */
+.light-mode .page-bg .bg-gradient-to-r.bg-clip-text {
+  -webkit-text-fill-color: transparent;
+}
+
+/* Light mode pink/purple accents stay vibrant */
+.light-mode .page-bg .text-pink-400 {
+  color: hsl(330 80% 50%);
+}
+
+.light-mode .page-bg .text-purple-400 {
+  color: hsl(270 70% 50%);
+}
+
+.light-mode .page-bg .text-pink-300 {
+  color: hsl(330 70% 55%);
 }
