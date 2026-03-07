@@ -107,7 +107,7 @@ export const WhyChooseSection = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               {t("why.heading")}
             </h2>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            <p className="text-xl text-white/80 max-w-2xl mx-auto whitespace-pre-line">
               {t("why.subheading")}
             </p>
           </div>
