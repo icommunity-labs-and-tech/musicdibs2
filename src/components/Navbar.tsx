@@ -52,7 +52,7 @@ export const Navbar = () => {
           <button onClick={scrollToPricing} className="text-white/80 hover:text-white transition-colors">
             {t('nav.pricing')}
           </button>
-          <a href={links.faq} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.faq')}</a>
+          <Link to="/faq" className="text-white/80 hover:text-white transition-colors">{t('nav.faq')}</Link>
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</a>
 
@@ -124,7 +124,7 @@ export const Navbar = () => {
           <button onClick={scrollToPricing} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
             {t('nav.pricing')}
           </button>
-          <a href={links.faq} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</a>
+          <Link to="/faq" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</Link>
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
 
