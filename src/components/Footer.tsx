@@ -68,9 +68,9 @@ const Footer = () => {
               <a href={links.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 DIBS Token
               </a>
-              <a href={links.corporate.sla} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/sla" className="block text-white/80 hover:text-white transition-colors">
                 Acuerdo de nivel de servicios
-              </a>
+              </Link>
               <a href={links.corporate.privacy} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Política de privacidad y protección de datos
               </a>
