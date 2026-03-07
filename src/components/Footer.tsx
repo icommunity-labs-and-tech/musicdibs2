@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
-  const links = getFooterLinks(i18n.resolvedLanguage || i18n.language);
+  const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
+  const navLinks = getNavLinks(i18n.resolvedLanguage || i18n.language);
   return (
     <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 text-white overflow-hidden">
       {/* Geometric pattern background */}
