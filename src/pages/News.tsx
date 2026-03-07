@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, ArrowRight, Search, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 
 type BlogPost = {
@@ -39,6 +39,11 @@ const News = () => {
   // Map i18n language to blog language codes
   const langMap: Record<string, string> = { es: "es", en: "en", pt: "pt", "pt-BR": "pt", fr: "es", it: "es", de: "es" };
   const blogLang = langMap[i18n.language] || "es";
+
+  useEffect(() => {
+    setSelectedCategory(null);
+    setCurrentPage(1);
+  }, [blogLang]);
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts", blogLang],
