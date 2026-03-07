@@ -159,7 +159,7 @@ export const Navbar = () => {
             {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
                 <a href={links.login} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.login')}</a>
-                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.distribution')}</a>
+                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.distribution')}</a>
                 <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
                 <Link to="/verify" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</Link>
               </div>
