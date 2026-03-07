@@ -148,6 +148,7 @@ const resources = {
           registration_error: 'Error en servicio de registro',
           distribution_error: 'Error en servicio de distribución',
           inquiry: 'Consulta',
+          partner_proposal: 'Propuesta partner',
           other: 'Otro',
         },
         subject: 'Asunto',

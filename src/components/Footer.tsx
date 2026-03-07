@@ -43,12 +43,12 @@ const Footer = () => {
               <a href={links.left.verify} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Verificar registro
               </a>
-              <a href={links.left.legal} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
-                Tecnología y validez legal
-              </a>
-              <a href={links.left.partners} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
+                Validez legal
+              </Link>
+              <Link to="/partners" className="block text-white/80 hover:text-white transition-colors">
                 Partners
-              </a>
+              </Link>
               <a href={links.left.mediaKit} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Media Kit
               </a>
