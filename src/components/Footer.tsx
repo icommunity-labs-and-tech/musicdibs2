@@ -1,11 +1,25 @@
 import { useTranslation } from "react-i18next";
 import { getFooterLinks, getNavLinks } from "@/i18nLinks";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const Footer = () => {
   const { t, i18n } = useTranslation();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const navLinks = getNavLinks(i18n.resolvedLanguage || i18n.language);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 text-white overflow-hidden">
       {/* Geometric pattern background */}
@@ -43,14 +57,14 @@ const Footer = () => {
           {/* Block 2 - Web */}
           <div className="space-y-3">
             <h3 className="text-xl font-semibold text-white mb-4">Web</h3>
-            <button onClick={() => document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' })} className="block text-white/80 hover:text-white transition-colors text-left">
+            <button onClick={() => scrollToSection('pricing-section')} className="block text-white/80 hover:text-white transition-colors text-left">
               {t('nav.pricing')}
             </button>
-            <button onClick={() => document.getElementById('tutorial-section')?.scrollIntoView({ behavior: 'smooth' })} className="block text-white/80 hover:text-white transition-colors text-left">
+            <button onClick={() => scrollToSection('tutorial-section')} className="block text-white/80 hover:text-white transition-colors text-left">
               {t('nav.howItWorks')}
             </button>
             <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
-              Validez legal
+              {t('nav.legalValidity', 'Validez legal')}
             </Link>
             <Link to="/faq" className="block text-white/80 hover:text-white transition-colors">
               {t('nav.faq')}
@@ -58,8 +72,11 @@ const Footer = () => {
             <a href={navLinks.news} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
               {t('nav.news')}
             </a>
+            <Link to="/marketing" className="block text-white/80 hover:text-white transition-colors">
+              {t('nav.marketing', 'Marketing')}
+            </Link>
             <Link to="/partners" className="block text-white/80 hover:text-white transition-colors">
-              Partners
+              {t('nav.partners', 'Hazte Partner')}
             </Link>
             <Link to="/contact" className="block text-white/80 hover:text-white transition-colors">
               {t('nav.contact')}
