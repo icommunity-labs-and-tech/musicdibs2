@@ -148,7 +148,8 @@ export const DistributionSection = () => {
 
           {/* NFTs & Marketing */}
           <ScrollReveal delay={500}>
-            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300">
+            <Link to="/marketing" className="block">
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
               <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-pink-500 flex items-center justify-center mb-6">
                   <Zap className="w-10 h-10 text-white" />
@@ -159,6 +160,7 @@ export const DistributionSection = () => {
                 </p>
               </div>
             </div>
+            </Link>
           </ScrollReveal>
         </div>
       </div>
