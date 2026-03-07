@@ -53,7 +53,7 @@ export const Navbar = () => {
             {t('nav.pricing')}
           </button>
           <a href={links.faq} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.faq')}</a>
-          <a href={links.support} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.support')}</a>
+          
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</a>
 
           {/* Distribución with submenu */}
@@ -122,7 +122,7 @@ export const Navbar = () => {
             {t('nav.pricing')}
           </button>
           <a href={links.faq} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</a>
-          <a href={links.support} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.support')}</a>
+          
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
 
           {/* Distribution accordion */}
