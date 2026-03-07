@@ -136,7 +136,7 @@ export const PricingSection = () => {
             
             <div className="space-y-2">
             
-            <p className="leading-relaxed">
+            <p className="leading-relaxed text-xs">
               {t("pricing.conditionsText")}
             </p>
             </div>
