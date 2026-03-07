@@ -3,7 +3,8 @@ import { Footer } from "@/components/Footer";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Music, ExternalLink, FileText, LogIn, Play, ChevronRight } from "lucide-react";
+import { Music, ExternalLink, FileText, LogIn, Play, ChevronRight, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Distribution = () => {
   const { t } = useTranslation();
