@@ -19,7 +19,7 @@ const TestimonialsSection = () => {
       videoId: "KodixKxB0C8"
     },
     {
-      name: "Martín",
+      name: "Grego",
       title: "Taller de música online",
       videoId: "O7f3tdP6NjI"
     },
