@@ -24,6 +24,7 @@ type BlogPost = {
 const News = () => {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts"],
