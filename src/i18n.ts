@@ -76,7 +76,7 @@ const resources = {
         toggleBasic: 'Basic',
         togglePlus: 'Plan Plus+',
         badgeAnnual: 'Incluye: cuota registro + 4 meses GRATIS',
-        priceAnnualSuffix: ' / Año',
+        priceAnnualSuffix: ' / año*',
         priceMonthlySuffix: ' / Mes',
         signupFeeNote: 'y 6,90 € cuota de inscripción',
         buyNow: 'COMPRAR',
@@ -85,7 +85,7 @@ const resources = {
         indivButton: 'Comprar',
         legalPros: '¿Eres un profesional, empresa o academia? <contact>Contáctanos</contact> y solicita detalles para paquetes personalizados o licenciamientos (marca blanca).',
         conditionsTitle: '* Condiciones de la oferta',
-        conditionsText: 'Impuestos NO incluidos (se aplicará el 21% de IVA para países UE). Las suscripciones mensuales y anuales se renuevan automáticamente al finalizar el periodo de suscripción. Más información en FAQ y en términos de uso y compra.',
+        conditionsText: '* Impuestos NO incluidos (se aplicará el 21% de IVA para países UE). Las suscripciones mensuales y anuales se renuevan automáticamente al finalizar el periodo de suscripción. Más información en FAQ y en términos de uso y compra.',
         features: {
           annual: [
             'Registra y protege tu catálogo completo (hasta 120 obras al año SIN costes extra)',
