@@ -1,32 +1,50 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
 
+// Base prices in EUR
+const BASE_PRICES = {
+  annual: 59.90,
+  monthly: 6.90,
+  individual: 11.90,
+  signupFee: 6.90,
+};
+
+// Approximate exchange rates from EUR
+const CURRENCY_CONFIG: Record<string, { symbol: string; rate: number; position: 'before' | 'after'; decimal: string }> = {
+  es: { symbol: '€', rate: 1, position: 'after', decimal: ',' },
+  en: { symbol: '$', rate: 1.08, position: 'before', decimal: '.' },
+  'pt-BR': { symbol: 'R$', rate: 5.50, position: 'before', decimal: ',' },
+  fr: { symbol: '€', rate: 1, position: 'after', decimal: ',' },
+  it: { symbol: '€', rate: 1, position: 'after', decimal: ',' },
+  de: { symbol: '€', rate: 1, position: 'after', decimal: ',' },
+};
+
+function formatPrice(amount: number, lang: string): string {
+  const config = CURRENCY_CONFIG[lang] || CURRENCY_CONFIG['es'];
+  const converted = amount * config.rate;
+  const [whole, dec] = converted.toFixed(2).split('.');
+  const formatted = whole + config.decimal + dec;
+  return config.position === 'before'
+    ? `${config.symbol}${formatted}`
+    : `${formatted} ${config.symbol}`;
+}
+
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const { t, i18n } = useTranslation();
-  const links = getFooterLinks(i18n.resolvedLanguage || i18n.language);
-  const annualFeatures = [
-    "Protege tu catálogo completo (Hasta 100 registros al año, SIN costes extra)",
-    "Distribución Musical +220 DSPs(spotify, apple music, ..)",
-    "Genera dinero con las escuchas de tus canciones",
-    "Acceso continuo a certificados",
-    
-    "2 Promoción Plus/mes en TikTok (+245k seguidores) – Instagram (+100k)*",
-    "Market MusicDibs – Promociona y vende tus obras",
-    "Soporte prioritario",
-    "Ayuda ante disputas"
-  ];
+  const lang = i18n.resolvedLanguage || i18n.language;
+  const links = getFooterLinks(lang);
 
-  const monthlyFeatures = [
-    "Cuota de inscripción sólo primer mes",
-    "Hasta 3 registros/mes",
-    "Acceso continuo a tus certificados",
-    "Soporte standard"
-  ];
+  const prices = useMemo(() => ({
+    annual: formatPrice(BASE_PRICES.annual, lang),
+    monthly: formatPrice(BASE_PRICES.monthly, lang),
+    individual: formatPrice(BASE_PRICES.individual, lang),
+    signupFee: formatPrice(BASE_PRICES.signupFee, lang),
+  }), [lang]);
 
   return (
     <section id="pricing-section" className="py-20 px-4 bg-gradient-to-b from-primary/60 via-primary to-purple-600">
@@ -73,14 +91,14 @@ export const PricingSection = () => {
                   </div>
                 )}
                 <div className="text-4xl font-bold mb-2">
-                  {isAnnual ? "59,90 €" : "6,90 €"}
+                  {isAnnual ? prices.annual : prices.monthly}
                   <span className="text-xl font-normal">
                     {isAnnual ? t("pricing.priceAnnualSuffix") : t("pricing.priceMonthlySuffix")}
                   </span>
                 </div>
                 {!isAnnual && (
                   <p className="text-sm text-white/90">
-                    {t("pricing.signupFeeNote")}
+                    {t("pricing.signupFeeNote_dynamic", { price: prices.signupFee, defaultValue: `${t("pricing.signupFeeNote")}` })}
                   </p>
                 )}
               </div>
@@ -119,7 +137,7 @@ export const PricingSection = () => {
             {t("pricing.indivTitle")}
           </h3>
           <p className="text-lg text-white/90 mb-6">
-            {t("pricing.indivSubtitle")}
+            {t("pricing.indivSubtitle_dynamic", { price: prices.individual, defaultValue: t("pricing.indivSubtitle") })}
           </p>
           <Button 
             variant="outline" 
