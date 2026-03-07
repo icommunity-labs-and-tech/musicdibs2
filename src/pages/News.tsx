@@ -25,6 +25,15 @@ const News = () => {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState<number | null>(9);
+
+  const perPageOptions: { label: string; value: number | null }[] = [
+    { label: "9", value: 9 },
+    { label: "15", value: 15 },
+    { label: "30", value: 30 },
+    { label: t("blog.all", "Todas"), value: null },
+  ];
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts"],
