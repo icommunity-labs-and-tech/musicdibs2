@@ -3,7 +3,8 @@ import { Footer } from "@/components/Footer";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Music, ExternalLink, FileText, LogIn, Play, ChevronRight } from "lucide-react";
+import { Music, ExternalLink, FileText, LogIn, Play, ChevronRight, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Distribution = () => {
   const { t } = useTranslation();
@@ -124,6 +125,27 @@ const Distribution = () => {
               <ExternalLink className="w-4 h-4 text-white/30 group-hover:text-purple-400 transition-colors" />
             </a>
           </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10" />
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            {t("distribution.cta_title", "¿Listo para distribuir tu música?")}
+          </h2>
+          <p className="text-lg text-white/70 mb-8">
+            {t("distribution.cta_desc", "Elige el plan que mejor se adapte a ti y empieza a llegar a millones de oyentes en todo el mundo.")}
+          </p>
+          <Link to="/#pricing">
+            <Button variant="hero" size="xl" className="font-semibold">
+              <span className="flex items-center gap-2">
+                {t("distribution.cta_button", "Ver planes y precios")}
+                <ArrowRight className="w-5 h-5" />
+              </span>
+            </Button>
+          </Link>
         </div>
       </section>
 
