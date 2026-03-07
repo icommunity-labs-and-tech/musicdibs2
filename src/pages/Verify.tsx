@@ -36,7 +36,7 @@ const Verify = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-pink-900">
+    <div className="min-h-screen page-bg">
       <SEO title="Verificar obra" description="Comprueba si una obra ha sido registrada en MusicDibs. Verifica su certificación blockchain al instante." path="/verify" />
       <Navbar />
 
