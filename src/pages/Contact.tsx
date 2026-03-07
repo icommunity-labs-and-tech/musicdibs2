@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Mail, User, MessageSquare, Send, HelpCircle } from "lucide-react";
 import { z } from "zod";
 
-const REASON_KEYS = ["registration_error", "distribution_error", "inquiry", "other"] as const;
+const REASON_KEYS = ["registration_error", "distribution_error", "inquiry", "partner_proposal", "other"] as const;
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
@@ -23,6 +24,7 @@ const contactSchema = z.object({
 });
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,13 @@ const Contact = () => {
     message: "",
     website: "", // honeypot
   });
+
+  useEffect(() => {
+    const reason = searchParams.get("reason");
+    if (reason && REASON_KEYS.includes(reason as any)) {
+      setForm((prev) => ({ ...prev, reason }));
+    }
+  }, [searchParams]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string) => {
