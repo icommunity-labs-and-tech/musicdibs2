@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
+import { Link } from "react-router-dom";
 
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
@@ -131,7 +132,7 @@ export const PricingSection = () => {
           {/* Legal Text */}
           <div className="mt-12 max-w-4xl mx-auto text-white/80 text-sm space-y-4">
             <p className="font-medium text-base">
-              <Trans i18nKey="pricing.legalPros" components={{ contact: <a href={links.corporate.contact} target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300 underline" /> }} />
+              <Trans i18nKey="pricing.legalPros" components={{ contact: <Link to="/contact" className="text-teal-400 hover:text-teal-300 underline" /> }} />
             </p>
             
             <div className="space-y-2">
