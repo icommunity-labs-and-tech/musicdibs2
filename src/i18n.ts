@@ -815,6 +815,16 @@ const resources = {
           cta_desc: 'Contact us to explore how we can build an alliance that benefits your artists and your business.',
           cta_button: 'Contact us',
         },
+        social_proof: {
+          from: 'from',
+          action_registered: 'just registered a song',
+          action_certified: 'has certified their work',
+          action_distributed: 'has distributed their music',
+          just_now: 'Just now',
+          minutes_ago: '2 minutes ago',
+          minutes_ago_5: '5 minutes ago',
+          minutes_ago_10: '10 minutes ago',
+        },
         chat: {
           open: 'Open support chat',
           title: 'MusicDibs Support',
@@ -987,6 +997,16 @@ const resources = {
         cta_title: 'Pronto para ser parceiro?',
         cta_desc: 'Entre em contato para explorar como podemos criar uma aliança que beneficie seus artistas e seu negócio.',
         cta_button: 'Entrar em contato',
+      },
+      social_proof: {
+        from: 'de',
+        action_registered: 'acabou de registrar uma música',
+        action_certified: 'certificou sua obra',
+        action_distributed: 'distribuiu sua música',
+        just_now: 'Agora mesmo',
+        minutes_ago: 'Há 2 minutos',
+        minutes_ago_5: 'Há 5 minutos',
+        minutes_ago_10: 'Há 10 minutos',
       },
       chat: {
         open: 'Abrir chat de suporte',
