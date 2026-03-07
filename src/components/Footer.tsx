@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { getFooterLinks } from "@/i18nLinks";
+import { getFooterLinks, getNavLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
