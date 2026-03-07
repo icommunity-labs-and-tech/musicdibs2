@@ -54,6 +54,7 @@ const TestimonialsSection = () => {
             <CardContent className="p-8">
               <div className="aspect-video mb-6 rounded-lg overflow-hidden shadow-lg">
                 <iframe
+                  loading="lazy"
                   src={`https://www.youtube.com/embed/${testimonials[currentVideo].videoId}`}
                     title={t("testimonials.videoTitle", { name: testimonials[currentVideo].name })}
                   frameBorder="0"
