@@ -52,10 +52,8 @@ export const HeroSection = () => {
             {t("hero.subtitle_prefix")} {" "}
             <span className="font-semibold text-white">{t("hero.subtitle_strong")}</span>{" "}
             <a 
-              href={footerLinks.left.legal}
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-pink-300 hover:text-pink-200 underline transition-colors"
+              href="/legal-validity"
+              className="text-pink-300 hover:text-pink-200 underline transition-colors text-xs md:text-sm"
             >
               {t("hero.legal_more")}
             </a>
