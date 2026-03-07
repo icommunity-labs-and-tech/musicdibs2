@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "./LanguageSelector";
 import { getNavLinks } from "@/i18nLinks";
@@ -10,9 +10,16 @@ export const Navbar = () => {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const closeTimeout = useRef<number | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const openServices = () => {
     if (closeTimeout.current) {
