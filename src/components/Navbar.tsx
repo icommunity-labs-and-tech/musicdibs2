@@ -90,7 +90,7 @@ export const Navbar = () => {
           </div>
 
           <a href={links.market} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.market')}</a>
-          <a href={links.dibs} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.dibs')}</a>
+          
           <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.verifier')}</a>
           <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
         </div>
@@ -143,7 +143,7 @@ export const Navbar = () => {
           </div>
 
           <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.market')}</a>
-          <a href={links.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.dibs')}</a>
+          
           <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.verifier')}</a>
           <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
 
