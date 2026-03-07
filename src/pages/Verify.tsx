@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
 import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SEO } from "@/components/SEO";
 
 const Verify = () => {
   const { t } = useTranslation();
@@ -36,6 +37,7 @@ const Verify = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-pink-900">
+      <SEO title="Verificar obra" description="Comprueba si una obra ha sido registrada en MusicDibs. Verifica su certificación blockchain al instante." path="/verify" />
       <Navbar />
 
       {/* Hero */}

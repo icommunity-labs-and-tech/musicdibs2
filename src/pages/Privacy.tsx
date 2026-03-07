@@ -1,12 +1,14 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useTranslation } from "react-i18next";
+import { SEO } from "@/components/SEO";
 
 const Privacy = () => {
   const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+      <SEO title="Política de Privacidad" description="Política de privacidad de MusicDibs. Cómo protegemos y tratamos tus datos personales." path="/privacy" />
       <Navbar />
 
       <div className="pt-32 pb-20 px-6">

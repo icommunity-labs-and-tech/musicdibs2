@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Palette, Megaphone, ArrowRight } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const Marketing = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Marketing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+      <SEO title="Marketing y Promoción" description="Impulsa tu música con servicios profesionales de diseño de portadas, vídeos y promoción en redes sociales." path="/marketing" />
       <Navbar />
 
       <section className="pt-32 pb-20 px-6">

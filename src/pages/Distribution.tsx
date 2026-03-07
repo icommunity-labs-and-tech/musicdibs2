@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Music, ExternalLink, FileText, LogIn, Play, ChevronRight, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 
 const Distribution = () => {
   const { t } = useTranslation();
@@ -13,6 +14,7 @@ const Distribution = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+      <SEO title="Distribución Musical" description="Distribuye tu música en Spotify, Apple Music, YouTube Music y más de 150 plataformas con MusicDibs. 95% de royalties." path="/distribution" />
       <Navbar />
 
       {/* Hero Section */}

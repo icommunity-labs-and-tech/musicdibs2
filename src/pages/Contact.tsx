@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import { Mail, User, MessageSquare, Send, HelpCircle } from "lucide-react";
 import { z } from "zod";
+import { SEO } from "@/components/SEO";
 
 const REASON_KEYS = ["inquiry", "distribution_error", "marketing_interest", "other", "partner_proposal", "registration_error"] as const;
 
@@ -99,6 +100,7 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800">
+      <SEO title="Contacto" description="¿Tienes preguntas? Contáctanos y nuestro equipo te responderá lo antes posible." path="/contact" />
       <Navbar />
 
       <section className="pt-32 pb-20 px-4">
