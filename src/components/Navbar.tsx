@@ -145,33 +145,26 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
 
-          {/* Services accordion */}
-          <div>
+          <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
+
+          {/* Access to services accordion */}
+          <div className="border-t border-white/10 pt-3 mt-2">
             <button
               onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-              className="flex items-center justify-between w-full text-white/90 hover:text-white py-2 transition-colors"
+              className="flex items-center justify-between w-full font-semibold text-white py-2 transition-colors"
             >
-              {t('nav.services')}
+              {t('nav.accessServices')}
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileServicesOpen ? 'rotate-180' : ''}`} />
             </button>
             {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
+                <a href={links.login} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.login')}</a>
                 <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.distribution')}</a>
                 <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
                 <Link to="/verify" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</Link>
               </div>
             )}
           </div>
-
-          <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
-
-          <Button
-            variant="glass" 
-            className="font-semibold w-full mt-2"
-            onClick={() => { setMobileOpen(false); window.open(links.login, '_blank'); }}
-          >
-            {t('nav.login')}
-          </Button>
         </div>
       )}
     </nav>
