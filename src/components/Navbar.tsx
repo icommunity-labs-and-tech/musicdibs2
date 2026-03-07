@@ -4,13 +4,15 @@ import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "./LanguageSelector";
 import { getNavLinks } from "@/i18nLinks";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export const Navbar = () => {
   const [servicesOpen, setServicesOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const closeTimeout = useRef<number | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const openServices = () => {
     if (closeTimeout.current) {
@@ -29,10 +31,16 @@ export const Navbar = () => {
   const { t, i18n } = useTranslation();
   const links = getNavLinks(i18n.resolvedLanguage || i18n.language);
 
-  const scrollToPricing = () => {
+  const scrollToSection = (sectionId: string) => {
     setMobileOpen(false);
-    const pricingSection = document.querySelector('section:nth-of-type(6)');
-    pricingSection?.scrollIntoView({ behavior: 'smooth' });
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }, 300);
+    } else {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -49,8 +57,11 @@ export const Navbar = () => {
 
         {/* Desktop navigation links */}
         <div className="hidden lg:flex items-center space-x-8">
-          <button onClick={scrollToPricing} className="text-white/80 hover:text-white transition-colors">
+          <button onClick={() => scrollToSection('pricing-section')} className="text-white/80 hover:text-white transition-colors">
             {t('nav.pricing')}
+          </button>
+          <button onClick={() => scrollToSection('tutorial-section')} className="text-white/80 hover:text-white transition-colors">
+            {t('nav.howItWorks')}
           </button>
           <Link to="/faq" className="text-white/80 hover:text-white transition-colors">{t('nav.faq')}</Link>
           
@@ -121,8 +132,11 @@ export const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden mt-4 rounded-xl bg-black/70 backdrop-blur-lg border border-white/10 p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          <button onClick={scrollToPricing} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+          <button onClick={() => scrollToSection('pricing-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
             {t('nav.pricing')}
+          </button>
+          <button onClick={() => scrollToSection('tutorial-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+            {t('nav.howItWorks')}
           </button>
           <Link to="/faq" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</Link>
           

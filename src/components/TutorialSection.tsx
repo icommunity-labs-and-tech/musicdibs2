@@ -37,7 +37,7 @@ const TutorialSection = () => {
   ];
 
   return (
-    <section className="py-20 relative overflow-hidden bg-gradient-to-b from-purple-600 via-purple-700 to-purple-800">
+    <section id="tutorial-section" className="py-20 relative overflow-hidden bg-gradient-to-b from-purple-600 via-purple-700 to-purple-800">
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
