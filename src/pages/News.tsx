@@ -37,7 +37,7 @@ const News = () => {
   ];
 
   // Map i18n language to blog language codes
-  const langMap: Record<string, string> = { es: "es", en: "en", pt: "pt", fr: "es", it: "es", de: "es" };
+  const langMap: Record<string, string> = { es: "es", en: "en", pt: "pt", "pt-BR": "pt", fr: "es", it: "es", de: "es" };
   const blogLang = langMap[i18n.language] || "es";
 
   const { data: posts, isLoading } = useQuery({
