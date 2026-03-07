@@ -135,7 +135,7 @@ export const PricingSection = () => {
             </p>
             
             <div className="space-y-2">
-            <p className="font-semibold">{t("pricing.conditionsTitle")}</p>
+            
             <p className="leading-relaxed">
               {t("pricing.conditionsText")}
             </p>
