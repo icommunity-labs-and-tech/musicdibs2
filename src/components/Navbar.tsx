@@ -39,13 +39,13 @@ export const Navbar = () => {
     <nav className="absolute top-10 left-0 right-0 z-40 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <div className="flex items-center">
+        <Link to="/" className="flex items-center">
           <img 
             src="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" 
             alt="by iCommunity" 
             className="h-12 w-auto"
           />
-        </div>
+        </Link>
 
         {/* Desktop navigation links */}
         <div className="hidden lg:flex items-center space-x-8">
