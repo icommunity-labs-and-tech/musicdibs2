@@ -154,7 +154,7 @@ export const Navbar = () => {
           <Link to="/marketing" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.marketing', 'Marketing y Promos')}</Link>
           <Link to="/faq" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</Link>
           
-          <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
+          <Link to="/news" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</Link>
 
           <div className="w-full h-px bg-white/10" />
 
