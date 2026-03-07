@@ -104,9 +104,22 @@ const faqItems = [
 ].sort((a, b) => a.question.localeCompare(b.question));
 
 const FAQ = () => {
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
-      <SEO title="FAQ" description="Preguntas frecuentes sobre MusicDibs: registro blockchain, distribución musical, certificados y más." path="/faq" />
+      <SEO title="FAQ" description="Preguntas frecuentes sobre MusicDibs: registro blockchain, distribución musical, certificados y más." path="/faq" jsonLd={faqJsonLd} />
       <Navbar />
 
       <div className="pt-32 pb-20 px-6">
