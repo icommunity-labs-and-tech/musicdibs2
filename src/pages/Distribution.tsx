@@ -138,7 +138,7 @@ const Distribution = () => {
           <p className="text-lg text-white/70 mb-8">
             {t("distribution.cta_desc", "Elige el plan que mejor se adapte a ti y empieza a llegar a millones de oyentes en todo el mundo.")}
           </p>
-          <Link to="/#pricing">
+          <Link to="/#pricing-section">
             <Button variant="hero" size="xl" className="font-semibold">
               <span className="flex items-center gap-2">
                 {t("distribution.cta_button", "Ver planes y precios")}
