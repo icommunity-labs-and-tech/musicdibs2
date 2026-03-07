@@ -55,11 +55,11 @@ export const DistributionSection = () => {
               
               {/* Platform logos */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-16">
+                <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-20">
                   <img 
                     src="/lovable-uploads/af219155-433f-402d-a220-28088ee5c7ea.png" 
                     alt="Spotify" 
-                    className="h-8 w-auto object-contain"
+                    className="h-12 w-auto object-contain"
                   />
                 </div>
                 <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-16">
