@@ -15,6 +15,7 @@ import LegalValidity from "./pages/LegalValidity";
 import Partners from "./pages/Partners";
 import Verify from "./pages/Verify";
 import Distribution from "./pages/Distribution";
+import Marketing from "./pages/Marketing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
