@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Tag, ArrowRight } from "lucide-react";
+import { Calendar, Tag, ArrowRight, Search } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 type BlogPost = {
   id: string;
