@@ -17,6 +17,10 @@ import Partners from "./pages/Partners";
 import Verify from "./pages/Verify";
 import Distribution from "./pages/Distribution";
 import Marketing from "./pages/Marketing";
+import News from "./pages/News";
+import NewsArticle from "./pages/NewsArticle";
+import AdminLogin from "./pages/AdminLogin";
+import AdminBlog from "./pages/AdminBlog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +46,10 @@ const App = () => (
           <Route path="/verify" element={<Verify />} />
           <Route path="/distribution" element={<Distribution />} />
           <Route path="/marketing" element={<Marketing />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<NewsArticle />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/blog" element={<AdminBlog />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
