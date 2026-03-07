@@ -102,7 +102,7 @@ const News = () => {
       <div className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            {t("blog.title", "Noticias")}
+            {t("blog.title", "Blog & Novedades")}
           </h1>
           <p className="text-white/60 text-center mb-12 text-lg">
             {t("blog.subtitle", "Las últimas novedades de MusicDibs")}
