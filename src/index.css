@@ -164,6 +164,33 @@ All colors MUST be HSL.
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+/* Light mode navbar: dark text/icons when scrolled */
+.light-mode .nav-scrolled .text-white\/80,
+.light-mode .nav-scrolled .text-white\/70,
+.light-mode .nav-scrolled .text-white {
+  color: hsl(260 20% 20%) !important;
+}
+
+.light-mode .nav-scrolled button[aria-label],
+.light-mode .nav-scrolled .lg\:hidden {
+  color: hsl(260 20% 30%) !important;
+}
+
+/* Light mode mobile menu */
+.light-mode .page-bg .bg-black\/70 {
+  background-color: hsl(0 0% 100% / 0.95);
+}
+
+.light-mode .page-bg .bg-black\/70 .text-white\/90,
+.light-mode .page-bg .bg-black\/70 .text-white\/70,
+.light-mode .page-bg .bg-black\/70 .text-white {
+  color: hsl(260 20% 20%) !important;
+}
+
+.light-mode .page-bg .bg-black\/70 .border-white\/10 {
+  border-color: hsl(260 20% 88%) !important;
+}
+
 .light-mode .page-bg .bg-black\/70 {
   background-color: hsl(0 0% 100% / 0.95);
 }
