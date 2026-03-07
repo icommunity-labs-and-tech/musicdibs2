@@ -36,13 +36,18 @@ const News = () => {
     { label: t("blog.all", "Todas"), value: null },
   ];
 
+  // Map i18n language to blog language codes
+  const langMap: Record<string, string> = { es: "es", en: "en", pt: "pt", fr: "es", it: "es", de: "es" };
+  const blogLang = langMap[i18n.language] || "es";
+
   const { data: posts, isLoading } = useQuery({
-    queryKey: ["blog-posts"],
+    queryKey: ["blog-posts", blogLang],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("id, title, slug, excerpt, image_url, category, tags, author, published_at")
+        .select("id, title, slug, excerpt, image_url, category, tags, author, published_at, language")
         .eq("published", true)
+        .eq("language", blogLang)
         .order("published_at", { ascending: false });
       if (error) throw error;
       return data as BlogPost[];
