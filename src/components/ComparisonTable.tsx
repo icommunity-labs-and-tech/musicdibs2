@@ -11,7 +11,7 @@ const featureRows = [
   { key: "social_promo", values: ["yes", "no", "no", "no"] },
   { key: "cover_design", values: ["yes", "no", "no", "no"] },
   { key: "unlimited_releases", values: ["yes", "yes", "no", "no"] },
-  { key: "youtube_content_id", values: ["yes", "paid", "paid", "paid"] },
+  
   { key: "copyright_protection", values: ["yes", "no", "no", "no"] },
   { key: "platforms", values: ["220+", "150+", "150+", "150+"] },
 ] as const;
