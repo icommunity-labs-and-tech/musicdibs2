@@ -64,7 +64,7 @@ export const ComparisonTable = () => {
                   key={row.key}
                   className={`border-b border-white/[0.04] ${i % 2 === 0 ? "bg-white/[0.02]" : ""}`}
                 >
-                  <td className="px-3 py-2 text-white/70 font-medium text-xs text-left">
+                  <td className="px-3 py-2 text-white font-medium text-xs text-left">
                     {t(`compare.features.${row.key}`)}
                   </td>
                   {row.values.map((val, j) => (
