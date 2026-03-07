@@ -143,7 +143,7 @@ const resources = {
         footnote: "*Oferta por tiempo limitado",
       },
       distro: {
-        heading: 'Registro, Distribución, Promoción y ventas',
+        heading: 'Registro, Distribución, Promoción y Ventas',
         subheading: 'Protege tu música, llévala al mundo entero, véndela directamente y conecta con millones de fans',
         world: { title: 'Servicio de Distribución', desc: 'Lanza tus obras en más de 220 plataformas digitales de todo el mundo y GANA hasta el 95% en royalties' },
         social: { title: 'Servicio de Promoción en RRSS', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!' },
