@@ -70,11 +70,11 @@ const Index = () => {
       />
       <Navbar />
       <HeroSection />
+      <ArtistsBanner />
       <WhyChooseSection />
       <DistributionSection />
-      <ArtistsBanner />
-      <PricingSection />
       <RoyaltiesCalculator />
+      <PricingSection />
       <TestimonialsSection />
       <TutorialSection />
       <Footer />
