@@ -195,7 +195,7 @@ const AdminBlog = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate("/news")} className="gap-1 text-white/70 border-white/20">
+            <Button variant="outline" size="sm" onClick={() => navigate("/news")} className="gap-1 text-black border-white/20">
               <Eye className="w-4 h-4" /> Ver blog
             </Button>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-1 text-white/50">
