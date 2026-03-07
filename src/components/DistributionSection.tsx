@@ -38,12 +38,7 @@ export const DistributionSection = () => {
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Distribución Mundial */}
           <ScrollReveal delay={200}>
-            <a 
-              href={links.distribution.access} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block"
-            >
+            <Link to="/distribution" className="block">
             <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
               <div className="flex items-center mb-6">
                 <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mr-4">
@@ -86,8 +81,17 @@ export const DistributionSection = () => {
                   />
                 </div>
               </div>
+
+              <div className="flex justify-center mt-6">
+                <Button variant="hero" size="lg" className="font-semibold">
+                  <span className="flex items-center gap-2">
+                    {t("distro.world.cta", "Saber más")}
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Button>
               </div>
-            </a>
+              </div>
+            </Link>
           </ScrollReveal>
 
           {/* Promoción en Redes Sociales */}
