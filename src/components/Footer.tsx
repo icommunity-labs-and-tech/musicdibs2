@@ -27,62 +27,67 @@ const Footer = () => {
       </div>
       
       <div className="relative z-10 container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Left Column - Logo and Links */}
-          <div className="space-y-6">
-            <div className="mb-6">
-              <a href="https://icommunity.io/" target="_blank" rel="noopener noreferrer">
-                <img 
-                  src="/lovable-uploads/eca60bb5-0409-4e18-bc0a-0e93aeabee3d.png" 
-                  alt="MusicDIBS Logo" 
-                  className="h-16 w-auto"
-                />
-              </a>
-            </div>
-            <div className="space-y-3">
-              <Link to="/verify" className="block text-white/80 hover:text-white transition-colors">
-                Verificar registro
-              </Link>
-              <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
-                Validez legal
-              </Link>
-              <Link to="/partners" className="block text-white/80 hover:text-white transition-colors">
-                Partners
-              </Link>
-              <a href={links.left.mediaKit} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
-                Media Kit
-              </a>
-              <Link to="/contact" className="block text-white/80 hover:text-white transition-colors">
-                {t('nav.contact')}
-              </Link>
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* Block 1 - Logo */}
+          <div>
+            <a href="https://icommunity.io/" target="_blank" rel="noopener noreferrer">
+              <img 
+                src="/lovable-uploads/eca60bb5-0409-4e18-bc0a-0e93aeabee3d.png" 
+                alt="iCommunity Logo" 
+                className="h-16 w-auto"
+              />
+            </a>
           </div>
 
-          {/* Middle Column - Corporate Links */}
-          <div className="space-y-6">
+          {/* Block 2 - Web */}
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold text-white mb-4">Web</h3>
+            <button onClick={() => document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' })} className="block text-white/80 hover:text-white transition-colors text-left">
+              {t('nav.pricing')}
+            </button>
+            <button onClick={() => document.getElementById('tutorial-section')?.scrollIntoView({ behavior: 'smooth' })} className="block text-white/80 hover:text-white transition-colors text-left">
+              {t('nav.howItWorks')}
+            </button>
+            <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
+              Validez legal
+            </Link>
+            <Link to="/faq" className="block text-white/80 hover:text-white transition-colors">
+              {t('nav.faq')}
+            </Link>
+            <a href={links.left.mediaKit.replace('Media-Kit-Musicdibs.zip', '')} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              {t('nav.news')}
+            </a>
+            <Link to="/partners" className="block text-white/80 hover:text-white transition-colors">
+              Partners
+            </Link>
+            <Link to="/contact" className="block text-white/80 hover:text-white transition-colors">
+              {t('nav.contact')}
+            </Link>
+          </div>
+
+          {/* Block 3 - Corporativo */}
+          <div className="space-y-3">
             <h3 className="text-xl font-semibold text-white mb-4">Corporativo</h3>
-            <div className="space-y-3">
-              <a href={links.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
-                DIBS Token
-              </a>
-              <Link to="/sla" className="block text-white/80 hover:text-white transition-colors">
-                Acuerdo de nivel de servicios
-              </Link>
-              <Link to="/privacy" className="block text-white/80 hover:text-white transition-colors">
-                Política de privacidad y protección de datos
-              </Link>
-              <Link to="/terms" className="block text-white/80 hover:text-white transition-colors">
-                Términos y condiciones
-              </Link>
-              <Link to="/cookies" className="block text-white/80 hover:text-white transition-colors">
-                Política de cookies
-              </Link>
-            </div>
+            <Link to="/sla" className="block text-white/80 hover:text-white transition-colors">
+              Acuerdo de nivel de servicios
+            </Link>
+            <Link to="/privacy" className="block text-white/80 hover:text-white transition-colors">
+              Política de privacidad y protección de datos
+            </Link>
+            <Link to="/cookies" className="block text-white/80 hover:text-white transition-colors">
+              Política de cookies
+            </Link>
+            <Link to="/terms" className="block text-white/80 hover:text-white transition-colors">
+              Términos y condiciones
+            </Link>
+            <a href={links.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              DIBS Token
+            </a>
           </div>
 
-          {/* Right Column - Social Media */}
-          <div className="space-y-6">
-            {/* Social Media Icons */}
+          {/* Block 4 - Redes Sociales */}
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold text-white mb-4">Redes Sociales</h3>
             <div className="flex space-x-4">
               <a href="https://twitter.com/musicdibs" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
