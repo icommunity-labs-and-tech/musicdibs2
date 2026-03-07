@@ -443,6 +443,16 @@ const resources = {
           cta_desc: 'Contáctanos para explorar cómo podemos crear una alianza que beneficie a tus artistas y a tu negocio.',
           cta_button: 'Contactar',
         },
+        social_proof: {
+          from: 'de',
+          action_registered: 'acaba de registrar su canción',
+          action_certified: 'ha certificado su obra',
+          action_distributed: 'ha distribuido su música',
+          just_now: 'Hace un momento',
+          minutes_ago: 'Hace 2 minutos',
+          minutes_ago_5: 'Hace 5 minutos',
+          minutes_ago_10: 'Hace 10 minutos',
+        },
         chat: {
           open: 'Abrir chat de soporte',
           title: 'Soporte MusicDibs',
