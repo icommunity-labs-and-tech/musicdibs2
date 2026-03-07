@@ -69,7 +69,7 @@ const AdminLogin = () => {
             <p className="text-white/50 text-sm mt-1">MusicDibs CMS</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-white/70">Email</Label>
               <Input
@@ -95,8 +95,11 @@ const AdminLogin = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? (isSignup ? "Registrando..." : "Entrando...") : (isSignup ? "Registrarse" : "Entrar")}
             </Button>
+            <button type="button" onClick={() => setIsSignup(!isSignup)} className="w-full text-sm text-white/40 hover:text-white/60 transition">
+              {isSignup ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate"}
+            </button>
           </form>
         </div>
       </div>
