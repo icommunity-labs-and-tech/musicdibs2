@@ -34,7 +34,7 @@ const resources = {
       },
       why: {
         heading: '¿Por qué elegir Musicdibs?',
-        subheading: 'Registra, distribuye y monetiza tus canciones en minutos. Genera ingresos reales con la solución digital más rápida y accesible creada para artistas independientes.',
+        subheading: 'Registra, distribuye y monetiza tus canciones en minutos\nGenera ingresos reales de la forma más rápida, sencilla y segura\nCreada para artistas amaterus y profesionales.',
         features: {
           legal: {
             title: 'Protección Legal Global',
