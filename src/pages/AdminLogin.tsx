@@ -15,26 +15,30 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (isSignup) {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Cuenta creada", description: "Tu cuenta ha sido creada. Contacta al administrador para asignar el rol admin." });
+        setIsSignup(false);
+      }
       setLoading(false);
       return;
     }
 
-    // Check if user has admin role
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -44,11 +48,7 @@ const AdminLogin = () => {
 
     if (!roleData) {
       await supabase.auth.signOut();
-      toast({
-        title: "Acceso denegado",
-        description: "No tienes permisos de administrador.",
-        variant: "destructive",
-      });
+      toast({ title: "Acceso denegado", description: "No tienes permisos de administrador.", variant: "destructive" });
       setLoading(false);
       return;
     }
