@@ -555,7 +555,7 @@ const resources = {
         all_rights: 'All rights reserved.',
       },
     },
-  },
+  'pt-BR': {
     translation: {
       nav: { pricing: 'Preços', faq: 'FAQ', support: 'Suporte', news: 'Notícias', distribution: 'Distribuição', access: 'Acesso', info: 'Informações', market: 'Market', dibs: 'DIBS Token', verifier: 'Verificar', login: 'Login', contact: 'Contato' },
       hero: { title: 'Sua obra,', highlight: 'só sua', subtitle_prefix: 'Registre, promova e distribua sua música com', subtitle_strong: 'validade jurídica no MUNDO TODO', legal_more: '+info', cta_start: 'Começar agora', cta_how: 'Ver como funciona' },
