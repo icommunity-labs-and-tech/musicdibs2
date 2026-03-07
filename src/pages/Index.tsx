@@ -8,10 +8,16 @@ import { PricingSection } from "@/components/PricingSection";
 import { RoyaltiesCalculator } from "@/components/RoyaltiesCalculator";
 import { TutorialSection } from "@/components/TutorialSection";
 import { Footer } from "@/components/Footer";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <SEO
+        title="MusicDibs - Registro y Distribución Musical"
+        description="Distribuye tu música en Spotify, Apple Music, YouTube Music y más de 150 plataformas digitales. Protege tus derechos con certificación blockchain."
+        path="/"
+      />
       <Navbar />
       <HeroSection />
       <WhyChooseSection />

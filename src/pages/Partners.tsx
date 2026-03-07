@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Handshake, Building2, Users, Mic2, Globe, ArrowRight, Shield, Zap, TrendingUp } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const partnerTypes = [
   {
@@ -48,6 +49,7 @@ const benefits = [
 const Partners = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+      <SEO title="Partners" description="Programa de partners de MusicDibs. Acuerdos comerciales y marca blanca para distribuidoras, managers, sellos y plataformas musicales." path="/partners" />
       <Navbar />
 
       <div className="pt-32 pb-20 px-6">
