@@ -10,6 +10,7 @@ export const DistributionSection = () => {
   const links = getNavLinks(i18n.resolvedLanguage || i18n.language);
   return (
     <section 
+      id="services-section"
       className="py-20 bg-gradient-to-br from-purple-600 via-purple-700 to-pink-600 relative overflow-hidden"
       style={{
         backgroundImage: `url(/lovable-uploads/8b326f67-4441-49bb-b3f4-d2f9a297c964.png)`,
