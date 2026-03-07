@@ -86,6 +86,15 @@ export const DistributionSection = () => {
                   />
                 </div>
               </div>
+
+              <div className="flex justify-center mt-6">
+                <Button variant="hero" size="lg" className="font-semibold">
+                  <span className="flex items-center gap-2">
+                    {t("distro.world.cta", "Saber más")}
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </Button>
+              </div>
               </div>
             </a>
           </ScrollReveal>
