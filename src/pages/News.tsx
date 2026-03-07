@@ -5,8 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Tag, ArrowRight, Search } from "lucide-react";
-import { useState } from "react";
+import { Calendar, ArrowRight, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 
 type BlogPost = {
@@ -25,6 +25,15 @@ const News = () => {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState<number | null>(9);
+
+  const perPageOptions: { label: string; value: number | null }[] = [
+    { label: "9", value: 9 },
+    { label: "15", value: 15 },
+    { label: "30", value: 30 },
+    { label: t("blog.all", "Todas"), value: null },
+  ];
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts"],
@@ -43,7 +52,7 @@ const News = () => {
     ? [...new Set(posts.map((p) => p.category).filter(Boolean))]
     : [];
 
-  const filtered = posts?.filter((p) => {
+  const filtered = useMemo(() => posts?.filter((p) => {
     const matchesCategory = !selectedCategory || p.category === selectedCategory;
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch = !query ||
@@ -51,7 +60,26 @@ const News = () => {
       (p.excerpt?.toLowerCase().includes(query)) ||
       (p.tags?.some(tag => tag.toLowerCase().includes(query)));
     return matchesCategory && matchesSearch;
-  });
+  }), [posts, selectedCategory, searchQuery]);
+
+  const totalItems = filtered?.length || 0;
+  const totalPages = perPage ? Math.ceil(totalItems / perPage) : 1;
+  const paginatedPosts = perPage
+    ? filtered?.slice((currentPage - 1) * perPage, currentPage * perPage)
+    : filtered;
+
+  const handleCategoryChange = (cat: string | null) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+  };
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+  const handlePerPageChange = (value: number | null) => {
+    setPerPage(value);
+    setCurrentPage(1);
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "";
@@ -86,7 +114,7 @@ const News = () => {
             <Input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={t("blog.searchPlaceholder", "Buscar artículos...")}
               className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
             />
@@ -96,7 +124,7 @@ const News = () => {
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center mb-10">
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => handleCategoryChange(null)}
                 className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                   !selectedCategory
                     ? "bg-primary text-primary-foreground"
@@ -108,7 +136,7 @@ const News = () => {
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => handleCategoryChange(cat)}
                   className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                     selectedCategory === cat
                       ? "bg-primary text-primary-foreground"
@@ -137,66 +165,129 @@ const News = () => {
                 </div>
               ))}
             </div>
-          ) : filtered && filtered.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((post) => (
-                <Link
-                  key={post.id}
-                  to={`/news/${post.slug}`}
-                  className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1"
-                >
-                  {post.image_url && (
-                    <div className="h-48 overflow-hidden">
-                      <img
-                        src={post.image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
-                  <div className="p-5">
-                    <div className="flex items-center gap-3 mb-3 text-xs text-white/50">
-                      {post.category && (
-                        <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          {post.category}
-                        </span>
-                      )}
-                      {post.published_at && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatDate(post.published_at)}
-                        </span>
-                      )}
-                    </div>
-                    <h2 className="text-lg font-semibold text-white/90 group-hover:text-white mb-2 line-clamp-2">
-                      {post.title}
-                    </h2>
-                    {post.excerpt && (
-                      <p className="text-white/50 text-sm line-clamp-3 mb-3">
-                        {post.excerpt}
-                      </p>
-                    )}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {post.tags.slice(0, 3).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] text-white/40 bg-white/5 px-2 py-0.5 rounded"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+          ) : paginatedPosts && paginatedPosts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    to={`/news/${post.slug}`}
+                    className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1"
+                  >
+                    {post.image_url && (
+                      <div className="h-48 overflow-hidden">
+                        <img
+                          src={post.image_url}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
                       </div>
                     )}
-                    <span className="text-primary text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-                      {t("blog.readMore", "Leer más")}
-                      <ArrowRight className="w-3 h-3" />
+                    <div className="p-5">
+                      <div className="flex items-center gap-3 mb-3 text-xs text-white/50">
+                        {post.category && (
+                          <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                            {post.category}
+                          </span>
+                        )}
+                        {post.published_at && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {formatDate(post.published_at)}
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="text-lg font-semibold text-white/90 group-hover:text-white mb-2 line-clamp-2">
+                        {post.title}
+                      </h2>
+                      {post.excerpt && (
+                        <p className="text-white/50 text-sm line-clamp-3 mb-3">
+                          {post.excerpt}
+                        </p>
+                      )}
+                      {post.tags && post.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {post.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] text-white/40 bg-white/5 px-2 py-0.5 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <span className="text-primary text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                        {t("blog.readMore", "Leer más")}
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-10">
+                <div className="flex items-center gap-2 text-sm text-white/50">
+                  <span>{t("blog.show", "Mostrar")}:</span>
+                  {perPageOptions.map((opt) => (
+                    <button
+                      key={opt.label}
+                      onClick={() => handlePerPageChange(opt.value)}
+                      className={`px-3 py-1 rounded-md transition-colors ${
+                        perPage === opt.value
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/10 text-white/60 hover:bg-white/20"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 rounded-md bg-white/10 text-white/60 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1)
+                      .map((page, idx, arr) => (
+                        <span key={page} className="flex items-center gap-1">
+                          {idx > 0 && arr[idx - 1] !== page - 1 && (
+                            <span className="text-white/30 px-1">…</span>
+                          )}
+                          <button
+                            onClick={() => setCurrentPage(page)}
+                            className={`w-8 h-8 rounded-md text-sm transition-colors ${
+                              currentPage === page
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-white/10 text-white/60 hover:bg-white/20"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </span>
+                      ))}
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 rounded-md bg-white/10 text-white/60 hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                    <span className="text-white/40 text-sm ml-2">
+                      {totalItems} {t("blog.articles", "artículos")}
                     </span>
                   </div>
-                </Link>
-              ))}
-            </div>
+                )}
+              </div>
+            </>
           ) : (
             <p className="text-center text-white/40 py-20">
               {t("blog.noPosts", "No hay artículos disponibles.")}
