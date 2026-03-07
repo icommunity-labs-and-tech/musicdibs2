@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Mail, User, MessageSquare, Send, HelpCircle } from "lucide-react";
 import { z } from "zod";
 
-const REASON_KEYS = ["registration_error", "distribution_error", "inquiry", "partner_proposal", "other"] as const;
+const REASON_KEYS = ["inquiry", "distribution_error", "marketing_interest", "other", "partner_proposal", "registration_error"] as const;
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
