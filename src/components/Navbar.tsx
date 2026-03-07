@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSelector } from "./LanguageSelector";
 import { getNavLinks } from "@/i18nLinks";
 import { Menu, X, ChevronDown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export const Navbar = () => {
   const [distOpen, setDistOpen] = useState(false);
@@ -91,6 +92,7 @@ export const Navbar = () => {
           <a href={links.market} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.market')}</a>
           <a href={links.dibs} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.dibs')}</a>
           <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.verifier')}</a>
+          <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
         </div>
 
         {/* Language + CTA + Mobile toggle */}
@@ -143,8 +145,9 @@ export const Navbar = () => {
           <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.market')}</a>
           <a href={links.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.dibs')}</a>
           <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.verifier')}</a>
+          <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
 
-          <Button 
+          <Button
             variant="glass" 
             className="font-semibold w-full mt-2"
             onClick={() => { setMobileOpen(false); window.open(links.login, '_blank'); }}
