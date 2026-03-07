@@ -152,6 +152,9 @@ const resources = {
         portal_access_desc: 'Gestiona tus lanzamientos y royalties',
         conditions: 'Condiciones de Distribución',
         conditions_desc: 'Política y requisitos del servicio',
+        cta_title: '¿Listo para distribuir tu música?',
+        cta_desc: 'Elige el plan que mejor se adapte a ti y empieza a llegar a millones de oyentes en todo el mundo.',
+        cta_button: 'Ver planes y precios',
         faq: {
           title: 'Preguntas Frecuentes',
           items: [
@@ -426,6 +429,9 @@ const resources = {
         portal_access_desc: 'Manage your releases and royalties',
         conditions: 'Distribution Conditions',
         conditions_desc: 'Service policy and requirements',
+        cta_title: 'Ready to distribute your music?',
+        cta_desc: 'Choose the plan that suits you best and start reaching millions of listeners worldwide.',
+        cta_button: 'View plans and pricing',
         faq: {
           title: 'Frequently Asked Questions',
           items: [
@@ -683,6 +689,9 @@ const resources = {
         portal_access_desc: 'Gerencie seus lançamentos e royalties',
         conditions: 'Condições de Distribuição',
         conditions_desc: 'Política e requisitos do serviço',
+        cta_title: 'Pronto para distribuir sua música?',
+        cta_desc: 'Escolha o plano que melhor se adapta a você e comece a alcançar milhões de ouvintes em todo o mundo.',
+        cta_button: 'Ver planos e preços',
         faq: {
           title: 'Perguntas Frequentes',
           items: [
