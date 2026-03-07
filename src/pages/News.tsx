@@ -52,7 +52,7 @@ const News = () => {
     ? [...new Set(posts.map((p) => p.category).filter(Boolean))]
     : [];
 
-  const filtered = posts?.filter((p) => {
+  const filtered = useMemo(() => posts?.filter((p) => {
     const matchesCategory = !selectedCategory || p.category === selectedCategory;
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch = !query ||
@@ -60,7 +60,27 @@ const News = () => {
       (p.excerpt?.toLowerCase().includes(query)) ||
       (p.tags?.some(tag => tag.toLowerCase().includes(query)));
     return matchesCategory && matchesSearch;
-  });
+  }), [posts, selectedCategory, searchQuery]);
+
+  const totalItems = filtered?.length || 0;
+  const totalPages = perPage ? Math.ceil(totalItems / perPage) : 1;
+  const paginatedPosts = perPage
+    ? filtered?.slice((currentPage - 1) * perPage, currentPage * perPage)
+    : filtered;
+
+  // Reset page when filters change
+  const handleCategoryChange = (cat: string | null) => {
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+  };
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+  const handlePerPageChange = (value: number | null) => {
+    setPerPage(value);
+    setCurrentPage(1);
+  };
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "";
