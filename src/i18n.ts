@@ -555,6 +555,7 @@ const resources = {
         all_rights: 'All rights reserved.',
       },
     },
+  },
   'pt-BR': {
     translation: {
       nav: { pricing: 'Preços', faq: 'FAQ', support: 'Suporte', news: 'Notícias', distribution: 'Distribuição', access: 'Acesso', info: 'Informações', market: 'Market', dibs: 'DIBS Token', verifier: 'Verificar', login: 'Login', contact: 'Contato' },
