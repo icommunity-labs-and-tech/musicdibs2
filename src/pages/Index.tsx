@@ -12,7 +12,7 @@ import { SEO } from "@/components/SEO";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen page-bg">
       <SEO
         title="MusicDibs - Registro y Distribución Musical"
         description="Distribuye tu música en Spotify, Apple Music, YouTube Music y más de 150 plataformas digitales. Protege tus derechos con certificación blockchain."
