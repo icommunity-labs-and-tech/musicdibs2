@@ -55,7 +55,7 @@ const Footer = () => {
             <Link to="/faq" className="block text-white/80 hover:text-white transition-colors">
               {t('nav.faq')}
             </Link>
-            <a href={links.left.mediaKit.replace('Media-Kit-Musicdibs.zip', '')} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+            <a href={navLinks.news} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
               {t('nav.news')}
             </a>
             <Link to="/partners" className="block text-white/80 hover:text-white transition-colors">
@@ -81,7 +81,7 @@ const Footer = () => {
             <Link to="/terms" className="block text-white/80 hover:text-white transition-colors">
               Términos y condiciones
             </Link>
-            <a href={links.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+            <a href={footerLinks.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
               DIBS Token
             </a>
           </div>
