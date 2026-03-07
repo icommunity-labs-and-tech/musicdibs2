@@ -105,7 +105,7 @@ const News = () => {
             {t("blog.title", "Blog & Novedades")}
           </h1>
           <p className="text-white/60 text-center mb-12 text-lg">
-            {t("blog.subtitle", "Las últimas novedades de MusicDibs")}
+            {t("blog.subtitle", "Tendencias, consejos y novedades para artistas independientes")}
           </p>
 
           {/* Search */}
