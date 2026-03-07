@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
+import { ComparisonTable } from "@/components/ComparisonTable";
 
 // Base prices in EUR
 const BASE_PRICES = {
@@ -161,6 +162,9 @@ export const PricingSection = () => {
             </div>
           </div>
         </div>
+
+        {/* Comparison Table */}
+        <ComparisonTable />
       </div>
     </section>
   );
