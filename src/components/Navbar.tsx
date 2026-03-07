@@ -64,6 +64,9 @@ export const Navbar = () => {
 
         {/* Desktop navigation links */}
         <div className="hidden lg:flex items-center space-x-8">
+          <button onClick={() => scrollToSection('services-section')} className="text-white/80 hover:text-white transition-colors">
+            {t('nav.services')}
+          </button>
           <button onClick={() => scrollToSection('pricing-section')} className="text-white/80 hover:text-white transition-colors">
             {t('nav.pricing')}
           </button>
@@ -139,6 +142,9 @@ export const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden mt-4 rounded-xl bg-black/70 backdrop-blur-lg border border-white/10 p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+          <button onClick={() => scrollToSection('services-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+            {t('nav.services')}
+          </button>
           <button onClick={() => scrollToSection('pricing-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
             {t('nav.pricing')}
           </button>
