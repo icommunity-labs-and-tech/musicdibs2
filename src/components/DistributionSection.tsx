@@ -2,6 +2,7 @@ import { Music, Users, ShoppingCart, Zap } from "lucide-react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getNavLinks } from "@/i18nLinks";
+import { Link } from "react-router-dom";
 
 export const DistributionSection = () => {
   const { t, i18n } = useTranslation();
