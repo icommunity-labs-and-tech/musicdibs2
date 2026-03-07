@@ -21,7 +21,7 @@ const TestimonialsSection = () => {
     {
       name: "Martín",
       title: "Taller de música online",
-      videoId: "h6YZLyXfA_A"
+      videoId: "O7f3tdP6NjI"
     },
     {
       name: "Nico Astegiano",
