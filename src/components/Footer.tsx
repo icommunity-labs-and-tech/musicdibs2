@@ -42,7 +42,7 @@ const Footer = () => {
             <div className="space-y-3">
               <Link to="/verify" className="block text-white/80 hover:text-white transition-colors">
                 Verificar registro
-              </a>
+              </Link>
               <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
                 Validez legal
               </Link>

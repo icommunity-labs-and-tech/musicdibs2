@@ -107,7 +107,7 @@ export const Navbar = () => {
                 <li>
                   <Link to="/verify" className="block px-4 py-2 hover:bg-gray-100" onClick={() => setServicesOpen(false)}>
                     {t('nav.verifier')}
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
