@@ -115,7 +115,7 @@ const News = () => {
             <Input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={t("blog.searchPlaceholder", "Buscar artículos...")}
               className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
             />
@@ -125,7 +125,7 @@ const News = () => {
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center mb-10">
               <button
-                onClick={() => setSelectedCategory(null)}
+                onClick={() => handleCategoryChange(null)}
                 className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                   !selectedCategory
                     ? "bg-primary text-primary-foreground"
@@ -137,7 +137,7 @@ const News = () => {
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setSelectedCategory(cat)}
+                  onClick={() => handleCategoryChange(cat)}
                   className={`px-4 py-1.5 rounded-full text-sm transition-colors ${
                     selectedCategory === cat
                       ? "bg-primary text-primary-foreground"
