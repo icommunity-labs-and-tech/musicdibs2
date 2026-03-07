@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ContactPayload {
@@ -13,6 +13,28 @@ interface ContactPayload {
   phone?: string;
   subject: string;
   message: string;
+  website?: string; // honeypot field
+}
+
+// In-memory rate limiting (per function instance)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5;
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return false;
+  }
+
+  entry.count++;
+  if (entry.count > RATE_LIMIT) {
+    return true;
+  }
+  return false;
 }
 
 serve(async (req: Request) => {
@@ -21,7 +43,30 @@ serve(async (req: Request) => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("cf-connecting-ip") ||
+      "unknown";
+
+    if (isRateLimited(clientIp)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const payload: ContactPayload = await req.json();
+
+    // Honeypot check — if the hidden field has a value, it's a bot
+    if (payload.website && payload.website.trim().length > 0) {
+      // Silently accept to not tip off the bot
+      console.log("Honeypot triggered, ignoring submission");
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Validate
     if (!payload.name || !payload.email || !payload.subject || !payload.message) {
@@ -93,7 +138,6 @@ serve(async (req: Request) => {
         }
       } catch (emailErr) {
         console.error("Email notification error:", emailErr);
-        // Don't fail the request if email fails
       }
     }
 

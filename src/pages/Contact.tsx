@@ -29,6 +29,7 @@ const Contact = () => {
     phone: "",
     subject: "",
     message: "",
+    website: "", // honeypot
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -54,8 +55,8 @@ const Contact = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("send-contact-email", {
-        body: result.data,
+      const { data, error } = await supabase.functions.invoke("send-contact-email", {
+        body: { ...result.data, website: form.website },
       });
 
       if (error) throw error;
@@ -64,7 +65,7 @@ const Contact = () => {
         title: t("contact.success_title", "Message sent!"),
         description: t("contact.success_desc", "We'll get back to you soon."),
       });
-      setForm({ name: "", email: "", phone: "", subject: "", message: "" });
+      setForm({ name: "", email: "", phone: "", subject: "", message: "", website: "" });
     } catch {
       toast({
         title: t("contact.error_title", "Error"),
