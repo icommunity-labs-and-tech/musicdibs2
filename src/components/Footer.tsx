@@ -1,8 +1,9 @@
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const links = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   return (
     <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-pink-800 text-white overflow-hidden">
@@ -54,6 +55,9 @@ const Footer = () => {
               <a href={links.left.mediaKit} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Media Kit
               </a>
+              <Link to="/contact" className="block text-white/80 hover:text-white transition-colors">
+                {t('nav.contact')}
+              </Link>
             </div>
           </div>
 
