@@ -5,16 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
-import { Mail, Phone, User, MessageSquare, Send } from "lucide-react";
+import { Mail, User, MessageSquare, Send, HelpCircle } from "lucide-react";
 import { z } from "zod";
+
+const REASON_KEYS = ["registration_error", "distribution_error", "inquiry", "other"] as const;
 
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100),
   email: z.string().trim().email("Invalid email").max(255),
-  phone: z.string().trim().max(20).optional().or(z.literal("")),
+  reason: z.string().min(1, "Reason is required"),
   subject: z.string().trim().min(1, "Subject is required").max(200),
   message: z.string().trim().min(1, "Message is required").max(5000),
 });
@@ -26,7 +29,7 @@ const Contact = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    phone: "",
+    reason: "",
     subject: "",
     message: "",
     website: "", // honeypot
@@ -55,8 +58,16 @@ const Contact = () => {
 
     setLoading(true);
     try {
+      const reasonLabel = t(`contact.reasons.${form.reason}`);
       const { data, error } = await supabase.functions.invoke("send-contact-email", {
-        body: { ...result.data, website: form.website },
+        body: {
+          name: result.data.name,
+          email: result.data.email,
+          phone: "",
+          subject: `[${reasonLabel}] ${result.data.subject}`,
+          message: result.data.message,
+          website: form.website,
+        },
       });
 
       if (error) throw error;
@@ -65,7 +76,7 @@ const Contact = () => {
         title: t("contact.success_title", "Message sent!"),
         description: t("contact.success_desc", "We'll get back to you soon."),
       });
-      setForm({ name: "", email: "", phone: "", subject: "", message: "", website: "" });
+      setForm({ name: "", email: "", reason: "", subject: "", message: "", website: "" });
     } catch {
       toast({
         title: t("contact.error_title", "Error"),
@@ -143,20 +154,25 @@ const Contact = () => {
               {errors.email && <p className="text-red-300 text-sm">{errors.email}</p>}
             </div>
 
-            {/* Phone */}
+            {/* Reason */}
             <div className="space-y-2">
-              <Label htmlFor="phone" className="text-white flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                {t("contact.phone", "Phone")}
+              <Label className="text-white flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" />
+                {t("contact.reason", "Reason for inquiry")} *
               </Label>
-              <Input
-                id="phone"
-                value={form.phone}
-                onChange={(e) => handleChange("phone", e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
-                placeholder={t("contact.phone_placeholder", "+1 234 567 890")}
-              />
-              {errors.phone && <p className="text-red-300 text-sm">{errors.phone}</p>}
+              <Select value={form.reason} onValueChange={(val) => handleChange("reason", val)}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                  <SelectValue placeholder={t("contact.reason_placeholder", "Select a reason")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {REASON_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {t(`contact.reasons.${key}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.reason && <p className="text-red-300 text-sm">{errors.reason}</p>}
             </div>
 
             {/* Subject */}
