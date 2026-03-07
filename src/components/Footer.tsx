@@ -71,9 +71,9 @@ const Footer = () => {
               <Link to="/sla" className="block text-white/80 hover:text-white transition-colors">
                 Acuerdo de nivel de servicios
               </Link>
-              <a href={links.corporate.privacy} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/privacy" className="block text-white/80 hover:text-white transition-colors">
                 Política de privacidad y protección de datos
-              </a>
+              </Link>
               <a href={links.corporate.terms} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Términos y condiciones
               </a>
