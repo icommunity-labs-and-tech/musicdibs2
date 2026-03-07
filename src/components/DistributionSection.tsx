@@ -184,7 +184,7 @@ export const DistributionSection = () => {
                 <div className="mt-6">
                   <Button variant="hero" size="lg" className="font-semibold">
                     <span className="flex items-center gap-2">
-                      Accede a nuestro Market
+                      {t("distro.market.cta", "Accede a nuestro Market")}
                       <ArrowRight className="w-4 h-4" />
                     </span>
                   </Button>
