@@ -16,6 +16,15 @@ interface ContactPayload {
   website?: string; // honeypot field
 }
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // In-memory rate limiting (per function instance)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 5;
@@ -123,12 +132,12 @@ serve(async (req: Request) => {
             subject: `New Contact Form: ${payload.subject}`,
             html: `
               <h2>New Contact Form Submission</h2>
-              <p><strong>Name:</strong> ${payload.name}</p>
-              <p><strong>Email:</strong> ${payload.email}</p>
-              ${payload.phone ? `<p><strong>Phone:</strong> ${payload.phone}</p>` : ""}
-              <p><strong>Subject:</strong> ${payload.subject}</p>
+              <p><strong>Name:</strong> ${escapeHtml(payload.name)}</p>
+              <p><strong>Email:</strong> ${escapeHtml(payload.email)}</p>
+              ${payload.phone ? `<p><strong>Phone:</strong> ${escapeHtml(payload.phone)}</p>` : ""}
+              <p><strong>Subject:</strong> ${escapeHtml(payload.subject)}</p>
               <p><strong>Message:</strong></p>
-              <p>${payload.message.replace(/\n/g, "<br>")}</p>
+              <p>${escapeHtml(payload.message).replace(/\n/g, "<br>")}</p>
             `,
             purpose: "transactional",
           }),
