@@ -151,6 +151,14 @@ export const DistributionSection = () => {
                 <p className="text-white/80 text-lg">
                   {t("distro.market.desc")}
                 </p>
+                <div className="mt-6">
+                  <Button variant="hero" size="lg" className="font-semibold">
+                    <span className="flex items-center gap-2">
+                      Accede a nuestro Market
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Button>
+                </div>
               </div>
               </div>
             </a>
