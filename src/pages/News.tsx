@@ -43,9 +43,15 @@ const News = () => {
     ? [...new Set(posts.map((p) => p.category).filter(Boolean))]
     : [];
 
-  const filtered = selectedCategory
-    ? posts?.filter((p) => p.category === selectedCategory)
-    : posts;
+  const filtered = posts?.filter((p) => {
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query ||
+      p.title.toLowerCase().includes(query) ||
+      (p.excerpt?.toLowerCase().includes(query)) ||
+      (p.tags?.some(tag => tag.toLowerCase().includes(query)));
+    return matchesCategory && matchesSearch;
+  });
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "";
