@@ -39,6 +39,7 @@ const SLA = () => {
               <li>{t('sla.service_2')}</li>
               <li>{t('sla.service_3')}</li>
               <li>{t('sla.service_4')}</li>
+              <li>{t('sla.service_5')}</li>
             </ul>
 
             {/* SLA Categories */}
