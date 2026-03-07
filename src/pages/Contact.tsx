@@ -96,6 +96,20 @@ const Contact = () => {
             onSubmit={handleSubmit}
             className="space-y-6 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8"
           >
+            {/* Honeypot — hidden from real users, bots will fill it */}
+            <div className="absolute opacity-0 -z-10 h-0 overflow-hidden" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                value={form.website}
+                onChange={(e) => handleChange("website", e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             {/* Name */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-white flex items-center gap-2">
