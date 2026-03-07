@@ -85,18 +85,18 @@ const Footer = () => {
 
           {/* Block 3 - Corporativo */}
           <div className="space-y-3">
-            <h3 className="text-xl font-semibold text-white mb-4">Corporativo</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">{t('footer.corporate')}</h3>
             <Link to="/sla" className="block text-white/80 hover:text-white transition-colors">
-              Acuerdo de nivel de servicios
+              {t('footer.sla')}
             </Link>
             <Link to="/privacy" className="block text-white/80 hover:text-white transition-colors">
-              Política de privacidad y protección de datos
+              {t('footer.privacy')}
             </Link>
             <Link to="/cookies" className="block text-white/80 hover:text-white transition-colors">
-              Política de cookies
+              {t('footer.cookies')}
             </Link>
             <Link to="/terms" className="block text-white/80 hover:text-white transition-colors">
-              Términos y condiciones
+              {t('footer.terms')}
             </Link>
             <a href={footerLinks.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
               DIBS Token
@@ -105,7 +105,7 @@ const Footer = () => {
 
           {/* Block 4 - Redes Sociales */}
           <div className="space-y-3">
-            <h3 className="text-xl font-semibold text-white mb-4">Redes Sociales</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">{t('footer.socialMedia')}</h3>
             <div className="flex space-x-4">
               <a href="https://twitter.com/musicdibs" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
