@@ -380,7 +380,15 @@ const resources = {
   en: {
     translation: {
       nav: {
-        pricing: 'Pricing', faq: 'FAQ', support: 'Support', news: 'News', services: 'Services', distribution: 'Works Distribution', access: 'Access', info: 'Info', market: 'Works Marketplace', dibs: 'DIBS Token', verifier: 'Works Verifier', login: 'Register Works', contact: 'Contact', howItWorks: 'How it works?', accessServices: 'Access Services',
+        pricing: 'Pricing', faq: 'FAQ', support: 'Support', news: 'News', services: 'Services', distribution: 'Works Distribution', access: 'Access', info: 'Info', market: 'Works Marketplace', dibs: 'DIBS Token', verifier: 'Works Verifier', login: 'Register Works', contact: 'Contact', howItWorks: 'How it works?', accessServices: 'Access Services', marketing: 'Marketing & Promos', partners: 'Become a Partner', legalValidity: 'Legal Validity',
+      },
+      footer: {
+        corporate: 'Corporate',
+        socialMedia: 'Social Media',
+        sla: 'Service Level Agreement',
+        privacy: 'Privacy & Data Protection Policy',
+        cookies: 'Cookie Policy',
+        terms: 'Terms & Conditions',
       },
       hero: {
         title: 'Your work,', highlight: 'only yours', subtitle_prefix: 'Register, promote and distribute your music with', subtitle_strong: 'legal validity worldwide', legal_more: '+info', cta_start: 'Get Started', cta_how: 'See How It Works',
