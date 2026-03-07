@@ -1,4 +1,5 @@
-import { Music, Users, ShoppingCart, Zap } from "lucide-react";
+import { Music, Users, ShoppingCart, Zap, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getNavLinks } from "@/i18nLinks";
@@ -120,6 +121,15 @@ export const DistributionSection = () => {
                 />
               </div>
               </div>
+
+            <div className="flex justify-center mt-6">
+              <Button variant="hero" size="lg" className="font-semibold">
+                <span className="flex items-center gap-2">
+                  {t("distro.social.cta", "Saber más")}
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Button>
+            </div>
             </div>
           </Link>
           </ScrollReveal>
