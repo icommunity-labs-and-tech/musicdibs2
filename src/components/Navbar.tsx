@@ -51,7 +51,6 @@ export const Navbar = () => {
     }
   };
 
-  return (
   const { theme, toggleTheme } = useTheme();
 
   return (
