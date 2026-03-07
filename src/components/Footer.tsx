@@ -46,9 +46,6 @@ const Footer = () => {
               <a href={links.left.legal} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Tecnología y validez legal
               </a>
-              <a href={links.left.support} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
-                Soporte
-              </a>
               <a href={links.left.partners} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 Partners
               </a>
