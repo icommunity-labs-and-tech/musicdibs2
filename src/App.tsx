@@ -13,6 +13,7 @@ import Cookies from "./pages/Cookies";
 import FAQ from "./pages/FAQ";
 import LegalValidity from "./pages/LegalValidity";
 import Partners from "./pages/Partners";
+import Verify from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/faq" element={<FAQ />} />
           <Route path="/legal-validity" element={<LegalValidity />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/verify" element={<Verify />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

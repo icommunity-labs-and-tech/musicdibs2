@@ -40,7 +40,7 @@ const Footer = () => {
               </a>
             </div>
             <div className="space-y-3">
-              <a href={links.left.verify} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/verify" className="block text-white/80 hover:text-white transition-colors">
                 Verificar registro
               </a>
               <Link to="/legal-validity" className="block text-white/80 hover:text-white transition-colors">
