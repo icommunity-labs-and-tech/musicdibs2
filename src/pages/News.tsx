@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Tag, ArrowRight } from "lucide-react";
+import { Calendar, Tag, ArrowRight, Search } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 type BlogPost = {
   id: string;
@@ -23,6 +24,7 @@ type BlogPost = {
 const News = () => {
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["blog-posts"],
@@ -41,9 +43,15 @@ const News = () => {
     ? [...new Set(posts.map((p) => p.category).filter(Boolean))]
     : [];
 
-  const filtered = selectedCategory
-    ? posts?.filter((p) => p.category === selectedCategory)
-    : posts;
+  const filtered = posts?.filter((p) => {
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const query = searchQuery.toLowerCase().trim();
+    const matchesSearch = !query ||
+      p.title.toLowerCase().includes(query) ||
+      (p.excerpt?.toLowerCase().includes(query)) ||
+      (p.tags?.some(tag => tag.toLowerCase().includes(query)));
+    return matchesCategory && matchesSearch;
+  });
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "";
@@ -71,6 +79,18 @@ const News = () => {
           <p className="text-white/60 text-center mb-12 text-lg">
             {t("blog.subtitle", "Las últimas novedades de MusicDibs")}
           </p>
+
+          {/* Search */}
+          <div className="relative max-w-md mx-auto mb-8">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <Input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t("blog.searchPlaceholder", "Buscar artículos...")}
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+            />
+          </div>
 
           {/* Category filters */}
           {categories.length > 0 && (
