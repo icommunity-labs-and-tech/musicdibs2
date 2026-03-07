@@ -5,15 +5,18 @@ interface SEOProps {
   description: string;
   path?: string;
   type?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 const BASE_URL = "https://musicdibs.com";
 const OG_IMAGE = "/lovable-uploads/b347ac8a-e7a2-4c60-a54e-6bc186ef2ce3.png";
 
-export const SEO = ({ title, description, path = "/", type = "website" }: SEOProps) => {
+export const SEO = ({ title, description, path = "/", type = "website", jsonLd }: SEOProps) => {
   const url = `${BASE_URL}${path}`;
   const fullTitle = path === "/" ? title : `${title} | MusicDibs`;
   const imageUrl = `${BASE_URL}${OG_IMAGE}`;
+
+  const schemas = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
   return (
     <Helmet>
@@ -33,6 +36,12 @@ export const SEO = ({ title, description, path = "/", type = "website" }: SEOPro
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={imageUrl} />
+
+      {schemas.map((schema, i) => (
+        <script key={i} type="application/ld+json">
+          {JSON.stringify(schema)}
+        </script>
+      ))}
     </Helmet>
   );
 };

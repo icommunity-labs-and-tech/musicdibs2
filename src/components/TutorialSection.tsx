@@ -57,6 +57,7 @@ const TutorialSection = () => {
                   <CarouselItem>
                     <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
                       <iframe
+                        loading="lazy"
                         src="https://www.youtube.com/embed/a4HMb8pV2hQ"
                         title="Tutorial de Registro - Musicdibs"
                         frameBorder="0"
@@ -69,6 +70,7 @@ const TutorialSection = () => {
                   <CarouselItem>
                     <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
                       <iframe
+                        loading="lazy"
                         src="https://www.youtube.com/embed/YS8euOYAdp8"
                         title="Tutorial de Distribución - Musicdibs"
                         frameBorder="0"
