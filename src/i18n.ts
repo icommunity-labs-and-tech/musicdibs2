@@ -107,7 +107,7 @@ const resources = {
       },
       tutorial: {
         heading: '¿Cómo funciona?',
-        subtitle: 'Ve los 2 tutoriales de registro y distribución y verás lo sencillo que es.',
+        subtitle: 'Mira nuestros tutoriales sobre registro y distribución de obras y verás lo sencillo que es.',
         steps: {
           step: 'Paso',
           s1: { title: 'Date de alta', desc: 'Regístrate y verifica tu identidad para dar validez legal a tus registros.' },
