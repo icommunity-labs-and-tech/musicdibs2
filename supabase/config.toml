@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.chat-support]
 verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.translate-blog-posts]
+verify_jwt = false
