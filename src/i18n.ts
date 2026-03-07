@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { legalTranslations } from './i18nLegal';
+import { faqTranslations } from './i18nFaq';
 
 const savedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') || 'es' : 'es';
 
@@ -1125,12 +1126,15 @@ const resources = {
   },
 };
 
-// Merge legal translations into resources
+// Merge legal and FAQ translations into resources
 const langs = ['es', 'en', 'pt-BR'] as const;
 langs.forEach((lang) => {
   const key = lang === 'pt-BR' ? 'pt-BR' : lang;
   if (resources[key] && legalTranslations[lang]) {
     Object.assign(resources[key].translation, legalTranslations[lang]);
+  }
+  if (resources[key] && faqTranslations[lang]) {
+    Object.assign(resources[key].translation, faqTranslations[lang]);
   }
 });
 
