@@ -19,10 +19,7 @@ const Terms = () => {
             <h2 className="text-2xl font-bold text-white">{t("terms.general_purchase_title")}</h2>
             <h3 className="text-xl font-semibold text-pink-300">{t("terms.general_conditions_title")}</h3>
             <p className="text-white/80 leading-relaxed">
-              <strong>Musicdibs</strong> {t("terms.general_conditions_text").replace('Musicdibs es un producto de', '').replace('Musicdibs is a product of', '').replace('Musicdibs é um produto da', '')}
-            </p>
-            <p className="text-white/80 leading-relaxed">
-              <strong>Musicdibs</strong> — {t("terms.general_conditions_text")}
+              {t("terms.general_conditions_text")}
             </p>
 
             <h2 className="text-2xl font-bold text-white mt-10">{t("terms.refund_title")}</h2>
