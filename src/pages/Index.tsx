@@ -73,9 +73,9 @@ const Index = () => {
       <ArtistsBanner />
       <WhyChooseSection />
       <DistributionSection />
+      <TestimonialsSection />
       <RoyaltiesCalculator />
       <PricingSection />
-      <TestimonialsSection />
       <TutorialSection />
       <Footer />
     </div>
