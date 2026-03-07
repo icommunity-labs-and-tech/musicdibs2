@@ -74,26 +74,36 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</a>
 
-          {/* Servicios dropdown */}
+          <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
+        </div>
+
+        {/* Language + CTA + Mobile toggle */}
+        <div className="flex items-center gap-3">
+          <LanguageSelector />
           <div
-            className="relative"
+            className="relative hidden lg:block"
             onMouseEnter={openServices}
             onMouseLeave={closeServicesWithDelay}
           >
-            <button
-              className="text-white/80 hover:text-white transition-colors flex items-center gap-1"
-              aria-haspopup="menu"
-              aria-expanded={servicesOpen}
+            <Button 
+              variant="glass" 
+              className="font-semibold flex items-center gap-1.5"
             >
-              {t('nav.services')}
+              {t('nav.accessServices')}
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
-            </button>
+            </Button>
             <div
               onMouseEnter={openServices}
               onMouseLeave={closeServicesWithDelay}
-              className={`absolute left-0 top-full w-56 rounded-md bg-white shadow-lg ring-1 ring-black/10 z-50 ${servicesOpen ? "block" : "hidden"}`}
+              className={`absolute right-0 top-full mt-1 w-56 rounded-md bg-white shadow-lg ring-1 ring-black/10 z-50 ${servicesOpen ? "block" : "hidden"}`}
             >
               <ul className="py-2 text-sm text-gray-700">
+                <li>
+                  <a href={links.login} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100 font-medium">
+                    {t('nav.login')}
+                  </a>
+                </li>
+                <li className="border-t border-gray-100 my-1" />
                 <li>
                   <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
                     {t('nav.distribution')}
@@ -112,20 +122,6 @@ export const Navbar = () => {
               </ul>
             </div>
           </div>
-
-          <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
-        </div>
-
-        {/* Language + CTA + Mobile toggle */}
-        <div className="flex items-center gap-3">
-          <LanguageSelector />
-          <Button 
-            variant="glass" 
-            className="font-semibold hidden lg:inline-flex"
-            onClick={() => window.open(links.login, '_blank')}
-          >
-            {t('nav.login')}
-          </Button>
           <button
             className="lg:hidden text-white p-2"
             onClick={() => setMobileOpen(!mobileOpen)}
