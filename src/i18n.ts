@@ -72,10 +72,10 @@ const resources = {
       },
       pricing: {
         title: 'Precios',
-        subtitle: '¡Ahorra grandes costes que tendrías en los servicios por separado que ofrece el mercado, contratando nuestro plan Plus+!',
+        subtitle: '¡Contrata YA nuestro plan Plus+ y ahorra hasta un 35%!',
         toggleBasic: 'Basic',
         togglePlus: 'Plan Plus+',
-        badgeAnnual: 'Cuota registro + 4 meses GRATIS',
+        badgeAnnual: 'Incluye: cuota registro + 4 meses GRATIS',
         priceAnnualSuffix: ' / Año',
         priceMonthlySuffix: ' / Mes',
         signupFeeNote: 'y 6,90 € cuota de inscripción',
@@ -88,15 +88,15 @@ const resources = {
         conditionsText: 'Impuestos NO incluidos (se aplicará el 21% de IVA para países UE). Las suscripciones mensuales y anuales se renuevan automáticamente al finalizar el periodo de suscripción. Más información en FAQ y en términos de uso y compra.',
         features: {
           annual: [
-            'Protege tu catálogo completo (Hasta 120 registros al año, SIN costes extra)',
-            'Distribución Musical +220 DSPs(spotify, apple music, ..)',
-            'Genera dinero con las escuchas de tus canciones',
+            'Registra y protege tu catálogo completo (hasta 120 obras al año SIN costes extra)',
+            'Distribuye tus obras en +220 DSPs (Spotify, Apple Music, Amazon Music, Youtube Music, ..)',
+            'Recibe hasta el 95% en royalties por tus reproducciones',
             'Acceso continuo a certificados',
             
-            '2 Promoción Plus/mes en TikTok (+245k seguidores) – Instagram (+100k)*',
-            'Market MusicDibs – Promociona y vende tus obras',
+            '2 Promos/mes en TikTok (+245k seguidores) e Instagram (+100k)*',
+            'Marketplace MusicDibs – Promociona y vende tus obras',
             'Soporte prioritario',
-            'Ayuda ante disputas'
+            'Ayuda ante reclamaciones y/o disputas'
           ],
           monthly: [
             'Cuota de inscripción sólo primer mes',
