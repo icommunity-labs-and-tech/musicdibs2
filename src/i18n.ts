@@ -434,7 +434,7 @@ const resources = {
       },
       promoBanner: { text: "Valentine's Day: -20% on all subscriptions" },
       summerPromo: { title: "VALENTINE'S DAY", discount: '-20%', onAllSubs: 'On all subscriptions', enterCoupon: 'Enter the coupon at checkout.', discountCode: 'Discount code', code: 'LOVE20', footnote: '*Limited time offer' },
-      distro: { heading: 'Distribution & Promotion', subheading: 'Take your music worldwide and reach millions of fans', world: { title: 'Distribution Service', desc: 'Release your works worldwide on 220+ DSPs and EARN royalties' }, social: { title: 'Promotion Service', desc: 'Promote yourself on our socials with 300,000+ followers!' }, market: { title: 'Marketplace', desc: 'Sell your creations in our market and EARN money' }, nfts: { title: 'NFTs & Marketing', desc: 'Create NFTs to offer your fans as part of your marketing campaigns' } },
+      distro: { heading: 'Registration, Distribution, Promotion & Sales', subheading: 'Protect your music, take it worldwide, sell it directly and reach millions of fans', world: { title: 'Distribution Service', desc: 'Release your works worldwide on 220+ DSPs and EARN royalties' }, social: { title: 'Promotion Service', desc: 'Promote yourself on our socials with 300,000+ followers!' }, market: { title: 'Marketplace', desc: 'Sell your creations in our market and EARN money' }, nfts: { title: 'NFTs & Marketing', desc: 'Create NFTs to offer your fans as part of your marketing campaigns' } },
       distribution: {
         badge: 'Music Distribution',
         title: 'Music Distribution',
