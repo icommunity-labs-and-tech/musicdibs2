@@ -23,6 +23,17 @@ const resources = {
         contact: 'Contacto',
         howItWorks: '¿Cómo funciona?',
         accessServices: 'Acceso a servicios',
+        marketing: 'Marketing y Promos',
+        partners: 'Hazte Partner',
+        legalValidity: 'Validez legal',
+      },
+      footer: {
+        corporate: 'Corporativo',
+        socialMedia: 'Redes Sociales',
+        sla: 'Acuerdo de nivel de servicios',
+        privacy: 'Política de privacidad y protección de datos',
+        cookies: 'Política de cookies',
+        terms: 'Términos y condiciones',
       },
       hero: {
         title: 'Tu obra,',
