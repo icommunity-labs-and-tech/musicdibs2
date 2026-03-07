@@ -118,14 +118,14 @@ const SocialProofPopup = () => {
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium leading-snug">
               <span className="font-bold">{data.name}</span>{" "}
-              <span className="text-white/70">{t("social_proof.from")}</span>{" "}
+              <span className="text-white/70">{t("privacy.social_proof.from")}</span>{" "}
               <span className="font-bold">{data.city}</span>{" "}
               <span className="text-white/70">
-                {t(`social_proof.action_${data.action}`)}
+                {t(`privacy.social_proof.action_${data.action}`)}
               </span>
             </p>
             <p className="text-white/50 text-xs mt-1">
-              {t(`social_proof.${data.timeAgo}`)}
+              {t(`privacy.social_proof.${data.timeAgo}`)}
             </p>
           </div>
         </div>
