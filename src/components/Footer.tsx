@@ -74,12 +74,12 @@ const Footer = () => {
               <Link to="/privacy" className="block text-white/80 hover:text-white transition-colors">
                 Política de privacidad y protección de datos
               </Link>
-              <a href={links.corporate.terms} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/terms" className="block text-white/80 hover:text-white transition-colors">
                 Términos y condiciones
-              </a>
-              <a href={links.corporate.cookies} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              </Link>
+              <Link to="/cookies" className="block text-white/80 hover:text-white transition-colors">
                 Política de cookies
-              </a>
+              </Link>
             </div>
           </div>
 
