@@ -11,29 +11,34 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    if (isSignup) {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      } else {
+        toast({ title: "Cuenta creada", description: "Tu cuenta ha sido creada. Contacta al administrador para asignar el rol admin." });
+        setIsSignup(false);
+      }
       setLoading(false);
       return;
     }
 
-    // Check if user has admin role
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -43,11 +48,7 @@ const AdminLogin = () => {
 
     if (!roleData) {
       await supabase.auth.signOut();
-      toast({
-        title: "Acceso denegado",
-        description: "No tienes permisos de administrador.",
-        variant: "destructive",
-      });
+      toast({ title: "Acceso denegado", description: "No tienes permisos de administrador.", variant: "destructive" });
       setLoading(false);
       return;
     }
@@ -68,7 +69,7 @@ const AdminLogin = () => {
             <p className="text-white/50 text-sm mt-1">MusicDibs CMS</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-white/70">Email</Label>
               <Input
@@ -94,8 +95,11 @@ const AdminLogin = () => {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+              {loading ? (isSignup ? "Registrando..." : "Entrando...") : (isSignup ? "Registrarse" : "Entrar")}
             </Button>
+            <button type="button" onClick={() => setIsSignup(!isSignup)} className="w-full text-sm text-white/40 hover:text-white/60 transition">
+              {isSignup ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate"}
+            </button>
           </form>
         </div>
       </div>
