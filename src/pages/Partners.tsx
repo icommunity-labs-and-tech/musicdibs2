@@ -15,7 +15,7 @@ const Partners = () => {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+    <div className="min-h-screen page-bg">
       <SEO title="Partners" description={t('partners_page.subtitle')} path="/partners" />
       <Navbar />
 

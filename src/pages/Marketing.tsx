@@ -15,7 +15,7 @@ const Marketing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+    <div className="min-h-screen page-bg">
       <SEO title="Marketing y Promoción" description="Impulsa tu música con servicios profesionales de diseño de portadas, vídeos y promoción en redes sociales." path="/marketing" />
       <Navbar />
 

@@ -13,7 +13,7 @@ const Distribution = () => {
   const faqItems = t("distribution.faq.items", { returnObjects: true }) as Array<{ q: string; a: string }>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] text-white">
+    <div className="min-h-screen page-bg">
       <SEO title="Distribución Musical" description="Distribuye tu música en Spotify, Apple Music, YouTube Music y más de 150 plataformas con MusicDibs. 95% de royalties." path="/distribution" />
       <Navbar />
 

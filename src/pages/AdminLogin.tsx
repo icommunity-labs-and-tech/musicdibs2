@@ -59,7 +59,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a0a2e] via-[#16082a] to-[#0d0618] flex items-center justify-center px-6">
+    <div className="min-h-screen page-bg flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
           <div className="text-center mb-8">
