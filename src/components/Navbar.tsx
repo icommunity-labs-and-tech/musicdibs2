@@ -11,7 +11,6 @@ export const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const closeTimeout = useRef<number | null>(null);
-  const closeTimeout = useRef<number | null>(null);
 
   const openServices = () => {
     if (closeTimeout.current) {
