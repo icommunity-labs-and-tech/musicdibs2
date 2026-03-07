@@ -105,9 +105,9 @@ export const Navbar = () => {
                   </a>
                 </li>
                 <li>
-                  <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
+                  <Link to="/verify" className="block px-4 py-2 hover:bg-gray-100" onClick={() => setServicesOpen(false)}>
                     {t('nav.verifier')}
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -162,7 +162,7 @@ export const Navbar = () => {
               <div className="pl-4 space-y-2 mt-1">
                 <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.distribution')}</a>
                 <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
-                <a href={links.verifier} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</a>
+                <Link to="/verify" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</Link>
               </div>
             )}
           </div>
