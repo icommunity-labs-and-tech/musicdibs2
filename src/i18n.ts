@@ -152,6 +152,7 @@ const resources = {
         success_desc: 'Te responderemos pronto.',
         error_title: 'Error',
         error_desc: 'Algo salió mal. Inténtalo de nuevo.',
+      },
       sla: {
         title: 'Acuerdo de Nivel de Servicio (SLA)',
         intro: 'El propósito de este documento es indicar el nivel de servicio en términos de disponibilidad de los Servicios proporcionados por el sitio web Musicdibs, perteneciente a iCommunity Labs & Tech SL (en adelante denominado individualmente como "el Proveedor" o conjuntamente como "los Proveedores" o "Musicdibs"), así como describir los procesos para reportar, catalogar, escalar y resolver incidencias en los servicios ofrecidos y sus correspondientes tiempos de respuesta.',
