@@ -146,8 +146,8 @@ const resources = {
         heading: 'Registro, Distribución, Promoción y ventas',
         subheading: 'Protege tu música, llévala al mundo entero, véndela directamente y conecta con millones de fans',
         world: { title: 'Servicio de Distribución', desc: 'Lanza tus obras en más de 220 plataformas digitales de todo el mundo y GANA hasta el 95% en royalties' },
-        social: { title: 'Servicio de Promoción', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!' },
-        market: { title: 'Vende tus obras', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero' },
+        social: { title: 'Servicio de Promoción en RRSS', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!' },
+        market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero' },
         nfts: { title: 'Servicios de Marketing', desc: 'Crea impresionantes portadas y vídeos para tus lanzamientos  y campañas de marketing' },
       },
       distribution: {
