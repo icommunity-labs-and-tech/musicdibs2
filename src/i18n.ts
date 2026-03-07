@@ -130,10 +130,10 @@ const resources = {
       distro: {
         heading: 'Distribución y Promoción',
         subheading: 'Lleva tu música al mundo entero y conecta con millones de fans',
-        world: { title: 'Distribución Mundial', desc: 'Despliega tus obras a nivel mundial en todas las plataformas digitales +220 DSPs y GANA Royalties' },
-        social: { title: 'Promoción en Redes Sociales', desc: 'Promocionate en nuestras redes sociales con ¡+300.000 seguidores!' },
-        market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro market y GANA dinero' },
-        nfts: { title: 'NFTs & Marketing', desc: 'Genera NFTs para ofrecerlos a tus seguidores como parte de tus campañas de marketing' },
+        world: { title: 'Distribución Mundial', desc: 'Lanza tus obras en más de 220 plataformas digitales de todo el mundo y GANA hasta el 95% en royalties' },
+        social: { title: 'Promoción en Redes Sociales', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!' },
+        market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero' },
+        nfts: { title: 'Servicios de Marketing', desc: 'Crea impresionantes portadas y vídeos para tus lanzamientos  y campañas de marketing' },
       },
       contact: {
         heading: 'Contáctanos',
