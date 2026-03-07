@@ -74,7 +74,10 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</a>
 
+          <div className="w-px h-5 bg-white/20" />
+
           <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
+          <Link to="/partners" className="text-white/80 hover:text-white transition-colors">{t('nav.partners', 'Hazte Partner')}</Link>
         </div>
 
         {/* Language + CTA + Mobile toggle */}
@@ -145,7 +148,10 @@ export const Navbar = () => {
           
           <a href={links.news} target="_blank" rel="noopener noreferrer" className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</a>
 
+          <div className="w-full h-px bg-white/10" />
+
           <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
+          <Link to="/partners" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.partners', 'Hazte Partner')}</Link>
 
           {/* Access to services accordion */}
           <div className="border-t border-white/10 pt-3 mt-2">
