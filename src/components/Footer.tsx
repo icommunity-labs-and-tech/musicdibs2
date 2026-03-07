@@ -62,9 +62,9 @@ const Footer = () => {
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-white mb-4">Corporativo</h3>
             <div className="space-y-3">
-              <a href={links.corporate.contact} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
+              <Link to="/contact" className="block text-white/80 hover:text-white transition-colors">
                 Contacto
-              </a>
+              </Link>
               <a href={links.corporate.dibs} target="_blank" rel="noopener noreferrer" className="block text-white/80 hover:text-white transition-colors">
                 DIBS Token
               </a>
