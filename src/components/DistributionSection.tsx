@@ -138,8 +138,33 @@ export const DistributionSection = () => {
           </Link>
           </ScrollReveal>
 
-          {/* Marketplace */}
+          {/* NFTs & Marketing */}
           <ScrollReveal delay={400}>
+            <Link to="/marketing" className="block">
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-full bg-pink-500 flex items-center justify-center mb-6">
+                  <Zap className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4">{t("distro.nfts.title")}</h3>
+                <p className="text-white/80 text-lg">
+                  {t("distro.nfts.desc")}
+                </p>
+                <div className="mt-6">
+                  <Button variant="hero" size="lg" className="font-semibold">
+                    <span className="flex items-center gap-2">
+                      {t("distro.nfts.cta", "Saber más")}
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            </Link>
+          </ScrollReveal>
+
+          {/* Marketplace */}
+          <ScrollReveal delay={500}>
             <a 
               href={links.market} 
               target="_blank" 
@@ -166,31 +191,6 @@ export const DistributionSection = () => {
               </div>
               </div>
             </a>
-          </ScrollReveal>
-
-          {/* NFTs & Marketing */}
-          <ScrollReveal delay={500}>
-            <Link to="/marketing" className="block">
-            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
-              <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full bg-pink-500 flex items-center justify-center mb-6">
-                  <Zap className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-4">{t("distro.nfts.title")}</h3>
-                <p className="text-white/80 text-lg">
-                  {t("distro.nfts.desc")}
-                </p>
-                <div className="mt-6">
-                  <Button variant="hero" size="lg" className="font-semibold">
-                    <span className="flex items-center gap-2">
-                      {t("distro.nfts.cta", "Saber más")}
-                      <ArrowRight className="w-4 h-4" />
-                    </span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-            </Link>
           </ScrollReveal>
         </div>
       </div>
