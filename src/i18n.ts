@@ -132,6 +132,7 @@ const resources = {
         social: { title: 'Promoción en Redes Sociales', desc: 'Promocionate en nuestras redes sociales con ¡+300.000 seguidores!' },
         market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro market y GANA dinero' },
         nfts: { title: 'NFTs & Marketing', desc: 'Genera NFTs para ofrecerlos a tus seguidores como parte de tus campañas de marketing' },
+      },
       contact: {
         heading: 'Contáctanos',
         subheading: '¿Tienes alguna pregunta? Nos encantaría saber de ti.',
@@ -153,7 +154,6 @@ const resources = {
         error_desc: 'Algo salió mal. Inténtalo de nuevo.',
       },
     },
-  },
   },
   en: {
     translation: {
