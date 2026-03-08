@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
+import { useInView } from "@/hooks/useInView";
 
 const COMPETITORS = [
   { key: "musicdibs", rate: 0.95, highlight: true },
@@ -33,6 +34,8 @@ export const RoyaltiesCalculator = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage || i18n.language;
   const [streams, setStreams] = useState(100_000);
+
+  const { ref: barsRef, isInView: barsVisible } = useInView({ threshold: 0.3 });
 
   const results = useMemo(() => {
     const grossRevenue = streams * AVG_PAY_PER_STREAM;
@@ -156,7 +159,7 @@ export const RoyaltiesCalculator = () => {
             </div>
 
             {/* Results comparison */}
-            <div className="space-y-3">
+            <div className="space-y-3" ref={barsRef}>
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5" style={{ color: "#A855F7" }} />
                 <h3 className="text-white font-semibold text-lg">
@@ -164,16 +167,18 @@ export const RoyaltiesCalculator = () => {
                 </h3>
               </div>
 
-              {results.map((r) => {
+              {results.map((r, index) => {
                 const maxEarnings = results[0].earnings;
                 const barWidth = maxEarnings > 0 ? (r.earnings / maxEarnings) * 100 : 0;
+                const animatedWidth = barsVisible ? barWidth : 0;
+                const delay = index * 150;
 
                 return (
                   <div
                     key={r.key}
-                    className="rounded-xl p-4 transition-all"
-                    style={
-                      r.highlight
+                    className="rounded-xl p-4 transition-all duration-500 ease-out"
+                    style={{
+                      ...(r.highlight
                         ? {
                             background: "rgba(168,85,247,0.12)",
                             border: "1px solid rgba(168,85,247,0.35)",
@@ -181,8 +186,11 @@ export const RoyaltiesCalculator = () => {
                         : {
                             background: "rgba(255,255,255,0.04)",
                             border: "1px solid rgba(255,255,255,0.08)",
-                          }
-                    }
+                          }),
+                      opacity: barsVisible ? 1 : 0,
+                      transform: barsVisible ? "translateY(0)" : "translateY(12px)",
+                      transitionDelay: `${delay}ms`,
+                    }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -215,19 +223,19 @@ export const RoyaltiesCalculator = () => {
                     {/* Progress bar */}
                     <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
                       <div
-                        className="h-full rounded-full transition-all duration-700 ease-out"
-                        style={
-                          r.highlight
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${animatedWidth}%`,
+                          transition: `width 1s ease-out ${delay + 200}ms`,
+                          ...(r.highlight
                             ? {
-                                width: `${barWidth}%`,
                                 background: "linear-gradient(90deg, #A855F7, #7C3AED)",
-                                boxShadow: "0 0 12px rgba(168,85,247,0.6)",
+                                boxShadow: barsVisible ? "0 0 12px rgba(168,85,247,0.6)" : "none",
                               }
                             : {
-                                width: `${barWidth}%`,
                                 background: "rgba(255,255,255,0.25)",
-                              }
-                        }
+                              }),
+                        }}
                       />
                     </div>
                   </div>
