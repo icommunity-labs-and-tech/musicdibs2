@@ -26,7 +26,15 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
 import AdminABTests from "./pages/AdminABTests";
 import UserLogin from "./pages/UserLogin";
-import Dashboard from "./pages/Dashboard";
+import DashboardLayout from "./pages/DashboardLayout";
+import DashboardHome from "./pages/DashboardHome";
+import RegisterPage from "./pages/RegisterPage";
+import VerifyPage from "./pages/VerifyPage";
+import PromotePage from "./pages/PromotePage";
+import CreditsPage from "./pages/CreditsPage";
+import ProfilePage from "./pages/ProfilePage";
+import BillingPage from "./pages/BillingPage";
+import SupportPage from "./pages/SupportPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,7 +69,16 @@ const App = () => (
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="/admin/ab-tests" element={<AdminABTests />} />
             <Route path="/login" element={<UserLogin />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardHome />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route path="verify" element={<VerifyPage />} />
+              <Route path="promote" element={<PromotePage />} />
+              <Route path="credits" element={<CreditsPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="billing" element={<BillingPage />} />
+              <Route path="support" element={<SupportPage />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
