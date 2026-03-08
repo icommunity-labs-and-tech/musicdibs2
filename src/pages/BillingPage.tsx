@@ -57,10 +57,19 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold">Plan Plus</p>
-              <p className="text-sm text-muted-foreground">Renovación mensual</p>
+              <p className="font-semibold">{plan ?? '...'}</p>
+              <p className="text-sm text-muted-foreground">
+                {plan === 'Free' ? 'Sin suscripción activa' : 'Renovación mensual'}
+              </p>
             </div>
-            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">Activo</Badge>
+            <Badge
+              className={plan === 'Free'
+                ? 'bg-muted text-muted-foreground border-border'
+                : 'bg-primary/10 text-primary border-primary/20'}
+              variant="outline"
+            >
+              {plan === 'Free' ? 'Free' : 'Activo'}
+            </Badge>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
