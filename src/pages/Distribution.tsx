@@ -48,14 +48,7 @@ const Distribution = () => {
             {t("distribution.video_title")}
           </h2>
           <div className="aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20 border border-white/10">
-            <iframe
-              loading="lazy"
-              src="https://www.youtube.com/embed/EMkjA0FUqmg"
-              title={t("distribution.video_title")}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <LazyYouTube videoId="EMkjA0FUqmg" title={t("distribution.video_title")} />
           </div>
         </div>
       </section>
