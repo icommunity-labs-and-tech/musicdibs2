@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
+import { useParallax } from "@/hooks/useParallax";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
