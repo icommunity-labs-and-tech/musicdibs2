@@ -226,7 +226,7 @@ export const RoyaltiesCalculator = () => {
                         className="font-bold text-lg"
                         style={{ color: r.highlight ? "#A855F7" : "#FFFFFF" }}
                       >
-                        {formatCurrency(r.earnings, lang)}
+                        <AnimatedCurrency value={r.earnings} lang={lang} />
                       </span>
                     </div>
 
