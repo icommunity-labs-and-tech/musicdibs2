@@ -5,6 +5,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Mapping from DB slug (EN) to actual musicdibs.com slug
+const SLUG_MAP: Record<string, string> = {
+  "what-is-an-oac-on-youtube-and-how-to-set-it-up": "what-is-an-official-artist-channel-oac-on-youtube-and-how-to-set-it-up",
+  "apple-music-for-artists-how-to-claim-your-profile": "apple-music-for-artists-how-to-claim-your-profile-and-make-the-most-of-it",
+  "work-made-with-ai-or-by-ai-legal-difference": "work-made-with-ai-or-by-ai-understand-the-legal-difference-and-how-to-register-your-creation",
+  "musicdibs-launches-new-music-distribution-feature": "musicdibs-launches-its-new-music-distribution-feature-protect-and-release-your-music-from-one-single-place",
+  "interview-with-alba-mbengue": "interview-with-alba-mbengue-growth-without-losing-its-essence",
+  "over-400-artists-demand-copyright-protection-ai": "over-400-artists-demand-copyright-protection-amid-the-rise-of-ai",
+  "interview-with-kyra-new-stage": "interview-with-kyra-how-her-new-stage-is-born",
+  "legal-validity-of-registering-on-musicdibs": "what-is-the-legal-validity-of-registering-your-song-on-musicdibs",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -16,7 +28,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json().catch(() => ({}));
-    const limit = body.limit || 5;
+    const limit = body.limit || 10;
     const lang = body.language || null;
 
     let query = supabase
@@ -26,86 +38,77 @@ Deno.serve(async (req) => {
       .is("content", null)
       .limit(limit);
 
-    if (lang) {
-      query = query.eq("language", lang);
-    }
+    if (lang) query = query.eq("language", lang);
 
     const { data: posts, error } = await query;
     if (error) throw error;
 
-    const getOriginalUrl = (slug: string, language: string): string => {
-      let baseSlug = slug;
-      if (language === "es" && slug.endsWith("-es")) {
-        baseSlug = slug.slice(0, -3);
-      } else if (language === "pt" && slug.endsWith("-pt")) {
-        baseSlug = slug.slice(0, -3);
-      }
-      const langPath = language === "en" ? "en" : language === "es" ? "es" : "pt";
-      return `https://musicdibs.com/${langPath}/${baseSlug}/`;
-    };
-
     let updated = 0;
     let failed = 0;
     const errors: string[] = [];
+    const results: string[] = [];
 
     for (const post of posts || []) {
-      const url = getOriginalUrl(post.slug, post.language);
+      // Get the base EN slug (strip -es or -pt suffix)
+      let baseSlug = post.slug;
+      if (post.language === "es" && baseSlug.endsWith("-es")) baseSlug = baseSlug.slice(0, -3);
+      else if (post.language === "pt" && baseSlug.endsWith("-pt")) baseSlug = baseSlug.slice(0, -3);
 
-      try {
-        console.log(`Fetching: ${url}`);
-        let response = await fetch(url, {
-          headers: { "User-Agent": "Mozilla/5.0 (compatible; MusicDibsBot/1.0)" },
-        });
+      // Apply slug mapping
+      const mappedSlug = SLUG_MAP[baseSlug] || baseSlug;
 
-        // Fallback to EN version for non-EN posts
-        if (!response.ok && post.language !== "en") {
-          let baseSlug = post.slug;
-          if (post.language === "es" && baseSlug.endsWith("-es")) baseSlug = baseSlug.slice(0, -3);
-          else if (post.language === "pt" && baseSlug.endsWith("-pt")) baseSlug = baseSlug.slice(0, -3);
-          const enUrl = `https://musicdibs.com/en/${baseSlug}/`;
-          console.log(`Fallback EN: ${enUrl}`);
-          response = await fetch(enUrl, {
+      // Try native language first, then EN fallback
+      const langPath = post.language === "en" ? "en" : post.language === "es" ? "es" : "pt";
+      const urls = [
+        `https://musicdibs.com/${langPath}/${mappedSlug}/`,
+        ...(post.language !== "en" ? [`https://musicdibs.com/en/${mappedSlug}/`] : []),
+      ];
+
+      let content: string | null = null;
+
+      for (const url of urls) {
+        try {
+          console.log(`Fetching: ${url}`);
+          const response = await fetch(url, {
             headers: { "User-Agent": "Mozilla/5.0 (compatible; MusicDibsBot/1.0)" },
           });
+          if (!response.ok) continue;
+
+          const html = await response.text();
+          content = extractContent(html);
+          if (content) {
+            console.log(`Found content from ${url} (${content.length} chars)`);
+            break;
+          }
+        } catch (e) {
+          console.error(`Fetch error for ${url}: ${e.message}`);
         }
-
-        if (!response.ok) {
-          errors.push(`${post.slug}: HTTP ${response.status}`);
-          failed++;
-          continue;
-        }
-
-        const html = await response.text();
-        const content = extractContent(html);
-
-        if (!content) {
-          errors.push(`${post.slug}: No content found`);
-          failed++;
-          continue;
-        }
-
-        const { error: updateError } = await supabase
-          .from("blog_posts")
-          .update({ content })
-          .eq("id", post.id);
-
-        if (updateError) {
-          errors.push(`${post.slug}: ${updateError.message}`);
-          failed++;
-        } else {
-          updated++;
-          console.log(`Updated: ${post.slug} (${content.length} chars)`);
-        }
-
-        await new Promise((r) => setTimeout(r, 300));
-      } catch (e) {
-        errors.push(`${post.slug}: ${e.message}`);
-        failed++;
       }
+
+      if (!content) {
+        errors.push(`${post.slug}: No content found`);
+        failed++;
+        continue;
+      }
+
+      const { error: updateError } = await supabase
+        .from("blog_posts")
+        .update({ content })
+        .eq("id", post.id);
+
+      if (updateError) {
+        errors.push(`${post.slug}: ${updateError.message}`);
+        failed++;
+      } else {
+        updated++;
+        results.push(`${post.slug}: ${content.length} chars`);
+      }
+
+      await new Promise((r) => setTimeout(r, 300));
     }
 
     return new Response(
-      JSON.stringify({ updated, failed, remaining: (posts?.length || 0) - updated - failed, errors }),
+      JSON.stringify({ updated, failed, total: posts?.length || 0, results, errors }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
@@ -125,7 +128,6 @@ function extractContent(html: string): string | null {
   const metaIdx = html.indexOf('fusion-meta-info', contentStart);
   if (metaIdx === -1) return null;
 
-  // Walk backward from fusion-meta-info to find the closing </div>
   const searchArea = html.substring(contentStart, metaIdx);
   const lastDivClose = searchArea.lastIndexOf('</div>');
   if (lastDivClose === -1) return null;
@@ -139,7 +141,6 @@ function cleanContent(html: string): string {
   c = c.replace(/<p>\s*&nbsp;\s*<\/p>/g, "");
   c = c.replace(/\n{3,}/g, "\n\n");
   c = c.replace(/ class="wp-[^"]*"/g, "");
-  // Remove target and rel attributes from links for cleanliness
   c = c.replace(/ target="_blank"/g, "");
   c = c.replace(/ rel="[^"]*"/g, "");
   return c.trim();
