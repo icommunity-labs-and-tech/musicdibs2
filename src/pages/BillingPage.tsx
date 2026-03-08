@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,10 +6,25 @@ import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2 } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function BillingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('subscription_plan')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        setPlan(data?.subscription_plan ?? 'Free');
+      });
+  }, [user]);
 
   const handleManageSubscription = async () => {
     setLoading(true);
