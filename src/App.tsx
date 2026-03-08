@@ -23,6 +23,7 @@ import News from "./pages/News";
 import NewsArticle from "./pages/NewsArticle";
 import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
+import AdminABTests from "./pages/AdminABTests";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
