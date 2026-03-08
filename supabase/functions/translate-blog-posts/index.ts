@@ -93,17 +93,18 @@ Content: ${post.content || ""}`;
             .trim();
         }
 
-        // Build slug for target language
+        // Build slug for target language (append language suffix)
         const baseSlug = post.slug
           .replace(/-es$/, "")
           .replace(/-en$/, "")
           .replace(/-pt$/, "");
+        const translatedSlug = `${baseSlug}-${lang}`;
 
         // Check if translation already exists
         const { data: existing } = await supabase
           .from("blog_posts")
           .select("id")
-          .eq("slug", baseSlug)
+          .eq("slug", translatedSlug)
           .eq("language", lang)
           .maybeSingle();
 
