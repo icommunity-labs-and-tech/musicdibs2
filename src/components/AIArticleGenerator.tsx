@@ -331,7 +331,7 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing, currentPostId }
                       size="sm"
                       onClick={() => regenerateSection(section)}
                       disabled={regeneratingSection !== null || step !== "idle"}
-                      className="gap-1.5 border-white/10 text-white/70 hover:text-white hover:border-purple-400/50 text-xs"
+                      className="gap-1.5 border-white/10 text-foreground hover:text-foreground hover:border-purple-400/50 text-xs"
                     >
                       {isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Icon className="w-3 h-3" />}
                       <RefreshCw className="w-3 h-3" />
