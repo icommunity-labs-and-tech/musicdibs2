@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
+import { LazyYouTube } from "@/components/LazyYouTube";
 
 const TestimonialsSection = () => {
   const [currentVideo, setCurrentVideo] = useState(0);
