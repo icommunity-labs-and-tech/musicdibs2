@@ -16,6 +16,7 @@ export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -27,7 +28,10 @@ export default function Dashboard() {
     const check = () => {
       supabase.functions.invoke('check-subscription').then(({ data, error }) => {
         if (error) console.error('[check-subscription]', error);
-        else console.log('[check-subscription]', data);
+        else {
+          console.log('[check-subscription]', data);
+          setSubscriptionEnd(data?.subscription_end ?? null);
+        }
       });
     };
     check();
@@ -66,7 +70,7 @@ export default function Dashboard() {
         <h1 className="text-xl font-bold mb-6">Panel de control</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Row 1 */}
-          <AccountSummary onSummaryLoaded={setSummary} />
+          <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
           <PromoteWorks />
           <CreditStore />
 

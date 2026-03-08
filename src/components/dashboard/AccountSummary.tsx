@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, Coins, RefreshCw } from 'lucide-react';
+import { FileText, Clock, Coins, RefreshCw, CalendarClock } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
-export function AccountSummary({ onSummaryLoaded }: { onSummaryLoaded?: (s: DashboardSummary) => void }) {
+export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -67,6 +69,12 @@ export function AccountSummary({ onSummaryLoaded }: { onSummaryLoaded?: (s: Dash
             </div>
           ))}
         </div>
+        {subscriptionEnd && data.subscriptionPlan !== 'Free' && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground justify-center">
+            <CalendarClock className="h-3.5 w-3.5" />
+            <span>Renovación: {format(new Date(subscriptionEnd), "d 'de' MMMM yyyy", { locale: es })}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
