@@ -2,22 +2,25 @@ import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
+import { useParallax } from "@/hooks/useParallax";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
+  const { offset } = useParallax({ speed: 0.4 });
+  const { offset: bgOffset } = useParallax({ speed: 0.15 });
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Video background */}
+      {/* Video background with parallax */}
       <video 
         autoPlay 
         loop 
         muted 
         playsInline
         onError={(e) => console.error('Video failed to load:', e)}
-        onLoadStart={() => console.log('Video started loading')}
-        onCanPlay={() => console.log('Video can play')}
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover will-change-transform"
+        style={{ transform: `translateY(${offset * 0.5}px) scale(1.1)` }}
       >
         <source src="/hero-video-new.mp4" type="video/mp4" />
         <source src="/hero-video.mp4" type="video/mp4" />
@@ -28,8 +31,11 @@ export const HeroSection = () => {
         <div className="absolute inset-0 bg-black/20"></div>
       </div>
       
-      {/* Background pattern/texture overlay */}
-      <div className="absolute inset-0 opacity-20">
+      {/* Background pattern/texture overlay with parallax */}
+      <div 
+        className="absolute inset-0 opacity-20 will-change-transform"
+        style={{ transform: `translateY(${bgOffset}px)` }}
+      >
         <div className="absolute top-20 left-10 w-32 h-32 rounded-full bg-white/10 blur-xl"></div>
         <div className="absolute top-40 right-20 w-24 h-24 rounded-full bg-pink-300/20 blur-lg"></div>
         <div className="absolute bottom-32 left-1/4 w-40 h-40 rounded-full bg-purple-300/10 blur-xl"></div>

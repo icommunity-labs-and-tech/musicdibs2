@@ -1,7 +1,7 @@
 import { Shield, Zap, Globe, Ban } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ScrollReveal } from "@/components/ScrollReveal";
+import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
 
 export const WhyChooseSection = () => {
@@ -115,35 +115,35 @@ export const WhyChooseSection = () => {
 
         {/* Features grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
-            <ScrollReveal key={index} delay={200 + index * 100}>
-              <Dialog>
-              <DialogTrigger asChild>
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 cursor-pointer h-full flex flex-col">
-                  <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 mx-auto`}>
-                    <feature.icon className="w-8 h-8 text-white" />
+          <StaggerGrid baseDelay={100} staggerDelay={150} scale>
+            {features.map((feature, index) => (
+              <Dialog key={index}>
+                <DialogTrigger asChild>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 cursor-pointer h-full flex flex-col">
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 mx-auto`}>
+                      <feature.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-3 text-center">
+                      {feature.title}
+                    </h3>
+                    <p className="text-white/70 text-center leading-relaxed flex-1">
+                      {feature.description}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3 text-center">
-                    {feature.title}
-                  </h3>
-                  <p className="text-white/70 text-center leading-relaxed flex-1">
-                    {feature.description}
-                  </p>
-                </div>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold mb-4">
-                    {feature.title}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="text-foreground leading-relaxed text-base">
-                  {feature.popupContent}
-                </div>
-              </DialogContent>
-            </Dialog>
-            </ScrollReveal>
-          ))}
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-xl font-semibold mb-4">
+                      {feature.title}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="text-foreground leading-relaxed text-base">
+                    {feature.popupContent}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ))}
+          </StaggerGrid>
         </div>
       </div>
     </section>
