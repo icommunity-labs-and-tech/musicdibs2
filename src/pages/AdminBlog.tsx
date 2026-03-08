@@ -328,14 +328,25 @@ const AdminBlog = () => {
                     className="bg-white/5 border-white/10 text-white"
                   />
                 </div>
-                <div className="flex items-center gap-3 pt-6">
-                  <Switch
-                    checked={form.published}
-                    onCheckedChange={(v) => setForm({ ...form, published: v })}
-                  />
-                  <Label className="text-white/70">
-                    {form.published ? "Publicado" : "Borrador"}
-                  </Label>
+                <div className="flex flex-col gap-2 pt-6">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={form.published}
+                      onCheckedChange={(v) => setForm({ ...form, published: v })}
+                    />
+                    <Label className="text-white/70">
+                      {form.published
+                        ? form.published_at && new Date(form.published_at) > new Date()
+                          ? "⏰ Programado"
+                          : "Publicado"
+                        : "Borrador"}
+                    </Label>
+                  </div>
+                  {form.published && form.published_at && new Date(form.published_at) > new Date() && (
+                    <p className="text-xs text-amber-400">
+                      Se publicará automáticamente el {new Date(form.published_at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -392,7 +403,11 @@ const AdminBlog = () => {
                           {post.title}
                         </h3>
                         {post.published ? (
-                          <Eye className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                          post.published_at && new Date(post.published_at) > new Date() ? (
+                            <span className="text-xs text-amber-400 flex-shrink-0">⏰</span>
+                          ) : (
+                            <Eye className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                          )
                         ) : (
                           <EyeOff className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
                         )}
