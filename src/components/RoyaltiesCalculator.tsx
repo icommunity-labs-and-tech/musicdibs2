@@ -162,7 +162,7 @@ export const RoyaltiesCalculator = () => {
                   className="text-4xl font-bold bg-clip-text text-transparent"
                   style={{ backgroundImage: "linear-gradient(90deg, #A855F7, #E879F9)" }}
                 >
-                  {formatNumber(streams, lang)}
+                  {formatNumber(Math.round(animatedStreams), lang)}
                 </span>
                 <span className="ml-2 text-lg" style={{ color: "#C4B5FD" }}>streams</span>
               </div>
