@@ -47,6 +47,14 @@ serve(async (req) => {
 
       if (userId && credits > 0) {
         await addCredits(supabase, userId, credits, `Compra plan ${planId}: +${credits} créditos`);
+        
+        // Update subscription plan
+        const planMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
+        const planName = planMap[planId];
+        if (planName) {
+          await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", userId);
+          console.log(`[WEBHOOK] Updated subscription_plan to ${planName} for user ${userId}`);
+        }
       }
     }
 
