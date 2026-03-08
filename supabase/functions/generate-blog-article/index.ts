@@ -27,18 +27,21 @@ serve(async (req) => {
       systemPrompt = `Eres un redactor experto. Genera SOLO un extracto/resumen de 2-3 frases para un artículo de blog en ${langName}. Devuelve SOLO el extracto, sin comillas.`;
       userPrompt = `Título: ${currentTitle}\n\nContenido de referencia:\n${referenceText || currentContent || ""}\n\nGenera un extracto atractivo.`;
     } else if (section === "content") {
-      systemPrompt = `Eres un redactor experto en la industria musical. Genera el contenido completo de un artículo de blog en ${langName} usando formato HTML. Usa etiquetas <h2>, <h3>, <p>, <ul>, <li>, <strong>, <a> según corresponda. NO incluyas el título principal (h1). El artículo debe ser informativo, bien estructurado y de al menos 800 palabras.`;
-      userPrompt = `Título: ${currentTitle || "Artículo sobre música"}\nExtracto: ${currentExcerpt || ""}\n\nTexto de referencia:\n${referenceText || ""}\n\nGenera el contenido completo del artículo en HTML.`;
+      systemPrompt = `Eres un redactor experto en la industria musical. Genera el contenido completo de un artículo de blog en ${langName} usando formato HTML. Usa etiquetas <h2>, <h3>, <p>, <ul>, <li>, <strong>, <a> según corresponda. NO incluyas el título principal (h1). El artículo debe ser informativo, bien estructurado y de al menos 800 palabras. IMPORTANTE: Devuelve SOLO el HTML puro, sin bloques de código markdown, sin \`\`\`html, sin comillas envolventes.`;
+      userPrompt = `Título: ${currentTitle || "Artículo sobre música"}\nExtracto: ${currentExcerpt || ""}\n\nTexto de referencia:\n${referenceText || ""}\n\nGenera el contenido completo del artículo en HTML puro.`;
     } else {
       // Generate all
-      systemPrompt = `Eres un redactor experto en la industria musical y distribución digital. Genera un artículo de blog completo en ${langName}. Responde EXACTAMENTE en formato JSON con estas claves:
-- "title": título SEO atractivo
-- "excerpt": extracto de 2-3 frases  
-- "content": contenido HTML completo usando h2, h3, p, ul, li, strong, a (sin h1, sin envolver en bloques de código)
-- "tags": array de 3-5 tags relevantes
-- "category": categoría del artículo
+      systemPrompt = `Eres un redactor experto en la industria musical y distribución digital. Genera un artículo de blog completo en ${langName}. 
 
-El artículo debe tener al menos 800 palabras, ser informativo y bien estructurado.`;
+IMPORTANTE: Responde EXACTAMENTE en formato JSON válido con estas claves:
+- "title": título SEO atractivo (string)
+- "excerpt": extracto de 2-3 frases (string)
+- "content": contenido HTML completo del artículo (string con HTML usando h2, h3, p, ul, li, strong, a - SIN h1, SIN envolver en bloques de código markdown)
+- "tags": array de 3-5 tags relevantes (array de strings)
+- "category": categoría del artículo (string)
+
+El campo "content" debe contener HTML puro como string, NO código markdown. El artículo debe tener al menos 800 palabras.
+NO envuelvas la respuesta en bloques de código markdown (\`\`\`). Devuelve SOLO el JSON puro.`;
       userPrompt = `Genera un artículo de blog basado en este texto de referencia:\n\n${referenceText}`;
     }
 
@@ -75,16 +78,37 @@ El artículo debe tener al menos 800 palabras, ser informativo y bien estructura
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    let content = data.choices?.[0]?.message?.content || "";
+
+    // Strip markdown code blocks if the AI wrapped the response
+    content = content.replace(/^```(?:json|html)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
     let result: any;
     if (section) {
-      result = { section, value: content.trim() };
+      // For individual sections, also clean up any quotes the AI might add
+      let value = content.trim();
+      // Remove surrounding quotes
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      result = { section, value };
     } else {
       // Parse JSON from the response
       try {
         const jsonMatch = content.match(/\{[\s\S]*\}/);
-        result = jsonMatch ? JSON.parse(jsonMatch[0]) : { title: "", excerpt: "", content, tags: [], category: "Musicdibs" };
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          // Clean the content field - remove any nested code blocks
+          if (parsed.content) {
+            parsed.content = parsed.content
+              .replace(/^```(?:html)?\s*\n?/i, "")
+              .replace(/\n?```\s*$/i, "")
+              .trim();
+          }
+          result = parsed;
+        } else {
+          result = { title: "", excerpt: "", content, tags: [], category: "Musicdibs" };
+        }
       } catch {
         result = { title: "", excerpt: "", content, tags: [], category: "Musicdibs" };
       }
