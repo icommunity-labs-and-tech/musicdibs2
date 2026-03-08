@@ -26,6 +26,7 @@ import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
 import AdminABTests from "./pages/AdminABTests";
 import UserLogin from "./pages/UserLogin";
+import ResetPassword from "./pages/ResetPassword";
 import DashboardLayout from "./pages/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import RegisterPage from "./pages/RegisterPage";
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="/admin/ab-tests" element={<AdminABTests />} />
             <Route path="/login" element={<UserLogin />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardHome />} />
               <Route path="register" element={<RegisterPage />} />
