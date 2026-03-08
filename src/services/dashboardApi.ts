@@ -97,9 +97,14 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  // Upload file to storage (works bucket)
+  // Upload file to storage
   const filePath = `${user.id}/${Date.now()}_${data.file.name}`;
-  
+  const { error: uploadError } = await supabase.storage
+    .from('works-files')
+    .upload(filePath, data.file);
+
+  if (uploadError) throw new Error(`Error subiendo archivo: ${uploadError.message}`);
+
   // Insert work record
   const { data: work, error } = await supabase.from('works').insert({
     user_id: user.id,
