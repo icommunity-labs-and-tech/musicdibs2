@@ -58,6 +58,30 @@ export const WhyChooseSection = () => {
             components={{
               strong1: <span className="font-bold text-primary" />,
               strong2: <span className="font-bold text-primary" />,
+              a1: (
+                <a
+                  href="https://www.wipo.int/treaties/es/ip/berne/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                />
+              ),
+              a2: (
+                <a
+                  href="https://www.wipo.int/treaties/es/ip/wct/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                />
+              ),
+              a3: (
+                <a
+                  href="https://digital-strategy.ec.europa.eu/es/policies/copyright"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                />
+              ),
             }}
           />
         </>
