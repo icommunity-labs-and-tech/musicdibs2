@@ -62,7 +62,12 @@ export default function UserLogin() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Contraseña</Label>
-                  <Input id="login-password" name="password" type="password" required placeholder="••••••••" />
+                  <div className="relative">
+                    <Input id="login-password" name="password" type={showLoginPw ? 'text' : 'password'} required placeholder="••••••••" className="pr-10" />
+                    <button type="button" onClick={() => setShowLoginPw(!showLoginPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showLoginPw ? 'Ocultar contraseña' : 'Ver contraseña'}>
+                      {showLoginPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
                 {error && (
                   <div className="flex items-center gap-2 text-sm text-destructive">
