@@ -9,6 +9,36 @@ const iconMap = {
   info: Info,
 };
 
+/** Plays a short notification chime using Web Audio API */
+function playNotificationSound() {
+  try {
+    const enabled = localStorage.getItem('notif_sound') !== 'off';
+    if (!enabled) return;
+
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.16);
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.35);
+
+    osc.onended = () => ctx.close();
+  } catch {
+    // Audio not available — silently skip
+  }
+}
+
 export function NotificationToaster() {
   const { notifications } = useNotifications();
   const shownRef = useRef(new Set<string>());
@@ -17,6 +47,8 @@ export function NotificationToaster() {
     for (const n of notifications) {
       if (shownRef.current.has(n.id)) continue;
       shownRef.current.add(n.id);
+
+      playNotificationSound();
 
       const Icon = iconMap[n.type];
       toast(n.title, {
