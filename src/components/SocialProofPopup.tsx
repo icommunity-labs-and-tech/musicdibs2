@@ -102,34 +102,34 @@ const SocialProofPopup = () => {
           : "translate-y-0 opacity-100 animate-fade-in"
       }`}
     >
-      <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl shadow-purple-900/30">
-        <button
-          onClick={permanentDismiss}
-          className="absolute top-2 right-2 text-white/40 hover:text-white/70 transition-colors"
-          aria-label="Close"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
+        <div className="bg-background/80 backdrop-blur-xl border border-border/40 rounded-2xl p-4 shadow-2xl">
+          <button
+            onClick={permanentDismiss}
+            className="absolute top-2 right-2 text-muted-foreground/60 hover:text-foreground transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
 
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <ActionIcon className="w-4 h-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-white text-sm font-medium leading-snug">
-              <span className="font-bold">{data.name}</span>{" "}
-              <span className="text-white/70">{t("privacy.social_proof.from")}</span>{" "}
-              <span className="font-bold">{data.city}</span>{" "}
-              <span className="text-white/70">
-                {t(`privacy.social_proof.action_${data.action}`)}
-              </span>
-            </p>
-            <p className="text-white/50 text-xs mt-1">
-              {t(`privacy.social_proof.${data.timeAgo}`)}
-            </p>
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <ActionIcon className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-foreground text-sm font-medium leading-snug">
+                <span className="font-bold">{data.name}</span>{" "}
+                <span className="text-muted-foreground">{t("privacy.social_proof.from")}</span>{" "}
+                <span className="font-bold">{data.city}</span>{" "}
+                <span className="text-muted-foreground">
+                  {t(`privacy.social_proof.action_${data.action}`)}
+                </span>
+              </p>
+              <p className="text-muted-foreground/70 text-xs mt-1">
+                {t(`privacy.social_proof.${data.timeAgo}`)}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
