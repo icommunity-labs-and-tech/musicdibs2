@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
@@ -60,9 +60,13 @@ export const RoyaltiesCalculator = () => {
   const animatedStreams = useAnimatedValue(streams, 500);
   const animatedAdvantage = useAnimatedValue(advantage, 700);
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStreams(Number(e.target.value));
-  };
+  const rafSlider = useRef<number>();
+  const handleSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (rafSlider.current) cancelAnimationFrame(rafSlider.current);
+    rafSlider.current = requestAnimationFrame(() => {
+      setStreams(Number(e.target.value));
+    });
+  }, []);
 
   return (
     <section className="py-20 relative overflow-hidden bg-gradient-to-b from-purple-900 to-purple-800">
