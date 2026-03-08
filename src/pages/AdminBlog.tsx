@@ -56,6 +56,7 @@ const AdminBlog = () => {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyPost);
   const [filter, setFilter] = useState<"all" | "published" | "scheduled" | "draft">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
