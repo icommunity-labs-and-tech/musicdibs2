@@ -416,9 +416,9 @@ const AdminBlog = () => {
 
             {isLoading ? (
               <div className="text-center py-20 text-white/40">Cargando...</div>
-            ) : posts && posts.length > 0 ? (
+            ) : filteredPosts && filteredPosts.length > 0 ? (
               <div className="space-y-2">
-                {posts.map((post) => (
+                {filteredPosts.map((post) => (
                   <div
                     key={post.id}
                     className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3 hover:bg-white/[0.07] transition-colors"
