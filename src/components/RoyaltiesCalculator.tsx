@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
