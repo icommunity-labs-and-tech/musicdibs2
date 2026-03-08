@@ -266,7 +266,7 @@ export const RoyaltiesCalculator = () => {
                   <DollarSign className="w-5 h-5" style={{ color: "#A855F7" }} />
                   <span className="text-white font-bold text-lg">
                     {t("calculator.advantage_prefix")}{" "}
-                    <span className="text-xl" style={{ color: "#A855F7" }}>{formatCurrency(advantage, lang)}</span>{" "}
+                    <span className="text-xl" style={{ color: "#A855F7" }}>{formatCurrency(animatedAdvantage, lang)}</span>{" "}
                     {t("calculator.advantage_suffix")}
                   </span>
                 </div>
