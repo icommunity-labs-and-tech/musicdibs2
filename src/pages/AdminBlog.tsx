@@ -54,6 +54,7 @@ const AdminBlog = () => {
   const [editing, setEditing] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyPost);
+  const [filter, setFilter] = useState<"all" | "published" | "scheduled" | "draft">("all");
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -88,6 +89,14 @@ const AdminBlog = () => {
       return data as BlogPost[];
     },
   });
+
+  const getPostStatus = (post: BlogPost): "published" | "scheduled" | "draft" => {
+    if (!post.published) return "draft";
+    if (post.published_at && new Date(post.published_at) > new Date()) return "scheduled";
+    return "published";
+  };
+
+  const filteredPosts = posts?.filter((p) => filter === "all" || getPostStatus(p) === filter);
 
   const slugify = (text: string) =>
     text
@@ -374,18 +383,42 @@ const AdminBlog = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Artículos</h2>
-              <Button onClick={startCreate} className="gap-2">
-                <Plus className="w-4 h-4" /> Nuevo artículo
-              </Button>
+             <div className="flex flex-col gap-4 mb-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Artículos</h2>
+                <Button onClick={startCreate} className="gap-2">
+                  <Plus className="w-4 h-4" /> Nuevo artículo
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                {([
+                  { key: "all", label: "Todos" },
+                  { key: "published", label: "Publicados" },
+                  { key: "scheduled", label: "⏰ Programados" },
+                  { key: "draft", label: "Borradores" },
+                ] as const).map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      filter === f.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
+                    }`}
+                  >
+                    {f.label}
+                    {f.key === "all" && ` (${posts?.length || 0})`}
+                    {f.key !== "all" && ` (${posts?.filter((p) => getPostStatus(p) === f.key).length || 0})`}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {isLoading ? (
               <div className="text-center py-20 text-white/40">Cargando...</div>
-            ) : posts && posts.length > 0 ? (
+            ) : filteredPosts && filteredPosts.length > 0 ? (
               <div className="space-y-2">
-                {posts.map((post) => (
+                {filteredPosts.map((post) => (
                   <div
                     key={post.id}
                     className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-lg px-4 py-3 hover:bg-white/[0.07] transition-colors"
