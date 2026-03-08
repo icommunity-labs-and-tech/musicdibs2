@@ -107,6 +107,25 @@ const News = () => {
         title={t("blog.title", "Noticias")}
         description={t("blog.seo_description", "Últimas noticias y artículos de MusicDibs sobre distribución musical, blockchain y derechos de autor.")}
         path="/news"
+        locale={i18n.language}
+        jsonLd={[
+          {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: t("blog.title", "Blog & Novedades"),
+            description: t("blog.seo_description", "Últimas noticias y artículos de MusicDibs sobre distribución musical, blockchain y derechos de autor."),
+            url: "https://musicdibs.com/news",
+            isPartOf: { "@type": "WebSite", name: "MusicDibs", url: "https://musicdibs.com" },
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Inicio", item: "https://musicdibs.com" },
+              { "@type": "ListItem", position: 2, name: "Blog", item: "https://musicdibs.com/news" },
+            ],
+          },
+        ]}
       />
       <Navbar />
 

@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, ArrowLeft, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import i18n from "i18next";
 
 const NewsArticle = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -35,12 +36,72 @@ const NewsArticle = () => {
     });
   };
 
+  const articleJsonLd = post
+    ? [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.excerpt || "",
+          image: post.image_url || "https://musicdibs.com/og-image.png",
+          author: {
+            "@type": "Organization",
+            name: post.author || "MusicDibs",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "MusicDibs",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://musicdibs.com/lovable-uploads/b347ac8a-e7a2-4c60-a54e-6bc186ef2ce3.png",
+            },
+          },
+          datePublished: post.published_at || post.created_at,
+          dateModified: post.updated_at || post.published_at || post.created_at,
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `https://musicdibs.com/news/${slug}`,
+          },
+          ...(post.tags && post.tags.length > 0 ? { keywords: post.tags.join(", ") } : {}),
+          ...(post.category ? { articleSection: post.category } : {}),
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Inicio",
+              item: "https://musicdibs.com",
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Blog",
+              item: "https://musicdibs.com/news",
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: post.title,
+              item: `https://musicdibs.com/news/${slug}`,
+            },
+          ],
+        },
+      ]
+    : undefined;
+
   return (
     <div className="min-h-screen page-bg">
       <SEO
         title={post?.title || "Artículo"}
         description={post?.excerpt || ""}
         path={`/news/${slug}`}
+        type="article"
+        image={post?.image_url || undefined}
+        locale={i18n.language}
+        jsonLd={articleJsonLd}
       />
       <Navbar />
 
@@ -74,10 +135,10 @@ const NewsArticle = () => {
                   </span>
                 )}
                 {post.published_at && (
-                  <span className="flex items-center gap-1">
+                  <time dateTime={post.published_at} className="flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {formatDate(post.published_at)}
-                  </span>
+                  </time>
                 )}
                 {post.author && <span>· {post.author}</span>}
               </div>
