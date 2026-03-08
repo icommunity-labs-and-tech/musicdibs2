@@ -225,6 +225,13 @@ const AdminBlog = () => {
                 {editing ? "Editar artículo" : "Nuevo artículo"}
               </h2>
 
+              <AIArticleGenerator
+                form={form}
+                setForm={setForm}
+                slugify={slugify}
+                isEditing={!!editing}
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-white/70">Título *</Label>
