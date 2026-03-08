@@ -59,7 +59,7 @@ export default function BillingPage() {
             <div>
               <p className="font-semibold">{plan ?? '...'}</p>
               <p className="text-sm text-muted-foreground">
-                {plan === 'Free' ? 'Sin suscripción activa' : 'Renovación mensual'}
+                {plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
               </p>
             </div>
             <Badge
@@ -73,21 +73,23 @@ export default function BillingPage() {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
-              Cambiar plan <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              {plan === 'Free' ? 'Ver planes' : 'Cambiar plan'} <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleManageSubscription}
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-              ) : (
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />
-              )}
-              Gestionar suscripción
-            </Button>
+            {plan && plan !== 'Free' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageSubscription}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                ) : (
+                  <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                )}
+                Gestionar suscripción
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
