@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, Coins, RefreshCw } from 'lucide-react';
+import { FileText, Clock, Coins, RefreshCw, CalendarClock } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function AccountSummary({ onSummaryLoaded }: { onSummaryLoaded?: (s: DashboardSummary) => void }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
