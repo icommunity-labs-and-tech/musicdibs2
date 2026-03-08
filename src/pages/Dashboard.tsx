@@ -24,10 +24,15 @@ export default function Dashboard() {
   // Sync subscription status with Stripe on dashboard load
   useEffect(() => {
     if (!user) return;
-    supabase.functions.invoke('check-subscription').then(({ data, error }) => {
-      if (error) console.error('[check-subscription]', error);
-      else console.log('[check-subscription]', data);
-    });
+    const check = () => {
+      supabase.functions.invoke('check-subscription').then(({ data, error }) => {
+        if (error) console.error('[check-subscription]', error);
+        else console.log('[check-subscription]', data);
+      });
+    };
+    check();
+    const interval = setInterval(check, 60_000);
+    return () => clearInterval(interval);
   }, [user]);
 
   if (loading) return (
