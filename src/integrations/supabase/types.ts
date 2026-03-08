@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          session_id: string | null
+          test_id: string
+          variant_index: number
+          variant_text: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          session_id?: string | null
+          test_id: string
+          variant_index: number
+          variant_text: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          session_id?: string | null
+          test_id?: string
+          variant_index?: number
+          variant_text?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string | null
