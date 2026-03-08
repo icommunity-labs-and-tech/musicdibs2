@@ -31,16 +31,16 @@ export default function DashboardHome() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1400px]">
-      {/* Column 1: Account + Register Work */}
+      {/* Column 1: Account + Verify */}
       <div className="lg:col-span-3 space-y-4">
         <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
-        <PromoteWorks />
         <VerifyRegistration />
       </div>
 
-      {/* Column 2: Register Work form */}
-      <div className="lg:col-span-4">
+      {/* Column 2: Register + Promote */}
+      <div className="lg:col-span-4 space-y-4">
         <RegisterWork summary={summary} />
+        <PromoteWorks />
       </div>
 
       {/* Column 3: Credits + Recent */}
