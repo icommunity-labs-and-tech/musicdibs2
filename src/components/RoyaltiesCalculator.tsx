@@ -31,6 +31,11 @@ const formatCurrency = (n: number, lang: string) => {
 
 const STREAM_PRESETS = [10_000, 50_000, 100_000, 500_000, 1_000_000];
 
+const AnimatedCurrency = ({ value, lang }: { value: number; lang: string }) => {
+  const animated = useAnimatedValue(value, 600);
+  return <>{formatCurrency(animated, lang)}</>;
+};
+
 export const RoyaltiesCalculator = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage || i18n.language;
