@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import AIArticleGenerator from "@/components/AIArticleGenerator";
 import {
   Plus,
   Pencil,
@@ -223,6 +224,13 @@ const AdminBlog = () => {
               <h2 className="text-lg font-semibold">
                 {editing ? "Editar artículo" : "Nuevo artículo"}
               </h2>
+
+              <AIArticleGenerator
+                form={form}
+                setForm={setForm}
+                slugify={slugify}
+                isEditing={!!editing}
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
