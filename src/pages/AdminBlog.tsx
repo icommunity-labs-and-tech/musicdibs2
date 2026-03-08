@@ -90,6 +90,14 @@ const AdminBlog = () => {
     },
   });
 
+  const getPostStatus = (post: BlogPost): "published" | "scheduled" | "draft" => {
+    if (!post.published) return "draft";
+    if (post.published_at && new Date(post.published_at) > new Date()) return "scheduled";
+    return "published";
+  };
+
+  const filteredPosts = posts?.filter((p) => filter === "all" || getPostStatus(p) === filter);
+
   const slugify = (text: string) =>
     text
       .toLowerCase()
