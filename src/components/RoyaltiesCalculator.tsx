@@ -51,6 +51,10 @@ export const RoyaltiesCalculator = () => {
   const bestCompetitorEarnings = Math.max(...results.slice(1).map((r) => r.earnings));
   const advantage = musicdibsEarnings - bestCompetitorEarnings;
 
+  // Animated values
+  const animatedStreams = useAnimatedValue(streams, 500);
+  const animatedAdvantage = useAnimatedValue(advantage, 700);
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setStreams(Number(e.target.value));
   };
