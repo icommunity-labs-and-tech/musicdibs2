@@ -1,6 +1,6 @@
 import { Music, Users, ShoppingCart, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ScrollReveal } from "@/components/ScrollReveal";
+import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getNavLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
