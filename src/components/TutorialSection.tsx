@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useTranslation } from "react-i18next";
+import { LazyYouTube } from "@/components/LazyYouTube";
 
 const TutorialSection = () => {
   const { t } = useTranslation();
@@ -56,28 +57,12 @@ const TutorialSection = () => {
                 <CarouselContent>
                   <CarouselItem>
                     <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
-                      <iframe
-                        loading="lazy"
-                        src="https://www.youtube.com/embed/a4HMb8pV2hQ"
-                        title="Tutorial de Registro - Musicdibs"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full"
-                      ></iframe>
+                      <LazyYouTube videoId="a4HMb8pV2hQ" title="Tutorial de Registro - Musicdibs" />
                     </div>
                   </CarouselItem>
                   <CarouselItem>
                     <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
-                      <iframe
-                        loading="lazy"
-                        src="https://www.youtube.com/embed/YS8euOYAdp8"
-                        title="Tutorial de Distribución - Musicdibs"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full"
-                      ></iframe>
+                      <LazyYouTube videoId="YS8euOYAdp8" title="Tutorial de Distribución - Musicdibs" />
                     </div>
                   </CarouselItem>
                 </CarouselContent>
@@ -92,12 +77,9 @@ const TutorialSection = () => {
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {steps.map((step, index) => (
             <div key={index} className="text-center">
-              {/* Step circle */}
               <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                 <span className="text-2xl font-bold text-white">{step.step}</span>
               </div>
-              
-              {/* Step content */}
               <h3 className="text-2xl font-bold text-white mb-4">
                 {t("tutorial.steps.step")} {step.step}: {step.title}
               </h3>
