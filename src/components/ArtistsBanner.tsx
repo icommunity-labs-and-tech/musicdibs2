@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { useInView } from "@/hooks/useInView";
 import { useCountUp } from "@/hooks/useCountUp";
+import { useABTest, trackABClick } from "@/hooks/useABTest";
 import { useEffect } from "react";
 
 const AnimatedStat = ({ end, suffix, label }: { end: number; suffix: string; label: string }) => {
@@ -24,6 +25,23 @@ const AnimatedStat = ({ end, suffix, label }: { end: number; suffix: string; lab
 
 const ArtistsBanner = () => {
   const { t } = useTranslation();
+
+  const ctaJoin = useABTest({
+    id: 'artists_cta_join',
+    variants: [
+      { text: t("artists.join_now"), className: '' },
+      { text: '🎵 Únete gratis hoy', className: '' },
+      { text: 'Comienza tu carrera', className: 'bg-yellow-400 text-black hover:bg-yellow-300' },
+    ],
+  });
+
+  const ctaTestimonials = useABTest({
+    id: 'artists_cta_testimonials',
+    variants: [
+      { text: t("artists.view_testimonials"), className: '' },
+      { text: 'Mira quién confía en nosotros', className: '' },
+    ],
+  });
 
   return (
     <section className="relative bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 py-12 overflow-hidden">
@@ -69,27 +87,29 @@ const ArtistsBanner = () => {
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Button 
             size="lg" 
-            className="bg-white text-pink-600 hover:bg-white/90 font-bold px-6 py-2 text-base rounded-full shadow-lg"
+            className={`bg-white text-pink-600 hover:bg-white/90 font-bold px-6 py-2 text-base rounded-full shadow-lg ${ctaJoin.className}`}
             onClick={() => {
+              trackABClick('artists_cta_join', ctaJoin.variantIndex, ctaJoin.text);
               const pricingSection = document.getElementById('pricing-section');
               if (pricingSection) {
                 pricingSection.scrollIntoView({ behavior: 'smooth' });
               }
             }}
           >
-            {t("artists.join_now")}
+            {ctaJoin.text}
           </Button>
           
           <Button 
             variant="outline" 
             size="lg"
-            className="border-2 border-white text-pink-600 hover:bg-white hover:text-pink-600 font-bold px-6 py-2 text-base rounded-full"
+            className={`border-2 border-white text-pink-600 hover:bg-white hover:text-pink-600 font-bold px-6 py-2 text-base rounded-full ${ctaTestimonials.className}`}
             onClick={() => {
+              trackABClick('artists_cta_testimonials', ctaTestimonials.variantIndex, ctaTestimonials.text);
               const testimonialsSection = document.querySelector('section:nth-of-type(5)');
               testimonialsSection?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
-            {t("artists.view_testimonials")}
+            {ctaTestimonials.text}
           </Button>
         </div>
 
