@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, Coins, RefreshCw, CalendarClock } from 'lucide-react';
+import { FileText, Clock, Coins, RefreshCw, CalendarClock, AlertTriangle } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null }) {
