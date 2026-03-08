@@ -1,0 +1,103 @@
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { History, ArrowUpCircle, ArrowDownCircle, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+type Transaction = {
+  id: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  created_at: string;
+};
+
+const TYPE_CONFIG: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
+  purchase: { label: 'Compra', icon: ArrowUpCircle, color: 'text-emerald-500' },
+  renewal: { label: 'Renovación', icon: RefreshCw, color: 'text-blue-500' },
+  consumption: { label: 'Consumo', icon: ArrowDownCircle, color: 'text-orange-500' },
+};
+
+export function CreditHistory() {
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const fetch = async () => {
+      const { data } = await supabase
+        .from('credit_transactions')
+        .select('id, amount, type, description, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      setTransactions(data || []);
+      setLoading(false);
+    };
+    fetch();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Card className="border-border/40 shadow-sm">
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">Cargando historial...</CardContent>
+      </Card>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <Card className="border-border/40 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <History className="h-4 w-4 text-primary" /> Historial de créditos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="py-6 text-center text-sm text-muted-foreground">
+          Aún no tienes movimientos de créditos.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-border/40 shadow-sm">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <History className="h-4 w-4 text-primary" /> Historial de créditos
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="divide-y divide-border/40">
+          {transactions.map((tx) => {
+            const config = TYPE_CONFIG[tx.type] || TYPE_CONFIG.purchase;
+            const Icon = config.icon;
+            const isPositive = tx.amount > 0 && tx.type !== 'consumption';
+            return (
+              <div key={tx.id} className="flex items-center gap-3 px-6 py-3">
+                <Icon className={`h-4 w-4 shrink-0 ${config.color}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm truncate">{tx.description || config.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(tx.created_at).toLocaleDateString('es-ES', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+                <Badge variant={isPositive ? 'default' : 'secondary'} className="shrink-0 tabular-nums">
+                  {isPositive ? '+' : ''}{tx.amount}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
