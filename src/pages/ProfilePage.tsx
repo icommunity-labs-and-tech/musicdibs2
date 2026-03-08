@@ -226,6 +226,18 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
+      {/* ─── Notification Preferences ─── */}
+      <Card className="border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" /> Preferencias de notificaciones
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <NotifSoundToggle />
+        </CardContent>
+      </Card>
+
       {/* ─── Security / Password ─── */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
