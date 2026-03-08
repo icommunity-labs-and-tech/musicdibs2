@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   Newspaper,
+  Search,
 } from "lucide-react";
 
 type BlogPost = {
