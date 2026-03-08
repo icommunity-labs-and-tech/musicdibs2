@@ -69,6 +69,12 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
             </div>
           ))}
         </div>
+        {subscriptionEnd && data.subscriptionPlan !== 'Free' && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground justify-center">
+            <CalendarClock className="h-3.5 w-3.5" />
+            <span>Renovación: {format(new Date(subscriptionEnd), "d 'de' MMMM yyyy", { locale: es })}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

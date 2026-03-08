@@ -70,7 +70,7 @@ export default function Dashboard() {
         <h1 className="text-xl font-bold mb-6">Panel de control</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Row 1 */}
-          <AccountSummary onSummaryLoaded={setSummary} />
+          <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
           <PromoteWorks />
           <CreditStore />
 
