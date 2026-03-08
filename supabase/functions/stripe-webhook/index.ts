@@ -98,6 +98,24 @@ serve(async (req) => {
       }
     }
 
+    // Handle subscription cancellation — reset plan to Free
+    if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId = subscription.customer as string;
+      const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+      const email = customer.email;
+
+      if (email) {
+        const { data: users } = await supabase.auth.admin.listUsers();
+        const user = users?.users?.find((u: any) => u.email === email);
+
+        if (user) {
+          await supabase.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
+          console.log(`[WEBHOOK] Reset subscription_plan to Free for user ${user.id} (cancellation)`);
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
