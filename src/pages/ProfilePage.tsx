@@ -34,8 +34,7 @@ function NotifSoundToggle() {
     </div>
   );
 }
-
-
+const kycConfig: Record<string, { label: string; icon: typeof CheckCircle2; badgeClass: string }> = {
   verified: { label: 'Verificado', icon: CheckCircle2, badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
   pending: { label: 'En revisión', icon: Loader2, badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
   unverified: { label: 'No verificado', icon: AlertCircle, badgeClass: 'bg-destructive/10 text-destructive border-destructive/20' },
