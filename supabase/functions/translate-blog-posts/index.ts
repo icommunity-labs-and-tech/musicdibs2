@@ -110,7 +110,7 @@ Content: ${post.content || ""}`;
 
         const payload = {
           title: translatedData.title || post.title,
-          slug: baseSlug,
+          slug: translatedSlug,
           excerpt: translatedData.excerpt || post.excerpt,
           content: translatedData.content || post.content,
           image_url: post.image_url,
