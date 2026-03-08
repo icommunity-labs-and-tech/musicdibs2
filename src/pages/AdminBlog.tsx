@@ -98,7 +98,16 @@ const AdminBlog = () => {
     return "published";
   };
 
-  const filteredPosts = posts?.filter((p) => filter === "all" || getPostStatus(p) === filter);
+  const filteredPosts = posts?.filter((p) => {
+    const matchesFilter = filter === "all" || getPostStatus(p) === filter;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q ||
+      p.title.toLowerCase().includes(q) ||
+      (p.excerpt?.toLowerCase().includes(q)) ||
+      (p.category?.toLowerCase().includes(q)) ||
+      (p.tags?.some(tag => tag.toLowerCase().includes(q)));
+    return matchesFilter && matchesSearch;
+  });
 
   const slugify = (text: string) =>
     text
