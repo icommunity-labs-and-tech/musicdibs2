@@ -41,9 +41,7 @@ export default function UserLogin() {
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'linear-gradient(135deg, #1a0a2e 0%, #16082a 50%, #0d0618 100%)' }}>
       <Card className="w-full max-w-md border-border/30 bg-card/95 backdrop-blur-sm shadow-2xl">
         <CardHeader className="text-center space-y-3">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-            <Music className="h-7 w-7 text-primary" />
-          </div>
+          <img src="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" alt="MusicDibs" className="mx-auto h-14 w-auto" />
           <CardTitle className="text-2xl font-bold">MusicDibs</CardTitle>
           <CardDescription>Accede a tu consola de registro de obras</CardDescription>
         </CardHeader>
