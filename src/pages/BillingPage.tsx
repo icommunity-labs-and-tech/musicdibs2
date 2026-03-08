@@ -1,11 +1,33 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Receipt, ArrowRight } from 'lucide-react';
+import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function BillingPage() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleManageSubscription = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error('No se pudo obtener el enlace del portal');
+      }
+    } catch (err: any) {
+      const msg = err?.message || 'Error al abrir el portal de gestión';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -28,6 +50,19 @@ export default function BillingPage() {
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
               Cambiar plan <ArrowRight className="h-3.5 w-3.5 ml-1" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleManageSubscription}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+              ) : (
+                <ExternalLink className="h-3.5 w-3.5 mr-1" />
+              )}
+              Gestionar suscripción
             </Button>
           </div>
         </CardContent>
