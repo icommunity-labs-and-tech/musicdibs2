@@ -41,6 +41,15 @@ export const PricingSection = () => {
   const lang = i18n.resolvedLanguage || i18n.language;
   const links = getFooterLinks(lang);
 
+  const ctaBuy = useABTest({
+    id: 'pricing_cta_buy',
+    variants: [
+      { text: t("pricing.buyNow"), className: '' },
+      { text: '🎶 Quiero distribuir mi música', className: '' },
+      { text: 'Comenzar ahora', className: 'bg-yellow-400 text-black hover:bg-yellow-300 border-0' },
+    ],
+  });
+
   const prices = useMemo(() => ({
     annual: formatPrice(BASE_PRICES.annual, lang),
     monthly: formatPrice(BASE_PRICES.monthly, lang),
