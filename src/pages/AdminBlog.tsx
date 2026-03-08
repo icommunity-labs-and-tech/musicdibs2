@@ -375,11 +375,35 @@ const AdminBlog = () => {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Artículos</h2>
-              <Button onClick={startCreate} className="gap-2">
-                <Plus className="w-4 h-4" /> Nuevo artículo
-              </Button>
+             <div className="flex flex-col gap-4 mb-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Artículos</h2>
+                <Button onClick={startCreate} className="gap-2">
+                  <Plus className="w-4 h-4" /> Nuevo artículo
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                {([
+                  { key: "all", label: "Todos" },
+                  { key: "published", label: "Publicados" },
+                  { key: "scheduled", label: "⏰ Programados" },
+                  { key: "draft", label: "Borradores" },
+                ] as const).map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      filter === f.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
+                    }`}
+                  >
+                    {f.label}
+                    {f.key === "all" && ` (${posts?.length || 0})`}
+                    {f.key !== "all" && ` (${posts?.filter((p) => getPostStatus(p) === f.key).length || 0})`}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {isLoading ? (
