@@ -158,9 +158,9 @@ export const Navbar = () => {
               >
                 <ul className="py-2 text-sm text-gray-700">
                   <li>
-                    <a href={links.login} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100 font-medium">
+                    <Link to="/login" className="block px-4 py-2 hover:bg-gray-100 font-medium" onClick={() => setServicesOpen(false)}>
                       {t('nav.login')}
-                    </a>
+                    </Link>
                   </li>
                   <li className="border-t border-gray-100 my-1" />
                   <li>
