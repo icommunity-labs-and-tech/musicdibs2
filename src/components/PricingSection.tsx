@@ -5,6 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
 import { ComparisonTable } from "@/components/ComparisonTable";
+import { useABTest, trackABClick } from "@/hooks/useABTest";
 
 // Base prices in EUR
 const BASE_PRICES = {
