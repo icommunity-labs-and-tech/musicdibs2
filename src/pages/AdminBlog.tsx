@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   Newspaper,
+  Search,
 } from "lucide-react";
 
 type BlogPost = {
@@ -55,6 +56,7 @@ const AdminBlog = () => {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyPost);
   const [filter, setFilter] = useState<"all" | "published" | "scheduled" | "draft">("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -96,7 +98,16 @@ const AdminBlog = () => {
     return "published";
   };
 
-  const filteredPosts = posts?.filter((p) => filter === "all" || getPostStatus(p) === filter);
+  const filteredPosts = posts?.filter((p) => {
+    const matchesFilter = filter === "all" || getPostStatus(p) === filter;
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q ||
+      p.title.toLowerCase().includes(q) ||
+      (p.excerpt?.toLowerCase().includes(q)) ||
+      (p.category?.toLowerCase().includes(q)) ||
+      (p.tags?.some(tag => tag.toLowerCase().includes(q)));
+    return matchesFilter && matchesSearch;
+  });
 
   const slugify = (text: string) =>
     text
@@ -390,27 +401,39 @@ const AdminBlog = () => {
                   <Plus className="w-4 h-4" /> Nuevo artículo
                 </Button>
               </div>
-              <div className="flex gap-2">
-                {([
-                  { key: "all", label: "Todos" },
-                  { key: "published", label: "Publicados" },
-                  { key: "scheduled", label: "⏰ Programados" },
-                  { key: "draft", label: "Borradores" },
-                ] as const).map((f) => (
-                  <button
-                    key={f.key}
-                    onClick={() => setFilter(f.key)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      filter === f.key
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
-                    }`}
-                  >
-                    {f.label}
-                    {f.key === "all" && ` (${posts?.length || 0})`}
-                    {f.key !== "all" && ` (${posts?.filter((p) => getPostStatus(p) === f.key).length || 0})`}
-                  </button>
-                ))}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                  <Input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar por título, categoría o tags..."
+                    className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  {([
+                    { key: "all", label: "Todos" },
+                    { key: "published", label: "Publicados" },
+                    { key: "scheduled", label: "⏰ Programados" },
+                    { key: "draft", label: "Borradores" },
+                  ] as const).map((f) => (
+                    <button
+                      key={f.key}
+                      onClick={() => setFilter(f.key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                        filter === f.key
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white/70"
+                      }`}
+                    >
+                      {f.label}
+                      {f.key === "all" && ` (${posts?.length || 0})`}
+                      {f.key !== "all" && ` (${posts?.filter((p) => getPostStatus(p) === f.key).length || 0})`}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
