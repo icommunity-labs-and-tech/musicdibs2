@@ -51,16 +51,8 @@ Deno.serve(async (req) => {
     };
 
     let updated = 0;
-    let skipped = 0;
     let failed = 0;
     const errors: string[] = [];
-
-    for (const post of posts || []) {
-      // Skip if already has content
-      if (post.content && post.content.trim().length > 50) {
-        skipped++;
-        continue;
-      }
 
       const url = getOriginalUrl(post.slug, post.language);
       if (!url) {
