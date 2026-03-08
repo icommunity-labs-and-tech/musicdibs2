@@ -56,7 +56,7 @@ const resources = {
           },
           instant: {
             title: 'Registro Instantáneo',
-            desc: 'Protege tu obra en segundos, no en semanas. SIN burocracia.',
+            desc: 'Protege tu obra en segundos con validez jurídica internacional respaldada por blockchain.',
             popup: `Protección al instante, sin complicaciones. Olvídate del papeleo y de los procesos lentos y costosos. Con Musicdibs, registrar tu música es <strong1>tan fácil como subir tu archivo: en solo segundos generamos una huella digital única</strong1> y la registramos en blockchain <strong2>con validez legal internacional</strong2>. Sin intermediarios y por una fracción del coste de un registro tradicional.`,
           },
           distribution: {
