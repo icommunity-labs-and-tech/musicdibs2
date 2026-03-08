@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { ChatWidget } from "./components/ChatWidget";
 import { SocialProofPopup } from "./components/SocialProofPopup";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AuthProvider } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import Contact from "./pages/Contact";
 import SLA from "./pages/SLA";
