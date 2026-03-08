@@ -217,6 +217,9 @@ const AdminBlog = () => {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin/ab-tests")} className="gap-1 text-black border-white/20">
+              <BarChart3 className="w-4 h-4" /> A/B Tests
+            </Button>
             <Button variant="outline" size="sm" onClick={() => navigate("/news")} className="gap-1 text-black border-white/20">
               <Eye className="w-4 h-4" /> Ver blog
             </Button>
