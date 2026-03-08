@@ -15,8 +15,8 @@ export const HeroSection = () => {
     id: 'hero_cta_primary',
     variants: [
       { text: t("hero.cta_start"), className: '' },
-      { text: '🚀 Registra tu música gratis', className: '' },
-      { text: 'Empieza ahora — Es gratis', className: 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0' },
+      { text: '🚀 Registra tu música ahora', className: '' },
+      { text: 'Ver planes y precios', className: '' },
     ],
   });
 
