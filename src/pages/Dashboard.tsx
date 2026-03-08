@@ -9,6 +9,7 @@ import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
 import { Music, LogOut, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function Dashboard() {
@@ -19,6 +20,15 @@ export default function Dashboard() {
   useEffect(() => {
     if (!loading && !user) navigate('/login');
   }, [user, loading]);
+
+  // Sync subscription status with Stripe on dashboard load
+  useEffect(() => {
+    if (!user) return;
+    supabase.functions.invoke('check-subscription').then(({ data, error }) => {
+      if (error) console.error('[check-subscription]', error);
+      else console.log('[check-subscription]', data);
+    });
+  }, [user]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a0a2e 0%, #16082a 50%, #0d0618 100%)' }}>
