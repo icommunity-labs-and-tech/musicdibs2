@@ -403,7 +403,11 @@ const AdminBlog = () => {
                           {post.title}
                         </h3>
                         {post.published ? (
-                          <Eye className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                          post.published_at && new Date(post.published_at) > new Date() ? (
+                            <span className="text-xs text-amber-400 flex-shrink-0">⏰</span>
+                          ) : (
+                            <Eye className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                          )
                         ) : (
                           <EyeOff className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
                         )}
