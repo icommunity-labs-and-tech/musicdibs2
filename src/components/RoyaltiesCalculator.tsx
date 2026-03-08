@@ -60,12 +60,20 @@ export const RoyaltiesCalculator = () => {
   const animatedStreams = useAnimatedValue(streams, 500);
   const animatedAdvantage = useAnimatedValue(advantage, 700);
 
-  const rafSlider = useRef<number>();
+  const rafSlider = useRef<number | null>(null);
   const handleSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = Number(e.currentTarget.value);
     if (rafSlider.current) cancelAnimationFrame(rafSlider.current);
     rafSlider.current = requestAnimationFrame(() => {
-      setStreams(Number(e.target.value));
+      setStreams(nextValue);
+      rafSlider.current = null;
     });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (rafSlider.current) cancelAnimationFrame(rafSlider.current);
+    };
   }, []);
 
   return (
