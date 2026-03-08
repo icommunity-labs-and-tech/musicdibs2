@@ -59,7 +59,7 @@ export default function BillingPage() {
             <div>
               <p className="font-semibold">{plan ?? '...'}</p>
               <p className="text-sm text-muted-foreground">
-                {plan === 'Free' ? 'Sin suscripción activa' : 'Renovación mensual'}
+                {plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
               </p>
             </div>
             <Badge
