@@ -133,10 +133,13 @@ export const PricingSection = () => {
               <Button 
                 className={`w-full bg-white hover:bg-white/90 font-semibold py-3 rounded-full ${
                   isAnnual ? 'text-pink-600' : 'text-teal-600'
-                }`}
-                onClick={() => window.open(isAnnual ? 'https://musicdibs.com/register/?prod=5157' : 'https://musicdibs.com/register/?prod=44940', '_blank')}
+                } ${ctaBuy.className}`}
+                onClick={() => {
+                  trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
+                  window.open(isAnnual ? 'https://musicdibs.com/register/?prod=5157' : 'https://musicdibs.com/register/?prod=44940', '_blank');
+                }}
               >
-                {t("pricing.buyNow")}
+                {ctaBuy.text}
               </Button>
             </CardContent>
           </Card>
