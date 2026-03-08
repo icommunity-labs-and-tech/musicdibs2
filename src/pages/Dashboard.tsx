@@ -16,6 +16,7 @@ export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -27,7 +28,10 @@ export default function Dashboard() {
     const check = () => {
       supabase.functions.invoke('check-subscription').then(({ data, error }) => {
         if (error) console.error('[check-subscription]', error);
-        else console.log('[check-subscription]', data);
+        else {
+          console.log('[check-subscription]', data);
+          setSubscriptionEnd(data?.subscription_end ?? null);
+        }
       });
     };
     check();
