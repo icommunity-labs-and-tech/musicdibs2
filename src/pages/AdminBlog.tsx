@@ -328,14 +328,25 @@ const AdminBlog = () => {
                     className="bg-white/5 border-white/10 text-white"
                   />
                 </div>
-                <div className="flex items-center gap-3 pt-6">
-                  <Switch
-                    checked={form.published}
-                    onCheckedChange={(v) => setForm({ ...form, published: v })}
-                  />
-                  <Label className="text-white/70">
-                    {form.published ? "Publicado" : "Borrador"}
-                  </Label>
+                <div className="flex flex-col gap-2 pt-6">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={form.published}
+                      onCheckedChange={(v) => setForm({ ...form, published: v })}
+                    />
+                    <Label className="text-white/70">
+                      {form.published
+                        ? form.published_at && new Date(form.published_at) > new Date()
+                          ? "⏰ Programado"
+                          : "Publicado"
+                        : "Borrador"}
+                    </Label>
+                  </div>
+                  {form.published && form.published_at && new Date(form.published_at) > new Date() && (
+                    <p className="text-xs text-amber-400">
+                      Se publicará automáticamente el {new Date(form.published_at).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  )}
                 </div>
               </div>
 
