@@ -20,6 +20,7 @@ import {
   EyeOff,
   Newspaper,
   Search,
+  BarChart3,
 } from "lucide-react";
 
 type BlogPost = {
