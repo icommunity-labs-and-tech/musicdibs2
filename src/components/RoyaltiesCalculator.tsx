@@ -210,7 +210,7 @@ export const RoyaltiesCalculator = () => {
                       <div className="flex items-center gap-2">
                         <span
                           className={`font-bold ${r.highlight ? "text-lg" : ""}`}
-                          style={{ color: r.highlight ? "#A855F7" : "#FFFFFF" }}
+                          style={{ color: "#FFFFFF" }}
                         >
                           {t(`calculator.competitors.${r.key}`)}
                         </span>
