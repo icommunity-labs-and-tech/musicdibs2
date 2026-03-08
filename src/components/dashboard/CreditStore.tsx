@@ -10,38 +10,38 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 const PLANS = [
   {
     id: 'annual',
-    name: 'Suscripción Anual',
+    name: 'Anual',
     credits: 120,
     price: '59,90 €',
     period: '/año',
     popular: true,
     icon: Calendar,
-    description: '120 créditos al año · Los créditos no consumidos se pierden al finalizar el periodo',
-    perCredit: '0,50 €',
+    description: '120 créd/año',
+    perCredit: '0,50 €/créd',
   },
   {
     id: 'monthly',
-    name: 'Suscripción Mensual',
+    name: 'Mensual',
     credits: 3,
     price: '6,90 €',
     period: '/mes',
     icon: Clock,
-    description: '3 créditos al mes · Cuota de alta: 6,90 € · Los créditos no consumidos se pierden al finalizar el mes',
-    perCredit: '2,30 €',
+    description: '3 créd/mes',
+    perCredit: '2,30 €/créd',
   },
   {
     id: 'individual',
-    name: 'Registro Individual',
+    name: 'Individual',
     credits: 1,
     price: '11,90 €',
     period: '',
     icon: FileText,
-    description: '1 crédito por registro · Sin compromiso · Compra tantos como necesites',
-    perCredit: '11,90 €',
+    description: '1 crédito',
+    perCredit: '11,90 €/créd',
   },
 ];
 
-export function CreditStore() {
+export function CreditStore({ compact }: { compact?: boolean }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -67,6 +67,72 @@ export function CreditStore() {
     setLoading(null);
   };
 
+  if (compact) {
+    return (
+      <Card className="border-border/40 shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4 text-primary" /> Créditos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {paymentStatus === 'success' && (
+            <div className="flex items-center gap-2 text-emerald-600 text-xs">
+              <CheckCircle2 className="h-4 w-4" /> ¡Pago completado! Créditos en camino.
+            </div>
+          )}
+          {error && (
+            <div className="flex items-center gap-2 text-xs text-destructive">
+              <AlertCircle className="h-3.5 w-3.5" /> {error}
+            </div>
+          )}
+          <div className="space-y-2">
+            {PLANS.map((plan) => {
+              const Icon = plan.icon;
+              return (
+                <div
+                  key={plan.id}
+                  className={`flex items-center gap-3 rounded-lg border p-3 ${plan.popular ? 'border-primary bg-primary/5' : 'border-border/40'}`}
+                >
+                  <Icon className="h-4 w-4 text-primary shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{plan.name}</span>
+                      {plan.popular && (
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5">
+                          <Sparkles className="h-2.5 w-2.5" /> Top
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-xs text-muted-foreground">{plan.description} · {plan.perCredit}</span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="text-sm font-bold">{plan.price}<span className="text-xs font-normal text-muted-foreground">{plan.period}</span></div>
+                    <Button
+                      variant={plan.popular ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 text-xs mt-1"
+                      onClick={() => handleBuy(plan.id)}
+                      disabled={loading !== null}
+                    >
+                      {loading === plan.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : plan.id === 'individual' ? 'Comprar' : 'Suscribirse'}
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">
+            Pagos seguros con Stripe. Créditos no consumidos se pierden al finalizar el periodo.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Full layout (used in dedicated credits page)
   return (
     <div className="space-y-4">
       {paymentStatus === 'success' && (
@@ -116,7 +182,7 @@ export function CreditStore() {
                   {plan.price}
                   <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{plan.perCredit} / crédito</p>
+                <p className="text-xs text-muted-foreground">{plan.perCredit}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{plan.description}</p>
                 <Button
                   className="w-full"
