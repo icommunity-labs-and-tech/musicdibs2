@@ -94,8 +94,7 @@ export const HeroSection = () => {
               className={`font-semibold ${ctaPrimary.className}`}
               onClick={() => {
                 trackABClick('hero_cta_primary', ctaPrimary.variantIndex, ctaPrimary.text);
-                const pricingSection = document.querySelector('section:nth-of-type(6)');
-                pricingSection?.scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
               {ctaPrimary.text}
