@@ -3,12 +3,30 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { useParallax } from "@/hooks/useParallax";
+import { useABTest, trackABClick } from "@/hooks/useABTest";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const { offset } = useParallax({ speed: 0.4 });
   const { offset: bgOffset } = useParallax({ speed: 0.15 });
+
+  const ctaPrimary = useABTest({
+    id: 'hero_cta_primary',
+    variants: [
+      { text: t("hero.cta_start"), className: '' },
+      { text: '🚀 Registra tu música gratis', className: '' },
+      { text: 'Empieza ahora — Es gratis', className: 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 border-0' },
+    ],
+  });
+
+  const ctaSecondary = useABTest({
+    id: 'hero_cta_secondary',
+    variants: [
+      { text: t("hero.cta_how"), className: '' },
+      { text: 'Ver cómo funciona →', className: '' },
+    ],
+  });
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -67,30 +85,32 @@ export const HeroSection = () => {
         </ScrollReveal>
 
 
-        {/* CTA buttons */}
+        {/* CTA buttons with A/B testing */}
         <ScrollReveal delay={600}>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               variant="hero" 
               size="xl"
-              className="font-semibold"
+              className={`font-semibold ${ctaPrimary.className}`}
               onClick={() => {
+                trackABClick('hero_cta_primary', ctaPrimary.variantIndex, ctaPrimary.text);
                 const pricingSection = document.querySelector('section:nth-of-type(6)');
                 pricingSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              {t("hero.cta_start")}
+              {ctaPrimary.text}
             </Button>
             <Button 
               variant="blue" 
               size="xl"
-              className="font-semibold"
+              className={`font-semibold ${ctaSecondary.className}`}
               onClick={() => {
+                trackABClick('hero_cta_secondary', ctaSecondary.variantIndex, ctaSecondary.text);
                 const tutorialSection = document.querySelector('section:nth-of-type(7)');
                 tutorialSection?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              {t("hero.cta_how")}
+              {ctaSecondary.text}
             </Button>
           </div>
         </ScrollReveal>
