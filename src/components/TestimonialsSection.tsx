@@ -54,15 +54,10 @@ const TestimonialsSection = () => {
           <Card className="bg-card/80 backdrop-blur-sm border-border shadow-2xl">
             <CardContent className="p-8">
               <div className="aspect-video mb-6 rounded-lg overflow-hidden shadow-lg">
-                <iframe
-                  loading="lazy"
-                  src={`https://www.youtube.com/embed/${testimonials[currentVideo].videoId}`}
-                    title={t("testimonials.videoTitle", { name: testimonials[currentVideo].name })}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                ></iframe>
+                <LazyYouTube 
+                  videoId={testimonials[currentVideo].videoId} 
+                  title={t("testimonials.videoTitle", { name: testimonials[currentVideo].name })} 
+                />
               </div>
               
               <div className="text-center mb-6">
