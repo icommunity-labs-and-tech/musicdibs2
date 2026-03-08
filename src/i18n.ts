@@ -108,7 +108,7 @@ const resources = {
             'Recibe hasta el 95% en royalties por tus reproducciones',
             'Acceso continuo a certificados',
             
-            '2 Promos/mes en TikTok (+245k seguidores) e Instagram (+100k)*',
+            '3 Promos en TikTok (+245k seguidores) e Instagram (+100k)*',
             'Marketplace MusicDibs – Promociona y vende tus obras',
             'Soporte prioritario',
             'Ayuda ante reclamaciones y/o disputas'
