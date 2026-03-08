@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,10 +6,25 @@ import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2 } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function BillingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('subscription_plan')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        setPlan(data?.subscription_plan ?? 'Free');
+      });
+  }, [user]);
 
   const handleManageSubscription = async () => {
     setLoading(true);
@@ -42,10 +57,19 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold">Plan Plus</p>
-              <p className="text-sm text-muted-foreground">Renovación mensual</p>
+              <p className="font-semibold">{plan ?? '...'}</p>
+              <p className="text-sm text-muted-foreground">
+                {plan === 'Free' ? 'Sin suscripción activa' : 'Renovación mensual'}
+              </p>
             </div>
-            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">Activo</Badge>
+            <Badge
+              className={plan === 'Free'
+                ? 'bg-muted text-muted-foreground border-border'
+                : 'bg-primary/10 text-primary border-primary/20'}
+              variant="outline"
+            >
+              {plan === 'Free' ? 'Free' : 'Activo'}
+            </Badge>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
