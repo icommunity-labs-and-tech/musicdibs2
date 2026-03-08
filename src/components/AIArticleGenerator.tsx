@@ -360,7 +360,7 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing, currentPostId }
                 size="sm"
                 onClick={translateArticle}
                 disabled={step !== "idle" || !currentPostId}
-                className="gap-2 border-white/20 text-white/70 hover:text-white hover:border-blue-400/50"
+                className="gap-2 border-white/20 text-foreground hover:text-foreground hover:border-blue-400/50"
               >
                 {step === "translating" ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
