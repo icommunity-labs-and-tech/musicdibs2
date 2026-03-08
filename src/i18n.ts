@@ -47,7 +47,7 @@ const resources = {
       },
       why: {
         heading: 'La plataforma todo-en-uno para artistas independientes',
-        subheading: 'Protección legal con blockchain, distribución en 220+ plataformas y hasta un 95% en royalties.\nTodo desde un solo lugar.',
+        subheading: 'Creación de música, mejoras y recursos con IA + registro de propiedad intelectual legal con tecnología blockchain + distribución en 220+ plataformas y hasta un 95% en royalties.\nTodo desde un solo lugar.',
         features: {
           legal: {
             title: 'Protección Legal Global',
