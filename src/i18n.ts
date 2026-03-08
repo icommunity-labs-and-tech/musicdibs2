@@ -50,9 +50,9 @@ const resources = {
         subheading: 'Creación de música, mejoras y recursos con IA + registro de propiedad intelectual legal con tecnología blockchain + distribución en 220+ plataformas y hasta un 95% en royalties.\nTodo desde un solo lugar.',
         features: {
           legal: {
-            title: 'Protección Legal Global',
-            desc: 'Validez jurídica internacional respaldada por blockchain',
-            popup: `Cada registro en Musicdibs genera un certificado digital inmutable respaldado por tecnología Blockchain, válido como prueba legal de autoría. Este certificado cumple con normativas internacionales y nacionales, incluyendo el <a1>Convenio de Berna</a1>, el <a2>Tratado de la OMPI</a2>, la <a3>Directiva sobre Derechos de Autor en la Era Digital</a3> y regulaciones sobre Blockchain aplicadas a la propiedad intelectual.`,
+            title: 'Creación Musical Asistida por IA',
+            desc: 'Generador de música IA para inspirarte, desarrollar ideas y mejorar tus composiciones.',
+            popup: `Nuestro módulo de IA musical está diseñado como una herramienta de apoyo creativo para compositores y productores. Te ayuda a explorar ideas, probar arreglos, generar bases o mejorar composiciones existentes, manteniendo siempre al músico en el centro del proceso creativo.\n\nLa inteligencia artificial actúa como un asistente de inspiración, permitiéndote experimentar con nuevas posibilidades musicales, desbloquear ideas y desarrollar demos más completas en menos tiempo.\n\nCuando tu obra esté lista, podrás registrarla y protegerla inmediatamente en MusicDibs, garantizando prueba de autoría y protección legal desde el primer momento.\n\nCon este módulo podrás:\n\n• Explorar ideas musicales e inspiración creativa\n• Probar arreglos, estilos o variaciones\n• Mejorar composiciones existentes\n• Crear demos o bases de forma rápida\n• Registrar y proteger tu obra final en MusicDibs\n\nEste enfoque deja claro que la creatividad sigue siendo humana, y que la IA simplemente amplía las herramientas disponibles para el músico.`,
           },
           instant: {
             title: 'Registro Instantáneo',
