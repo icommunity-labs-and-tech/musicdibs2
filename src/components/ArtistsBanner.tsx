@@ -84,21 +84,7 @@ const ArtistsBanner = () => {
           {t("artists.subtext")}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-          <Button 
-            size="lg" 
-            className={`bg-white text-pink-600 hover:bg-white/90 font-bold px-6 py-2 text-base rounded-full shadow-lg ${ctaJoin.className}`}
-            onClick={() => {
-              trackABClick('artists_cta_join', ctaJoin.variantIndex, ctaJoin.text);
-              const pricingSection = document.getElementById('pricing-section');
-              if (pricingSection) {
-                pricingSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-          >
-            {ctaJoin.text}
-          </Button>
-          
+        <div className="flex justify-center items-center">
           <Button 
             variant="outline" 
             size="lg"
