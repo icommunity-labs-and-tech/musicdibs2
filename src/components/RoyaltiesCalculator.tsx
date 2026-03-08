@@ -35,6 +35,8 @@ export const RoyaltiesCalculator = () => {
   const lang = i18n.resolvedLanguage || i18n.language;
   const [streams, setStreams] = useState(100_000);
 
+  const { ref: barsRef, isInView: barsVisible } = useInView({ threshold: 0.3 });
+
   const results = useMemo(() => {
     const grossRevenue = streams * AVG_PAY_PER_STREAM;
     return COMPETITORS.map((c) => ({
