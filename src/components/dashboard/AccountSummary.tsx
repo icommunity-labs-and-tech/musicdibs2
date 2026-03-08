@@ -69,12 +69,28 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
             </div>
           ))}
         </div>
-        {subscriptionEnd && data.subscriptionPlan !== 'Free' && (
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground justify-center">
-            <CalendarClock className="h-3.5 w-3.5" />
-            <span>Renovación: {format(new Date(subscriptionEnd), "d 'de' MMMM yyyy", { locale: es })}</span>
-          </div>
-        )}
+        {subscriptionEnd && data.subscriptionPlan !== 'Free' && (() => {
+          const endDate = new Date(subscriptionEnd);
+          const daysLeft = differenceInDays(endDate, new Date());
+          const expiringSoon = daysLeft >= 0 && daysLeft < 7;
+          return (
+            <>
+              <div className={`mt-3 flex items-center gap-1.5 text-xs justify-center ${expiringSoon ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                {expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
+                <span>
+                  {expiringSoon
+                    ? `Tu suscripción expira en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}`
+                    : `Renovación: ${format(endDate, "d 'de' MMMM yyyy", { locale: es })}`}
+                </span>
+              </div>
+              {expiringSoon && (
+                <div className="mt-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive text-center">
+                  Renueva tu plan para no perder el acceso a tus créditos y registros.
+                </div>
+              )}
+            </>
+          );
+        })()}
       </CardContent>
     </Card>
   );
