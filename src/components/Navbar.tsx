@@ -158,9 +158,9 @@ export const Navbar = () => {
               >
                 <ul className="py-2 text-sm text-gray-700">
                   <li>
-                    <a href={links.login} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100 font-medium">
+                    <Link to="/login" className="block px-4 py-2 hover:bg-gray-100 font-medium" onClick={() => setServicesOpen(false)}>
                       {t('nav.login')}
-                    </a>
+                    </Link>
                   </li>
                   <li className="border-t border-gray-100 my-1" />
                   <li>
@@ -225,7 +225,7 @@ export const Navbar = () => {
             </button>
             {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
-                <a href={links.login} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.login')}</a>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.login')}</Link>
                 <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.distribution')}</a>
                 <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
                 <Link to="/verify" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</Link>
