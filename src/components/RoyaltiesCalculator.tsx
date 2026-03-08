@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
 import { useInView } from "@/hooks/useInView";
+import { useAnimatedValue } from "@/hooks/useAnimatedValue";
 
 const COMPETITORS = [
   { key: "musicdibs", rate: 0.95, highlight: true },
@@ -30,6 +31,11 @@ const formatCurrency = (n: number, lang: string) => {
 
 const STREAM_PRESETS = [10_000, 50_000, 100_000, 500_000, 1_000_000];
 
+const AnimatedCurrency = ({ value, lang }: { value: number; lang: string }) => {
+  const animated = useAnimatedValue(value, 600);
+  return <>{formatCurrency(animated, lang)}</>;
+};
+
 export const RoyaltiesCalculator = () => {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage || i18n.language;
@@ -49,6 +55,10 @@ export const RoyaltiesCalculator = () => {
   const musicdibsEarnings = results[0].earnings;
   const bestCompetitorEarnings = Math.max(...results.slice(1).map((r) => r.earnings));
   const advantage = musicdibsEarnings - bestCompetitorEarnings;
+
+  // Animated values
+  const animatedStreams = useAnimatedValue(streams, 500);
+  const animatedAdvantage = useAnimatedValue(advantage, 700);
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setStreams(Number(e.target.value));
@@ -152,7 +162,7 @@ export const RoyaltiesCalculator = () => {
                   className="text-4xl font-bold bg-clip-text text-transparent"
                   style={{ backgroundImage: "linear-gradient(90deg, #A855F7, #E879F9)" }}
                 >
-                  {formatNumber(streams, lang)}
+                  {formatNumber(Math.round(animatedStreams), lang)}
                 </span>
                 <span className="ml-2 text-lg" style={{ color: "#C4B5FD" }}>streams</span>
               </div>
@@ -216,7 +226,7 @@ export const RoyaltiesCalculator = () => {
                         className="font-bold text-lg"
                         style={{ color: r.highlight ? "#A855F7" : "#FFFFFF" }}
                       >
-                        {formatCurrency(r.earnings, lang)}
+                        <AnimatedCurrency value={r.earnings} lang={lang} />
                       </span>
                     </div>
 
@@ -256,7 +266,7 @@ export const RoyaltiesCalculator = () => {
                   <DollarSign className="w-5 h-5" style={{ color: "#A855F7" }} />
                   <span className="text-white font-bold text-lg">
                     {t("calculator.advantage_prefix")}{" "}
-                    <span className="text-xl" style={{ color: "#A855F7" }}>{formatCurrency(advantage, lang)}</span>{" "}
+                    <span className="text-xl" style={{ color: "#A855F7" }}>{formatCurrency(animatedAdvantage, lang)}</span>{" "}
                     {t("calculator.advantage_suffix")}
                   </span>
                 </div>
