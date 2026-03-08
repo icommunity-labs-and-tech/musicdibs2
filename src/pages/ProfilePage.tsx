@@ -7,13 +7,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import {
   User, Mail, Shield, Calendar, Lock, Loader2,
-  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X,
+  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2,
 } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
+function NotifSoundToggle() {
+  const [enabled, setEnabled] = useState(() => localStorage.getItem('notif_sound') !== 'off');
+  const toggle = (val: boolean) => {
+    setEnabled(val);
+    localStorage.setItem('notif_sound', val ? 'on' : 'off');
+  };
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <Volume2 className="h-4 w-4 text-muted-foreground" />
+        <div>
+          <p className="text-sm font-medium">Sonido de notificación</p>
+          <p className="text-xs text-muted-foreground">Reproduce un sonido cuando llega una alerta</p>
+        </div>
+      </div>
+      <Switch checked={enabled} onCheckedChange={toggle} />
+    </div>
+  );
+}
 const kycConfig: Record<string, { label: string; icon: typeof CheckCircle2; badgeClass: string }> = {
   verified: { label: 'Verificado', icon: CheckCircle2, badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
   pending: { label: 'En revisión', icon: Loader2, badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
@@ -222,6 +242,18 @@ export default function ProfilePage() {
               )}
             </>
           )}
+        </CardContent>
+      </Card>
+
+      {/* ─── Notification Preferences ─── */}
+      <Card className="border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Bell className="h-4 w-4 text-primary" /> Preferencias de notificaciones
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <NotifSoundToggle />
         </CardContent>
       </Card>
 
