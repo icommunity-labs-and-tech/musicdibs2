@@ -13,37 +13,7 @@ export const WhyChooseSection = () => {
       description: t("why.features.legal.desc"),
       color: "from-pink-500 to-purple-600",
       popupContent: (
-        <>
-          <Trans
-            i18nKey="why.features.legal.popup"
-            components={{
-              a1: (
-                <a
-                  href="https://www.wipo.int/treaties/es/ip/berne/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline hover:text-primary/80"
-                />
-              ),
-              a2: (
-                <a
-                  href="https://www.wipo.int/treaties/es/ip/wct/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline hover:text-primary/80"
-                />
-              ),
-              a3: (
-                <a
-                  href="https://digital-strategy.ec.europa.eu/es/policies/copyright"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline hover:text-primary/80"
-                />
-              ),
-            }}
-          />
-        </>
+        <span style={{ whiteSpace: 'pre-line' }}>{t("why.features.legal.popup")}</span>
       )
     },
     {
