@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ABVariant {
   text: string;
-  variant?: string; // button variant
-  className?: string; // extra classes
+  variant?: string;
+  className?: string;
 }
 
 export interface ABTest {
@@ -11,10 +12,26 @@ export interface ABTest {
   variants: ABVariant[];
 }
 
-/**
- * Returns a consistent variant per session for the given test ID.
- * Sends a GA4 event when the variant is first assigned.
- */
+const getSessionId = (): string => {
+  const key = 'ab_session_id';
+  let sid = sessionStorage.getItem(key);
+  if (!sid) {
+    sid = crypto.randomUUID();
+    sessionStorage.setItem(key, sid);
+  }
+  return sid;
+};
+
+const persistEvent = (testId: string, variantIndex: number, variantText: string, eventType: 'impression' | 'click') => {
+  supabase.from('ab_test_events').insert({
+    test_id: testId,
+    variant_index: variantIndex,
+    variant_text: variantText,
+    event_type: eventType,
+    session_id: getSessionId(),
+  }).then(); // fire-and-forget
+};
+
 export const useABTest = (test: ABTest): ABVariant & { variantIndex: number } => {
   const { id, variants } = test;
 
@@ -28,7 +45,7 @@ export const useABTest = (test: ABTest): ABVariant & { variantIndex: number } =>
     const idx = Math.floor(Math.random() * variants.length);
     sessionStorage.setItem(storageKey, String(idx));
 
-    // Send GA4 experiment event
+    // GA4 event
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'ab_test_impression', {
         test_id: id,
@@ -36,15 +53,16 @@ export const useABTest = (test: ABTest): ABVariant & { variantIndex: number } =>
         variant_text: variants[idx].text,
       });
     }
+
+    // Persist to DB
+    persistEvent(id, idx, variants[idx].text, 'impression');
+
     return idx;
   }, [id, variants.length]);
 
   return { ...variants[variantIndex], variantIndex };
 };
 
-/**
- * Track a CTA click with the A/B variant info
- */
 export const trackABClick = (testId: string, variantIndex: number, label: string) => {
   if (typeof window !== 'undefined' && (window as any).gtag) {
     (window as any).gtag('event', 'ab_test_click', {
@@ -53,4 +71,5 @@ export const trackABClick = (testId: string, variantIndex: number, label: string
       variant_text: label,
     });
   }
+  persistEvent(testId, variantIndex, label, 'click');
 };
