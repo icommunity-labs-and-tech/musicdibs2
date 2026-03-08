@@ -42,7 +42,7 @@ export default function UserLogin() {
       <Card className="w-full max-w-md border-border/30 bg-card/95 backdrop-blur-sm shadow-2xl">
         <CardHeader className="text-center space-y-3">
           <img src="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" alt="MusicDibs" className="mx-auto h-14 w-auto invert" />
-          <CardTitle className="text-2xl font-bold">MusicDibs</CardTitle>
+          
           <CardDescription>Accede a tu consola de registro de obras</CardDescription>
         </CardHeader>
         <CardContent>
