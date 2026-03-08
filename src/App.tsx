@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { ChatWidget } from "./components/ChatWidget";
 import { SocialProofPopup } from "./components/SocialProofPopup";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { AuthProvider } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import Contact from "./pages/Contact";
 import SLA from "./pages/SLA";
@@ -24,12 +25,15 @@ import NewsArticle from "./pages/NewsArticle";
 import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
 import AdminABTests from "./pages/AdminABTests";
+import UserLogin from "./pages/UserLogin";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <AuthProvider>
     <ThemeProvider>
       <TooltipProvider>
         <Toaster />
@@ -56,12 +60,15 @@ const App = () => (
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="/admin/ab-tests" element={<AdminABTests />} />
+            <Route path="/login" element={<UserLogin />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
