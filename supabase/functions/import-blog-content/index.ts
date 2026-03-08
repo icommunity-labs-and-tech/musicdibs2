@@ -15,11 +15,23 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get all posts
-    const { data: posts, error } = await supabase
+    const body = await req.json().catch(() => ({}));
+    const limit = body.limit || 5;
+    const lang = body.language || null;
+
+    // Get posts without content
+    let query = supabase
       .from("blog_posts")
       .select("id, slug, language, title, content")
-      .eq("published", true);
+      .eq("published", true)
+      .is("content", null)
+      .limit(limit);
+    
+    if (lang) {
+      query = query.eq("language", lang);
+    }
+
+    const { data: posts, error } = await query;
 
     if (error) throw error;
 
