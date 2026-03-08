@@ -26,7 +26,7 @@ export function RecentRegistrations() {
   useEffect(() => { load(); }, []);
 
   return (
-    <Card className="border-border/40 shadow-sm row-span-2">
+    <Card className="border-border/40 shadow-sm">
       <CardHeader className="flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
           <History className="h-4 w-4 text-primary" /> Registros recientes
