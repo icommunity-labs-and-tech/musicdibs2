@@ -25,6 +25,8 @@ import NewsArticle from "./pages/NewsArticle";
 import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
 import AdminABTests from "./pages/AdminABTests";
+import UserLogin from "./pages/UserLogin";
+import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
