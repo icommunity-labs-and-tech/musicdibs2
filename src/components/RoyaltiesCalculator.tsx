@@ -65,15 +65,7 @@ export const RoyaltiesCalculator = () => {
   };
 
   return (
-    <section
-      className="py-20 relative overflow-hidden"
-      style={{
-        background: `
-          radial-gradient(circle at 50% 20%, rgba(168,85,247,0.25), transparent 60%),
-          linear-gradient(180deg, #4C1D95, #2E1065)
-        `,
-      }}
-    >
+    <section className="py-20 relative overflow-hidden bg-gradient-to-b from-purple-900 to-purple-800">
       {/* Subtle background decoration */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-purple-500 blur-3xl" />
