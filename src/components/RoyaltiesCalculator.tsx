@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
+import { useInView } from "@/hooks/useInView";
 
 const COMPETITORS = [
   { key: "musicdibs", rate: 0.95, highlight: true },
