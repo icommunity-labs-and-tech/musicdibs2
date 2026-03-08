@@ -84,8 +84,8 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
                 </span>
               </div>
               {expiringSoon && (
-                <div className="mt-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive text-center">
-                  Renueva tu plan para no perder el acceso a tus créditos y registros.
+                <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400 text-center">
+                  Tu suscripción se renovará automáticamente. Comprueba que tu método de pago sigue vigente para evitar interrupciones.
                 </div>
               )}
             </>
