@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface DashboardNotification {
   id: string;
@@ -20,38 +21,55 @@ interface NotificationsContextType {
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
-// Simulated real-time events — replace with Supabase Realtime channel
-const MOCK_EVENTS: Omit<DashboardNotification, 'id' | 'timestamp' | 'read'>[] = [
-  { type: 'success', title: 'Registro completado', message: '"Demo track master" se ha registrado correctamente en blockchain.', registrationId: 'reg_005' },
-  { type: 'error', title: 'Registro fallido', message: '"Videoclip oficial v2" no se pudo registrar. Inténtalo de nuevo.', registrationId: 'reg_006' },
-  { type: 'info', title: 'Créditos añadidos', message: 'Se han añadido 50 créditos a tu cuenta.' },
-  { type: 'success', title: 'Verificación completada', message: 'Tu identidad ha sido verificada correctamente.' },
-];
-
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<DashboardNotification[]>([]);
 
-  // Simulate incoming notifications at intervals
   useEffect(() => {
-    let idx = 0;
-    // First notification after 3s, then every 15s
-    const addNotification = () => {
-      if (idx >= MOCK_EVENTS.length) return;
-      const evt = MOCK_EVENTS[idx];
-      const notif: DashboardNotification = {
-        ...evt,
-        id: `notif_${Date.now()}_${idx}`,
-        timestamp: new Date().toISOString(),
-        read: false,
-      };
-      setNotifications(prev => [notif, ...prev]);
-      idx++;
-    };
+    // Subscribe to realtime changes on works table
+    const channel = supabase
+      .channel('works-status')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'works' },
+        (payload) => {
+          const newRow = payload.new as any;
+          const oldRow = payload.old as any;
 
-    const firstTimer = setTimeout(addNotification, 3000);
-    const interval = setInterval(addNotification, 15000);
+          // Only notify on status changes
+          if (oldRow.status === newRow.status) return;
 
-    return () => { clearTimeout(firstTimer); clearInterval(interval); };
+          let notif: DashboardNotification | null = null;
+
+          if (newRow.status === 'registered') {
+            notif = {
+              id: `notif_${Date.now()}`,
+              type: 'success',
+              title: 'Registro completado',
+              message: `"${newRow.title}" se ha registrado correctamente.`,
+              timestamp: new Date().toISOString(),
+              read: false,
+              registrationId: newRow.id,
+            };
+          } else if (newRow.status === 'failed') {
+            notif = {
+              id: `notif_${Date.now()}`,
+              type: 'error',
+              title: 'Registro fallido',
+              message: `"${newRow.title}" no se pudo registrar. Inténtalo de nuevo.`,
+              timestamp: new Date().toISOString(),
+              read: false,
+              registrationId: newRow.id,
+            };
+          }
+
+          if (notif) {
+            setNotifications(prev => [notif!, ...prev]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
