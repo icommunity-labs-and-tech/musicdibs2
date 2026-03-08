@@ -56,29 +56,67 @@ export default function UserLogin() {
             </TabsList>
 
             <TabsContent value="login">
-              <form onSubmit={handleSignIn} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input id="login-email" name="email" type="email" required placeholder="tu@email.com" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password">Contraseña</Label>
-                  <div className="relative">
-                    <Input id="login-password" name="password" type={showLoginPw ? 'text' : 'password'} required placeholder="••••••••" className="pr-10" />
-                    <button type="button" onClick={() => setShowLoginPw(!showLoginPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showLoginPw ? 'Ocultar contraseña' : 'Ver contraseña'}>
-                      {showLoginPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+              {forgotMode ? (
+                <div className="space-y-4 mt-4">
+                  <p className="text-sm text-muted-foreground">Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email</Label>
+                    <Input id="forgot-email" type="email" required placeholder="tu@email.com" value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} />
                   </div>
+                  {error && (
+                    <div className="flex items-center gap-2 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4" /> {error}
+                    </div>
+                  )}
+                  {success && (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle2 className="h-4 w-4" /> {success}
+                    </div>
+                  )}
+                  <Button className="w-full" disabled={loading} onClick={async () => {
+                    if (!forgotEmail) return;
+                    setError(''); setSuccess(''); setLoading(true);
+                    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    setLoading(false);
+                    if (error) setError(error.message);
+                    else setSuccess('Revisa tu correo electrónico para restablecer tu contraseña.');
+                  }}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar enlace'}
+                  </Button>
+                  <button type="button" onClick={() => { setForgotMode(false); setError(''); setSuccess(''); }} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    ← Volver a iniciar sesión
+                  </button>
                 </div>
-                {error && (
-                  <div className="flex items-center gap-2 text-sm text-destructive">
-                    <AlertCircle className="h-4 w-4" /> {error}
+              ) : (
+                <form onSubmit={handleSignIn} className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="login-email">Email</Label>
+                    <Input id="login-email" name="email" type="email" required placeholder="tu@email.com" />
                   </div>
-                )}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Entrar'}
-                </Button>
-              </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="login-password">Contraseña</Label>
+                    <div className="relative">
+                      <Input id="login-password" name="password" type={showLoginPw ? 'text' : 'password'} required placeholder="••••••••" className="pr-10" />
+                      <button type="button" onClick={() => setShowLoginPw(!showLoginPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showLoginPw ? 'Ocultar contraseña' : 'Ver contraseña'}>
+                        {showLoginPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  {error && (
+                    <div className="flex items-center gap-2 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4" /> {error}
+                    </div>
+                  )}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Entrar'}
+                  </Button>
+                  <button type="button" onClick={() => { setForgotMode(true); setError(''); }} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </form>
+              )}
             </TabsContent>
 
             <TabsContent value="register">
