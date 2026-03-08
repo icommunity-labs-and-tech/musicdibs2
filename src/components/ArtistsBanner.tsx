@@ -1,8 +1,30 @@
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { useInView } from "@/hooks/useInView";
+import { useCountUp } from "@/hooks/useCountUp";
+import { useEffect } from "react";
+
+const AnimatedStat = ({ end, suffix, label }: { end: number; suffix: string; label: string }) => {
+  const { ref, isInView } = useInView({ threshold: 0.3 });
+  const { count, start } = useCountUp({ end, duration: 2200 });
+
+  useEffect(() => {
+    if (isInView) start();
+  }, [isInView]);
+
+  return (
+    <div className="text-center" ref={ref}>
+      <div className="text-2xl md:text-3xl font-bold text-yellow-300 mb-1 drop-shadow-lg tabular-nums">
+        {count.toLocaleString()}{suffix}
+      </div>
+      <div className="text-white/95 text-base drop-shadow-md">{label}</div>
+    </div>
+  );
+};
 
 const ArtistsBanner = () => {
   const { t } = useTranslation();
+
   return (
     <section className="relative bg-gradient-to-r from-pink-500 via-pink-600 to-pink-700 py-12 overflow-hidden">
       {/* Artists background image */}
@@ -71,20 +93,11 @@ const ArtistsBanner = () => {
           </Button>
         </div>
 
-        {/* Stats */}
+        {/* Animated Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8 max-w-3xl mx-auto">
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-yellow-300 mb-1 drop-shadow-lg">100K+</div>
-            <div className="text-white/95 text-base drop-shadow-md">{t("artists.stats.artists")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-yellow-300 mb-1 drop-shadow-lg">1M+</div>
-            <div className="text-white/95 text-base drop-shadow-md">{t("artists.stats.works")}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-yellow-300 mb-1 drop-shadow-lg">50+</div>
-            <div className="text-white/95 text-base drop-shadow-md">{t("artists.stats.countries")}</div>
-          </div>
+          <AnimatedStat end={100000} suffix="+" label={t("artists.stats.artists")} />
+          <AnimatedStat end={1000000} suffix="+" label={t("artists.stats.works")} />
+          <AnimatedStat end={50} suffix="+" label={t("artists.stats.countries")} />
         </div>
       </div>
     </section>
