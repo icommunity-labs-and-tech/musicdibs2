@@ -74,22 +74,8 @@ export async function submitPromotionRequest(data: PromotionRequest): Promise<{ 
   return { success: true };
 }
 
-// ── Billing Plans (static for now) ─────────────────────────
-
-const staticPlans: BillingPlan[] = [
-  { id: 'basic', name: 'Básico', credits: 10, price: 9.99, currency: 'EUR' },
-  { id: 'plus', name: 'Plus', credits: 50, price: 29.99, currency: 'EUR', popular: true },
-  { id: 'pro', name: 'Pro', credits: 200, price: 79.99, currency: 'EUR' },
-];
-
-export async function fetchBillingPlans(): Promise<BillingPlan[]> {
-  return staticPlans;
-}
-
-export async function createCheckoutSession(planId: string): Promise<{ url: string }> {
-  console.log('[API] Checkout for plan:', planId);
-  return { url: '/pricing' };
-}
+// ── Billing Plans ──────────────────────────────────────────
+// Checkout is now handled directly via Stripe in CreditStore component
 
 // ── Register Work ──────────────────────────────────────────
 
