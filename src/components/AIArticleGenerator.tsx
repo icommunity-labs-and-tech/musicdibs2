@@ -17,6 +17,8 @@ import {
   AlignLeft,
   ChevronDown,
   ChevronUp,
+  Languages,
+  Check,
 } from "lucide-react";
 
 type BlogForm = {
@@ -37,11 +39,12 @@ type Props = {
   setForm: (form: BlogForm) => void;
   slugify: (text: string) => string;
   isEditing: boolean;
+  currentPostId?: string | null;
 };
 
-type GenerationStep = "idle" | "extracting" | "generating" | "generating-image" | "done";
+type GenerationStep = "idle" | "extracting" | "generating" | "generating-image" | "translating" | "done";
 
-const AIArticleGenerator = ({ form, setForm, slugify, isEditing }: Props) => {
+const AIArticleGenerator = ({ form, setForm, slugify, isEditing, currentPostId }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [referenceText, setReferenceText] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
@@ -50,6 +53,7 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing }: Props) => {
   const [regeneratingSection, setRegeneratingSection] = useState<string | null>(null);
   const [imageStyle, setImageStyle] = useState("");
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [translationResults, setTranslationResults] = useState<any[] | null>(null);
   const { toast } = useToast();
 
   const extractUrl = async () => {
@@ -183,11 +187,55 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing }: Props) => {
     }
   };
 
+  const translateArticle = async () => {
+    if (!currentPostId) {
+      toast({ title: "Guarda primero", description: "Guarda el artículo antes de traducirlo.", variant: "destructive" });
+      return;
+    }
+
+    setStep("translating");
+    setProgress(20);
+    setTranslationResults(null);
+
+    try {
+      const progressInterval = setInterval(() => {
+        setProgress((p) => Math.min(p + 3, 90));
+      }, 2000);
+
+      const { data, error } = await supabase.functions.invoke("translate-blog-posts", {
+        body: { postId: currentPostId },
+      });
+
+      clearInterval(progressInterval);
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      setProgress(100);
+      setTranslationResults(data.results || []);
+
+      const successCount = (data.results || []).filter((r: any) => r.success).length;
+      toast({
+        title: "Traducción completada",
+        description: `${successCount} traducción(es) creada(s)/actualizada(s).`,
+      });
+    } catch (e: any) {
+      toast({ title: "Error al traducir", description: e.message, variant: "destructive" });
+    } finally {
+      setTimeout(() => {
+        setStep("idle");
+        setProgress(0);
+      }, 2000);
+    }
+  };
+
   const sectionLabels = {
     title: { icon: Type, label: "Título" },
     excerpt: { icon: AlignLeft, label: "Extracto" },
     content: { icon: FileText, label: "Contenido" },
   };
+
+  const langLabels: Record<string, string> = { en: "Inglés", pt: "Portugués", es: "Español" };
 
   return (
     <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-xl overflow-hidden">
@@ -213,6 +261,7 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing }: Props) => {
                 {step === "extracting" && "Extrayendo contenido de la URL..."}
                 {step === "generating" && "Generando artículo con IA..."}
                 {step === "generating-image" && "Generando imagen..."}
+                {step === "translating" && "Traduciendo artículo a otros idiomas..."}
               </div>
               <Progress value={progress} className="h-2" />
             </div>
@@ -291,6 +340,54 @@ const AIArticleGenerator = ({ form, setForm, slugify, isEditing }: Props) => {
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Translate to other languages */}
+          {(form.title || form.content) && (
+            <div className="border-t border-white/10 pt-4 space-y-2">
+              <Label className="text-white/70 text-sm flex items-center gap-2">
+                <Languages className="w-4 h-4" />
+                Traducir a otros idiomas
+              </Label>
+              <p className="text-xs text-white/40">
+                {currentPostId
+                  ? "Traduce automáticamente este artículo a inglés y portugués y guárdalo como versiones adicionales."
+                  : "Guarda el artículo primero para poder traducirlo."}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={translateArticle}
+                disabled={step !== "idle" || !currentPostId}
+                className="gap-2 border-white/20 text-white/70 hover:text-white hover:border-blue-400/50"
+              >
+                {step === "translating" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Languages className="w-4 h-4" />
+                )}
+                Traducir a EN + PT
+              </Button>
+
+              {/* Translation results */}
+              {translationResults && (
+                <div className="flex gap-2 flex-wrap mt-2">
+                  {translationResults.map((r: any) => (
+                    <span
+                      key={r.language}
+                      className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
+                        r.success
+                          ? "bg-green-500/20 text-green-300"
+                          : "bg-red-500/20 text-red-300"
+                      }`}
+                    >
+                      {r.success ? <Check className="w-3 h-3" /> : "✗"}
+                      {langLabels[r.language] || r.language} — {r.success ? (r.action === "updated" ? "actualizado" : "creado") : r.error}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
