@@ -4,13 +4,12 @@ import { Calculator, TrendingUp, Music, DollarSign } from "lucide-react";
 import { ScrollReveal } from "./ScrollReveal";
 
 const COMPETITORS = [
-  { key: "musicdibs", rate: 0.95, color: "from-purple-500 to-pink-500", highlight: true },
-  { key: "distrokid", rate: 0.80, color: "from-gray-500 to-gray-600", highlight: false },
-  { key: "cdbaby", rate: 0.85, color: "from-gray-500 to-gray-600", highlight: false },
-  { key: "tunecore", rate: 0.80, color: "from-gray-500 to-gray-600", highlight: false },
+  { key: "musicdibs", rate: 0.95, highlight: true },
+  { key: "distrokid", rate: 0.80, highlight: false },
+  { key: "cdbaby", rate: 0.85, highlight: false },
+  { key: "tunecore", rate: 0.80, highlight: false },
 ];
 
-// Average pay per stream across major DSPs (weighted average)
 const AVG_PAY_PER_STREAM = 0.004;
 
 const formatNumber = (n: number, lang: string) => {
@@ -53,35 +52,55 @@ export const RoyaltiesCalculator = () => {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-background to-muted/30 relative overflow-hidden">
+    <section
+      className="py-20 relative overflow-hidden"
+      style={{
+        background: `
+          radial-gradient(circle at 50% 20%, rgba(168,85,247,0.25), transparent 60%),
+          linear-gradient(180deg, #4C1D95, #2E1065)
+        `,
+      }}
+    >
       {/* Subtle background decoration */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-accent blur-3xl" />
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-purple-500 blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-pink-500 blur-3xl" />
       </div>
 
       <div className="max-w-5xl mx-auto px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4"
+              style={{ background: "rgba(168,85,247,0.2)", color: "#C4B5FD" }}
+            >
               <Calculator className="w-4 h-4" />
               {t("calculator.badge")}
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               {t("calculator.title")}
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: "#C4B5FD" }}>
               {t("calculator.subtitle")}
             </p>
           </div>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
-          <div className="bg-card border border-border rounded-2xl shadow-xl p-6 md:p-10">
+          <div
+            className="rounded-2xl p-6 md:p-10"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: "16px",
+            }}
+          >
             {/* Streams input */}
             <div className="mb-10">
-              <label className="flex items-center gap-2 text-foreground font-semibold text-lg mb-4">
-                <Music className="w-5 h-5 text-primary" />
+              <label className="flex items-center gap-2 font-semibold text-lg mb-4 text-white">
+                <Music className="w-5 h-5" style={{ color: "#A855F7" }} />
                 {t("calculator.streams_label")}
               </label>
 
@@ -91,11 +110,12 @@ export const RoyaltiesCalculator = () => {
                   <button
                     key={preset}
                     onClick={() => setStreams(preset)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    className="px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                    style={
                       streams === preset
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                    }`}
+                        ? { background: "#A855F7", color: "#FFFFFF", boxShadow: "0 0 12px rgba(168,85,247,0.5)" }
+                        : { background: "rgba(255,255,255,0.1)", color: "#C4B5FD" }
+                    }
                   >
                     {formatNumber(preset, lang)}
                   </button>
@@ -111,9 +131,13 @@ export const RoyaltiesCalculator = () => {
                   step={1000}
                   value={streams}
                   onChange={handleSliderChange}
-                  className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:cursor-pointer"
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:cursor-pointer"
+                  style={{
+                    background: "rgba(255,255,255,0.15)",
+                    accentColor: "#A855F7",
+                  }}
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <div className="flex justify-between text-xs mt-1" style={{ color: "#C4B5FD" }}>
                   <span>1K</span>
                   <span>5M</span>
                 </div>
@@ -121,18 +145,21 @@ export const RoyaltiesCalculator = () => {
 
               {/* Current value display */}
               <div className="mt-4 text-center">
-                <span className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <span
+                  className="text-4xl font-bold bg-clip-text text-transparent"
+                  style={{ backgroundImage: "linear-gradient(90deg, #A855F7, #E879F9)" }}
+                >
                   {formatNumber(streams, lang)}
                 </span>
-                <span className="text-muted-foreground ml-2 text-lg">streams</span>
+                <span className="ml-2 text-lg" style={{ color: "#C4B5FD" }}>streams</span>
               </div>
             </div>
 
             {/* Results comparison */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <h3 className="text-foreground font-semibold text-lg">
+                <TrendingUp className="w-5 h-5" style={{ color: "#A855F7" }} />
+                <h3 className="text-white font-semibold text-lg">
                   {t("calculator.results_title")}
                 </h3>
               </div>
@@ -144,36 +171,63 @@ export const RoyaltiesCalculator = () => {
                 return (
                   <div
                     key={r.key}
-                    className={`relative rounded-xl p-4 transition-all ${
+                    className="rounded-xl p-4 transition-all"
+                    style={
                       r.highlight
-                        ? "bg-primary/5 border-2 border-primary/30 shadow-sm"
-                        : "bg-muted/50 border border-border"
-                    }`}
+                        ? {
+                            background: "rgba(168,85,247,0.12)",
+                            border: "1px solid rgba(168,85,247,0.35)",
+                          }
+                        : {
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                          }
+                    }
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className={`font-bold ${r.highlight ? "text-primary text-lg" : "text-foreground"}`}>
+                        <span
+                          className={`font-bold ${r.highlight ? "text-lg" : ""}`}
+                          style={{ color: r.highlight ? "#A855F7" : "#FFFFFF" }}
+                        >
                           {t(`calculator.competitors.${r.key}`)}
                         </span>
                         {r.highlight && (
-                          <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full font-medium">
+                          <span
+                            className="text-xs px-2 py-0.5 rounded-full font-medium text-white"
+                            style={{ background: "#A855F7" }}
+                          >
                             {t("calculator.recommended")}
                           </span>
                         )}
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs" style={{ color: "#C4B5FD" }}>
                           ({r.percentage}% {t("calculator.royalties")})
                         </span>
                       </div>
-                      <span className={`font-bold text-lg ${r.highlight ? "text-primary" : "text-foreground"}`}>
+                      <span
+                        className="font-bold text-lg"
+                        style={{ color: r.highlight ? "#A855F7" : "#FFFFFF" }}
+                      >
                         {formatCurrency(r.earnings, lang)}
                       </span>
                     </div>
 
                     {/* Progress bar */}
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.1)" }}>
                       <div
-                        className={`h-full rounded-full bg-gradient-to-r ${r.color} transition-all duration-700 ease-out`}
-                        style={{ width: `${barWidth}%` }}
+                        className="h-full rounded-full transition-all duration-700 ease-out"
+                        style={
+                          r.highlight
+                            ? {
+                                width: `${barWidth}%`,
+                                background: "linear-gradient(90deg, #A855F7, #7C3AED)",
+                                boxShadow: "0 0 12px rgba(168,85,247,0.6)",
+                              }
+                            : {
+                                width: `${barWidth}%`,
+                                background: "rgba(255,255,255,0.25)",
+                              }
+                        }
                       />
                     </div>
                   </div>
@@ -183,23 +237,29 @@ export const RoyaltiesCalculator = () => {
 
             {/* Advantage callout */}
             {advantage > 0 && (
-              <div className="mt-8 bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-xl p-5 text-center">
+              <div
+                className="mt-8 rounded-xl p-5 text-center"
+                style={{
+                  background: "rgba(168,85,247,0.1)",
+                  border: "1px solid rgba(168,85,247,0.25)",
+                }}
+              >
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <DollarSign className="w-5 h-5 text-primary" />
-                  <span className="text-foreground font-bold text-lg">
+                  <DollarSign className="w-5 h-5" style={{ color: "#A855F7" }} />
+                  <span className="text-white font-bold text-lg">
                     {t("calculator.advantage_prefix")}{" "}
-                    <span className="text-primary text-xl">{formatCurrency(advantage, lang)}</span>{" "}
+                    <span className="text-xl" style={{ color: "#A855F7" }}>{formatCurrency(advantage, lang)}</span>{" "}
                     {t("calculator.advantage_suffix")}
                   </span>
                 </div>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-sm" style={{ color: "#C4B5FD" }}>
                   {t("calculator.advantage_desc")}
                 </p>
               </div>
             )}
 
             {/* Disclaimer */}
-            <p className="text-xs text-muted-foreground mt-6 text-center">
+            <p className="text-xs mt-6 text-center" style={{ color: "rgba(196,181,253,0.6)" }}>
               {t("calculator.disclaimer")}
             </p>
           </div>
