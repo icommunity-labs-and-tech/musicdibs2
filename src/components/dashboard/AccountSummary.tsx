@@ -8,7 +8,7 @@ import type { DashboardSummary } from '@/types/dashboard';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export function AccountSummary({ onSummaryLoaded }: { onSummaryLoaded?: (s: DashboardSummary) => void }) {
+export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
