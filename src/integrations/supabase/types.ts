@@ -125,6 +125,108 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          available_credits: number
+          created_at: string
+          display_name: string | null
+          id: string
+          kyc_status: string
+          phone: string | null
+          subscription_plan: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_credits?: number
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          kyc_status?: string
+          phone?: string | null
+          subscription_plan?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_credits?: number
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          kyc_status?: string
+          phone?: string | null
+          subscription_plan?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      promotion_requests: {
+        Row: {
+          artist_name: string
+          created_at: string
+          description: string
+          id: string
+          main_link: string
+          promotion_goal: string
+          social_networks: string | null
+          status: string
+          user_id: string
+          work_title: string
+        }
+        Insert: {
+          artist_name: string
+          created_at?: string
+          description: string
+          id?: string
+          main_link: string
+          promotion_goal: string
+          social_networks?: string | null
+          status?: string
+          user_id: string
+          work_title: string
+        }
+        Update: {
+          artist_name?: string
+          created_at?: string
+          description?: string
+          id?: string
+          main_link?: string
+          promotion_goal?: string
+          social_networks?: string | null
+          status?: string
+          user_id?: string
+          work_title?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -139,6 +241,48 @@ export type Database = {
         Update: {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      works: {
+        Row: {
+          author: string | null
+          certificate_url: string | null
+          created_at: string
+          description: string | null
+          file_path: string | null
+          id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
