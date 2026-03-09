@@ -286,6 +286,63 @@ const AIStudioCreate = () => {
     link.click();
   };
 
+  // Bulk selection helpers
+  const toggleBulkMode = () => {
+    setBulkMode(prev => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(filteredResults.map(r => r.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedIds(new Set());
+  };
+
+  const bulkDownload = () => {
+    const selected = results.filter(r => selectedIds.has(r.id));
+    selected.forEach((r, i) => {
+      setTimeout(() => downloadAudio(r), i * 200);
+    });
+    toast({ title: `Descargando ${selected.length} archivos` });
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    // Stop any playing audio
+    ids.forEach(id => {
+      if (playingId === id) {
+        audioElements.get(id)?.pause();
+        setPlayingId(null);
+      }
+    });
+    // Optimistic delete
+    setResults(prev => prev.filter(r => !selectedIds.has(r.id)));
+    setSelectedIds(new Set());
+    setBulkMode(false);
+
+    const { error } = await supabase
+      .from('ai_generations')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudieron eliminar algunas generaciones", variant: "destructive" });
+      loadHistory();
+    } else {
+      toast({ title: `${ids.length} generaciones eliminadas` });
+    }
+  };
+
   const registerAsWork = (result: GenerationResult) => {
     // Build description from genre/mood
     const descParts: string[] = [];
