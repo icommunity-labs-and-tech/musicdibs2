@@ -88,6 +88,7 @@ const App = () => (
             <Route path="/ai-studio" element={<AIStudio />} />
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
             <Route path="/ai-studio/edit" element={<AIStudioEdit />} />
+            <Route path="/ai-studio/inspire" element={<AIStudioInspire />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
