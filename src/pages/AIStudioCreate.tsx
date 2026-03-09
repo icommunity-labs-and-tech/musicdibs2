@@ -348,17 +348,24 @@ const AIStudioCreate = () => {
               )}
             </div>
 
-            {results.length === 0 ? (
+            {isLoading ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="w-12 h-12 text-muted-foreground mb-4 animate-spin" />
+                  <p className="text-muted-foreground text-center">Cargando historial...</p>
+                </CardContent>
+              </Card>
+            ) : results.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <Music className="w-12 h-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
-                    Tus generaciones aparecerán aquí
+                    {user ? "Tus generaciones aparecerán aquí" : "Inicia sesión para guardar tu historial"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {results.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
@@ -403,6 +410,14 @@ const AIStudioCreate = () => {
                             onClick={() => downloadAudio(result)}
                           >
                             <Download className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteGeneration(result.id)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
