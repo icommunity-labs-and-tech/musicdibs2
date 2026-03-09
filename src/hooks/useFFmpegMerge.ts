@@ -81,7 +81,7 @@ export function useFFmpegMerge() {
       setProgress({ stage: 'processing', percent: 90, message: 'Generando archivo...' });
 
       const outputData = await ff.readFile('output.mp4');
-      const blob = new Blob([outputData], { type: 'video/mp4' });
+      const blob = new Blob([new Uint8Array(outputData as ArrayBuffer)], { type: 'video/mp4' });
       const url = URL.createObjectURL(blob);
 
       // Cleanup temp files
