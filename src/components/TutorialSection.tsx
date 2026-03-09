@@ -98,8 +98,7 @@ const TutorialSection = () => {
           <Button 
             className="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-4 px-12 rounded-full text-lg shadow-lg transform hover:scale-105 transition-all duration-200"
             onClick={() => {
-              const pricingSection = document.querySelector('section:nth-of-type(6)');
-              pricingSection?.scrollIntoView({ behavior: 'smooth' });
+              document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
             {t("tutorial.ctaButton")}
