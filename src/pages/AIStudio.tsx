@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb } from "lucide-react";
+import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -30,6 +30,14 @@ const AIStudio = () => {
       href: "/ai-studio/inspire",
       available: true,
       color: "from-amber-500 to-orange-500"
+    },
+    {
+      title: "Videoclips",
+      description: "Genera videoclips musicales con IA. Sube tu pista, describe el estilo visual y obtén un vídeo único.",
+      icon: Video,
+      href: "/ai-studio/video",
+      available: false,
+      color: "from-rose-500 to-red-500"
     }
   ];
 
@@ -59,7 +67,7 @@ const AIStudio = () => {
         </div>
 
         {/* Modules Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => (
             <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${module.available ? 'hover:shadow-lg hover:-translate-y-1' : 'opacity-60'}`}>
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
