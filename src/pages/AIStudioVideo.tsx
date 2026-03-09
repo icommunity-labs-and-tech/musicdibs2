@@ -96,6 +96,11 @@ const AIStudioVideo = () => {
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
+  // Filters
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStyle, setFilterStyle] = useState<string>("all");
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+
   // Load audio tracks and video history on mount
   useEffect(() => {
     if (user) {
