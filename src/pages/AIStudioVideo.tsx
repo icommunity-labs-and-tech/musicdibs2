@@ -265,18 +265,30 @@ const AIStudioVideo = () => {
         if (status === 'SUCCEEDED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
+
+          const videoUrl = data.output?.[0];
+          // Persist to DB
+          await supabase.from('video_generations').update({
+            status: 'SUCCEEDED',
+            video_url: videoUrl || null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', resultId);
+
           toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
 
           // Auto-merge if a pre-selected audio track exists
           if (preSelectedAudioId) {
             const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);
-            const videoUrl = data.output?.[0];
             if (audioTrack && videoUrl) {
               try {
                 const mergedUrl = await mergeAudioVideo(videoUrl, audioTrack.audioUrl);
                 setResults(prev => prev.map(r =>
                   r.id === resultId ? { ...r, mergedUrl } : r
                 ));
+                await supabase.from('video_generations').update({
+                  merged_url: mergedUrl,
+                  merged_audio_id: audioTrack.id,
+                }).eq('id', resultId);
                 toast({ title: "¡Audio fusionado automáticamente!", description: "Tu videoclip ya tiene banda sonora" });
               } catch (mergeErr) {
                 console.error('Auto-merge error:', mergeErr);
@@ -287,6 +299,11 @@ const AIStudioVideo = () => {
         } else if (status === 'FAILED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
+          await supabase.from('video_generations').update({
+            status: 'FAILED',
+            failure_reason: data.failure || null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', resultId);
           toast({ title: "Error", description: data.failure || "La generación del vídeo falló", variant: "destructive" });
         }
       } catch (err) {
