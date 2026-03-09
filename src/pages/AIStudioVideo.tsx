@@ -101,6 +101,13 @@ const AIStudioVideo = () => {
   const [filterStyle, setFilterStyle] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Load audio tracks on mount
   useEffect(() => {
