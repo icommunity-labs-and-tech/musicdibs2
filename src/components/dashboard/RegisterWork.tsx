@@ -135,18 +135,28 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             <p className="font-medium text-sm">Registro en proceso</p>
             <p className="text-xs text-muted-foreground">ID: {resultId}</p>
-            <Button variant="outline" size="sm" onClick={() => { 
-              setStatus('idle'); 
-              setFile(null); 
-              setOwnership(false); 
-              setTitle(''); 
-              setAuthor(''); 
-              setDescription(''); 
-              setAiAudioUrl(null);
-              setWorkType('');
-            }}>
-              Registrar otra obra
-            </Button>
+            <div className="flex flex-col gap-2 w-full">
+              {aiAudioUrl && (
+                <Button variant="default" size="sm" asChild className="w-full">
+                  <Link to="/ai-studio/create">
+                    <Sparkles className="h-4 w-4 mr-1.5" />
+                    Volver a AI MusicDibs Studio
+                  </Link>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="w-full" onClick={() => { 
+                setStatus('idle'); 
+                setFile(null); 
+                setOwnership(false); 
+                setTitle(''); 
+                setAuthor(''); 
+                setDescription(''); 
+                setAiAudioUrl(null);
+                setWorkType('');
+              }}>
+                Registrar otra obra
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
