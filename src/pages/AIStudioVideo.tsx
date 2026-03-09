@@ -93,8 +93,83 @@ const AIStudioVideo = () => {
   useEffect(() => {
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
+      audioElementsRef.current.forEach(audio => audio.pause());
     };
   }, []);
+
+  // Load audio tracks when merge dialog opens
+  const loadAudioTracks = async () => {
+    if (!user || audioTracks.length > 0) return;
+    setIsLoadingTracks(true);
+    try {
+      const { data, error } = await supabase
+        .from('ai_generations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      setAudioTracks((data || []).map(item => ({
+        id: item.id,
+        audioUrl: item.audio_url,
+        prompt: item.prompt,
+        duration: item.duration,
+        genre: item.genre || undefined,
+        mood: item.mood || undefined,
+        createdAt: new Date(item.created_at),
+        isFavorite: item.is_favorite || false,
+      })));
+    } catch (err) {
+      console.error('Error loading audio tracks:', err);
+    } finally {
+      setIsLoadingTracks(false);
+    }
+  };
+
+  const toggleAudioPreview = (audioUrl: string, id: string) => {
+    const existing = audioElementsRef.current.get(id);
+    if (audioPlayingId === id && existing) {
+      existing.pause();
+      setAudioPlayingId(null);
+    } else {
+      audioElementsRef.current.forEach(a => a.pause());
+      let audio = existing;
+      if (!audio) {
+        audio = new Audio(audioUrl);
+        audio.onended = () => setAudioPlayingId(null);
+        audioElementsRef.current.set(id, audio);
+      }
+      audio.play();
+      setAudioPlayingId(id);
+    }
+  };
+
+  const handleMerge = async (resultId: string) => {
+    const result = results.find(r => r.id === resultId);
+    const audioTrack = audioTracks.find(t => t.id === selectedAudioId);
+    if (!result?.videoUrl || !audioTrack) return;
+
+    setIsMerging(true);
+    try {
+      // Stop any audio previews
+      audioElementsRef.current.forEach(a => a.pause());
+      setAudioPlayingId(null);
+
+      const mergedUrl = await mergeAudioVideo(result.videoUrl, audioTrack.audioUrl);
+
+      setResults(prev => prev.map(r =>
+        r.id === resultId ? { ...r, mergedUrl } : r
+      ));
+
+      setMergeDialogOpen(null);
+      setSelectedAudioId(null);
+      toast({ title: "¡Audio fusionado!", description: "Tu videoclip ahora tiene banda sonora" });
+    } catch (err: any) {
+      console.error('Merge error:', err);
+      toast({ title: "Error al fusionar", description: err.message || "No se pudo fusionar audio y vídeo", variant: "destructive" });
+    } finally {
+      setIsMerging(false);
+    }
+  };
 
   const buildFullPrompt = () => {
     let fullPrompt = prompt;
