@@ -112,13 +112,8 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
     description: `Registro: ${data.title}`,
   });
 
-  // Decrement available credits in profile
-  await supabase.rpc('decrement_credits' as any, { _user_id: user.id, _amount: 1 }).then(() => {});
-  // Fallback: direct update
-  const { data: profile } = await supabase.from('profiles').select('available_credits').eq('user_id', user.id).single();
-  if (profile) {
-    await supabase.from('profiles').update({ available_credits: Math.max(0, profile.available_credits - 1) }).eq('user_id', user.id);
-  }
+  // Decrement available credits via server-side RPC (profile credits column is now protected by RLS)
+  await supabase.rpc('decrement_credits' as any, { _user_id: user.id, _amount: 1 });
 
   return { registrationId: work.id, status: 'processing' };
 }
