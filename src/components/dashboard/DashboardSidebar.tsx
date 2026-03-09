@@ -39,7 +39,7 @@ const mainItems = [
 ];
 
 const toolsItems = [
-  { title: 'AI Studio', url: '/ai-studio', icon: Sparkles },
+  { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
 ];
 
 const accountItems = [
