@@ -90,15 +90,50 @@ const AIStudioVideo = () => {
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Load audio tracks on mount
+  // Load audio tracks and video history on mount
   useEffect(() => {
-    if (user) loadAudioTracks();
+    if (user) {
+      loadAudioTracks();
+      loadVideoHistory();
+    }
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
       audioElementsRef.current.forEach(audio => audio.pause());
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const loadVideoHistory = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('video_generations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      const loaded: VideoResult[] = (data || []).map(row => ({
+        id: row.id,
+        taskId: row.task_id,
+        status: row.status as VideoResult['status'],
+        videoUrl: row.video_url || undefined,
+        mergedUrl: row.merged_url || undefined,
+        prompt: row.prompt,
+        createdAt: new Date(row.created_at),
+        progress: row.status === 'SUCCEEDED' ? 100 : 0,
+      }));
+      setResults(loaded);
+
+      // Resume polling for pending/running
+      loaded.forEach(r => {
+        if (r.status === 'PENDING' || r.status === 'RUNNING') {
+          pollTaskStatus(r.taskId, r.id);
+        }
+      });
+    } catch (err) {
+      console.error('Error loading video history:', err);
+    }
+  };
 
   // Load audio tracks when merge dialog opens
   const loadAudioTracks = async () => {
@@ -162,6 +197,12 @@ const AIStudioVideo = () => {
       setResults(prev => prev.map(r =>
         r.id === resultId ? { ...r, mergedUrl } : r
       ));
+
+      // Persist merged URL to DB
+      await supabase.from('video_generations').update({
+        merged_url: mergedUrl,
+        merged_audio_id: audioTrack.id,
+      }).eq('id', resultId);
 
       setMergeDialogOpen(null);
       setSelectedAudioId(null);
@@ -230,18 +271,30 @@ const AIStudioVideo = () => {
         if (status === 'SUCCEEDED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
+
+          const videoUrl = data.output?.[0];
+          // Persist to DB
+          await supabase.from('video_generations').update({
+            status: 'SUCCEEDED',
+            video_url: videoUrl || null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', resultId);
+
           toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
 
           // Auto-merge if a pre-selected audio track exists
           if (preSelectedAudioId) {
             const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);
-            const videoUrl = data.output?.[0];
             if (audioTrack && videoUrl) {
               try {
                 const mergedUrl = await mergeAudioVideo(videoUrl, audioTrack.audioUrl);
                 setResults(prev => prev.map(r =>
                   r.id === resultId ? { ...r, mergedUrl } : r
                 ));
+                await supabase.from('video_generations').update({
+                  merged_url: mergedUrl,
+                  merged_audio_id: audioTrack.id,
+                }).eq('id', resultId);
                 toast({ title: "¡Audio fusionado automáticamente!", description: "Tu videoclip ya tiene banda sonora" });
               } catch (mergeErr) {
                 console.error('Auto-merge error:', mergeErr);
@@ -252,6 +305,11 @@ const AIStudioVideo = () => {
         } else if (status === 'FAILED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
+          await supabase.from('video_generations').update({
+            status: 'FAILED',
+            failure_reason: data.failure || null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', resultId);
           toast({ title: "Error", description: data.failure || "La generación del vídeo falló", variant: "destructive" });
         }
       } catch (err) {
@@ -299,9 +357,26 @@ const AIStudioVideo = () => {
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
 
-      const resultId = crypto.randomUUID();
+      // Insert into database
+      const { data: dbRow, error: dbError } = await supabase
+        .from('video_generations')
+        .insert({
+          user_id: user.id,
+          task_id: data.taskId,
+          status: 'PENDING',
+          prompt: fullPrompt,
+          mode,
+          style: selectedStyle || null,
+          aspect_ratio: aspectRatio,
+          duration,
+        })
+        .select('id')
+        .single();
+
+      if (dbError) throw dbError;
+
       const newResult: VideoResult = {
-        id: resultId,
+        id: dbRow.id,
         taskId: data.taskId,
         status: 'PENDING',
         prompt: fullPrompt,
@@ -310,7 +385,7 @@ const AIStudioVideo = () => {
       };
 
       setResults(prev => [newResult, ...prev]);
-      pollTaskStatus(data.taskId, resultId);
+      pollTaskStatus(data.taskId, dbRow.id);
 
       toast({ title: "Generación iniciada", description: "El vídeo se está procesando. Esto puede tardar 1-2 minutos." });
     } catch (err: any) {
