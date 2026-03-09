@@ -69,7 +69,7 @@ const AIStudio = () => {
         {/* Modules Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => (
-            <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${module.available ? 'hover:shadow-lg hover:-translate-y-1' : 'opacity-60'}`}>
+            <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${!module.available ? 'opacity-75' : ''}`}>
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
               <CardHeader>
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
@@ -84,18 +84,12 @@ const AIStudio = () => {
                 <CardDescription>{module.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                {module.available ? (
-                  <Button asChild className="w-full">
-                    <Link to={module.href}>
-                      <Zap className="w-4 h-4 mr-2" />
-                      Comenzar
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button disabled className="w-full">
-                    Próximamente
-                  </Button>
-                )}
+                <Button asChild className="w-full" variant={module.available ? "default" : "secondary"}>
+                  <Link to={module.href}>
+                    <Zap className="w-4 h-4 mr-2" />
+                    {module.available ? "Comenzar" : "Ver Preview"}
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))}
