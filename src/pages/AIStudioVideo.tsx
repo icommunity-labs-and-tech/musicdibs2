@@ -60,6 +60,7 @@ const AIStudioVideo = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { mergeAudioVideo, progress: mergeProgress, loaded: ffmpegLoaded, resetProgress, loadFFmpeg } = useFFmpegMerge();
 
   // Generation mode
   const [mode, setMode] = useState<'text_to_video' | 'image_to_video'>('text_to_video');
@@ -78,6 +79,15 @@ const AIStudioVideo = () => {
   const [results, setResults] = useState<VideoResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const pollingRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+  // Audio merge state
+  const [audioTracks, setAudioTracks] = useState<GenerationResult[]>([]);
+  const [isLoadingTracks, setIsLoadingTracks] = useState(false);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState<string | null>(null); // result id
+  const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+  const [isMerging, setIsMerging] = useState(false);
+  const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
+  const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
   // Cleanup polling on unmount
   useEffect(() => {
