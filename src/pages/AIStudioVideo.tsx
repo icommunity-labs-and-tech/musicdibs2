@@ -9,17 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useFFmpegMerge } from "@/hooks/useFFmpegMerge";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
-  Loader2, Download, RefreshCw, AlertCircle
+  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import type { GenerationResult } from "@/types/aiStudio";
 
 const VIDEO_STYLES = [
   { id: "cinematic", label: "Cinemático", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
