@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music } from 'lucide-react';
 import { registerWork } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
@@ -19,36 +20,93 @@ const workTypes = [
   { value: 'other', label: 'Otro' },
 ];
 
+interface PrefillData {
+  title?: string;
+  type?: string;
+  description?: string;
+  audioUrl?: string;
+  generationId?: string;
+}
+
 export function RegisterWork({ summary }: { summary: DashboardSummary | null }) {
+  const location = useLocation();
+  const prefill = (location.state as { prefill?: PrefillData })?.prefill;
+
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [ownership, setOwnership] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [workType, setWorkType] = useState('');
   const [resultId, setResultId] = useState('');
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [description, setDescription] = useState('');
+  const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const kycBlocked = summary && summary.kycStatus !== 'verified';
 
+  // Apply prefill data from AI Studio
+  useEffect(() => {
+    if (prefill) {
+      if (prefill.title) setTitle(prefill.title);
+      if (prefill.type) setWorkType(prefill.type);
+      if (prefill.description) setDescription(prefill.description);
+      if (prefill.audioUrl) setAiAudioUrl(prefill.audioUrl);
+    }
+  }, [prefill]);
+
+  // Convert base64 audio URL to File for upload
+  const convertAudioUrlToFile = async (audioUrl: string): Promise<File | null> => {
+    try {
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      return new File([blob], `ai-generation-${Date.now()}.mp3`, { type: 'audio/mpeg' });
+    } catch (error) {
+      console.error('Error converting audio:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!file) return;
-    setLoading(true); setStatus('idle');
-    const fd = new FormData(e.currentTarget);
+    
+    let uploadFile = file;
+    
+    // If no file selected but we have AI audio, convert it
+    if (!uploadFile && aiAudioUrl) {
+      setLoading(true);
+      uploadFile = await convertAudioUrlToFile(aiAudioUrl);
+      if (!uploadFile) {
+        setStatus('error');
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!uploadFile) return;
+
+    setLoading(true); 
+    setStatus('idle');
+    
     try {
       const res = await registerWork({
-        title: fd.get('title') as string,
+        title,
         type: workType as any,
-        author: fd.get('author') as string,
-        description: fd.get('description') as string,
-        file,
+        author,
+        description,
+        file: uploadFile,
         ownershipDeclaration: ownership,
       });
       setResultId(res.registrationId);
       setStatus('success');
-    } catch { setStatus('error'); }
+    } catch { 
+      setStatus('error'); 
+    }
     setLoading(false);
   };
+
+  const hasFileOrAudio = file || aiAudioUrl;
 
   return (
     <Card className="border-border/40 shadow-sm">
@@ -77,16 +135,40 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             <p className="font-medium text-sm">Registro en proceso</p>
             <p className="text-xs text-muted-foreground">ID: {resultId}</p>
-            <Button variant="outline" size="sm" onClick={() => { setStatus('idle'); setFile(null); setOwnership(false); }}>
+            <Button variant="outline" size="sm" onClick={() => { 
+              setStatus('idle'); 
+              setFile(null); 
+              setOwnership(false); 
+              setTitle(''); 
+              setAuthor(''); 
+              setDescription(''); 
+              setAiAudioUrl(null);
+              setWorkType('');
+            }}>
               Registrar otra obra
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <p className="text-xs text-muted-foreground">1 registro = 1 crédito</p>
+            
+            {/* AI Generation indicator */}
+            {aiAudioUrl && (
+              <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
+                <Music className="h-4 w-4 text-primary" />
+                <span className="text-xs text-primary font-medium">Audio generado con AI MusicDibs Studio</span>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label className="text-xs">Título de la obra</Label>
-              <Input name="title" required className="h-9 text-sm" />
+              <Input 
+                name="title" 
+                required 
+                className="h-9 text-sm" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Tipo de obra</Label>
@@ -99,23 +181,53 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Autor o titular</Label>
-              <Input name="author" required className="h-9 text-sm" />
+              <Input 
+                name="author" 
+                required 
+                className="h-9 text-sm" 
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Descripción</Label>
-              <Textarea name="description" rows={2} className="text-sm" />
+              <Textarea 
+                name="description" 
+                rows={2} 
+                className="text-sm" 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Archivo original</Label>
-              <div
-                className="flex items-center gap-2 rounded-md border border-dashed border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => fileRef.current?.click()}
-              >
-                <FileUp className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground truncate">
-                  {file ? file.name : 'Seleccionar archivo'}
-                </span>
-              </div>
+              {aiAudioUrl && !file ? (
+                <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3">
+                  <Music className="h-4 w-4 text-primary" />
+                  <span className="text-xs text-foreground truncate flex-1">
+                    Audio AI generado (se usará automáticamente)
+                  </span>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => fileRef.current?.click()}
+                  >
+                    Cambiar
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="flex items-center gap-2 rounded-md border border-dashed border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <FileUp className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground truncate">
+                    {file ? file.name : 'Seleccionar archivo'}
+                  </span>
+                </div>
+              )}
               <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
             </div>
             <div className="flex items-start gap-2">
@@ -129,7 +241,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                 <AlertCircle className="h-3.5 w-3.5" /> Error al registrar la obra
               </div>
             )}
-            <Button type="submit" className="w-full" size="sm" disabled={loading || !ownership || !file || !workType}>
+            <Button type="submit" className="w-full" size="sm" disabled={loading || !ownership || !hasFileOrAudio || !workType}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Registrar obra'}
             </Button>
           </form>

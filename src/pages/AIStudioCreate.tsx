@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
-  AlertCircle, RefreshCw
+  AlertCircle, RefreshCw, ShieldCheck
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
@@ -28,6 +28,7 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 const AIStudioCreate = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
@@ -276,6 +277,27 @@ const AIStudioCreate = () => {
     link.href = result.audioUrl;
     link.download = `musicdibs-ai-${result.id.slice(0, 8)}.mp3`;
     link.click();
+  };
+
+  const registerAsWork = (result: GenerationResult) => {
+    // Build description from genre/mood
+    const descParts: string[] = [];
+    if (result.genre) descParts.push(`Género: ${result.genre}`);
+    if (result.mood) descParts.push(`Mood: ${result.mood}`);
+    descParts.push(`Duración: ${result.duration}s`);
+    descParts.push(`Prompt: ${result.prompt}`);
+
+    navigate('/dashboard/register', {
+      state: {
+        prefill: {
+          title: result.prompt.slice(0, 80),
+          type: 'audio',
+          description: descParts.join('\n'),
+          audioUrl: result.audioUrl,
+          generationId: result.id,
+        }
+      }
+    });
   };
 
   return (
@@ -560,6 +582,15 @@ const AIStudioCreate = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => registerAsWork(result)}
+                            title="Registrar como obra"
+                            className="text-primary hover:text-primary"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
