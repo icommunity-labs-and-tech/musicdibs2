@@ -681,8 +681,16 @@ const AIStudioCreate = () => {
                 {filteredResults.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        {/* Play Button */}
+                       <div className="flex items-start gap-4">
+                         {/* Bulk Checkbox */}
+                         {bulkMode && (
+                           <Checkbox
+                             checked={selectedIds.has(result.id)}
+                             onCheckedChange={() => toggleSelected(result.id)}
+                             className="mt-3 shrink-0"
+                           />
+                         )}
+                         {/* Play Button */}
                         <Button
                           variant="outline"
                           size="icon"
