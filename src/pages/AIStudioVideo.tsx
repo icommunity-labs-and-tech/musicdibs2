@@ -396,6 +396,25 @@ const AIStudioVideo = () => {
     }
   };
 
+  const handleDelete = async (resultId: string) => {
+    // Stop polling if active
+    const interval = pollingRef.current.get(resultId);
+    if (interval) {
+      clearInterval(interval);
+      pollingRef.current.delete(resultId);
+    }
+
+    try {
+      const { error } = await supabase.from('video_generations').delete().eq('id', resultId);
+      if (error) throw error;
+      setResults(prev => prev.filter(r => r.id !== resultId));
+      toast({ title: "Videoclip eliminado" });
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast({ title: "Error al eliminar", variant: "destructive" });
+    }
+  };
+
   const downloadVideo = (url: string, name: string) => {
     const link = document.createElement('a');
     link.href = url;
