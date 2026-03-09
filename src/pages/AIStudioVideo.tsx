@@ -1,52 +1,241 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Video, Music, Sparkles, Lock, Play, 
-  Image, Film, Layers, Wand2, Clock, Ratio
+  ArrowLeft, Video, Music, Sparkles, Play, Pause,
+  Image, Film, Layers, Wand2, Clock, Ratio, Upload,
+  Loader2, Download, RefreshCw, AlertCircle
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
 const VIDEO_STYLES = [
-  { id: "cinematic", label: "Cinemático", emoji: "🎬" },
-  { id: "anime", label: "Anime", emoji: "🌸" },
-  { id: "retro-vhs", label: "Retro VHS", emoji: "📼" },
-  { id: "abstract", label: "Abstracto", emoji: "🎨" },
-  { id: "lyric-video", label: "Lyric Video", emoji: "✍️" },
-  { id: "neon", label: "Neon/Cyberpunk", emoji: "💜" },
-  { id: "nature", label: "Naturaleza", emoji: "🌿" },
-  { id: "urban", label: "Urbano", emoji: "🏙️" },
+  { id: "cinematic", label: "Cinemático", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
+  { id: "anime", label: "Anime", emoji: "🌸", prompt: "anime style, cel shaded, vibrant colors, japanese animation" },
+  { id: "retro-vhs", label: "Retro VHS", emoji: "📼", prompt: "VHS aesthetic, retro 80s, scan lines, chromatic aberration" },
+  { id: "abstract", label: "Abstracto", emoji: "🎨", prompt: "abstract visuals, fluid shapes, morphing colors, art installation" },
+  { id: "lyric-video", label: "Lyric Video", emoji: "✍️", prompt: "typography in motion, text animation, clean background" },
+  { id: "neon", label: "Neon/Cyberpunk", emoji: "💜", prompt: "neon lights, cyberpunk city, rain reflections, futuristic" },
+  { id: "nature", label: "Naturaleza", emoji: "🌿", prompt: "natural landscapes, organic movement, time-lapse nature" },
+  { id: "urban", label: "Urbano", emoji: "🏙️", prompt: "urban streets, city life, graffiti walls, street culture" },
 ] as const;
 
 const ASPECT_RATIOS = [
-  { id: "16:9", label: "16:9 Horizontal", icon: "▬" },
-  { id: "9:16", label: "9:16 Vertical", icon: "▮" },
-  { id: "1:1", label: "1:1 Cuadrado", icon: "■" },
+  { id: "1280:768", label: "16:9 Horizontal", icon: "▬" },
+  { id: "768:1280", label: "9:16 Vertical", icon: "▮" },
 ] as const;
 
-const MOCK_STORYBOARD = [
-  { id: 1, time: "0:00 - 0:05", description: "Intro cinemática con fade-in de luces", thumbnail: null },
-  { id: 2, time: "0:05 - 0:12", description: "Plano aéreo de ciudad nocturna con reflejos neon", thumbnail: null },
-  { id: 3, time: "0:12 - 0:20", description: "Close-up de elementos abstractos sincronizados con el beat", thumbnail: null },
-  { id: 4, time: "0:20 - 0:30", description: "Secuencia rápida de cortes con transición final a negro", thumbnail: null },
-];
+const DURATIONS = [
+  { value: 5, label: "5s" },
+  { value: 10, label: "10s" },
+] as const;
+
+interface VideoResult {
+  id: string;
+  taskId: string;
+  status: 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
+  videoUrl?: string;
+  prompt: string;
+  createdAt: Date;
+  progress?: number;
+}
 
 const AIStudioVideo = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Generation mode
+  const [mode, setMode] = useState<'text_to_video' | 'image_to_video'>('text_to_video');
+
+  // Inputs
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
-  const [selectedTrack, setSelectedTrack] = useState<string>("none");
-  const [duration, setDuration] = useState(15);
-  const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [syncBeats, setSyncBeats] = useState(true);
-  const [showStoryboard, setShowStoryboard] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState("1280:768");
+  const [duration, setDuration] = useState(5);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImageName, setUploadedImageName] = useState<string>("");
+
+  // State
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [results, setResults] = useState<VideoResult[]>([]);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const pollingRef = useRef<Map<string, ReturnType<typeof setInterval>>>(new Map());
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      pollingRef.current.forEach(interval => clearInterval(interval));
+    };
+  }, []);
+
+  const buildFullPrompt = () => {
+    let fullPrompt = prompt;
+    if (selectedStyle) {
+      const style = VIDEO_STYLES.find(s => s.id === selectedStyle);
+      if (style) fullPrompt = `${style.prompt}. ${fullPrompt}`;
+    }
+    return fullPrompt.trim();
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Error", description: "Solo se permiten archivos de imagen", variant: "destructive" });
+      return;
+    }
+
+    if (file.size > 16 * 1024 * 1024) {
+      toast({ title: "Error", description: "La imagen no puede superar 16MB", variant: "destructive" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUploadedImage(reader.result as string);
+      setUploadedImageName(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const pollTaskStatus = (taskId: string, resultId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-video', {
+          body: { action: 'status', taskId },
+        });
+
+        if (error) throw error;
+
+        const status = data.status;
+        
+        setResults(prev => prev.map(r =>
+          r.id === resultId
+            ? {
+                ...r,
+                status,
+                videoUrl: data.output?.[0] || r.videoUrl,
+                progress: status === 'RUNNING' ? (data.progress ?? 50) : (status === 'SUCCEEDED' ? 100 : r.progress),
+              }
+            : r
+        ));
+
+        if (status === 'SUCCEEDED') {
+          clearInterval(interval);
+          pollingRef.current.delete(resultId);
+          toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
+        } else if (status === 'FAILED') {
+          clearInterval(interval);
+          pollingRef.current.delete(resultId);
+          toast({ title: "Error", description: data.failure || "La generación del vídeo falló", variant: "destructive" });
+        }
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 5000); // Poll every 5 seconds
+
+    pollingRef.current.set(resultId, interval);
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      toast({ title: "Error", description: "Escribe una descripción para tu videoclip", variant: "destructive" });
+      return;
+    }
+    if (!user) {
+      toast({ title: "Error", description: "Debes iniciar sesión", variant: "destructive" });
+      return;
+    }
+    if (mode === 'image_to_video' && !uploadedImage) {
+      toast({ title: "Error", description: "Sube una imagen para el modo Image-to-Video", variant: "destructive" });
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const fullPrompt = buildFullPrompt();
+
+      const body: Record<string, unknown> = {
+        action: 'generate',
+        mode,
+        promptText: fullPrompt,
+        ratio: aspectRatio,
+        duration,
+      };
+
+      if (mode === 'image_to_video' && uploadedImage) {
+        body.promptImage = uploadedImage;
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('generate-video', { body });
+
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      const resultId = crypto.randomUUID();
+      const newResult: VideoResult = {
+        id: resultId,
+        taskId: data.taskId,
+        status: 'PENDING',
+        prompt: fullPrompt,
+        createdAt: new Date(),
+        progress: 0,
+      };
+
+      setResults(prev => [newResult, ...prev]);
+      pollTaskStatus(data.taskId, resultId);
+
+      toast({ title: "Generación iniciada", description: "El vídeo se está procesando. Esto puede tardar 1-2 minutos." });
+    } catch (err: any) {
+      console.error('Generate error:', err);
+      setError(err.message || "No se pudo iniciar la generación");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadVideo = (url: string, name: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `musicdibs-video-${name}.mp4`;
+    link.target = '_blank';
+    link.click();
+  };
+
+  const getStatusLabel = (status: VideoResult['status']) => {
+    switch (status) {
+      case 'PENDING': return 'En cola';
+      case 'RUNNING': return 'Procesando';
+      case 'SUCCEEDED': return 'Completado';
+      case 'FAILED': return 'Fallido';
+    }
+  };
+
+  const getStatusColor = (status: VideoResult['status']) => {
+    switch (status) {
+      case 'PENDING': return 'bg-muted text-muted-foreground';
+      case 'RUNNING': return 'bg-primary/10 text-primary';
+      case 'SUCCEEDED': return 'bg-green-500/10 text-green-600';
+      case 'FAILED': return 'bg-destructive/10 text-destructive';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,67 +247,106 @@ const AIStudioVideo = () => {
           Volver a AI MusicDibs Studio
         </Link>
 
-        {/* Coming Soon Banner */}
-        <div className="relative mb-8 rounded-xl border border-primary/20 bg-gradient-to-r from-rose-500/10 via-red-500/5 to-background p-6 overflow-hidden">
-          <div className="absolute top-3 right-3">
-            <Badge className="bg-rose-500/90 text-white hover:bg-rose-500">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Próximamente
-            </Badge>
-          </div>
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex items-center gap-4 mb-3">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-500 flex items-center justify-center shrink-0">
               <Video className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold">Videoclips con IA</h1>
-              <p className="text-muted-foreground">Genera videoclips musicales únicos a partir de tus pistas de audio</p>
+              <p className="text-muted-foreground">Genera videoclips musicales con Runway Gen-4 Turbo</p>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            Estamos trabajando en esta funcionalidad. Pronto podrás crear videoclips con inteligencia artificial, 
-            sincronizados con tu música, eligiendo estilos visuales y personalizando cada escena.
-          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Column 1: Prompt & Style */}
-          <div className="space-y-6">
-            <Card className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted border text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4" />
-                  Disponible próximamente
-                </div>
-              </div>
+          {/* Column 1: Prompt & Settings */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Modo de Generación</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
+                  <TabsList className="grid grid-cols-2 w-full">
+                    <TabsTrigger value="text_to_video" className="flex items-center gap-2">
+                      <Wand2 className="w-4 h-4" />
+                      Text to Video
+                    </TabsTrigger>
+                    <TabsTrigger value="image_to_video" className="flex items-center gap-2">
+                      <Image className="w-4 h-4" />
+                      Image to Video
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="text_to_video" className="mt-4 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Genera un vídeo completamente desde una descripción textual.
+                    </p>
+                  </TabsContent>
+
+                  <TabsContent value="image_to_video" className="mt-4 space-y-4">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Anima una imagen estática para crear un videoclip. La imagen será el primer fotograma.
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    {uploadedImage ? (
+                      <div className="relative rounded-lg overflow-hidden border">
+                        <img src={uploadedImage} alt="Preview" className="w-full max-h-48 object-cover" />
+                        <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm px-3 py-2 flex justify-between items-center">
+                          <span className="text-xs truncate">{uploadedImageName}</span>
+                          <Button variant="ghost" size="sm" onClick={() => { setUploadedImage(null); setUploadedImageName(""); }}>
+                            Cambiar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button variant="outline" className="w-full h-24 border-dashed" onClick={() => fileInputRef.current?.click()}>
+                        <div className="flex flex-col items-center gap-2">
+                          <Upload className="w-6 h-6 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Subir imagen (max 16MB)</span>
+                        </div>
+                      </Button>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+
+            <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Wand2 className="w-5 h-5 text-rose-500" />
                   Prompt Visual
                 </CardTitle>
-                <CardDescription>Describe el estilo visual de tu videoclip</CardDescription>
+                <CardDescription>Describe el contenido y estilo del videoclip</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Textarea
-                    placeholder="Ej: Escena cinemática nocturna con luces neon reflejándose en charcos de lluvia, cámara lenta, estilo Blade Runner..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                    disabled
-                  />
-                </div>
+                <Textarea
+                  placeholder="Ej: A person walking through neon-lit streets at night, cinematic slow motion, rain reflections on the ground..."
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  rows={4}
+                  className="resize-none"
+                />
 
                 {/* Style Selection */}
                 <div className="space-y-2">
-                  <Label>Estilo Visual</Label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <Label>Estilo Visual (opcional)</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {VIDEO_STYLES.map(style => (
                       <Badge
                         key={style.id}
                         variant={selectedStyle === style.id ? "default" : "outline"}
-                        className="cursor-not-allowed justify-start gap-1.5 py-2 px-3 text-sm"
+                        className="cursor-pointer justify-start gap-1.5 py-2 px-3 text-sm hover:bg-primary/10 transition-colors"
+                        onClick={() => setSelectedStyle(selectedStyle === style.id ? null : style.id)}
                       >
                         <span>{style.emoji}</span>
                         {style.label}
@@ -126,225 +354,161 @@ const AIStudioVideo = () => {
                     ))}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Track Selection */}
-            <Card className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted border text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4" />
-                  Disponible próximamente
-                </div>
-              </div>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Music className="w-5 h-5 text-rose-500" />
-                  Pista de Audio
-                </CardTitle>
-                <CardDescription>Selecciona la música para tu videoclip</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Select value={selectedTrack} onValueChange={setSelectedTrack} disabled>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una pista" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sin audio (solo vídeo)</SelectItem>
-                    <SelectItem value="demo-1">🎵 Jazz nocturno - 30s</SelectItem>
-                    <SelectItem value="demo-2">🎵 Beat electrónico - 45s</SelectItem>
-                    <SelectItem value="demo-3">🎵 Ambient chill - 60s</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Podrás elegir pistas de tu historial de AI MusicDibs Studio o subir tu propio audio.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Column 2: Settings */}
-          <div className="space-y-6">
-            <Card className="relative overflow-hidden">
-              <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted border text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4" />
-                  Disponible próximamente
-                </div>
-              </div>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Film className="w-5 h-5 text-rose-500" />
-                  Configuración
-                </CardTitle>
-                <CardDescription>Ajusta los parámetros del videoclip</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Duration */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
+                {/* Aspect Ratio & Duration */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Ratio className="w-4 h-4" />
+                      Aspecto
+                    </Label>
+                    <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ASPECT_RATIOS.map(r => (
+                          <SelectItem key={r.id} value={r.id}>{r.icon} {r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
                       Duración
                     </Label>
-                    <span className="text-sm font-medium">{duration}s</span>
+                    <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {DURATIONS.map(d => (
+                          <SelectItem key={d.value} value={String(d.value)}>{d.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Slider
-                    value={[duration]}
-                    onValueChange={([v]) => setDuration(v)}
-                    min={5}
-                    max={30}
-                    step={5}
-                    disabled
-                  />
-                  <p className="text-xs text-muted-foreground">5 - 30 segundos por segmento</p>
-                </div>
-
-                {/* Aspect Ratio */}
-                <div className="space-y-3">
-                  <Label className="flex items-center gap-2">
-                    <Ratio className="w-4 h-4" />
-                    Relación de aspecto
-                  </Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {ASPECT_RATIOS.map(ratio => (
-                      <Button
-                        key={ratio.id}
-                        variant={aspectRatio === ratio.id ? "default" : "outline"}
-                        size="sm"
-                        className="flex flex-col gap-1 h-auto py-3 cursor-not-allowed"
-                        disabled
-                      >
-                        <span className="text-lg">{ratio.icon}</span>
-                        <span className="text-xs">{ratio.label}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Beat Sync */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <div>
-                    <Label className="text-sm">Sincronizar con beats</Label>
-                    <p className="text-xs text-muted-foreground">Cortes y transiciones al ritmo de la música</p>
-                  </div>
-                  <Badge variant={syncBeats ? "default" : "secondary"} className="cursor-not-allowed">
-                    {syncBeats ? "Activo" : "Inactivo"}
-                  </Badge>
                 </div>
 
                 {/* Generate Button */}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <Button disabled className="w-full" size="lg">
-                          <Video className="w-4 h-4 mr-2" />
-                          Generar Videoclip
-                        </Button>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Esta función estará disponible próximamente</p></TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </CardContent>
-            </Card>
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !prompt.trim() || (mode === 'image_to_video' && !uploadedImage)}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Iniciando generación...
+                    </>
+                  ) : (
+                    <>
+                      <Video className="w-4 h-4 mr-2" />
+                      Generar Videoclip
+                    </>
+                  )}
+                </Button>
 
-            {/* Features preview */}
-            <Card className="bg-muted/30">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-3 text-sm">Funcionalidades planeadas</h3>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {[
-                    { icon: Wand2, text: "Generación text-to-video con IA" },
-                    { icon: Music, text: "Sincronización automática audio-vídeo" },
-                    { icon: Layers, text: "Storyboard con preview de escenas" },
-                    { icon: Image, text: "Estilos visuales personalizables" },
-                    { icon: Film, text: "Exportación en múltiples formatos" },
-                    { icon: Sparkles, text: "Transiciones inteligentes con beats" },
-                  ].map((feat, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <feat.icon className="w-4 h-4 text-rose-500 shrink-0" />
-                      {feat.text}
-                    </li>
-                  ))}
-                </ul>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Column 3: Storyboard Preview */}
+          {/* Column 2: Results */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Layers className="w-5 h-5" />
-                Storyboard
-              </h2>
-              <Badge variant="outline" className="text-xs">Preview</Badge>
-            </div>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Layers className="w-5 h-5" />
+              Resultados
+            </h2>
 
-            {/* Mock storyboard */}
-            <div className="space-y-3">
-              {MOCK_STORYBOARD.map((scene) => (
-                <Card key={scene.id} className="relative overflow-hidden opacity-70">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                      {/* Thumbnail placeholder */}
-                      <div className="w-24 h-16 rounded-lg bg-gradient-to-br from-rose-500/20 to-red-500/10 border border-dashed border-muted-foreground/30 flex items-center justify-center shrink-0">
-                        <Play className="w-5 h-5 text-muted-foreground/50" />
+            {results.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Film className="w-12 h-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center text-sm">
+                    {user ? "Tus videoclips aparecerán aquí" : "Inicia sesión para generar videoclips"}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {results.map(result => (
+                  <Card key={result.id} className="overflow-hidden">
+                    {/* Video preview */}
+                    {result.status === 'SUCCEEDED' && result.videoUrl ? (
+                      <div className="aspect-video bg-black">
+                        <video
+                          src={result.videoUrl}
+                          controls
+                          className="w-full h-full object-contain"
+                          playsInline
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="text-xs font-mono">
-                            {scene.time}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">Escena {scene.id}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{scene.description}</p>
+                    ) : (
+                      <div className="aspect-video bg-gradient-to-br from-rose-950/30 via-background to-red-950/20 flex flex-col items-center justify-center gap-3">
+                        {(result.status === 'PENDING' || result.status === 'RUNNING') ? (
+                          <>
+                            <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
+                            <p className="text-sm text-muted-foreground">{getStatusLabel(result.status)}...</p>
+                            {result.status === 'RUNNING' && (
+                              <Progress value={result.progress || 0} className="w-2/3 h-2" />
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="w-10 h-10 text-destructive/50" />
+                            <p className="text-sm text-destructive">Generación fallida</p>
+                          </>
+                        )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    )}
 
-            {/* Mock video preview */}
-            <Card className="overflow-hidden">
-              <div className="aspect-video bg-gradient-to-br from-rose-950/40 via-background to-red-950/30 flex flex-col items-center justify-center gap-3 border-b">
-                <div className="w-16 h-16 rounded-full bg-muted/50 border flex items-center justify-center">
-                  <Play className="w-8 h-8 text-muted-foreground/40 ml-1" />
-                </div>
-                <p className="text-sm text-muted-foreground">Vista previa del videoclip</p>
-                <Badge variant="outline" className="text-xs">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Próximamente
-                </Badge>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Badge className={getStatusColor(result.status)}>
+                          {getStatusLabel(result.status)}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {result.createdAt.toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate">{result.prompt}</p>
+
+                      {result.status === 'SUCCEEDED' && result.videoUrl && (
+                        <Button
+                          variant="secondary"
+                          className="w-full"
+                          onClick={() => downloadVideo(result.videoUrl!, result.id.slice(0, 8))}
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Descargar MP4
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Button variant="outline" size="icon" disabled className="rounded-full">
-                      <Play className="w-4 h-4" />
-                    </Button>
-                    <div className="h-1.5 w-40 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full w-1/3 bg-rose-500/30 rounded-full" />
-                    </div>
-                    <span className="text-xs text-muted-foreground font-mono">0:00 / 0:{duration.toString().padStart(2, '0')}</span>
-                  </div>
-                  <Button variant="ghost" size="sm" disabled>
-                    Descargar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            )}
 
-            {/* Gallery placeholder */}
-            <Card className="border-dashed opacity-60">
-              <CardContent className="flex flex-col items-center justify-center py-10">
-                <Film className="w-10 h-10 text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground text-center">
-                  Tu galería de videoclips aparecerá aquí
-                </p>
+            {/* Info card */}
+            <Card className="bg-muted/30">
+              <CardContent className="pt-6">
+                <h3 className="font-semibold mb-3 text-sm">Información</h3>
+                <ul className="space-y-2 text-xs text-muted-foreground">
+                  <li>• La generación tarda entre 30s y 2 minutos</li>
+                  <li>• Resolución de salida: 720p</li>
+                  <li>• Modelo: Runway Gen-4 Turbo</li>
+                  <li>• Los prompts en inglés dan mejores resultados</li>
+                  <li>• Cada generación consume créditos de tu cuenta Runway</li>
+                </ul>
               </CardContent>
             </Card>
           </div>
