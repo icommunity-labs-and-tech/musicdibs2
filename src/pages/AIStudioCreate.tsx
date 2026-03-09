@@ -396,6 +396,28 @@ const AIStudioCreate = () => {
                     </>
                   )}
                 </Button>
+
+                {generationError && (
+                  <Alert variant="destructive" className="mt-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error al generar</AlertTitle>
+                    <AlertDescription className="mt-2 space-y-2">
+                      <p>{generationError.message}</p>
+                      {generationError.details && (
+                        <p className="text-xs opacity-80">{generationError.details}</p>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setGenerationError(null)}
+                        className="mt-2"
+                      >
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        Reintentar
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </div>
