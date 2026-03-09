@@ -3,7 +3,7 @@ export interface GenerationParams {
   duration: number;
   genre?: string;
   mood?: string;
-  cfgScale?: number; // creativity (1-10, lower = more creative)
+  cfgScale?: number;
 }
 
 export interface GenerationResult {
@@ -15,6 +15,21 @@ export interface GenerationResult {
   mood?: string;
   createdAt: Date;
   isFavorite?: boolean;
+  parentId?: string; // For variations
+  variationType?: VariationType;
+}
+
+export type VariationType = 'similar' | 'mood_change' | 'extend' | 'inpaint';
+
+export interface EditRequest {
+  sourceId?: string; // From history
+  sourceFile?: File; // Uploaded file
+  variationType: VariationType;
+  newMood?: string;
+  newDuration?: number;
+  inpaintStart?: number; // seconds
+  inpaintEnd?: number;
+  inpaintPrompt?: string;
 }
 
 export const GENRES = [

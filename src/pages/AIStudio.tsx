@@ -20,7 +20,7 @@ const AIStudio = () => {
       description: "Modifica pistas existentes, crea variaciones o aplica inpainting para rellenar secciones.",
       icon: Edit3,
       href: "/ai-studio/edit",
-      available: false,
+      available: true,
       color: "from-blue-500 to-cyan-500"
     },
     {
