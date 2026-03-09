@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
-  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2
+  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
@@ -396,6 +396,25 @@ const AIStudioVideo = () => {
     }
   };
 
+  const handleDelete = async (resultId: string) => {
+    // Stop polling if active
+    const interval = pollingRef.current.get(resultId);
+    if (interval) {
+      clearInterval(interval);
+      pollingRef.current.delete(resultId);
+    }
+
+    try {
+      const { error } = await supabase.from('video_generations').delete().eq('id', resultId);
+      if (error) throw error;
+      setResults(prev => prev.filter(r => r.id !== resultId));
+      toast({ title: "Videoclip eliminado" });
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast({ title: "Error al eliminar", variant: "destructive" });
+    }
+  };
+
   const downloadVideo = (url: string, name: string) => {
     const link = document.createElement('a');
     link.href = url;
@@ -732,9 +751,19 @@ const AIStudioVideo = () => {
                         <Badge className={getStatusColor(result.status)}>
                           {getStatusLabel(result.status)}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {result.createdAt.toLocaleTimeString()}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {result.createdAt.toLocaleTimeString()}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(result.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">{result.prompt}</p>
 
