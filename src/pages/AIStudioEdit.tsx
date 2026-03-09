@@ -473,7 +473,24 @@ const AIStudioEdit = () => {
           {/* Result */}
           <div className="space-y-6">
             <h2 className="text-xl font-semibold">Resultado</h2>
-            {result ? (
+            {isProcessing ? (
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-14 h-14 rounded-full shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-20" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-full" />
+                  <p className="text-sm text-muted-foreground text-center animate-pulse">
+                    Generando audio...
+                  </p>
+                </CardContent>
+              </Card>
+            ) : result ? (
               <Card>
                 <CardContent className="p-6 space-y-4">
                   <div className="flex items-center gap-4">
