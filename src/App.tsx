@@ -38,6 +38,7 @@ import BillingPage from "./pages/BillingPage";
 import SupportPage from "./pages/SupportPage";
 import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
+import AIStudioEdit from "./pages/AIStudioEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
