@@ -51,7 +51,7 @@ const resources = {
         features: {
           legal: {
             title: 'Creación Musical Asistida por IA',
-            desc: 'Generador de música IA para inspirarte, desarrollar ideas y mejorar tus composiciones.',
+            desc: 'Crea, reinterpreta y documenta ideas musicales asistidas por IA y conviértelas en obras registrables y distribuibles con MusicDibs.',
             popup: `Nuestro módulo de IA musical está diseñado como una herramienta de apoyo creativo para compositores y productores. Te ayuda a explorar ideas, probar arreglos, generar bases o mejorar composiciones existentes, manteniendo siempre al músico en el centro del proceso creativo.\n\nLa inteligencia artificial actúa como un asistente de inspiración, permitiéndote experimentar con nuevas posibilidades musicales, desbloquear ideas y desarrollar demos más completas en menos tiempo.\n\nCuando tu obra esté lista, podrás registrarla y protegerla inmediatamente en MusicDibs, garantizando prueba de autoría y protección legal desde el primer momento.\n\nCon este módulo podrás:\n\n• Explorar ideas musicales e inspiración creativa\n• Probar arreglos, estilos o variaciones\n• Mejorar composiciones existentes\n• Crear demos o bases de forma rápida\n• Registrar y proteger tu obra final en MusicDibs\n\nEste enfoque deja claro que la creatividad sigue siendo humana, y que la IA simplemente amplía las herramientas disponibles para el músico.`,
           },
           instant: {
