@@ -231,6 +231,24 @@ const AIStudioVideo = () => {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
           toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
+
+          // Auto-merge if a pre-selected audio track exists
+          if (preSelectedAudioId) {
+            const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);
+            const videoUrl = data.output?.[0];
+            if (audioTrack && videoUrl) {
+              try {
+                const mergedUrl = await mergeAudioVideo(videoUrl, audioTrack.audioUrl);
+                setResults(prev => prev.map(r =>
+                  r.id === resultId ? { ...r, mergedUrl } : r
+                ));
+                toast({ title: "¡Audio fusionado automáticamente!", description: "Tu videoclip ya tiene banda sonora" });
+              } catch (mergeErr) {
+                console.error('Auto-merge error:', mergeErr);
+                toast({ title: "Vídeo listo, pero el merge automático falló", description: "Puedes añadir audio manualmente", variant: "destructive" });
+              }
+            }
+          }
         } else if (status === 'FAILED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
