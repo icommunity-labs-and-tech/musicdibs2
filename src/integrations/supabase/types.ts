@@ -382,6 +382,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decrement_credits: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
