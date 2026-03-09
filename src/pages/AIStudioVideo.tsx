@@ -100,6 +100,7 @@ const AIStudioVideo = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterStyle, setFilterStyle] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Load audio tracks on mount
   useEffect(() => {
