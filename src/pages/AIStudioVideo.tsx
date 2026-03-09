@@ -17,8 +17,12 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
-  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2
+  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2,
+  Filter, X, CalendarIcon
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -92,11 +96,15 @@ const AIStudioVideo = () => {
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Load audio tracks and video history on mount
+  // Filters
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterStyle, setFilterStyle] = useState<string>("all");
+  const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+
+  // Load audio tracks on mount
   useEffect(() => {
     if (user) {
       loadAudioTracks();
-      loadVideoHistory();
     }
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
@@ -104,6 +112,14 @@ const AIStudioVideo = () => {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Load video history on mount and when filters change
+  useEffect(() => {
+    if (user) {
+      loadVideoHistory();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, filterStatus, filterStyle, filterDate]);
 
   const PAGE_SIZE = 10;
 
@@ -116,6 +132,20 @@ const AIStudioVideo = () => {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
+
+      if (filterStatus !== "all") {
+        query = query.eq('status', filterStatus);
+      }
+      if (filterStyle !== "all") {
+        query = query.eq('style', filterStyle);
+      }
+      if (filterDate) {
+        const dayStart = new Date(filterDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(filterDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
+      }
 
       if (loadMore && results.length > 0) {
         const lastItem = results[results.length - 1];
@@ -725,6 +755,68 @@ const AIStudioVideo = () => {
               <Layers className="w-5 h-5" />
               Resultados
             </h2>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="PENDING">En cola</SelectItem>
+                  <SelectItem value="RUNNING">Procesando</SelectItem>
+                  <SelectItem value="SUCCEEDED">Completado</SelectItem>
+                  <SelectItem value="FAILED">Fallido</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStyle} onValueChange={setFilterStyle}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Estilo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estilos</SelectItem>
+                  {VIDEO_STYLES.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.emoji} {s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    {filterDate ? format(filterDate, "dd/MM/yyyy") : "Fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filterDate}
+                    onSelect={setFilterDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {(filterStatus !== "all" || filterStyle !== "all" || filterDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => {
+                    setFilterStatus("all");
+                    setFilterStyle("all");
+                    setFilterDate(undefined);
+                  }}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Limpiar
+                </Button>
+              )}
+            </div>
 
             {results.length === 0 ? (
               <Card className="border-dashed">
