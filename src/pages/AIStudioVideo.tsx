@@ -751,9 +751,19 @@ const AIStudioVideo = () => {
                         <Badge className={getStatusColor(result.status)}>
                           {getStatusLabel(result.status)}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {result.createdAt.toLocaleTimeString()}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            {result.createdAt.toLocaleTimeString()}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDelete(result.id)}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">{result.prompt}</p>
 
