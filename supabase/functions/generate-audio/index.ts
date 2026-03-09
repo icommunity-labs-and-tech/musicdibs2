@@ -36,7 +36,9 @@ serve(async (req) => {
 
     console.log(`[GENERATE-AUDIO] Generating: "${prompt.substring(0, 50)}..." | ${clampedDuration}s | cfg: ${cfgScale}`);
 
-    const response = await fetch('https://api.stability.ai/v2beta/stable-audio/generate', {
+    const STABILITY_API_URL = 'https://api.stability.ai/v2beta/audio/generate';
+
+    const response = await fetch(STABILITY_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${STABILITY_API_KEY}`,
