@@ -585,6 +585,15 @@ const AIStudioCreate = () => {
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => registerAsWork(result)}
+                            title="Registrar como obra"
+                            className="text-primary hover:text-primary"
+                          >
+                            <ShieldCheck className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => toggleFavorite(result.id)}
                           >
                             <Heart className={`w-4 h-4 ${result.isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
@@ -603,6 +612,8 @@ const AIStudioCreate = () => {
                             className="text-muted-foreground hover:text-destructive"
                           >
                             <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                           </Button>
                         </div>
                       </div>
