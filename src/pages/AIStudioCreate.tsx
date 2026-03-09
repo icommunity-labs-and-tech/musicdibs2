@@ -80,6 +80,11 @@ const AIStudioCreate = () => {
       return;
     }
 
+    if (!user) {
+      toast({ title: "Error", description: "Debes iniciar sesión para generar música", variant: "destructive" });
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const fullPrompt = buildFullPrompt();
@@ -96,14 +101,31 @@ const AIStudioCreate = () => {
 
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
+        
+        // Save to database
+        const { data: savedGen, error: saveError } = await supabase
+          .from('ai_generations')
+          .insert({
+            user_id: user.id,
+            prompt: fullPrompt,
+            duration: data.duration,
+            genre: selectedGenre,
+            mood: selectedMood,
+            audio_url: audioUrl,
+          })
+          .select()
+          .single();
+
+        if (saveError) throw saveError;
+
         const newResult: GenerationResult = {
-          id: crypto.randomUUID(),
+          id: savedGen.id,
           audioUrl,
           prompt: fullPrompt,
           duration: data.duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
-          createdAt: new Date(),
+          createdAt: new Date(savedGen.created_at),
           isFavorite: false
         };
         setResults(prev => [newResult, ...prev]);
@@ -128,7 +150,6 @@ const AIStudioCreate = () => {
       existingAudio.pause();
       setPlayingId(null);
     } else {
-      // Pause any playing audio
       audioElements.forEach(audio => audio.pause());
       
       let audio = existingAudio;
@@ -142,10 +163,51 @@ const AIStudioCreate = () => {
     }
   };
 
-  const toggleFavorite = (id: string) => {
+  const toggleFavorite = async (id: string) => {
+    const result = results.find(r => r.id === id);
+    if (!result) return;
+
+    const newFavorite = !result.isFavorite;
+    
+    // Optimistic update
     setResults(prev => prev.map(r => 
-      r.id === id ? { ...r, isFavorite: !r.isFavorite } : r
+      r.id === id ? { ...r, isFavorite: newFavorite } : r
     ));
+
+    // Persist to database
+    const { error } = await supabase
+      .from('ai_generations')
+      .update({ is_favorite: newFavorite })
+      .eq('id', id);
+
+    if (error) {
+      // Revert on error
+      setResults(prev => prev.map(r => 
+        r.id === id ? { ...r, isFavorite: !newFavorite } : r
+      ));
+      toast({ title: "Error", description: "No se pudo actualizar favorito", variant: "destructive" });
+    }
+  };
+
+  const deleteGeneration = async (id: string) => {
+    // Stop audio if playing
+    if (playingId === id) {
+      audioElements.get(id)?.pause();
+      setPlayingId(null);
+    }
+
+    // Optimistic delete
+    setResults(prev => prev.filter(r => r.id !== id));
+
+    const { error } = await supabase
+      .from('ai_generations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" });
+      loadHistory(); // Reload on error
+    }
   };
 
   const downloadAudio = (result: GenerationResult) => {
