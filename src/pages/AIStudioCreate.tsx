@@ -28,6 +28,7 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 const AIStudioCreate = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
