@@ -28,7 +28,7 @@ const AIStudio = () => {
       description: "Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.",
       icon: Lightbulb,
       href: "/ai-studio/inspire",
-      available: false,
+      available: true,
       color: "from-amber-500 to-orange-500"
     }
   ];
