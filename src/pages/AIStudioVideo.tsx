@@ -756,6 +756,68 @@ const AIStudioVideo = () => {
               Resultados
             </h2>
 
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Filter className="w-4 h-4 text-muted-foreground" />
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="PENDING">En cola</SelectItem>
+                  <SelectItem value="RUNNING">Procesando</SelectItem>
+                  <SelectItem value="SUCCEEDED">Completado</SelectItem>
+                  <SelectItem value="FAILED">Fallido</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStyle} onValueChange={setFilterStyle}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Estilo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estilos</SelectItem>
+                  {VIDEO_STYLES.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.emoji} {s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    {filterDate ? format(filterDate, "dd/MM/yyyy") : "Fecha"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filterDate}
+                    onSelect={setFilterDate}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {(filterStatus !== "all" || filterStyle !== "all" || filterDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => {
+                    setFilterStatus("all");
+                    setFilterStyle("all");
+                    setFilterDate(undefined);
+                  }}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Limpiar
+                </Button>
+              )}
+            </div>
+
             {results.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
