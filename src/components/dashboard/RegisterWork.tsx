@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles } from 'lucide-react';
 import { registerWork } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
@@ -135,18 +135,28 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
             <p className="font-medium text-sm">Registro en proceso</p>
             <p className="text-xs text-muted-foreground">ID: {resultId}</p>
-            <Button variant="outline" size="sm" onClick={() => { 
-              setStatus('idle'); 
-              setFile(null); 
-              setOwnership(false); 
-              setTitle(''); 
-              setAuthor(''); 
-              setDescription(''); 
-              setAiAudioUrl(null);
-              setWorkType('');
-            }}>
-              Registrar otra obra
-            </Button>
+            <div className="flex flex-col gap-2 w-full">
+              {aiAudioUrl && (
+                <Button variant="default" size="sm" asChild className="w-full">
+                  <Link to="/ai-studio/create">
+                    <Sparkles className="h-4 w-4 mr-1.5" />
+                    Volver a AI MusicDibs Studio
+                  </Link>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="w-full" onClick={() => { 
+                setStatus('idle'); 
+                setFile(null); 
+                setOwnership(false); 
+                setTitle(''); 
+                setAuthor(''); 
+                setDescription(''); 
+                setAiAudioUrl(null);
+                setWorkType('');
+              }}>
+                Registrar otra obra
+              </Button>
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
