@@ -11,6 +11,7 @@ import {
   LifeBuoy,
   Music,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,6 +36,10 @@ const mainItems = [
   { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
   { title: 'Promocionar', url: '/dashboard/promote', icon: Megaphone },
   { title: 'Créditos', url: '/dashboard/credits', icon: ShoppingBag },
+];
+
+const toolsItems = [
+  { title: 'AI Studio', url: '/ai-studio', icon: Sparkles },
 ];
 
 const accountItems = [
