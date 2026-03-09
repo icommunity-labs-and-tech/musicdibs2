@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Heart, Clock, Music, Trash2 
+  Heart, Clock, Music, Trash2, Filter, CalendarIcon, X
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -30,6 +36,43 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+
+  // Filter state
+  const [filterFavorites, setFilterFavorites] = useState(false);
+  const [filterGenre, setFilterGenre] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>(undefined);
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>(undefined);
+
+  // Available genres from results
+  const availableGenres = useMemo(() => {
+    const genres = new Set<string>();
+    results.forEach(r => { if (r.genre) genres.add(r.genre); });
+    return Array.from(genres).sort();
+  }, [results]);
+
+  // Filtered results
+  const filteredResults = useMemo(() => {
+    return results.filter(result => {
+      if (filterFavorites && !result.isFavorite) return false;
+      if (filterGenre !== "all" && result.genre !== filterGenre) return false;
+      if (filterDateFrom && result.createdAt < filterDateFrom) return false;
+      if (filterDateTo) {
+        const endOfDay = new Date(filterDateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (result.createdAt > endOfDay) return false;
+      }
+      return true;
+    });
+  }, [results, filterFavorites, filterGenre, filterDateFrom, filterDateTo]);
+
+  const hasActiveFilters = filterFavorites || filterGenre !== "all" || filterDateFrom || filterDateTo;
+
+  const clearFilters = () => {
+    setFilterFavorites(false);
+    setFilterGenre("all");
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+  };
 
   // Load history on mount
   useEffect(() => {
