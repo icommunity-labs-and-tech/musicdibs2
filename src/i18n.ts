@@ -61,7 +61,7 @@ const resources = {
           },
           distribution: {
             title: 'Distribución Mundial',
-            desc: 'Lanza en todas las plataformas digitales. GANA royalties',
+            desc: 'Lanza en +220 plataformas digitales y GANA hasta un 95% en royalties',
             popup: `Distribución Mundial. Lanza tu música en las <strong1>plataformas digitales más importantes del mundo: Spotify, Apple Music, Amazon Music, YouTube Music</strong1> y muchas más, hasta 220. <strong2>Gana royalties desde el primer stream</strong2> y haz que tu talento cruce fronteras sin intermediarios ni comisiones ocultas. Controla todo desde una sola plataforma, con estadísticas en tiempo real y soporte personalizado.`,
           },
           nocensor: {
