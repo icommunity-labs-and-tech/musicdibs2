@@ -351,9 +351,26 @@ const AIStudioVideo = () => {
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
 
-      const resultId = crypto.randomUUID();
+      // Insert into database
+      const { data: dbRow, error: dbError } = await supabase
+        .from('video_generations')
+        .insert({
+          user_id: user.id,
+          task_id: data.taskId,
+          status: 'PENDING',
+          prompt: fullPrompt,
+          mode,
+          style: selectedStyle || null,
+          aspect_ratio: aspectRatio,
+          duration,
+        })
+        .select('id')
+        .single();
+
+      if (dbError) throw dbError;
+
       const newResult: VideoResult = {
-        id: resultId,
+        id: dbRow.id,
         taskId: data.taskId,
         status: 'PENDING',
         prompt: fullPrompt,
@@ -362,7 +379,7 @@ const AIStudioVideo = () => {
       };
 
       setResults(prev => [newResult, ...prev]);
-      pollTaskStatus(data.taskId, resultId);
+      pollTaskStatus(data.taskId, dbRow.id);
 
       toast({ title: "Generación iniciada", description: "El vídeo se está procesando. Esto puede tardar 1-2 minutos." });
     } catch (err: any) {
