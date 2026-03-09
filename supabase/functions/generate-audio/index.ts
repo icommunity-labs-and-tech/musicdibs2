@@ -36,28 +36,51 @@ serve(async (req) => {
 
     console.log(`[GENERATE-AUDIO] Generating: "${prompt.substring(0, 50)}..." | ${clampedDuration}s | cfg: ${cfgScale}`);
 
-    const STABILITY_API_URL = 'https://api.stability.ai/v2beta/audio/generate';
+    const endpointCandidates = [
+      'https://api.stability.ai/v2beta/audio/generate',
+      'https://api.stability.ai/v2beta/stable-audio/generate',
+      'https://api.stability.ai/v2beta/audio/stable-audio/generate',
+      'https://api.stability.ai/v2beta/stable-audio/text-to-audio',
+    ];
 
-    const response = await fetch(STABILITY_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${STABILITY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/*',
-      },
-      body: JSON.stringify({
-        prompt: prompt,
-        duration: clampedDuration,
-        cfg_scale: cfgScale,
-      }),
-    });
+    let response: Response | null = null;
+    let lastErrorText = '';
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[GENERATE-AUDIO] Stability API error: ${response.status} - ${errorText}`);
+    for (const endpoint of endpointCandidates) {
+      const attempt = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${STABILITY_API_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'audio/*',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          duration: clampedDuration,
+          cfg_scale: cfgScale,
+        }),
+      });
+
+      if (attempt.ok) {
+        response = attempt;
+        console.log(`[GENERATE-AUDIO] Success with endpoint: ${endpoint}`);
+        break;
+      }
+
+      lastErrorText = await attempt.text();
+      console.error(`[GENERATE-AUDIO] Endpoint failed (${endpoint}): ${attempt.status} - ${lastErrorText}`);
+
+      if (attempt.status !== 404) {
+        response = attempt;
+        break;
+      }
+    }
+
+    if (!response || !response.ok) {
+      const status = response?.status ?? 502;
       return new Response(
-        JSON.stringify({ error: `Generation failed: ${response.status}` }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Generation failed: ${status}`, details: lastErrorText || 'No matching Stability endpoint responded successfully' }),
+        { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
