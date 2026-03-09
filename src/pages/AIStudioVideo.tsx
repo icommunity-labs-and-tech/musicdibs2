@@ -198,6 +198,12 @@ const AIStudioVideo = () => {
         r.id === resultId ? { ...r, mergedUrl } : r
       ));
 
+      // Persist merged URL to DB
+      await supabase.from('video_generations').update({
+        merged_url: mergedUrl,
+        merged_audio_id: audioTrack.id,
+      }).eq('id', resultId);
+
       setMergeDialogOpen(null);
       setSelectedAudioId(null);
       toast({ title: "¡Audio fusionado!", description: "Tu videoclip ahora tiene banda sonora" });
