@@ -65,7 +65,7 @@ const AIStudioInspire = () => {
             <Lightbulb className="w-4 h-4" />
             <span className="text-sm font-medium">Inspiración Musical</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Encuentra tu Inspiración</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">AI MusicDibs Studio - Inspiración</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Explora prompts sugeridos, combina géneros y moods, o deja que el azar te sorprenda.
           </p>
