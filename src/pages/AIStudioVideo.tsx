@@ -17,8 +17,12 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
-  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2
+  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2,
+  Filter, X, CalendarIcon
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
