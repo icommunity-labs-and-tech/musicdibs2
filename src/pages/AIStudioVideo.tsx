@@ -85,17 +85,20 @@ const AIStudioVideo = () => {
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState<string | null>(null); // result id
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+  const [preSelectedAudioId, setPreSelectedAudioId] = useState<string | null>(null); // pre-select before generation
   const [isMerging, setIsMerging] = useState(false);
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Cleanup polling on unmount
+  // Load audio tracks on mount
   useEffect(() => {
+    if (user) loadAudioTracks();
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
       audioElementsRef.current.forEach(audio => audio.pause());
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Load audio tracks when merge dialog opens
   const loadAudioTracks = async () => {
@@ -228,6 +231,24 @@ const AIStudioVideo = () => {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
           toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
+
+          // Auto-merge if a pre-selected audio track exists
+          if (preSelectedAudioId) {
+            const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);
+            const videoUrl = data.output?.[0];
+            if (audioTrack && videoUrl) {
+              try {
+                const mergedUrl = await mergeAudioVideo(videoUrl, audioTrack.audioUrl);
+                setResults(prev => prev.map(r =>
+                  r.id === resultId ? { ...r, mergedUrl } : r
+                ));
+                toast({ title: "¡Audio fusionado automáticamente!", description: "Tu videoclip ya tiene banda sonora" });
+              } catch (mergeErr) {
+                console.error('Auto-merge error:', mergeErr);
+                toast({ title: "Vídeo listo, pero el merge automático falló", description: "Puedes añadir audio manualmente", variant: "destructive" });
+              }
+            }
+          }
         } else if (status === 'FAILED') {
           clearInterval(interval);
           pollingRef.current.delete(resultId);
@@ -480,7 +501,78 @@ const AIStudioVideo = () => {
                   </div>
                 </div>
 
-                {/* Generate Button */}
+            {/* Soundtrack pre-selection */}
+            <Card className="border-dashed">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Music className="w-4 h-4 text-primary" />
+                  Banda Sonora (opcional)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Selecciona una pista de AI Studio para fusionar automáticamente con el vídeo
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {isLoadingTracks ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : audioTracks.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">
+                    No hay pistas. Genera una en{" "}
+                    <Link to="/ai-studio/create" className="text-primary underline">AI Studio → Crear Música</Link>.
+                  </p>
+                ) : (
+                  <>
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                      {audioTracks.map(track => (
+                        <div
+                          key={track.id}
+                          className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors text-sm ${
+                            preSelectedAudioId === track.id
+                              ? 'bg-primary/10 border border-primary/30'
+                              : 'hover:bg-muted/50 border border-transparent'
+                          }`}
+                          onClick={() => setPreSelectedAudioId(preSelectedAudioId === track.id ? null : track.id)}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAudioPreview(track.audioUrl, track.id);
+                            }}
+                          >
+                            {audioPlayingId === track.id
+                              ? <Pause className="w-3 h-3" />
+                              : <Play className="w-3 h-3 ml-0.5" />
+                            }
+                          </Button>
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-xs">{track.prompt}</p>
+                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                              <span>{track.duration}s</span>
+                              {track.genre && <Badge variant="secondary" className="text-[10px] px-1 py-0">{track.genre}</Badge>}
+                            </div>
+                          </div>
+                          {preSelectedAudioId === track.id && (
+                            <Badge variant="default" className="shrink-0 text-[10px]">✓</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {preSelectedAudioId && (
+                      <p className="text-[11px] text-primary flex items-center gap-1">
+                        <Volume2 className="w-3 h-3" />
+                        Se fusionará automáticamente al completar el vídeo
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || !prompt.trim() || (mode === 'image_to_video' && !uploadedImage)}
