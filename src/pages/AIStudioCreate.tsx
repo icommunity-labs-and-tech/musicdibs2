@@ -38,6 +38,7 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+  const [generationError, setGenerationError] = useState<{ message: string; details?: string } | null>(null);
 
   // Filter state
   const [filterFavorites, setFilterFavorites] = useState(false);
