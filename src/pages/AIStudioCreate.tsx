@@ -50,6 +50,10 @@ const AIStudioCreate = () => {
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>(undefined);
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>(undefined);
 
+  // Bulk selection state
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   // Available genres from results
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
