@@ -512,12 +512,75 @@ const AIStudioCreate = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Resultados</h2>
-              {results.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {results.length > 0 && (
+                  <>
+                    <span className="text-sm text-muted-foreground">
+                      {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
+                    </span>
+                    <Button
+                      variant={bulkMode ? "default" : "outline"}
+                      size="sm"
+                      className="h-8"
+                      onClick={toggleBulkMode}
+                    >
+                      <CheckSquare className="w-3.5 h-3.5 mr-1.5" />
+                      {bulkMode ? "Cancelar" : "Seleccionar"}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
+
+            {/* Bulk Actions Bar */}
+            {bulkMode && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={selectedIds.size === filteredResults.length ? deselectAll : selectAll}>
+                  {selectedIds.size === filteredResults.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                </Button>
+                <span className="text-xs text-muted-foreground flex-1">
+                  {selectedIds.size} seleccionado{selectedIds.size !== 1 ? 's' : ''}
+                </span>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7" disabled={selectedIds.size === 0} onClick={bulkDownload}>
+                        <Download className="w-3.5 h-3.5 mr-1" />
+                        Descargar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Descargar seleccionados</p></TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" className="h-7" disabled={selectedIds.size === 0}>
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            Eliminar
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar {selectedIds.size} generación{selectedIds.size !== 1 ? 'es' : ''}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Los audios seleccionados se eliminarán permanentemente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={bulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Eliminar {selectedIds.size}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Eliminar seleccionados</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
 
             {/* Filters */}
             {results.length > 0 && (
