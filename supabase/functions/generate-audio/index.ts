@@ -57,6 +57,19 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[GENERATE-AUDIO] Stability API error: ${response.status} - ${errorText}`);
+      
+      // Handle credit exhaustion specifically
+      if (response.status === 402 || errorText.toLowerCase().includes('credits')) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'insufficient_credits',
+            message: 'Sin créditos disponibles',
+            details: 'Tu cuenta de Stability AI no tiene créditos suficientes. Por favor, recarga créditos en platform.stability.ai para continuar generando audio.'
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: `Generation failed: ${response.status}`, details: errorText }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
