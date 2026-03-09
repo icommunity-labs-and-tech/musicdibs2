@@ -132,6 +132,8 @@ const AIStudioCreate = () => {
     }
 
     setIsGenerating(true);
+    setGenerationError(null);
+    
     try {
       const fullPrompt = buildFullPrompt();
       
@@ -143,7 +145,21 @@ const AIStudioCreate = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Parse error details from edge function
+        let errorDetails: string | undefined;
+        if (error.context) {
+          try {
+            const parsed = JSON.parse(error.context);
+            errorDetails = parsed?.error || parsed?.details;
+          } catch { /* ignore parse errors */ }
+        }
+        throw { message: error.message, details: errorDetails };
+      }
+
+      if (data?.error) {
+        throw { message: data.error, details: data.details };
+      }
 
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
@@ -162,7 +178,7 @@ const AIStudioCreate = () => {
           .select()
           .single();
 
-        if (saveError) throw saveError;
+        if (saveError) throw { message: saveError.message };
 
         const newResult: GenerationResult = {
           id: savedGen.id,
@@ -179,10 +195,9 @@ const AIStudioCreate = () => {
       }
     } catch (error: any) {
       console.error('Generation error:', error);
-      toast({ 
-        title: "Error al generar", 
-        description: error.message || "No se pudo generar la música", 
-        variant: "destructive" 
+      setGenerationError({
+        message: error.message || "No se pudo generar la música",
+        details: error.details || "Intenta ajustar tu prompt o reduce la duración."
       });
     } finally {
       setIsGenerating(false);
