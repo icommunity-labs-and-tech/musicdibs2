@@ -815,7 +815,7 @@ const AIStudioVideo = () => {
                 </PopoverContent>
               </Popover>
 
-              {(filterStatus !== "all" || filterStyle !== "all" || filterDate) && (
+              {(filterStatus !== "all" || filterStyle !== "all" || filterDate || searchQuery) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -824,6 +824,7 @@ const AIStudioVideo = () => {
                     setFilterStatus("all");
                     setFilterStyle("all");
                     setFilterDate(undefined);
+                    setSearchQuery("");
                   }}
                 >
                   <X className="w-3.5 h-3.5" />
