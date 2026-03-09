@@ -90,15 +90,50 @@ const AIStudioVideo = () => {
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Load audio tracks on mount
+  // Load audio tracks and video history on mount
   useEffect(() => {
-    if (user) loadAudioTracks();
+    if (user) {
+      loadAudioTracks();
+      loadVideoHistory();
+    }
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
       audioElementsRef.current.forEach(audio => audio.pause());
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  const loadVideoHistory = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('video_generations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      const loaded: VideoResult[] = (data || []).map(row => ({
+        id: row.id,
+        taskId: row.task_id,
+        status: row.status as VideoResult['status'],
+        videoUrl: row.video_url || undefined,
+        mergedUrl: row.merged_url || undefined,
+        prompt: row.prompt,
+        createdAt: new Date(row.created_at),
+        progress: row.status === 'SUCCEEDED' ? 100 : 0,
+      }));
+      setResults(loaded);
+
+      // Resume polling for pending/running
+      loaded.forEach(r => {
+        if (r.status === 'PENDING' || r.status === 'RUNNING') {
+          pollTaskStatus(r.taskId, r.id);
+        }
+      });
+    } catch (err) {
+      console.error('Error loading video history:', err);
+    }
+  };
 
   // Load audio tracks when merge dialog opens
   const loadAudioTracks = async () => {
