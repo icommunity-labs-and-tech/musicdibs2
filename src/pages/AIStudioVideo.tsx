@@ -50,6 +50,7 @@ interface VideoResult {
   taskId: string;
   status: 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   videoUrl?: string;
+  mergedUrl?: string;
   prompt: string;
   createdAt: Date;
   progress?: number;
