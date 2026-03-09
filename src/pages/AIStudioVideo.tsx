@@ -133,6 +133,20 @@ const AIStudioVideo = () => {
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
 
+      if (filterStatus !== "all") {
+        query = query.eq('status', filterStatus);
+      }
+      if (filterStyle !== "all") {
+        query = query.eq('style', filterStyle);
+      }
+      if (filterDate) {
+        const dayStart = new Date(filterDate);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(filterDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
+      }
+
       if (loadMore && results.length > 0) {
         const lastItem = results[results.length - 1];
         query = query.lt('created_at', lastItem.createdAt.toISOString());
