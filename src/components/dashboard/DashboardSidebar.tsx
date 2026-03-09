@@ -11,6 +11,7 @@ import {
   LifeBuoy,
   Music,
   LogOut,
+  Sparkles,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,6 +36,10 @@ const mainItems = [
   { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
   { title: 'Promocionar', url: '/dashboard/promote', icon: Megaphone },
   { title: 'Créditos', url: '/dashboard/credits', icon: ShoppingBag },
+];
+
+const toolsItems = [
+  { title: 'AI Studio', url: '/ai-studio', icon: Sparkles },
 ];
 
 const accountItems = [
@@ -75,6 +80,24 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} end={item.url === '/dashboard'} className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {toolsItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
