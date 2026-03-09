@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Heart, Clock, Sparkles, Music 
+  Heart, Clock, Music, Trash2 
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,7 +19,9 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [duration, setDuration] = useState(30);
   const [creativity, setCreativity] = useState(7);
@@ -28,6 +30,42 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+
+  // Load history on mount
+  useEffect(() => {
+    if (user) {
+      loadHistory();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const loadHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ai_generations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      setResults((data || []).map(item => ({
+        id: item.id,
+        audioUrl: item.audio_url,
+        prompt: item.prompt,
+        duration: item.duration,
+        genre: item.genre || undefined,
+        mood: item.mood || undefined,
+        createdAt: new Date(item.created_at),
+        isFavorite: item.is_favorite || false,
+      })));
+    } catch (error) {
+      console.error('Error loading history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const buildFullPrompt = () => {
     let fullPrompt = prompt;
