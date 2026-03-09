@@ -583,45 +583,40 @@ const AIStudioCreate = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1">
-                          <TooltipProvider>
+                          <TooltipProvider delayDuration={300}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => registerAsWork(result)}
-                                  className="text-primary hover:text-primary"
-                                >
+                                <Button variant="ghost" size="icon" onClick={() => registerAsWork(result)} className="text-primary hover:text-primary">
                                   <ShieldCheck className="w-4 h-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Registrar como obra protegida</p>
-                              </TooltipContent>
+                              <TooltipContent><p>Registrar como obra protegida</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => toggleFavorite(result.id)}>
+                                  <Heart className={`w-4 h-4 ${result.isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>{result.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => downloadAudio(result)}>
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Descargar audio</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" onClick={() => deleteGeneration(result.id)} className="text-muted-foreground hover:text-destructive">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Eliminar generación</p></TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => toggleFavorite(result.id)}
-                          >
-                            <Heart className={`w-4 h-4 ${result.isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => downloadAudio(result)}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteGeneration(result.id)}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
                         </div>
                       </div>
                     </CardContent>
