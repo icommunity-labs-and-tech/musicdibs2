@@ -387,9 +387,81 @@ const AIStudioCreate = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Resultados</h2>
               {results.length > 0 && (
-                <span className="text-sm text-muted-foreground">{results.length} generaciones</span>
+                <span className="text-sm text-muted-foreground">
+                  {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
+                </span>
               )}
             </div>
+
+            {/* Filters */}
+            {results.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={filterFavorites ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterFavorites(!filterFavorites)}
+                  className="h-8"
+                >
+                  <Heart className={cn("w-3.5 h-3.5 mr-1.5", filterFavorites && "fill-current")} />
+                  Favoritos
+                </Button>
+
+                <Select value={filterGenre} onValueChange={setFilterGenre}>
+                  <SelectTrigger className="w-[140px] h-8 text-sm">
+                    <SelectValue placeholder="Género" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los géneros</SelectItem>
+                    {availableGenres.map(g => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateFrom && "border-primary text-primary")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateFrom ? format(filterDateFrom, "dd MMM", { locale: es }) : "Desde"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterDateFrom}
+                      onSelect={setFilterDateFrom}
+                      disabled={(date) => date > new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateTo && "border-primary text-primary")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateTo ? format(filterDateTo, "dd MMM", { locale: es }) : "Hasta"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterDateTo}
+                      onSelect={setFilterDateTo}
+                      disabled={(date) => date > new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={clearFilters}>
+                    <X className="w-3 h-3 mr-1" />
+                    Limpiar
+                  </Button>
+                )}
+              </div>
+            )}
 
             {isLoading ? (
               <Card className="border-dashed">
@@ -407,9 +479,17 @@ const AIStudioCreate = () => {
                   </p>
                 </CardContent>
               </Card>
+            ) : filteredResults.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Filter className="w-10 h-10 text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground text-center text-sm">Sin resultados para estos filtros</p>
+                  <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">Limpiar filtros</Button>
+                </CardContent>
+              </Card>
             ) : (
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {results.map(result => (
+                {filteredResults.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
