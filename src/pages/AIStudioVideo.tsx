@@ -154,8 +154,8 @@ const AIStudioVideo = () => {
         dayEnd.setHours(23, 59, 59, 999);
         query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
       }
-      if (searchQuery.trim()) {
-        query = query.ilike('prompt', `%${searchQuery.trim()}%`);
+      if (debouncedSearch.trim()) {
+        query = query.ilike('prompt', `%${debouncedSearch.trim()}%`);
       }
 
       if (loadMore && results.length > 0) {
