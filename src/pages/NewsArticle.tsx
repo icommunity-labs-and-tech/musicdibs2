@@ -161,7 +161,7 @@ const NewsArticle = () => {
                   className="prose prose-invert prose-lg max-w-none 
                     prose-headings:text-white/90 prose-p:text-white/70 prose-a:text-primary
                     prose-strong:text-white/80 prose-li:text-white/70"
-                  dangerouslySetInnerHTML={{ __html: post.content }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
                 />
               ) : post.excerpt ? (
                 <p className="text-white/70 text-lg leading-relaxed">
