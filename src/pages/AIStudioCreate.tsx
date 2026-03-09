@@ -17,8 +17,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Heart, Clock, Music, Trash2, Filter, CalendarIcon, X
+  Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
+  AlertCircle, RefreshCw
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
