@@ -17,7 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
-  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2
+  Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
