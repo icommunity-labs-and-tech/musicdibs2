@@ -279,6 +279,27 @@ const AIStudioCreate = () => {
     link.click();
   };
 
+  const registerAsWork = (result: GenerationResult) => {
+    // Build description from genre/mood
+    const descParts: string[] = [];
+    if (result.genre) descParts.push(`Género: ${result.genre}`);
+    if (result.mood) descParts.push(`Mood: ${result.mood}`);
+    descParts.push(`Duración: ${result.duration}s`);
+    descParts.push(`Prompt: ${result.prompt}`);
+
+    navigate('/dashboard/register', {
+      state: {
+        prefill: {
+          title: result.prompt.slice(0, 80),
+          type: 'audio',
+          description: descParts.join('\n'),
+          audioUrl: result.audioUrl,
+          generationId: result.id,
+        }
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
