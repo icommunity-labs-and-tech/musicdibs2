@@ -85,6 +85,7 @@ const AIStudioVideo = () => {
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState<string | null>(null); // result id
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
+  const [preSelectedAudioId, setPreSelectedAudioId] = useState<string | null>(null); // pre-select before generation
   const [isMerging, setIsMerging] = useState(false);
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
