@@ -101,6 +101,13 @@ const AIStudioVideo = () => {
   const [filterStyle, setFilterStyle] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Load audio tracks on mount
   useEffect(() => {
@@ -120,7 +127,7 @@ const AIStudioVideo = () => {
       loadVideoHistory();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filterStatus, filterStyle, filterDate, searchQuery]);
+  }, [user, filterStatus, filterStyle, filterDate, debouncedSearch]);
 
   const PAGE_SIZE = 10;
 
@@ -147,8 +154,8 @@ const AIStudioVideo = () => {
         dayEnd.setHours(23, 59, 59, 999);
         query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
       }
-      if (searchQuery.trim()) {
-        query = query.ilike('prompt', `%${searchQuery.trim()}%`);
+      if (debouncedSearch.trim()) {
+        query = query.ilike('prompt', `%${debouncedSearch.trim()}%`);
       }
 
       if (loadMore && results.length > 0) {
