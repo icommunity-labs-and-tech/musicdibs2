@@ -127,7 +127,7 @@ const AIStudioVideo = () => {
       loadVideoHistory();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filterStatus, filterStyle, filterDate, searchQuery]);
+  }, [user, filterStatus, filterStyle, filterDate, debouncedSearch]);
 
   const PAGE_SIZE = 10;
 
