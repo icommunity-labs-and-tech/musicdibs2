@@ -18,8 +18,9 @@ import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
-  AlertCircle, RefreshCw, ShieldCheck
+  AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -48,6 +49,10 @@ const AIStudioCreate = () => {
   const [filterGenre, setFilterGenre] = useState<string>("all");
   const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>(undefined);
   const [filterDateTo, setFilterDateTo] = useState<Date | undefined>(undefined);
+
+  // Bulk selection state
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Available genres from results
   const availableGenres = useMemo(() => {
@@ -281,6 +286,63 @@ const AIStudioCreate = () => {
     link.click();
   };
 
+  // Bulk selection helpers
+  const toggleBulkMode = () => {
+    setBulkMode(prev => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    setSelectedIds(new Set(filteredResults.map(r => r.id)));
+  };
+
+  const deselectAll = () => {
+    setSelectedIds(new Set());
+  };
+
+  const bulkDownload = () => {
+    const selected = results.filter(r => selectedIds.has(r.id));
+    selected.forEach((r, i) => {
+      setTimeout(() => downloadAudio(r), i * 200);
+    });
+    toast({ title: `Descargando ${selected.length} archivos` });
+  };
+
+  const bulkDelete = async () => {
+    const ids = Array.from(selectedIds);
+    // Stop any playing audio
+    ids.forEach(id => {
+      if (playingId === id) {
+        audioElements.get(id)?.pause();
+        setPlayingId(null);
+      }
+    });
+    // Optimistic delete
+    setResults(prev => prev.filter(r => !selectedIds.has(r.id)));
+    setSelectedIds(new Set());
+    setBulkMode(false);
+
+    const { error } = await supabase
+      .from('ai_generations')
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudieron eliminar algunas generaciones", variant: "destructive" });
+      loadHistory();
+    } else {
+      toast({ title: `${ids.length} generaciones eliminadas` });
+    }
+  };
+
   const registerAsWork = (result: GenerationResult) => {
     // Build description from genre/mood
     const descParts: string[] = [];
@@ -450,12 +512,75 @@ const AIStudioCreate = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Resultados</h2>
-              {results.length > 0 && (
-                <span className="text-sm text-muted-foreground">
-                  {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {results.length > 0 && (
+                  <>
+                    <span className="text-sm text-muted-foreground">
+                      {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
+                    </span>
+                    <Button
+                      variant={bulkMode ? "default" : "outline"}
+                      size="sm"
+                      className="h-8"
+                      onClick={toggleBulkMode}
+                    >
+                      <CheckSquare className="w-3.5 h-3.5 mr-1.5" />
+                      {bulkMode ? "Cancelar" : "Seleccionar"}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
+
+            {/* Bulk Actions Bar */}
+            {bulkMode && (
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={selectedIds.size === filteredResults.length ? deselectAll : selectAll}>
+                  {selectedIds.size === filteredResults.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                </Button>
+                <span className="text-xs text-muted-foreground flex-1">
+                  {selectedIds.size} seleccionado{selectedIds.size !== 1 ? 's' : ''}
+                </span>
+                <TooltipProvider delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7" disabled={selectedIds.size === 0} onClick={bulkDownload}>
+                        <Download className="w-3.5 h-3.5 mr-1" />
+                        Descargar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Descargar seleccionados</p></TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" className="h-7" disabled={selectedIds.size === 0}>
+                            <Trash2 className="w-3.5 h-3.5 mr-1" />
+                            Eliminar
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar {selectedIds.size} generación{selectedIds.size !== 1 ? 'es' : ''}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Los audios seleccionados se eliminarán permanentemente.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={bulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                              Eliminar {selectedIds.size}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Eliminar seleccionados</p></TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
 
             {/* Filters */}
             {results.length > 0 && (
@@ -556,8 +681,16 @@ const AIStudioCreate = () => {
                 {filteredResults.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                        {/* Play Button */}
+                       <div className="flex items-start gap-4">
+                         {/* Bulk Checkbox */}
+                         {bulkMode && (
+                           <Checkbox
+                             checked={selectedIds.has(result.id)}
+                             onCheckedChange={() => toggleSelected(result.id)}
+                             className="mt-3 shrink-0"
+                           />
+                         )}
+                         {/* Play Button */}
                         <Button
                           variant="outline"
                           size="icon"
