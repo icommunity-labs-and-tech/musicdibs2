@@ -81,8 +81,8 @@ export function useFFmpegMerge() {
       setProgress({ stage: 'processing', percent: 90, message: 'Generando archivo...' });
 
       const outputData = await ff.readFile('output.mp4');
-      const uint8 = outputData instanceof Uint8Array ? outputData : new TextEncoder().encode(outputData as string);
-      const blob = new Blob([uint8], { type: 'video/mp4' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blob = new Blob([outputData as any], { type: 'video/mp4' });
       const url = URL.createObjectURL(blob);
 
       // Cleanup temp files
