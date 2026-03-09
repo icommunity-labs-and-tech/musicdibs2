@@ -36,6 +36,8 @@ import CreditsPage from "./pages/CreditsPage";
 import ProfilePage from "./pages/ProfilePage";
 import BillingPage from "./pages/BillingPage";
 import SupportPage from "./pages/SupportPage";
+import AIStudio from "./pages/AIStudio";
+import AIStudioCreate from "./pages/AIStudioCreate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +83,8 @@ const App = () => (
               <Route path="billing" element={<BillingPage />} />
               <Route path="support" element={<SupportPage />} />
             </Route>
+            <Route path="/ai-studio" element={<AIStudio />} />
+            <Route path="/ai-studio/create" element={<AIStudioCreate />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
