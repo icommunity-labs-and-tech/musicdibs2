@@ -281,6 +281,60 @@ export type Database = {
         }
         Relationships: []
       }
+      video_generations: {
+        Row: {
+          aspect_ratio: string | null
+          created_at: string
+          duration: number | null
+          failure_reason: string | null
+          id: string
+          merged_audio_id: string | null
+          merged_url: string | null
+          mode: string
+          prompt: string
+          status: string
+          style: string | null
+          task_id: string
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          created_at?: string
+          duration?: number | null
+          failure_reason?: string | null
+          id?: string
+          merged_audio_id?: string | null
+          merged_url?: string | null
+          mode?: string
+          prompt: string
+          status?: string
+          style?: string | null
+          task_id: string
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string | null
+          created_at?: string
+          duration?: number | null
+          failure_reason?: string | null
+          id?: string
+          merged_audio_id?: string | null
+          merged_url?: string | null
+          mode?: string
+          prompt?: string
+          status?: string
+          style?: string | null
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       works: {
         Row: {
           author: string | null
