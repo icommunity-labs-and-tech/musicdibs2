@@ -105,16 +105,27 @@ const AIStudioVideo = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const loadVideoHistory = async () => {
+  const PAGE_SIZE = 10;
+
+  const loadVideoHistory = async (loadMore = false) => {
     if (!user) return;
+    if (loadMore) setIsLoadingMore(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('video_generations')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(PAGE_SIZE);
+
+      if (loadMore && results.length > 0) {
+        const lastItem = results[results.length - 1];
+        query = query.lt('created_at', lastItem.createdAt.toISOString());
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
-      const loaded: VideoResult[] = (data || []).map(row => ({
+
+      const mapped: VideoResult[] = (data || []).map(row => ({
         id: row.id,
         taskId: row.task_id,
         status: row.status as VideoResult['status'],
@@ -124,16 +135,25 @@ const AIStudioVideo = () => {
         createdAt: new Date(row.created_at),
         progress: row.status === 'SUCCEEDED' ? 100 : 0,
       }));
-      setResults(loaded);
+
+      setHasMore((data || []).length === PAGE_SIZE);
+
+      if (loadMore) {
+        setResults(prev => [...prev, ...mapped]);
+      } else {
+        setResults(mapped);
+      }
 
       // Resume polling for pending/running
-      loaded.forEach(r => {
+      mapped.forEach(r => {
         if (r.status === 'PENDING' || r.status === 'RUNNING') {
           pollTaskStatus(r.taskId, r.id);
         }
       });
     } catch (err) {
       console.error('Error loading video history:', err);
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
