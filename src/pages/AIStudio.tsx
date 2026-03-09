@@ -51,7 +51,7 @@ const AIStudio = () => {
             <span className="text-sm font-medium">Powered by Stable Audio 2.5</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            AI Music Studio
+            AI MusicdDibs Studio
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Crea música original con inteligencia artificial. Genera, edita y explora nuevos sonidos para tus proyectos creativos.
