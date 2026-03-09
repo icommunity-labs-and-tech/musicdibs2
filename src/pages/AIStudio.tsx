@@ -67,7 +67,7 @@ const AIStudio = () => {
         </div>
 
         {/* Modules Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => (
             <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${module.available ? 'hover:shadow-lg hover:-translate-y-1' : 'opacity-60'}`}>
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
