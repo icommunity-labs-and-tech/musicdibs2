@@ -614,8 +614,6 @@ const AIStudioCreate = () => {
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
-                          </Button>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
