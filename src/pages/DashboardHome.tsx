@@ -5,6 +5,7 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
+import { ActivityChart } from '@/components/dashboard/ActivityChart';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
@@ -56,8 +57,13 @@ export default function DashboardHome() {
         <CreditStore compact />
       </div>
 
-      {/* Recent Registrations - Mobile order 6, Desktop Col 3 Row 2 */}
+      {/* Activity Chart - Mobile order 6, Desktop Col 3 Row 2 */}
       <div className="lg:col-span-5 lg:col-start-8 lg:row-start-2 order-6 lg:order-none">
+        <ActivityChart />
+      </div>
+
+      {/* Recent Registrations - Mobile order 7, Desktop full width Row 3 */}
+      <div className="lg:col-span-12 lg:row-start-3 order-7 lg:order-none">
         <RecentRegistrations />
       </div>
     </div>
