@@ -31,21 +31,33 @@ export default function DashboardHome() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1400px]">
-      {/* Column 1: Account + Verify */}
-      <div className="lg:col-span-3 space-y-4">
+      {/* Account Summary - Mobile order 1, Desktop Col 1 Row 1 */}
+      <div className="lg:col-span-3 lg:row-start-1 order-1 lg:order-none">
         <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
+      </div>
+
+      {/* Register Work - Mobile order 2 (Primary Action), Desktop Col 2 Row 1 */}
+      <div className="lg:col-span-4 lg:col-start-4 lg:row-start-1 order-2 lg:order-none">
+        <RegisterWork summary={summary} />
+      </div>
+
+      {/* Verify Registration - Mobile order 3, Desktop Col 1 Row 2 */}
+      <div className="lg:col-span-3 lg:row-start-2 order-3 lg:order-none">
         <VerifyRegistration />
       </div>
 
-      {/* Column 2: Register + Promote */}
-      <div className="lg:col-span-4 space-y-4">
-        <RegisterWork summary={summary} />
+      {/* Promote Works - Mobile order 4, Desktop Col 2 Row 2 */}
+      <div className="lg:col-span-4 lg:col-start-4 lg:row-start-2 order-4 lg:order-none">
         <PromoteWorks />
       </div>
 
-      {/* Column 3: Credits + Recent */}
-      <div className="lg:col-span-5 space-y-4">
+      {/* Credit Store - Mobile order 5, Desktop Col 3 Row 1 */}
+      <div className="lg:col-span-5 lg:col-start-8 lg:row-start-1 order-5 lg:order-none">
         <CreditStore compact />
+      </div>
+
+      {/* Recent Registrations - Mobile order 6, Desktop Col 3 Row 2 */}
+      <div className="lg:col-span-5 lg:col-start-8 lg:row-start-2 order-6 lg:order-none">
         <RecentRegistrations />
       </div>
     </div>
