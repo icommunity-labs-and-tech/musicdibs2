@@ -40,6 +40,7 @@ import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
 import AIStudioInspire from "./pages/AIStudioInspire";
+import AIStudioVideo from "./pages/AIStudioVideo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
