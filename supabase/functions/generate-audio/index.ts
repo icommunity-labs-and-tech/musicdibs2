@@ -36,28 +36,55 @@ serve(async (req) => {
 
     console.log(`[GENERATE-AUDIO] Generating: "${prompt.substring(0, 50)}..." | ${clampedDuration}s | cfg: ${cfgScale}`);
 
-    const response = await fetch('https://api.stability.ai/v2beta/stable-audio/generate', {
+    const STABILITY_API_URL = 'https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio';
+
+    const formData = new FormData();
+    formData.append('prompt', prompt);
+    formData.append('duration', String(clampedDuration));
+    formData.append('cfg_scale', String(cfgScale));
+    formData.append('steps', '50');
+    formData.append('output_format', 'mp3');
+
+    const response = await fetch(STABILITY_API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${STABILITY_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/*',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        prompt: prompt,
-        duration: clampedDuration,
-        cfg_scale: cfgScale,
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`[GENERATE-AUDIO] Stability API error: ${response.status} - ${errorText}`);
       return new Response(
-        JSON.stringify({ error: `Generation failed: ${response.status}` }),
+        JSON.stringify({ error: `Generation failed: ${response.status}`, details: errorText }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const payload = await response.json();
+
+    if (!payload?.audio) {
+      console.error('[GENERATE-AUDIO] Invalid response payload:', payload);
+      return new Response(
+        JSON.stringify({ error: 'Generation failed: invalid audio response' }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[GENERATE-AUDIO] Success! Received base64 audio (${payload.audio.length} chars)`);
+
+    return new Response(
+      JSON.stringify({ 
+        audio: payload.audio,
+        format: 'audio/mpeg',
+        duration: clampedDuration,
+        seed: payload.seed ?? null,
+        finish_reason: payload.finish_reason ?? null,
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
     // Get the audio as an ArrayBuffer and convert to base64
     const audioBuffer = await response.arrayBuffer();
