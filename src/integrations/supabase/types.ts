@@ -44,6 +44,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generations: {
+        Row: {
+          audio_url: string
+          created_at: string
+          duration: number
+          genre: string | null
+          id: string
+          is_favorite: boolean | null
+          mood: string | null
+          prompt: string
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          duration: number
+          genre?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          mood?: string | null
+          prompt: string
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          duration?: number
+          genre?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          mood?: string | null
+          prompt?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string | null
