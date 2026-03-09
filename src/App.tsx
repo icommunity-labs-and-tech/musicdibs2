@@ -40,6 +40,7 @@ import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
 import AIStudioInspire from "./pages/AIStudioInspire";
+import AIStudioVideo from "./pages/AIStudioVideo";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const App = () => (
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
             <Route path="/ai-studio/edit" element={<AIStudioEdit />} />
             <Route path="/ai-studio/inspire" element={<AIStudioInspire />} />
+            <Route path="/ai-studio/video" element={<AIStudioVideo />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
