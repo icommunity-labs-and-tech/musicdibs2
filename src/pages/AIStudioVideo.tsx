@@ -90,13 +90,15 @@ const AIStudioVideo = () => {
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
 
-  // Cleanup polling on unmount
+  // Load audio tracks on mount
   useEffect(() => {
+    if (user) loadAudioTracks();
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
       audioElementsRef.current.forEach(audio => audio.pause());
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Load audio tracks when merge dialog opens
   const loadAudioTracks = async () => {
