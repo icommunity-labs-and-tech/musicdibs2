@@ -572,14 +572,163 @@ const AIStudioVideo = () => {
                       <p className="text-sm text-muted-foreground truncate">{result.prompt}</p>
 
                       {result.status === 'SUCCEEDED' && result.videoUrl && (
-                        <Button
-                          variant="secondary"
-                          className="w-full"
-                          onClick={() => downloadVideo(result.videoUrl!, result.id.slice(0, 8))}
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Descargar MP4
-                        </Button>
+                        <div className="space-y-2">
+                          {/* Merged video display */}
+                          {result.mergedUrl && (
+                            <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                              <div className="flex items-center gap-2 text-sm font-medium">
+                                <Volume2 className="w-4 h-4 text-primary" />
+                                Versión con audio
+                              </div>
+                              <video
+                                src={result.mergedUrl}
+                                controls
+                                className="w-full rounded"
+                                playsInline
+                              />
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => downloadVideo(result.mergedUrl!, `merged-${result.id.slice(0, 8)}`)}
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Descargar con audio
+                              </Button>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => downloadVideo(result.videoUrl!, result.id.slice(0, 8))}
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Sin audio
+                            </Button>
+                            <Dialog
+                              open={mergeDialogOpen === result.id}
+                              onOpenChange={(open) => {
+                                setMergeDialogOpen(open ? result.id : null);
+                                if (open) {
+                                  loadAudioTracks();
+                                  setSelectedAudioId(null);
+                                  resetProgress();
+                                } else {
+                                  audioElementsRef.current.forEach(a => a.pause());
+                                  setAudioPlayingId(null);
+                                }
+                              }}
+                            >
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Music className="w-4 h-4 mr-1" />
+                                  Añadir audio
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+                                <DialogHeader>
+                                  <DialogTitle className="flex items-center gap-2">
+                                    <Merge className="w-5 h-5" />
+                                    Fusionar Audio + Vídeo
+                                  </DialogTitle>
+                                  <DialogDescription>
+                                    Selecciona una pista de tu historial de AI Studio para añadir como banda sonora
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                                  {isLoadingTracks ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                                    </div>
+                                  ) : audioTracks.length === 0 ? (
+                                    <div className="text-center py-8 text-sm text-muted-foreground">
+                                      No hay pistas de audio. Genera una en AI Studio → Crear Música.
+                                    </div>
+                                  ) : (
+                                    audioTracks.map(track => (
+                                      <Card
+                                        key={track.id}
+                                        className={`cursor-pointer transition-colors ${
+                                          selectedAudioId === track.id
+                                            ? 'border-primary bg-primary/5'
+                                            : 'hover:bg-muted/50'
+                                        }`}
+                                        onClick={() => setSelectedAudioId(track.id)}
+                                      >
+                                        <CardContent className="p-3">
+                                          <div className="flex items-center gap-3">
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="shrink-0 h-9 w-9"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleAudioPreview(track.audioUrl, track.id);
+                                              }}
+                                            >
+                                              {audioPlayingId === track.id
+                                                ? <Pause className="w-3.5 h-3.5" />
+                                                : <Play className="w-3.5 h-3.5 ml-0.5" />
+                                              }
+                                            </Button>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm truncate">{track.prompt}</p>
+                                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <span>{track.duration}s</span>
+                                                {track.genre && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{track.genre}</Badge>}
+                                              </div>
+                                            </div>
+                                            {selectedAudioId === track.id && (
+                                              <Badge className="shrink-0">✓</Badge>
+                                            )}
+                                          </div>
+                                        </CardContent>
+                                      </Card>
+                                    ))
+                                  )}
+                                </div>
+
+                                {/* Merge progress */}
+                                {mergeProgress && (
+                                  <div className="space-y-2 pt-2 border-t">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      {mergeProgress.stage === 'error' ? (
+                                        <AlertCircle className="w-4 h-4 text-destructive" />
+                                      ) : (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      )}
+                                      <span>{mergeProgress.message}</span>
+                                    </div>
+                                    {mergeProgress.stage === 'processing' && (
+                                      <Progress value={mergeProgress.percent} className="h-2" />
+                                    )}
+                                  </div>
+                                )}
+
+                                <Button
+                                  onClick={() => handleMerge(result.id)}
+                                  disabled={!selectedAudioId || isMerging}
+                                  className="w-full mt-2"
+                                >
+                                  {isMerging ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                      Fusionando...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Merge className="w-4 h-4 mr-2" />
+                                      Fusionar Audio + Vídeo
+                                    </>
+                                  )}
+                                </Button>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
