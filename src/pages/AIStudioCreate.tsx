@@ -18,8 +18,9 @@ import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
-  AlertCircle, RefreshCw, ShieldCheck
+  AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
