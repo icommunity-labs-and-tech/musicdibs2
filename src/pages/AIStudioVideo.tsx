@@ -101,11 +101,10 @@ const AIStudioVideo = () => {
   const [filterStyle, setFilterStyle] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
 
-  // Load audio tracks and video history on mount
+  // Load audio tracks on mount
   useEffect(() => {
     if (user) {
       loadAudioTracks();
-      loadVideoHistory();
     }
     return () => {
       pollingRef.current.forEach(interval => clearInterval(interval));
@@ -113,6 +112,14 @@ const AIStudioVideo = () => {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  // Load video history on mount and when filters change
+  useEffect(() => {
+    if (user) {
+      loadVideoHistory();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, filterStatus, filterStyle, filterDate]);
 
   const PAGE_SIZE = 10;
 
