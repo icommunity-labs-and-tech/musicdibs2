@@ -501,7 +501,78 @@ const AIStudioVideo = () => {
                   </div>
                 </div>
 
-                {/* Generate Button */}
+            {/* Soundtrack pre-selection */}
+            <Card className="border-dashed">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Music className="w-4 h-4 text-primary" />
+                  Banda Sonora (opcional)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Selecciona una pista de AI Studio para fusionar automáticamente con el vídeo
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {isLoadingTracks ? (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : audioTracks.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">
+                    No hay pistas. Genera una en{" "}
+                    <Link to="/ai-studio/create" className="text-primary underline">AI Studio → Crear Música</Link>.
+                  </p>
+                ) : (
+                  <>
+                    <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                      {audioTracks.map(track => (
+                        <div
+                          key={track.id}
+                          className={`flex items-center gap-2 p-2 rounded-md cursor-pointer transition-colors text-sm ${
+                            preSelectedAudioId === track.id
+                              ? 'bg-primary/10 border border-primary/30'
+                              : 'hover:bg-muted/50 border border-transparent'
+                          }`}
+                          onClick={() => setPreSelectedAudioId(preSelectedAudioId === track.id ? null : track.id)}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0 h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAudioPreview(track.audioUrl, track.id);
+                            }}
+                          >
+                            {audioPlayingId === track.id
+                              ? <Pause className="w-3 h-3" />
+                              : <Play className="w-3 h-3 ml-0.5" />
+                            }
+                          </Button>
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-xs">{track.prompt}</p>
+                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                              <span>{track.duration}s</span>
+                              {track.genre && <Badge variant="secondary" className="text-[10px] px-1 py-0">{track.genre}</Badge>}
+                            </div>
+                          </div>
+                          {preSelectedAudioId === track.id && (
+                            <Badge variant="default" className="shrink-0 text-[10px]">✓</Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {preSelectedAudioId && (
+                      <p className="text-[11px] text-primary flex items-center gap-1">
+                        <Volume2 className="w-3 h-3" />
+                        Se fusionará automáticamente al completar el vídeo
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || !prompt.trim() || (mode === 'image_to_video' && !uploadedImage)}
