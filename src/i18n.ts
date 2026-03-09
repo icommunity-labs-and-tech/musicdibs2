@@ -66,7 +66,7 @@ const resources = {
           },
           nocensor: {
             title: 'SIN Censura',
-            desc: 'Registra y vende tus creaciones con IA',
+            desc: 'En Musicdibs protegemos a autores y artistas, pero no limitamos su creatividad',
             popup: `Sin Censura. Sin límites. Solo libertad creativa. En Musicdibs creemos que el arte no debe tener fronteras. Por eso, <strong1>aceptamos registros de obras generadas con inteligencia artificial</strong1> o experimentales, sin restricciones ni filtros, siempre que tengas todos los derechos de las mismas y no sean plagios.`,
           },
         },
