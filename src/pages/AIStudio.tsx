@@ -33,10 +33,10 @@ const AIStudio = () => {
     },
     {
       title: "Videoclips",
-      description: "Genera videoclips musicales con IA. Sube tu pista, describe el estilo visual y obtén un vídeo único.",
+      description: "Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.",
       icon: Video,
       href: "/ai-studio/video",
-      available: false,
+      available: true,
       color: "from-rose-500 to-red-500"
     }
   ];
