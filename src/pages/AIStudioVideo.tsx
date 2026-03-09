@@ -18,7 +18,7 @@ import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
   Loader2, Download, RefreshCw, AlertCircle, Merge, Volume2, Trash2,
-  Filter, X, CalendarIcon
+  Filter, X, CalendarIcon, Search
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -100,6 +100,7 @@ const AIStudioVideo = () => {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterStyle, setFilterStyle] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<Date | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Load audio tracks on mount
   useEffect(() => {
@@ -119,7 +120,7 @@ const AIStudioVideo = () => {
       loadVideoHistory();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filterStatus, filterStyle, filterDate]);
+  }, [user, filterStatus, filterStyle, filterDate, searchQuery]);
 
   const PAGE_SIZE = 10;
 
@@ -145,6 +146,9 @@ const AIStudioVideo = () => {
         const dayEnd = new Date(filterDate);
         dayEnd.setHours(23, 59, 59, 999);
         query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
+      }
+      if (searchQuery.trim()) {
+        query = query.ilike('prompt', `%${searchQuery.trim()}%`);
       }
 
       if (loadMore && results.length > 0) {
@@ -759,6 +763,16 @@ const AIStudioVideo = () => {
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-2">
               <Filter className="w-4 h-4 text-muted-foreground" />
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por prompt..."
+                  className="h-8 w-[180px] rounded-md border border-input bg-background pl-7 pr-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                />
+              </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
                   <SelectValue placeholder="Estado" />
@@ -801,7 +815,7 @@ const AIStudioVideo = () => {
                 </PopoverContent>
               </Popover>
 
-              {(filterStatus !== "all" || filterStyle !== "all" || filterDate) && (
+              {(filterStatus !== "all" || filterStyle !== "all" || filterDate || searchQuery) && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -810,6 +824,7 @@ const AIStudioVideo = () => {
                     setFilterStatus("all");
                     setFilterStyle("all");
                     setFilterDate(undefined);
+                    setSearchQuery("");
                   }}
                 >
                   <X className="w-3.5 h-3.5" />
