@@ -21,6 +21,7 @@ import {
   AlertCircle, RefreshCw, ShieldCheck
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -610,9 +611,27 @@ const AIStudioCreate = () => {
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" onClick={() => deleteGeneration(result.id)} className="text-muted-foreground hover:text-destructive">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>¿Eliminar esta generación?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. El audio generado se eliminará permanentemente.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => deleteGeneration(result.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                        Eliminar
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </TooltipTrigger>
                               <TooltipContent><p>Eliminar generación</p></TooltipContent>
                             </Tooltip>
