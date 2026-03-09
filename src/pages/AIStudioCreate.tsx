@@ -1,17 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Heart, Clock, Sparkles, Music 
+  Heart, Clock, Music, Trash2 
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,7 +19,9 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
   const [duration, setDuration] = useState(30);
   const [creativity, setCreativity] = useState(7);
@@ -28,6 +30,42 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+
+  // Load history on mount
+  useEffect(() => {
+    if (user) {
+      loadHistory();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const loadHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('ai_generations')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      setResults((data || []).map(item => ({
+        id: item.id,
+        audioUrl: item.audio_url,
+        prompt: item.prompt,
+        duration: item.duration,
+        genre: item.genre || undefined,
+        mood: item.mood || undefined,
+        createdAt: new Date(item.created_at),
+        isFavorite: item.is_favorite || false,
+      })));
+    } catch (error) {
+      console.error('Error loading history:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const buildFullPrompt = () => {
     let fullPrompt = prompt;
@@ -39,6 +77,11 @@ const AIStudioCreate = () => {
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({ title: "Error", description: "Escribe una descripción para tu música", variant: "destructive" });
+      return;
+    }
+
+    if (!user) {
+      toast({ title: "Error", description: "Debes iniciar sesión para generar música", variant: "destructive" });
       return;
     }
 
@@ -58,14 +101,31 @@ const AIStudioCreate = () => {
 
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
+        
+        // Save to database
+        const { data: savedGen, error: saveError } = await supabase
+          .from('ai_generations')
+          .insert({
+            user_id: user.id,
+            prompt: fullPrompt,
+            duration: data.duration,
+            genre: selectedGenre,
+            mood: selectedMood,
+            audio_url: audioUrl,
+          })
+          .select()
+          .single();
+
+        if (saveError) throw saveError;
+
         const newResult: GenerationResult = {
-          id: crypto.randomUUID(),
+          id: savedGen.id,
           audioUrl,
           prompt: fullPrompt,
           duration: data.duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
-          createdAt: new Date(),
+          createdAt: new Date(savedGen.created_at),
           isFavorite: false
         };
         setResults(prev => [newResult, ...prev]);
@@ -90,7 +150,6 @@ const AIStudioCreate = () => {
       existingAudio.pause();
       setPlayingId(null);
     } else {
-      // Pause any playing audio
       audioElements.forEach(audio => audio.pause());
       
       let audio = existingAudio;
@@ -104,10 +163,51 @@ const AIStudioCreate = () => {
     }
   };
 
-  const toggleFavorite = (id: string) => {
+  const toggleFavorite = async (id: string) => {
+    const result = results.find(r => r.id === id);
+    if (!result) return;
+
+    const newFavorite = !result.isFavorite;
+    
+    // Optimistic update
     setResults(prev => prev.map(r => 
-      r.id === id ? { ...r, isFavorite: !r.isFavorite } : r
+      r.id === id ? { ...r, isFavorite: newFavorite } : r
     ));
+
+    // Persist to database
+    const { error } = await supabase
+      .from('ai_generations')
+      .update({ is_favorite: newFavorite })
+      .eq('id', id);
+
+    if (error) {
+      // Revert on error
+      setResults(prev => prev.map(r => 
+        r.id === id ? { ...r, isFavorite: !newFavorite } : r
+      ));
+      toast({ title: "Error", description: "No se pudo actualizar favorito", variant: "destructive" });
+    }
+  };
+
+  const deleteGeneration = async (id: string) => {
+    // Stop audio if playing
+    if (playingId === id) {
+      audioElements.get(id)?.pause();
+      setPlayingId(null);
+    }
+
+    // Optimistic delete
+    setResults(prev => prev.filter(r => r.id !== id));
+
+    const { error } = await supabase
+      .from('ai_generations')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" });
+      loadHistory(); // Reload on error
+    }
   };
 
   const downloadAudio = (result: GenerationResult) => {
@@ -248,17 +348,24 @@ const AIStudioCreate = () => {
               )}
             </div>
 
-            {results.length === 0 ? (
+            {isLoading ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="w-12 h-12 text-muted-foreground mb-4 animate-spin" />
+                  <p className="text-muted-foreground text-center">Cargando historial...</p>
+                </CardContent>
+              </Card>
+            ) : results.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <Music className="w-12 h-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
-                    Tus generaciones aparecerán aquí
+                    {user ? "Tus generaciones aparecerán aquí" : "Inicia sesión para guardar tu historial"}
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {results.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
@@ -303,6 +410,14 @@ const AIStudioCreate = () => {
                             onClick={() => downloadAudio(result)}
                           >
                             <Download className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteGeneration(result.id)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
