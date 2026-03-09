@@ -13,8 +13,8 @@ import {
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Sparkles, Music 
 } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 
 const AIStudioCreate = () => {

@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb } from "lucide-react";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const AIStudio = () => {
   const modules = [
