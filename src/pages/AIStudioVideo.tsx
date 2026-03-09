@@ -746,6 +746,7 @@ const AIStudioVideo = () => {
                   <li>• Modelo: Runway Gen-4 Turbo</li>
                   <li>• Los prompts en inglés dan mejores resultados</li>
                   <li>• Cada generación consume créditos de tu cuenta Runway</li>
+                  <li>• Puedes fusionar audio de AI Studio con el vídeo directamente en tu navegador</li>
                 </ul>
               </CardContent>
             </Card>
