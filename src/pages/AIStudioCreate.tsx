@@ -21,6 +21,7 @@ import {
   AlertCircle, RefreshCw, ShieldCheck
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
@@ -582,15 +583,23 @@ const AIStudioCreate = () => {
 
                         {/* Actions */}
                         <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => registerAsWork(result)}
-                            title="Registrar como obra"
-                            className="text-primary hover:text-primary"
-                          >
-                            <ShieldCheck className="w-4 h-4" />
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => registerAsWork(result)}
+                                  className="text-primary hover:text-primary"
+                                >
+                                  <ShieldCheck className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Registrar como obra protegida</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           <Button
                             variant="ghost"
                             size="icon"
