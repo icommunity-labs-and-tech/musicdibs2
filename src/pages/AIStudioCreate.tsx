@@ -1,17 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Heart, Clock, Music, Trash2 
+  Heart, Clock, Music, Trash2, Filter, CalendarIcon, X
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -30,6 +36,43 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+
+  // Filter state
+  const [filterFavorites, setFilterFavorites] = useState(false);
+  const [filterGenre, setFilterGenre] = useState<string>("all");
+  const [filterDateFrom, setFilterDateFrom] = useState<Date | undefined>(undefined);
+  const [filterDateTo, setFilterDateTo] = useState<Date | undefined>(undefined);
+
+  // Available genres from results
+  const availableGenres = useMemo(() => {
+    const genres = new Set<string>();
+    results.forEach(r => { if (r.genre) genres.add(r.genre); });
+    return Array.from(genres).sort();
+  }, [results]);
+
+  // Filtered results
+  const filteredResults = useMemo(() => {
+    return results.filter(result => {
+      if (filterFavorites && !result.isFavorite) return false;
+      if (filterGenre !== "all" && result.genre !== filterGenre) return false;
+      if (filterDateFrom && result.createdAt < filterDateFrom) return false;
+      if (filterDateTo) {
+        const endOfDay = new Date(filterDateTo);
+        endOfDay.setHours(23, 59, 59, 999);
+        if (result.createdAt > endOfDay) return false;
+      }
+      return true;
+    });
+  }, [results, filterFavorites, filterGenre, filterDateFrom, filterDateTo]);
+
+  const hasActiveFilters = filterFavorites || filterGenre !== "all" || filterDateFrom || filterDateTo;
+
+  const clearFilters = () => {
+    setFilterFavorites(false);
+    setFilterGenre("all");
+    setFilterDateFrom(undefined);
+    setFilterDateTo(undefined);
+  };
 
   // Load history on mount
   useEffect(() => {
@@ -344,9 +387,81 @@ const AIStudioCreate = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Resultados</h2>
               {results.length > 0 && (
-                <span className="text-sm text-muted-foreground">{results.length} generaciones</span>
+                <span className="text-sm text-muted-foreground">
+                  {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
+                </span>
               )}
             </div>
+
+            {/* Filters */}
+            {results.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={filterFavorites ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterFavorites(!filterFavorites)}
+                  className="h-8"
+                >
+                  <Heart className={cn("w-3.5 h-3.5 mr-1.5", filterFavorites && "fill-current")} />
+                  Favoritos
+                </Button>
+
+                <Select value={filterGenre} onValueChange={setFilterGenre}>
+                  <SelectTrigger className="w-[140px] h-8 text-sm">
+                    <SelectValue placeholder="Género" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los géneros</SelectItem>
+                    {availableGenres.map(g => (
+                      <SelectItem key={g} value={g}>{g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateFrom && "border-primary text-primary")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateFrom ? format(filterDateFrom, "dd MMM", { locale: es }) : "Desde"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterDateFrom}
+                      onSelect={setFilterDateFrom}
+                      disabled={(date) => date > new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateTo && "border-primary text-primary")}>
+                      <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
+                      {filterDateTo ? format(filterDateTo, "dd MMM", { locale: es }) : "Hasta"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filterDateTo}
+                      onSelect={setFilterDateTo}
+                      disabled={(date) => date > new Date()}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={clearFilters}>
+                    <X className="w-3 h-3 mr-1" />
+                    Limpiar
+                  </Button>
+                )}
+              </div>
+            )}
 
             {isLoading ? (
               <Card className="border-dashed">
@@ -364,9 +479,17 @@ const AIStudioCreate = () => {
                   </p>
                 </CardContent>
               </Card>
+            ) : filteredResults.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Filter className="w-10 h-10 text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground text-center text-sm">Sin resultados para estos filtros</p>
+                  <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">Limpiar filtros</Button>
+                </CardContent>
+              </Card>
             ) : (
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                {results.map(result => (
+                {filteredResults.map(result => (
                   <Card key={result.id} className="overflow-hidden">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
