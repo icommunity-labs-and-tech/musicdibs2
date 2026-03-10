@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { NotificationToaster } from '@/components/dashboard/NotificationToaster';
+import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout() {
@@ -35,7 +36,10 @@ export default function DashboardLayout() {
                 <SidebarTrigger className="mr-3" />
                 <h1 className="text-sm font-semibold text-muted-foreground">Panel de control</h1>
               </div>
-              <NotificationBell />
+              <div className="flex items-center gap-3">
+                <CreditBadge />
+                <NotificationBell />
+              </div>
             </header>
             <main className="flex-1 p-4 md:p-6 overflow-auto">
               <Outlet />
