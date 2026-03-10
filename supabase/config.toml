@@ -35,3 +35,9 @@ verify_jwt = false
 
 [functions.register-work-ibs]
 verify_jwt = false
+
+[functions.ibs-webhook]
+verify_jwt = false
+
+[functions.ibs-signatures]
+verify_jwt = false

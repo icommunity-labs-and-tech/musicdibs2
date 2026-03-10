@@ -188,6 +188,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ibs_signatures: {
+        Row: {
+          created_at: string
+          ibs_signature_id: string
+          id: string
+          kyc_url: string | null
+          signature_name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ibs_signature_id: string
+          id?: string
+          kyc_url?: string | null
+          signature_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ibs_signature_id?: string
+          id?: string
+          kyc_url?: string | null
+          signature_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           available_credits: number
@@ -338,10 +371,16 @@ export type Database = {
       works: {
         Row: {
           author: string | null
+          blockchain_hash: string | null
+          blockchain_network: string | null
           certificate_url: string | null
+          certified_at: string | null
+          checker_url: string | null
           created_at: string
           description: string | null
           file_path: string | null
+          ibs_evidence_id: string | null
+          ibs_signature_id: string | null
           id: string
           status: string
           title: string
@@ -351,10 +390,16 @@ export type Database = {
         }
         Insert: {
           author?: string | null
+          blockchain_hash?: string | null
+          blockchain_network?: string | null
           certificate_url?: string | null
+          certified_at?: string | null
+          checker_url?: string | null
           created_at?: string
           description?: string | null
           file_path?: string | null
+          ibs_evidence_id?: string | null
+          ibs_signature_id?: string | null
           id?: string
           status?: string
           title: string
@@ -364,10 +409,16 @@ export type Database = {
         }
         Update: {
           author?: string | null
+          blockchain_hash?: string | null
+          blockchain_network?: string | null
           certificate_url?: string | null
+          certified_at?: string | null
+          checker_url?: string | null
           created_at?: string
           description?: string | null
           file_path?: string | null
+          ibs_evidence_id?: string | null
+          ibs_signature_id?: string | null
           id?: string
           status?: string
           title?: string
