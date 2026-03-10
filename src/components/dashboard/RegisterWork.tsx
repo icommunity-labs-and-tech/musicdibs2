@@ -8,7 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon } from 'lucide-react';
 import { registerWork } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
@@ -28,25 +29,33 @@ interface PrefillData {
   generationId?: string;
 }
 
+interface RegistrationResult {
+  registrationId: string;
+  status: string;
+  certificateUrl?: string;
+  blockchainHash?: string;
+  ibsError?: string;
+}
+
 export function RegisterWork({ summary }: { summary: DashboardSummary | null }) {
   const location = useLocation();
   const prefill = (location.state as { prefill?: PrefillData })?.prefill;
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'success' | 'failed' | 'error'>('idle');
   const [ownership, setOwnership] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [workType, setWorkType] = useState('');
-  const [resultId, setResultId] = useState('');
+  const [result, setResult] = useState<RegistrationResult | null>(null);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
   const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
+  const [simulateFailure, setSimulateFailure] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const kycBlocked = summary && summary.kycStatus !== 'verified';
 
-  // Apply prefill data from AI Studio
   useEffect(() => {
     if (prefill) {
       if (prefill.title) setTitle(prefill.title);
@@ -56,7 +65,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     }
   }, [prefill]);
 
-  // Convert base64 audio URL to File for upload
   const convertAudioUrlToFile = async (audioUrl: string): Promise<File | null> => {
     try {
       const response = await fetch(audioUrl);
@@ -73,7 +81,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     
     let uploadFile = file;
     
-    // If no file selected but we have AI audio, convert it
     if (!uploadFile && aiAudioUrl) {
       setLoading(true);
       uploadFile = await convertAudioUrlToFile(aiAudioUrl);
@@ -97,13 +104,32 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         description,
         file: uploadFile,
         ownershipDeclaration: ownership,
+        simulateIbs: simulateFailure ? 'failure' : 'success',
       });
-      setResultId(res.registrationId);
-      setStatus('success');
-    } catch { 
+      setResult(res);
+      if (res.ibsError || res.status === 'failed') {
+        setStatus('failed');
+      } else {
+        setStatus('success');
+      }
+    } catch (err: any) { 
+      setResult({ registrationId: '', status: 'error', ibsError: err?.message });
       setStatus('error'); 
     }
     setLoading(false);
+  };
+
+  const resetForm = () => {
+    setStatus('idle');
+    setFile(null);
+    setOwnership(false);
+    setTitle('');
+    setAuthor('');
+    setDescription('');
+    setAiAudioUrl(null);
+    setWorkType('');
+    setResult(null);
+    setSimulateFailure(false);
   };
 
   const hasFileOrAudio = file || aiAudioUrl;
@@ -133,8 +159,26 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         ) : status === 'success' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="font-medium text-sm">Registro en proceso</p>
-            <p className="text-xs text-muted-foreground">ID: {resultId}</p>
+            <p className="font-medium text-sm">¡Obra registrada con éxito!</p>
+            <p className="text-xs text-muted-foreground">ID: {result?.registrationId}</p>
+            {result?.blockchainHash && (
+              <div className="w-full space-y-1">
+                <p className="text-xs text-muted-foreground">Hash blockchain:</p>
+                <code className="text-[10px] bg-muted px-2 py-1 rounded block truncate">
+                  {result.blockchainHash}
+                </code>
+              </div>
+            )}
+            {result?.certificateUrl && (
+              <a
+                href={result.certificateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <LinkIcon className="h-3 w-3" /> Ver certificado
+              </a>
+            )}
             <div className="flex flex-col gap-2 w-full">
               {aiAudioUrl && (
                 <Button variant="default" size="sm" asChild className="w-full">
@@ -144,25 +188,31 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                   </Link>
                 </Button>
               )}
-              <Button variant="outline" size="sm" className="w-full" onClick={() => { 
-                setStatus('idle'); 
-                setFile(null); 
-                setOwnership(false); 
-                setTitle(''); 
-                setAuthor(''); 
-                setDescription(''); 
-                setAiAudioUrl(null);
-                setWorkType('');
-              }}>
+              <Button variant="outline" size="sm" className="w-full" onClick={resetForm}>
                 Registrar otra obra
               </Button>
             </div>
+          </div>
+        ) : status === 'failed' ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <XCircle className="h-10 w-10 text-destructive" />
+            <p className="font-medium text-sm">Error en el registro IBS</p>
+            <p className="text-xs text-muted-foreground">{result?.ibsError}</p>
+            {result?.registrationId && (
+              <p className="text-xs text-muted-foreground">ID: {result.registrationId}</p>
+            )}
+            <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-xs text-emerald-700 font-medium">Crédito reembolsado</span>
+            </div>
+            <Button variant="outline" size="sm" className="w-full" onClick={resetForm}>
+              Intentar de nuevo
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <p className="text-xs text-muted-foreground">1 registro = 1 crédito</p>
             
-            {/* AI Generation indicator */}
             {aiAudioUrl && (
               <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
                 <Music className="h-4 w-4 text-primary" />
@@ -246,13 +296,26 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                 Declaro ser titular legítimo de esta obra
               </Label>
             </div>
+
+            {/* IBS Simulation Toggle (dev only) */}
+            <div className="flex items-center gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
+              <Switch
+                id="simulate-failure"
+                checked={simulateFailure}
+                onCheckedChange={setSimulateFailure}
+              />
+              <Label htmlFor="simulate-failure" className="text-xs text-amber-700 cursor-pointer">
+                🧪 Simular fallo IBS (dev)
+              </Label>
+            </div>
+
             {status === 'error' && (
               <div className="flex items-center gap-2 text-xs text-destructive">
-                <AlertCircle className="h-3.5 w-3.5" /> Error al registrar la obra
+                <AlertCircle className="h-3.5 w-3.5" /> {result?.ibsError || 'Error al registrar la obra'}
               </div>
             )}
             <Button type="submit" className="w-full" size="sm" disabled={loading || !ownership || !hasFileOrAudio || !workType}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Registrar obra'}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en IBS...</> : 'Registrar obra'}
             </Button>
           </form>
         )}
