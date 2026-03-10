@@ -27,6 +27,16 @@ const PLANS: Record<string, { priceId: string; credits: number; mode: "subscript
   },
 };
 
+const PRICE_TO_PLAN: Record<string, string> = {
+  "price_1T8n6CFULeu7PzK6vs7NZyiJ": "annual",
+  "price_1T8n6lFULeu7PzK60TbO76hE": "monthly",
+};
+
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
+  console.log(`[CREATE-CREDIT-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,6 +45,12 @@ serve(async (req) => {
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+  );
+
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    { auth: { persistSession: false } },
   );
 
   try {
@@ -63,25 +79,69 @@ serve(async (req) => {
     if (plan.mode === "subscription" && customerId) {
       const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
       if (subs.data.length > 0) {
-        throw new Error("Ya tienes una suscripción activa. Cancélala antes de contratar otra.");
+        const currentSub = subs.data[0];
+        const currentPriceId = currentSub.items.data[0]?.price?.id;
+        const currentPlanId = currentPriceId ? PRICE_TO_PLAN[currentPriceId] : null;
+
+        // If user is trying to subscribe to the same plan, block it
+        if (currentPlanId === planId) {
+          throw new Error("Ya estás suscrito a este plan.");
+        }
+
+        // Otherwise, switch the subscription (upgrade/downgrade) via Stripe API
+        logStep("Switching subscription", { from: currentPlanId, to: planId });
+        const updatedSub = await stripe.subscriptions.update(currentSub.id, {
+          items: [
+            {
+              id: currentSub.items.data[0].id,
+              price: plan.priceId,
+            },
+          ],
+          proration_behavior: "create_prorations",
+        });
+
+        // Determine new plan name for profiles table
+        const planNameMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
+        const newPlanName = planNameMap[planId] || planId;
+
+        // Update profiles table
+        await supabaseAdmin.from("profiles").update({ subscription_plan: newPlanName }).eq("user_id", user.id);
+
+        // Update credits based on new plan
+        const newCredits = plan.credits;
+        await supabaseAdmin.from("profiles").update({ available_credits: newCredits }).eq("user_id", user.id);
+        await supabaseAdmin.from("credit_transactions").insert({
+          user_id: user.id,
+          amount: newCredits,
+          type: "plan_change",
+          description: `Cambio de plan a ${newPlanName}: créditos ajustados a ${newCredits}`,
+        });
+
+        logStep("Subscription switched successfully", { subscriptionId: updatedSub.id, newPlan: newPlanName });
+
+        return new Response(JSON.stringify({ 
+          switched: true, 
+          plan: newPlanName,
+          message: `Plan cambiado a ${newPlanName} correctamente.`,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
     }
 
-    // Build line items
+    // Build line items for new checkout
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
       { price: plan.priceId, quantity: 1 },
     ];
 
     // For monthly plan, check if this is a new customer (needs signup fee)
     if (plan.signupFeePriceId && customerId) {
-      // Check if customer has had a subscription before
       const allSubs = await stripe.subscriptions.list({ customer: customerId, limit: 1 });
       if (allSubs.data.length === 0) {
-        // First time — add signup fee
         lineItems.push({ price: plan.signupFeePriceId, quantity: 1 });
       }
     } else if (plan.signupFeePriceId && !customerId) {
-      // New customer — add signup fee
       lineItems.push({ price: plan.signupFeePriceId, quantity: 1 });
     }
 
