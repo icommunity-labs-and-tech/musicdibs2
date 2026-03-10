@@ -81,7 +81,7 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
         <CardTitle className="text-base font-semibold tracking-tight">Resumen de la cuenta</CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">{data.subscriptionPlan}</Badge>
-          <button onClick={load} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => load()} className="text-muted-foreground hover:text-foreground transition-colors">
             <RefreshCw className="h-4 w-4" />
           </button>
         </div>
