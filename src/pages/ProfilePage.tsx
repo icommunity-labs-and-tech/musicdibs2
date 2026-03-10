@@ -119,8 +119,10 @@ export default function ProfilePage() {
   const KycIcon = kyc.icon;
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <h2 className="text-xl font-bold">Perfil</h2>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
       {/* ─── Personal info ─── */}
       <Card className="border-border/40">
@@ -331,6 +333,7 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
