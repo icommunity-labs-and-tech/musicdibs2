@@ -11,7 +11,6 @@ const corsHeaders = {
 const PRICE_CREDITS: Record<string, number> = {
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120, // annual
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,   // monthly (6.90€)
-  "price_1T9SZnF9ZCIiqrz6klv3l0ox": 3,   // monthly (49.90€)
 };
 
 serve(async (req) => {
