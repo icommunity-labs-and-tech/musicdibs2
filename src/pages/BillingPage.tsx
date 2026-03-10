@@ -22,14 +22,27 @@ export default function BillingPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('profiles')
-      .select('subscription_plan')
-      .eq('user_id', user.id)
-      .single()
-      .then(({ data }) => {
-        setPlan(data?.subscription_plan ?? 'Free');
-      });
+    // Sync with Stripe first, then read from profiles
+    supabase.functions.invoke('check-subscription').then(() => {
+      supabase
+        .from('profiles')
+        .select('subscription_plan')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => {
+          setPlan(data?.subscription_plan ?? 'Free');
+        });
+    }).catch(() => {
+      // Fallback: just read from profiles
+      supabase
+        .from('profiles')
+        .select('subscription_plan')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }) => {
+          setPlan(data?.subscription_plan ?? 'Free');
+        });
+    });
   }, [user]);
 
   // Listen for realtime changes
