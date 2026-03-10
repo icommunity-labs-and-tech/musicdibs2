@@ -9,8 +9,8 @@ const corsHeaders = {
 
 // Map price IDs to credit amounts for subscription renewals
 const PRICE_CREDITS: Record<string, number> = {
-  "price_1T8n6CFULeu7PzK6vs7NZyiJ": 120, // annual
-  "price_1T8n6lFULeu7PzK60TbO76hE": 3,   // monthly
+  "price_1T9SZnF9ZCIiqrz6klv3l0ox": 120, // annual
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,   // monthly
 };
 
 serve(async (req) => {

@@ -10,26 +10,26 @@ const corsHeaders = {
 
 const PLANS: Record<string, { priceId: string; credits: number; mode: "subscription" | "payment"; signupFeePriceId?: string }> = {
   annual: {
-    priceId: "price_1T8n6CFULeu7PzK6vs7NZyiJ",
+    priceId: "price_1T9SZnF9ZCIiqrz6klv3l0ox",
     credits: 120,
     mode: "subscription",
   },
   monthly: {
-    priceId: "price_1T8n6lFULeu7PzK60TbO76hE",
+    priceId: "price_1T9SZvF9ZCIiqrz6TWLtfMBs",
     credits: 3,
     mode: "subscription",
-    signupFeePriceId: "price_1T8n8kFULeu7PzK6lpXwSWkq",
+    signupFeePriceId: "price_1T9Sa1F9ZCIiqrz6cGm2fiwn",
   },
   individual: {
-    priceId: "price_1T8n7dFULeu7PzK6ZncugHJB",
+    priceId: "price_1T9Sa0F9ZCIiqrz61btxPlt8",
     credits: 1,
     mode: "payment",
   },
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1T8n6CFULeu7PzK6vs7NZyiJ": "annual",
-  "price_1T8n6lFULeu7PzK60TbO76hE": "monthly",
+  "price_1T9SZnF9ZCIiqrz6klv3l0ox": "annual",
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "monthly",
 };
 
 const logStep = (step: string, details?: any) => {
