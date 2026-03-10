@@ -401,6 +401,13 @@ const AIStudioVideo = () => {
     setError(null);
 
     try {
+      // Spend 1 credit before generating
+      const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+        body: { amount: 1, feature: 'generate_video', description: `Video AI: ${prompt.slice(0, 80)}` },
+      });
+      if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+      if (spendResult?.error) throw new Error(spendResult.error);
+
       const fullPrompt = buildFullPrompt();
 
       const body: Record<string, unknown> = {
