@@ -47,6 +47,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -63,12 +64,11 @@ export default function ProfilePage() {
   const [kycLoading, setKycLoading] = useState(true);
 
   useEffect(() => {
-    // Load user metadata
     if (user?.user_metadata) {
       setDisplayName(user.user_metadata.display_name || user.user_metadata.full_name || '');
       setPhone(user.user_metadata.phone || '');
     }
-    // Load KYC status
+    setEmail(user?.email || '');
     fetchDashboardSummary()
       .then(setSummary)
       .finally(() => setKycLoading(false));
@@ -77,17 +77,40 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSaving(true);
     setSaveMsg(null);
+
+    const emailChanged = email.trim().toLowerCase() !== (user?.email || '').toLowerCase();
+
+    // Update display name & phone
     const { error } = await supabase.auth.updateUser({
       data: { display_name: displayName.trim(), phone: phone.trim() },
     });
-    setSaving(false);
+
     if (error) {
+      setSaving(false);
       setSaveMsg({ type: 'error', text: error.message });
-    } else {
-      setSaveMsg({ type: 'success', text: 'Perfil actualizado correctamente.' });
-      setEditing(false);
-      setTimeout(() => setSaveMsg(null), 3000);
+      return;
     }
+
+    // If email changed, request email change (sends confirmation to new email)
+    if (emailChanged) {
+      const { error: emailError } = await supabase.auth.updateUser({
+        email: email.trim(),
+      });
+      setSaving(false);
+      if (emailError) {
+        setSaveMsg({ type: 'error', text: emailError.message });
+      } else {
+        setSaveMsg({ type: 'success', text: 'Perfil actualizado. Se ha enviado un email de confirmación a tu nueva dirección para completar el cambio.' });
+        setEditing(false);
+        setTimeout(() => setSaveMsg(null), 8000);
+      }
+      return;
+    }
+
+    setSaving(false);
+    setSaveMsg({ type: 'success', text: 'Perfil actualizado correctamente.' });
+    setEditing(false);
+    setTimeout(() => setSaveMsg(null), 3000);
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
@@ -141,8 +164,17 @@ export default function ProfilePage() {
             <Label className="text-xs flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5" /> Email
             </Label>
-            <Input value={user?.email || ''} disabled className="h-9 text-sm bg-muted/50" />
-            <p className="text-[10px] text-muted-foreground">El email no se puede cambiar desde aquí.</p>
+            <Input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              disabled={!editing}
+              className={`h-9 text-sm ${!editing ? 'bg-muted/50' : ''}`}
+              type="email"
+              placeholder="tu@email.com"
+            />
+            {editing && email.trim().toLowerCase() !== (user?.email || '').toLowerCase() && (
+              <p className="text-[10px] text-amber-600">Se enviará un email de confirmación a la nueva dirección.</p>
+            )}
           </div>
 
           <div className="space-y-2">
