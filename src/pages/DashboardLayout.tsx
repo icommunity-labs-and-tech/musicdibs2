@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { NotificationToaster } from '@/components/dashboard/NotificationToaster';
+import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout() {
