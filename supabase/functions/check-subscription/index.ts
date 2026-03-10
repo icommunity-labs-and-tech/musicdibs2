@@ -13,8 +13,8 @@ const logStep = (step: string, details?: any) => {
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1T8n6CFULeu7PzK6vs7NZyiJ": "Annual",
-  "price_1T8n6lFULeu7PzK60TbO76hE": "Monthly",
+  "price_1T9SZnF9ZCIiqrz6klv3l0ox": "Annual",
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
 };
 
 serve(async (req) => {
