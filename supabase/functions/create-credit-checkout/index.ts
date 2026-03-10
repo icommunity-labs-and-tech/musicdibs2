@@ -88,45 +88,84 @@ serve(async (req) => {
           throw new Error("Ya estás suscrito a este plan.");
         }
 
-        // Otherwise, switch the subscription (upgrade/downgrade) via Stripe API
-        logStep("Switching subscription", { from: currentPlanId, to: planId });
-        const updatedSub = await stripe.subscriptions.update(currentSub.id, {
-          items: [
-            {
-              id: currentSub.items.data[0].id,
-              price: plan.priceId,
-            },
-          ],
-          proration_behavior: "create_prorations",
-        });
+        const currentRank = currentPlanId === "annual" ? 2 : 1;
+        const targetRank = planId === "annual" ? 2 : 1;
+        const isUpgrade = targetRank > currentRank;
 
-        // Determine new plan name for profiles table
         const planNameMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
         const newPlanName = planNameMap[planId] || planId;
 
-        // Update profiles table
-        await supabaseAdmin.from("profiles").update({ subscription_plan: newPlanName }).eq("user_id", user.id);
+        if (isUpgrade) {
+          // UPGRADE: charge prorated difference immediately, add new credits
+          logStep("Upgrading subscription", { from: currentPlanId, to: planId });
+          await stripe.subscriptions.update(currentSub.id, {
+            items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
+            proration_behavior: "create_prorations",
+          });
 
-        // Update credits based on new plan
-        const newCredits = plan.credits;
-        await supabaseAdmin.from("profiles").update({ available_credits: newCredits }).eq("user_id", user.id);
-        await supabaseAdmin.from("credit_transactions").insert({
-          user_id: user.id,
-          amount: newCredits,
-          type: "plan_change",
-          description: `Cambio de plan a ${newPlanName}: créditos ajustados a ${newCredits}`,
-        });
+          // Get current credits and ADD the new plan's credits
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("available_credits")
+            .eq("user_id", user.id)
+            .single();
+          const currentCredits = profile?.available_credits ?? 0;
+          const updatedCredits = currentCredits + plan.credits;
 
-        logStep("Subscription switched successfully", { subscriptionId: updatedSub.id, newPlan: newPlanName });
+          await supabaseAdmin.from("profiles").update({
+            subscription_plan: newPlanName,
+            available_credits: updatedCredits,
+          }).eq("user_id", user.id);
 
-        return new Response(JSON.stringify({ 
-          switched: true, 
-          plan: newPlanName,
-          message: `Plan cambiado a ${newPlanName} correctamente.`,
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
+          await supabaseAdmin.from("credit_transactions").insert({
+            user_id: user.id,
+            amount: plan.credits,
+            type: "plan_change",
+            description: `Upgrade a ${newPlanName}: +${plan.credits} créditos añadidos`,
+          });
+
+          logStep("Upgrade completed", { newPlan: newPlanName, addedCredits: plan.credits, totalCredits: updatedCredits });
+
+          return new Response(JSON.stringify({
+            switched: true,
+            plan: newPlanName,
+            message: `Upgrade a ${newPlanName}. Se han añadido ${plan.credits} créditos.`,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        } else {
+          // DOWNGRADE: no charge, change takes effect at next billing period, keep current credits
+          logStep("Downgrading subscription", { from: currentPlanId, to: planId });
+          await stripe.subscriptions.update(currentSub.id, {
+            items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
+            proration_behavior: "none",
+            billing_cycle_anchor: "unchanged",
+          });
+
+          // Only update the plan name, do NOT touch credits
+          await supabaseAdmin.from("profiles").update({
+            subscription_plan: newPlanName,
+          }).eq("user_id", user.id);
+
+          await supabaseAdmin.from("credit_transactions").insert({
+            user_id: user.id,
+            amount: 0,
+            type: "plan_change",
+            description: `Downgrade a ${newPlanName}: los créditos actuales se mantienen hasta fin de periodo`,
+          });
+
+          logStep("Downgrade completed", { newPlan: newPlanName });
+
+          return new Response(JSON.stringify({
+            switched: true,
+            plan: newPlanName,
+            message: `Cambio a ${newPlanName}. Tus créditos actuales se mantienen hasta fin de periodo.`,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
       }
     }
 
