@@ -75,7 +75,12 @@ serve(async (req) => {
     const subscription = subscriptions.data[0];
     const priceId = subscription.items.data[0]?.price?.id;
     const plan = priceId ? (PRICE_TO_PLAN[priceId] || "Monthly") : "Monthly";
-    const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+    const periodEnd = subscription.current_period_end;
+    const subscriptionEnd = typeof periodEnd === "number"
+      ? new Date(periodEnd * 1000).toISOString()
+      : typeof periodEnd === "string"
+        ? periodEnd
+        : null;
 
     logStep("Active subscription found", { plan, priceId, subscriptionEnd });
 
