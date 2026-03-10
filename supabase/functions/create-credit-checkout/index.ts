@@ -10,7 +10,7 @@ const corsHeaders = {
 
 const PLANS: Record<string, { priceId: string; credits: number; mode: "subscription" | "payment"; signupFeePriceId?: string }> = {
   annual: {
-    priceId: "price_1T9SZnF9ZCIiqrz6klv3l0ox",
+    priceId: "price_1T9TnyF9ZCIiqrz6ruOlBcnZ",
     credits: 120,
     mode: "subscription",
   },
@@ -21,7 +21,7 @@ const PLANS: Record<string, { priceId: string; credits: number; mode: "subscript
     signupFeePriceId: "price_1T9Sa1F9ZCIiqrz6cGm2fiwn",
   },
   individual: {
-    priceId: "price_1T9Sa0F9ZCIiqrz61btxPlt8",
+    priceId: "price_1T9TnyF9ZCIiqrz6XqgzLo1K",
     credits: 1,
     mode: "payment",
   },
