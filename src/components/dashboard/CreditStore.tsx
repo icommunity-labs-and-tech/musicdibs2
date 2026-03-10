@@ -83,6 +83,20 @@ export function CreditStore({ compact }: { compact?: boolean }) {
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const { user } = useAuth();
   const paymentStatus = searchParams.get('payment');
+  const sessionId = searchParams.get('session_id');
+
+  // Verify and fulfill payment when returning from Stripe checkout
+  useEffect(() => {
+    if (paymentStatus !== 'success' || !sessionId || !user) return;
+    supabase.functions.invoke('verify-payment', {
+      body: { sessionId },
+    }).then(({ data, error }) => {
+      if (error) console.error('Verify payment error:', error);
+      else if (data?.fulfilled && !data?.already) {
+        toast.success(`¡${data.credits} crédito(s) añadido(s)!`);
+      }
+    });
+  }, [paymentStatus, sessionId, user]);
 
   useEffect(() => {
     if (!user) return;
