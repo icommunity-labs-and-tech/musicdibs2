@@ -129,6 +129,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       if (data?.switched) {
         toast.success(data.message || 'Plan cambiado correctamente');
         setCurrentPlanId(planId);
+        setLoading(null);
         return;
       }
 
