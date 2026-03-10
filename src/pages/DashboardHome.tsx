@@ -5,7 +5,6 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
-import { ActivityChart } from '@/components/dashboard/ActivityChart';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
@@ -31,39 +30,22 @@ export default function DashboardHome() {
   }, [user]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 max-w-[1400px]">
-      {/* Account Summary - Mobile order 1, Desktop Col 1 Row 1 */}
-      <div className="lg:col-span-3 lg:row-start-1 order-1 lg:order-none">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[1400px]">
+      {/* Col 1: Account Summary + Verify Registration */}
+      <div className="space-y-4">
         <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
-      </div>
-
-      {/* Register Work - Mobile order 2 (Primary Action), Desktop Col 2 Row 1 */}
-      <div className="lg:col-span-4 lg:col-start-4 lg:row-start-1 order-2 lg:order-none">
-        <RegisterWork summary={summary} />
-      </div>
-
-      {/* Verify Registration - Mobile order 3, Desktop Col 1 Row 2 */}
-      <div className="lg:col-span-3 lg:row-start-2 order-3 lg:order-none">
         <VerifyRegistration />
       </div>
 
-      {/* Promote Works - Mobile order 4, Desktop Col 2 Row 2 */}
-      <div className="lg:col-span-4 lg:col-start-4 lg:row-start-2 order-4 lg:order-none">
+      {/* Col 2: Register Work + Promote Works */}
+      <div className="space-y-4">
+        <RegisterWork summary={summary} />
         <PromoteWorks />
       </div>
 
-      {/* Credit Store - Mobile order 5, Desktop Col 3 Row 1 */}
-      <div className="lg:col-span-5 lg:col-start-8 lg:row-start-1 order-5 lg:order-none">
+      {/* Col 3: Credit Store + Recent Registrations */}
+      <div className="space-y-4">
         <CreditStore compact />
-      </div>
-
-      {/* Activity Chart - Mobile order 6, Desktop Col 3 Row 2 */}
-      <div className="lg:col-span-5 lg:col-start-8 lg:row-start-2 order-6 lg:order-none">
-        <ActivityChart />
-      </div>
-
-      {/* Recent Registrations - Mobile order 7, Desktop full width Row 3 */}
-      <div className="lg:col-span-12 lg:row-start-3 order-7 lg:order-none">
         <RecentRegistrations />
       </div>
     </div>
