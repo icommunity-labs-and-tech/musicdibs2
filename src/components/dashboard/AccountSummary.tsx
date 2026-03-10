@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -7,23 +7,50 @@ import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
 
-  const load = async () => {
-    setLoading(true); setError('');
+  const load = useCallback(async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
+    setError('');
     try {
       const summary = await fetchDashboardSummary();
       setData(summary);
       onSummaryLoaded?.(summary);
     } catch { setError('Error al cargar el resumen'); }
-    setLoading(false);
-  };
+    if (showSpinner) setLoading(false);
+  }, [onSummaryLoaded]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
+
+  // Realtime: refresh when profiles or works change
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('account-summary-realtime')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `user_id=eq.${user.id}`,
+      }, () => load(false))
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'works',
+        filter: `user_id=eq.${user.id}`,
+      }, () => load(false))
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user, load]);
 
   if (loading) return (
     <Card className="border-border/40">
@@ -54,7 +81,7 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
         <CardTitle className="text-base font-semibold tracking-tight">Resumen de la cuenta</CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">{data.subscriptionPlan}</Badge>
-          <button onClick={load} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={() => load()} className="text-muted-foreground hover:text-foreground transition-colors">
             <RefreshCw className="h-4 w-4" />
           </button>
         </div>
