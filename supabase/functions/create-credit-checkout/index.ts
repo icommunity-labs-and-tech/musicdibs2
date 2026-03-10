@@ -189,7 +189,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: lineItems,
       mode: plan.mode,
-      success_url: `${req.headers.get("origin")}/dashboard/credits?payment=success&plan=${planId}`,
+      success_url: `${req.headers.get("origin")}/dashboard/credits?payment=success&plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/dashboard/credits?payment=canceled`,
       metadata: {
         user_id: user.id,
