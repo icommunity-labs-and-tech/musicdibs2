@@ -83,6 +83,13 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Spend 1 credit via secure edge function BEFORE uploading
+  const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+    body: { amount: 1, feature: 'register_work', description: `Registro: ${data.title}` },
+  });
+  if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+  if (spendResult?.error) throw new Error(spendResult.error);
+
   // Upload file to storage
   const filePath = `${user.id}/${Date.now()}_${data.file.name}`;
   const { error: uploadError } = await supabase.storage
@@ -103,17 +110,6 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
   }).select().single();
 
   if (error) throw error;
-
-  // Deduct 1 credit
-  await supabase.from('credit_transactions').insert({
-    user_id: user.id,
-    amount: -1,
-    type: 'usage',
-    description: `Registro: ${data.title}`,
-  });
-
-  // Decrement available credits via server-side RPC (profile credits column is now protected by RLS)
-  await supabase.rpc('decrement_credits' as any, { _user_id: user.id, _amount: 1 });
 
   return { registrationId: work.id, status: 'processing' };
 }
