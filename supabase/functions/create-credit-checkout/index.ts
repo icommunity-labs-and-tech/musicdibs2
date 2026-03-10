@@ -28,7 +28,7 @@ const PLANS: Record<string, { priceId: string; credits: number; mode: "subscript
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  "price_1T9SZnF9ZCIiqrz6klv3l0ox": "annual",
+  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "annual",
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "monthly",
 };
 
