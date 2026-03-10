@@ -8,10 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon } from 'lucide-react';
-import { registerWork } from '@/services/dashboardApi';
-import type { DashboardSummary } from '@/types/dashboard';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
+import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures, pollEvidenceStatus } from '@/services/dashboardApi';
+import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
@@ -35,6 +34,7 @@ interface RegistrationResult {
   certificateUrl?: string;
   blockchainHash?: string;
   ibsError?: string;
+  evidenceId?: string;
 }
 
 export function RegisterWork({ summary }: { summary: DashboardSummary | null }) {
@@ -42,7 +42,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const prefill = (location.state as { prefill?: PrefillData })?.prefill;
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'failed' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'success' | 'failed' | 'error' | 'processing'>('idle');
   const [ownership, setOwnership] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [workType, setWorkType] = useState('');
@@ -51,8 +51,16 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
   const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
-  const [simulateFailure, setSimulateFailure] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // iBS Signatures
+  const [signatures, setSignatures] = useState<IbsSignature[]>([]);
+  const [selectedSignature, setSelectedSignature] = useState('');
+  const [loadingSigs, setLoadingSigs] = useState(false);
+  const [creatingSignature, setCreatingSignature] = useState(false);
+  const [newSigName, setNewSigName] = useState('');
+  const [kycUrl, setKycUrl] = useState<string | null>(null);
+  const [polling, setPolling] = useState(false);
 
   const kycBlocked = summary && summary.kycStatus !== 'verified';
 
@@ -64,6 +72,42 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
       if (prefill.audioUrl) setAiAudioUrl(prefill.audioUrl);
     }
   }, [prefill]);
+
+  // Load signatures on mount
+  useEffect(() => {
+    loadSignatures();
+  }, []);
+
+  const loadSignatures = async () => {
+    setLoadingSigs(true);
+    try {
+      await syncIbsSignatures();
+      const sigs = await listIbsSignatures();
+      setSignatures(sigs);
+      // Auto-select first active signature
+      const active = sigs.find((s: IbsSignature) => s.status === 'success');
+      if (active) setSelectedSignature(active.ibs_signature_id);
+    } catch (err) {
+      console.error('Error loading signatures:', err);
+    }
+    setLoadingSigs(false);
+  };
+
+  const handleCreateSignature = async () => {
+    if (!newSigName.trim()) return;
+    setCreatingSignature(true);
+    try {
+      const result = await createIbsSignature(newSigName.trim());
+      if (result.kycUrl) {
+        setKycUrl(result.kycUrl);
+      }
+      setNewSigName('');
+      await loadSignatures();
+    } catch (err: any) {
+      console.error('Error creating signature:', err);
+    }
+    setCreatingSignature(false);
+  };
 
   const convertAudioUrlToFile = async (audioUrl: string): Promise<File | null> => {
     try {
@@ -91,7 +135,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
       }
     }
 
-    if (!uploadFile) return;
+    if (!uploadFile || !selectedSignature) return;
 
     setLoading(true); 
     setStatus('idle');
@@ -104,11 +148,15 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         description,
         file: uploadFile,
         ownershipDeclaration: ownership,
-        simulateIbs: simulateFailure ? 'failure' : 'success',
+        signatureId: selectedSignature,
       });
       setResult(res);
       if (res.ibsError || res.status === 'failed') {
         setStatus('failed');
+      } else if (res.status === 'processing' && res.evidenceId) {
+        setStatus('processing');
+        // Start polling for certification
+        startPolling(res.evidenceId);
       } else {
         setStatus('success');
       }
@@ -117,6 +165,36 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
       setStatus('error'); 
     }
     setLoading(false);
+  };
+
+  const startPolling = (evidenceId: string) => {
+    setPolling(true);
+    let attempts = 0;
+    const maxAttempts = 30; // ~5 min at 10s intervals
+
+    const interval = setInterval(async () => {
+      attempts++;
+      try {
+        const pollResult = await pollEvidenceStatus(evidenceId);
+        if (pollResult.status === 'certified' || pollResult.certification?.hash) {
+          clearInterval(interval);
+          setPolling(false);
+          setResult(prev => prev ? {
+            ...prev,
+            status: 'registered',
+            blockchainHash: pollResult.certification?.hash,
+            certificateUrl: pollResult.certification?.links?.checker,
+          } : prev);
+          setStatus('success');
+        }
+      } catch (err) {
+        console.warn('Polling error:', err);
+      }
+      if (attempts >= maxAttempts) {
+        clearInterval(interval);
+        setPolling(false);
+      }
+    }, 10000);
   };
 
   const resetForm = () => {
@@ -129,10 +207,11 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     setAiAudioUrl(null);
     setWorkType('');
     setResult(null);
-    setSimulateFailure(false);
+    setPolling(false);
   };
 
   const hasFileOrAudio = file || aiAudioUrl;
+  const activeSignatures = signatures.filter((s: IbsSignature) => s.status === 'success');
 
   return (
     <Card className="border-border/40 shadow-sm">
@@ -159,7 +238,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         ) : status === 'success' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="font-medium text-sm">¡Obra registrada con éxito!</p>
+            <p className="font-medium text-sm">¡Obra registrada y certificada en blockchain!</p>
             <p className="text-xs text-muted-foreground">ID: {result?.registrationId}</p>
             {result?.blockchainHash && (
               <div className="w-full space-y-1">
@@ -176,7 +255,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-primary hover:underline"
               >
-                <LinkIcon className="h-3 w-3" /> Ver certificado
+                <LinkIcon className="h-3 w-3" /> Verificar en blockchain
               </a>
             )}
             <div className="flex flex-col gap-2 w-full">
@@ -193,10 +272,26 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               </Button>
             </div>
           </div>
+        ) : status === 'processing' ? (
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <Loader2 className="h-10 w-10 text-primary animate-spin" />
+            <p className="font-medium text-sm">Certificando en blockchain...</p>
+            <p className="text-xs text-muted-foreground">
+              Tu obra está siendo certificada. Esto puede tardar unos minutos.
+            </p>
+            {result?.evidenceId && (
+              <p className="text-xs text-muted-foreground">Evidence ID: {result.evidenceId}</p>
+            )}
+            {polling && (
+              <Badge variant="outline" className="text-primary border-primary/30">
+                <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Verificando estado...
+              </Badge>
+            )}
+          </div>
         ) : status === 'failed' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <XCircle className="h-10 w-10 text-destructive" />
-            <p className="font-medium text-sm">Error en el registro IBS</p>
+            <p className="font-medium text-sm">Error en el registro blockchain</p>
             <p className="text-xs text-muted-foreground">{result?.ibsError}</p>
             {result?.registrationId && (
               <p className="text-xs text-muted-foreground">ID: {result.registrationId}</p>
@@ -219,6 +314,92 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                 <span className="text-xs text-primary font-medium">Audio generado con AI MusicDibs Studio</span>
               </div>
             )}
+
+            {/* Signature Selection */}
+            <div className="space-y-1.5">
+              <Label className="text-xs flex items-center gap-1">
+                <Key className="h-3 w-3" /> Identidad digital (firma)
+              </Label>
+              {loadingSigs ? (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground p-2">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Cargando firmas...
+                </div>
+              ) : activeSignatures.length > 0 ? (
+                <Select value={selectedSignature} onValueChange={setSelectedSignature}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Seleccionar firma" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {activeSignatures.map((sig: IbsSignature) => (
+                      <SelectItem key={sig.ibs_signature_id} value={sig.ibs_signature_id}>
+                        {sig.signature_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-2 p-2 rounded-md border border-dashed border-amber-400/50 bg-amber-50/50 dark:bg-amber-900/10">
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    Necesitas crear una identidad digital para firmar tus obras.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Nombre de la firma"
+                      value={newSigName}
+                      onChange={(e) => setNewSigName(e.target.value)}
+                      className="h-8 text-xs flex-1"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="h-8 text-xs"
+                      disabled={creatingSignature || !newSigName.trim()}
+                      onClick={handleCreateSignature}
+                    >
+                      {creatingSignature ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Crear'}
+                    </Button>
+                  </div>
+                  {kycUrl && (
+                    <a
+                      href={kycUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <LinkIcon className="h-3 w-3" /> Completar verificación KYC
+                    </a>
+                  )}
+                  {signatures.filter((s: IbsSignature) => s.status === 'pending').length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Firmas pendientes de verificación:</p>
+                      {signatures
+                        .filter((s: IbsSignature) => s.status === 'pending')
+                        .map((s: IbsSignature) => (
+                          <div key={s.id} className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-amber-600 text-xs">
+                              {s.signature_name} — Pendiente
+                            </Badge>
+                            {s.kyc_url && (
+                              <a href={s.kyc_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                                Verificar
+                              </a>
+                            )}
+                          </div>
+                        ))}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={loadSignatures}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" /> Actualizar estado
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="space-y-1.5">
               <Label className="text-xs">Título de la obra</Label>
@@ -297,25 +478,18 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               </Label>
             </div>
 
-            {/* IBS Simulation Toggle (dev only) */}
-            <div className="flex items-center gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
-              <Switch
-                id="simulate-failure"
-                checked={simulateFailure}
-                onCheckedChange={setSimulateFailure}
-              />
-              <Label htmlFor="simulate-failure" className="text-xs text-amber-700 cursor-pointer">
-                🧪 Simular fallo IBS (dev)
-              </Label>
-            </div>
-
             {status === 'error' && (
               <div className="flex items-center gap-2 text-xs text-destructive">
                 <AlertCircle className="h-3.5 w-3.5" /> {result?.ibsError || 'Error al registrar la obra'}
               </div>
             )}
-            <Button type="submit" className="w-full" size="sm" disabled={loading || !ownership || !hasFileOrAudio || !workType}>
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en IBS...</> : 'Registrar obra'}
+            <Button
+              type="submit"
+              className="w-full"
+              size="sm"
+              disabled={loading || !ownership || !hasFileOrAudio || !workType || !selectedSignature}
+            >
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en blockchain...</> : 'Registrar obra'}
             </Button>
           </form>
         )}
