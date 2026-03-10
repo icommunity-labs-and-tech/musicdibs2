@@ -8,6 +8,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
+const PLAN_LABELS: Record<string, string> = {
+  Free: 'Free',
+  Monthly: 'Mensual',
+  Annual: 'Anual',
+};
+
 export default function BillingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -24,6 +30,23 @@ export default function BillingPage() {
       .then(({ data }) => {
         setPlan(data?.subscription_plan ?? 'Free');
       });
+  }, [user]);
+
+  // Listen for realtime changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('billing-plan')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload: any) => {
+        setPlan(payload.new?.subscription_plan ?? 'Free');
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const handleManageSubscription = async () => {
@@ -44,6 +67,8 @@ export default function BillingPage() {
     }
   };
 
+  const planLabel = plan ? (PLAN_LABELS[plan] || plan) : '...';
+
   return (
     <div className="max-w-2xl space-y-6">
       <h2 className="text-xl font-bold">Facturación</h2>
@@ -57,7 +82,7 @@ export default function BillingPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-semibold">{plan ?? '...'}</p>
+              <p className="font-semibold">{planLabel}</p>
               <p className="text-sm text-muted-foreground">
                 {plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
               </p>
@@ -72,7 +97,7 @@ export default function BillingPage() {
             </Badge>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/pricing')}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
               {plan === 'Free' ? 'Ver planes' : 'Cambiar plan'} <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
             {plan && plan !== 'Free' && (

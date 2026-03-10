@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle } from 'lucide-react';
+import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const PLANS = [
   {
@@ -18,6 +20,7 @@ const PLANS = [
     icon: Calendar,
     description: '120 créd/año',
     perCredit: '0,50 €/créd',
+    rank: 2, // higher = better plan
   },
   {
     id: 'monthly',
@@ -28,6 +31,7 @@ const PLANS = [
     icon: Clock,
     description: '3 créd/mes',
     perCredit: '2,30 €/créd',
+    rank: 1,
   },
   {
     id: 'individual',
@@ -38,14 +42,78 @@ const PLANS = [
     icon: FileText,
     description: '1 crédito',
     perCredit: '11,90 €/créd',
+    rank: 0,
   },
 ];
+
+const PROFILE_PLAN_TO_ID: Record<string, string> = {
+  Annual: 'annual',
+  Monthly: 'monthly',
+  Free: '',
+};
+
+function getButtonConfig(planId: string, currentPlanId: string | null) {
+  if (planId === 'individual') {
+    return { label: 'Comprar', variant: 'outline' as const, icon: null, disabled: false };
+  }
+
+  if (!currentPlanId || currentPlanId === '') {
+    // No subscription — show subscribe
+    return { label: 'Suscribirse', variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
+  }
+
+  if (currentPlanId === planId) {
+    return { label: 'Tu plan', variant: 'secondary' as const, icon: null, disabled: true };
+  }
+
+  const currentRank = PLANS.find(p => p.id === currentPlanId)?.rank ?? 0;
+  const targetRank = PLANS.find(p => p.id === planId)?.rank ?? 0;
+
+  if (targetRank > currentRank) {
+    return { label: 'Upgrade', variant: 'default' as const, icon: ArrowUp, disabled: false };
+  } else {
+    return { label: 'Downgrade', variant: 'outline' as const, icon: ArrowDown, disabled: false };
+  }
+}
 
 export function CreditStore({ compact }: { compact?: boolean }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const { user } = useAuth();
   const paymentStatus = searchParams.get('payment');
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('subscription_plan')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => {
+        const plan = data?.subscription_plan ?? 'Free';
+        setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
+      });
+  }, [user]);
+
+  // Listen for realtime profile changes to update current plan
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('credit-store-plan')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload: any) => {
+        const plan = payload.new?.subscription_plan ?? 'Free';
+        setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const handleBuy = async (planId: string) => {
     setLoading(planId);
@@ -56,6 +124,14 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       });
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
+
+      // If plan was switched server-side (upgrade/downgrade)
+      if (data?.switched) {
+        toast.success(data.message || 'Plan cambiado correctamente');
+        setCurrentPlanId(planId);
+        return;
+      }
+
       if (data?.url) {
         window.open(data.url, '_blank');
       }
@@ -89,16 +165,29 @@ export function CreditStore({ compact }: { compact?: boolean }) {
           <div className="space-y-2">
             {PLANS.map((plan) => {
               const Icon = plan.icon;
+              const btn = getButtonConfig(plan.id, currentPlanId);
+              const BtnIcon = btn.icon;
               return (
                 <div
                   key={plan.id}
-                  className={`flex items-center gap-3 rounded-lg border p-3 ${plan.popular ? 'border-primary bg-primary/5' : 'border-border/40'}`}
+                  className={`flex items-center gap-3 rounded-lg border p-3 ${
+                    currentPlanId === plan.id
+                      ? 'border-primary bg-primary/10'
+                      : plan.popular
+                        ? 'border-primary/40 bg-primary/5'
+                        : 'border-border/40'
+                  }`}
                 >
                   <Icon className="h-4 w-4 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{plan.name}</span>
-                      {plan.popular && (
+                      {currentPlanId === plan.id && (
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary">
+                          Activo
+                        </Badge>
+                      )}
+                      {plan.popular && currentPlanId !== plan.id && (
                         <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5">
                           <Sparkles className="h-2.5 w-2.5" /> Top
                         </Badge>
@@ -109,15 +198,20 @@ export function CreditStore({ compact }: { compact?: boolean }) {
                   <div className="text-right shrink-0">
                     <div className="text-sm font-bold">{plan.price}<span className="text-xs font-normal text-muted-foreground">{plan.period}</span></div>
                     <Button
-                      variant={plan.popular ? 'default' : 'outline'}
+                      variant={btn.variant}
                       size="sm"
                       className="h-7 text-xs mt-1"
                       onClick={() => handleBuy(plan.id)}
-                      disabled={loading !== null}
+                      disabled={loading !== null || btn.disabled}
                     >
                       {loading === plan.id ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : plan.id === 'individual' ? 'Comprar' : 'Suscribirse'}
+                      ) : (
+                        <>
+                          {BtnIcon && <BtnIcon className="h-3 w-3 mr-1" />}
+                          {btn.label}
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -157,12 +251,26 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       <div className="grid gap-4 sm:grid-cols-3">
         {PLANS.map((plan) => {
           const Icon = plan.icon;
+          const btn = getButtonConfig(plan.id, currentPlanId);
+          const BtnIcon = btn.icon;
+          const isActive = currentPlanId === plan.id;
           return (
             <Card
               key={plan.id}
-              className={`border-border/40 shadow-sm relative ${plan.popular ? 'ring-2 ring-primary' : ''}`}
+              className={`border-border/40 shadow-sm relative ${
+                isActive
+                  ? 'ring-2 ring-primary bg-primary/5'
+                  : plan.popular
+                    ? 'ring-1 ring-primary/40'
+                    : ''
+              }`}
             >
-              {plan.popular && (
+              {isActive && (
+                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
+                  <CheckCircle2 className="h-3 w-3" /> Tu plan
+                </Badge>
+              )}
+              {plan.popular && !isActive && (
                 <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1">
                   <Sparkles className="h-3 w-3" /> Mejor valor
                 </Badge>
@@ -186,17 +294,18 @@ export function CreditStore({ compact }: { compact?: boolean }) {
                 <p className="text-xs text-muted-foreground leading-relaxed">{plan.description}</p>
                 <Button
                   className="w-full"
-                  variant={plan.popular ? 'default' : 'outline'}
+                  variant={btn.variant}
                   size="sm"
                   onClick={() => handleBuy(plan.id)}
-                  disabled={loading !== null}
+                  disabled={loading !== null || btn.disabled}
                 >
                   {loading === plan.id ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : plan.id === 'individual' ? (
-                    'Comprar'
                   ) : (
-                    'Suscribirse'
+                    <>
+                      {BtnIcon && <BtnIcon className="h-3.5 w-3.5 mr-1" />}
+                      {btn.label}
+                    </>
                   )}
                 </Button>
               </CardContent>
