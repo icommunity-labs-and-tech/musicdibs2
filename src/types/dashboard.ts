@@ -33,7 +33,18 @@ export interface WorkRegistration {
   description: string;
   file: File;
   ownershipDeclaration: boolean;
-  simulateIbs?: 'success' | 'failure';
+  signatureId: string;
+}
+
+export interface IbsSignature {
+  id: string;
+  user_id: string;
+  ibs_signature_id: string;
+  signature_name: string;
+  status: string;
+  kyc_url?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface VerificationResult {

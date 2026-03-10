@@ -74,12 +74,16 @@ export async function submitPromotionRequest(data: PromotionRequest): Promise<{ 
   return { success: true };
 }
 
-// ── Billing Plans ──────────────────────────────────────────
-// Checkout is now handled directly via Stripe in CreditStore component
-
 // ── Register Work ──────────────────────────────────────────
 
-export async function registerWork(data: WorkRegistration): Promise<{ registrationId: string; status: string; certificateUrl?: string; blockchainHash?: string; ibsError?: string }> {
+export async function registerWork(data: WorkRegistration): Promise<{
+  registrationId: string;
+  status: string;
+  certificateUrl?: string;
+  blockchainHash?: string;
+  ibsError?: string;
+  evidenceId?: string;
+}> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -111,9 +115,9 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
 
   if (error) throw error;
 
-  // Call IBS registration (simulated for now)
+  // Call real iBS registration
   const { data: ibsResult, error: ibsError } = await supabase.functions.invoke('register-work-ibs', {
-    body: { workId: work.id, simulate: data.simulateIbs || 'success' },
+    body: { workId: work.id, signatureId: data.signatureId },
   });
 
   if (ibsError) {
@@ -127,7 +131,41 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
     certificateUrl: ibsResult?.certificateUrl,
     blockchainHash: ibsResult?.blockchainHash,
     ibsError: ibsResult?.success === false ? ibsResult.error : undefined,
+    evidenceId: ibsResult?.evidenceId,
   };
+}
+
+// ── iBS Signatures ─────────────────────────────────────────
+
+export async function createIbsSignature(signatureName: string): Promise<{ signatureId: string; kycUrl?: string }> {
+  const { data, error } = await supabase.functions.invoke('ibs-signatures', {
+    body: { action: 'create', signatureName },
+  });
+  if (error) throw new Error(error.message || 'Error creating signature');
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function listIbsSignatures(): Promise<any[]> {
+  const { data, error } = await supabase.functions.invoke('ibs-signatures', {
+    body: { action: 'list' },
+  });
+  if (error) throw new Error(error.message || 'Error listing signatures');
+  return data?.signatures || [];
+}
+
+export async function syncIbsSignatures(): Promise<void> {
+  await supabase.functions.invoke('ibs-signatures', {
+    body: { action: 'sync' },
+  });
+}
+
+export async function pollEvidenceStatus(evidenceId: string): Promise<any> {
+  const { data, error } = await supabase.functions.invoke('ibs-signatures', {
+    body: { action: 'poll_evidence', evidenceId },
+  });
+  if (error) throw new Error(error.message || 'Error polling evidence');
+  return data;
 }
 
 // ── Verify File ────────────────────────────────────────────
@@ -136,7 +174,6 @@ export async function verifyFile(file: File): Promise<VerificationResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  // Search by filename in user's works
   const searchName = file.name.replace(/\.[^.]+$/, '');
   const { data: works } = await supabase
     .from('works')
