@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.spend-credits]
 verify_jwt = false
+
+[functions.register-work-ibs]
+verify_jwt = false

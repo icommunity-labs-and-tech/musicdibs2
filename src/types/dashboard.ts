@@ -33,6 +33,7 @@ export interface WorkRegistration {
   description: string;
   file: File;
   ownershipDeclaration: boolean;
+  simulateIbs?: 'success' | 'failure';
 }
 
 export interface VerificationResult {
