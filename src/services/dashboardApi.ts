@@ -79,7 +79,7 @@ export async function submitPromotionRequest(data: PromotionRequest): Promise<{ 
 
 // ── Register Work ──────────────────────────────────────────
 
-export async function registerWork(data: WorkRegistration): Promise<{ registrationId: string; status: string }> {
+export async function registerWork(data: WorkRegistration): Promise<{ registrationId: string; status: string; certificateUrl?: string; blockchainHash?: string; ibsError?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -111,7 +111,23 @@ export async function registerWork(data: WorkRegistration): Promise<{ registrati
 
   if (error) throw error;
 
-  return { registrationId: work.id, status: 'processing' };
+  // Call IBS registration (simulated for now)
+  const { data: ibsResult, error: ibsError } = await supabase.functions.invoke('register-work-ibs', {
+    body: { workId: work.id, simulate: data.simulateIbs || 'success' },
+  });
+
+  if (ibsError) {
+    console.error('[registerWork] IBS call error:', ibsError);
+    return { registrationId: work.id, status: 'processing', ibsError: ibsError.message };
+  }
+
+  return {
+    registrationId: work.id,
+    status: ibsResult?.status || 'processing',
+    certificateUrl: ibsResult?.certificateUrl,
+    blockchainHash: ibsResult?.blockchainHash,
+    ibsError: ibsResult?.success === false ? ibsResult.error : undefined,
+  };
 }
 
 // ── Verify File ────────────────────────────────────────────
