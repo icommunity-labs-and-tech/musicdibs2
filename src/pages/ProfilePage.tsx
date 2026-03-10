@@ -164,8 +164,17 @@ export default function ProfilePage() {
             <Label className="text-xs flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5" /> Email
             </Label>
-            <Input value={user?.email || ''} disabled className="h-9 text-sm bg-muted/50" />
-            <p className="text-[10px] text-muted-foreground">El email no se puede cambiar desde aquí.</p>
+            <Input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              disabled={!editing}
+              className={`h-9 text-sm ${!editing ? 'bg-muted/50' : ''}`}
+              type="email"
+              placeholder="tu@email.com"
+            />
+            {editing && email.trim().toLowerCase() !== (user?.email || '').toLowerCase() && (
+              <p className="text-[10px] text-amber-600">Se enviará un email de confirmación a la nueva dirección.</p>
+            )}
           </div>
 
           <div className="space-y-2">
