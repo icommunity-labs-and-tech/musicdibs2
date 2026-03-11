@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.ibs-signatures]
 verify_jwt = false
+
+[functions.ibs-webhook-signature-ok]
+verify_jwt = false
+
+[functions.ibs-webhook-signature-ko]
+verify_jwt = false
