@@ -75,7 +75,7 @@ export default function BlockchainEvidencePage() {
     try {
       const { data, error } = await supabase
         .from('works')
-        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id')
+        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
