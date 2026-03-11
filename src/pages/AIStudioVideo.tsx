@@ -67,6 +67,7 @@ const AIStudioVideo = () => {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { mergeAudioVideo, progress: mergeProgress, loaded: ffmpegLoaded, resetProgress, loadFFmpeg } = useFFmpegMerge();
+  const { hasEnough } = useCredits();
 
   // Generation mode
   const [mode, setMode] = useState<'text_to_video' | 'image_to_video'>('text_to_video');
