@@ -13,6 +13,7 @@ import {
   LogOut,
   Sparkles,
   Shield,
+  RotateCcw,
 } from 'lucide-react';
 import {
   Sidebar,
