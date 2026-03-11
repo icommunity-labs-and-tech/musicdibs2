@@ -53,6 +53,9 @@ export function PromoteWorks() {
         <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
           <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
         </p>
+        {noCredits ? (
+          <NoCreditsAlert message="No tienes créditos suficientes para solicitar una promoción." />
+        ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="w-full" variant="hero" size="sm">Solicitar post</Button>
