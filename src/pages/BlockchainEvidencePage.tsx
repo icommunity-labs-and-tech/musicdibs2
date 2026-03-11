@@ -125,10 +125,10 @@ export default function BlockchainEvidencePage() {
         <div>
           <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Evidencias Blockchain
+            Historial de registros
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Estado de tus obras certificadas en blockchain
+            Estado de tus obras registradas
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={loadWorks} disabled={loading}>
