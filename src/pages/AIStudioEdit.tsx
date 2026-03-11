@@ -142,9 +142,9 @@ const AIStudioEdit = () => {
 
     setIsProcessing(true);
     try {
-      // Spend 1 credit before processing
+      // Spend credits before processing
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { amount: 1, feature: 'edit_audio', description: `Edición AI: ${variationType}` },
+        body: { feature: 'edit_audio', description: `Edición AI: ${variationType}` },
       });
       if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
       if (spendResult?.error) throw new Error(spendResult.error);

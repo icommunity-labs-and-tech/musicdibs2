@@ -475,8 +475,8 @@ const AIStudioCreate = () => {
                   <p className="text-xs text-muted-foreground">Bajo = más creativo, Alto = más fiel al prompt</p>
                 </div>
 
-                {!hasEnough(1) ? (
-                  <NoCreditsAlert message="No tienes créditos suficientes para generar música." />
+                {!hasEnough(FEATURE_COSTS.generate_audio) ? (
+                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_audio} créditos para generar música.`} />
                 ) : (
                 <Button 
                   onClick={handleGenerate} 
