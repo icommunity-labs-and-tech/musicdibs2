@@ -27,6 +27,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
+import { useCredits } from "@/hooks/useCredits";
+import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
