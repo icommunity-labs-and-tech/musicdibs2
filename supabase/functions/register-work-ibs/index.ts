@@ -252,6 +252,14 @@ serve(async (req) => {
       })
       .eq("id", workId);
 
+    // Enqueue for resilience — cron will retry if webhook never arrives
+    await supabaseAdmin.from("ibs_sync_queue").insert({
+      work_id: workId,
+      user_id: userId,
+      ibs_evidence_id: evidenceId,
+      status: "waiting",
+    });
+
     console.log(`[IBS] Evidence created for work ${workId}: ${evidenceId}`);
 
     return new Response(

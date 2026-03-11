@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.admin-action]
 verify_jwt = false
+
+[functions.ibs-sync-cron]
+verify_jwt = false

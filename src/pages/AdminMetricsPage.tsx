@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw, Radio, MousePointerClick } from 'lucide-react';
+import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw, Radio, MousePointerClick, Link } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -16,19 +16,22 @@ export default function AdminMetricsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [distMetrics, setDistMetrics] = useState({ distributed: 0, clicks: 0 });
+  const [syncQueueCount, setSyncQueueCount] = useState(0);
 
   const loadMetrics = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [data, distCount, clicksData] = await Promise.all([
+      const [data, distCount, clicksData, syncQueue] = await Promise.all([
         adminApi.getMetrics(),
         supabase.from('works').select('*', { count: 'exact', head: true }).not('distributed_at', 'is', null),
         supabase.from('works').select('distribution_clicks').not('distributed_at', 'is', null),
+        supabase.from('ibs_sync_queue').select('*', { count: 'exact', head: true }).in('status', ['waiting', 'retrying']),
       ]);
       setMetrics(data);
       const totalClicks = (clicksData.data || []).reduce((s: number, w: any) => s + (w.distribution_clicks || 0), 0);
       setDistMetrics({ distributed: distCount.count || 0, clicks: totalClicks });
+      setSyncQueueCount(syncQueue.count || 0);
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -94,14 +97,16 @@ export default function AdminMetricsPage() {
           { label: 'Conversión', value: `${conversionRate}%`, icon: TrendingUp },
           { label: 'Obras distribuidas', value: distMetrics.distributed, icon: Radio },
           { label: 'Clicks distribución', value: distMetrics.clicks, icon: MousePointerClick },
-        ].map(kpi => (
-          <Card key={kpi.label} className="border-border/40">
+          { label: 'Cola blockchain', value: syncQueueCount, icon: Link, highlight: syncQueueCount > 0 ? 'amber' : 'green' },
+        ].map((kpi: any) => (
+          <Card key={kpi.label} className={`border-border/40 ${kpi.highlight === 'amber' ? 'border-amber-500/50 bg-amber-500/5' : kpi.highlight === 'green' ? 'border-green-500/50 bg-green-500/5' : ''}`}>
             <CardContent className="pt-4 pb-3 px-4">
               <div className="flex items-center gap-2 mb-1">
-                <kpi.icon className="h-4 w-4 text-muted-foreground" />
+                <kpi.icon className={`h-4 w-4 ${kpi.highlight === 'amber' ? 'text-amber-400' : kpi.highlight === 'green' ? 'text-green-400' : 'text-muted-foreground'}`} />
                 <p className="text-xs text-muted-foreground">{kpi.label}</p>
               </div>
               <p className="text-2xl font-bold">{kpi.value}</p>
+              {kpi.highlight === 'green' && <p className="text-[10px] text-green-400">Sin pendientes</p>}
             </CardContent>
           </Card>
         ))}

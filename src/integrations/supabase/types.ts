@@ -254,6 +254,56 @@ export type Database = {
         }
         Relationships: []
       }
+      ibs_sync_queue: {
+        Row: {
+          created_at: string
+          error_detail: string | null
+          ibs_evidence_id: string
+          id: string
+          last_retry_at: string | null
+          max_retries: number
+          retry_count: number
+          status: string
+          updated_at: string
+          user_id: string
+          work_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_detail?: string | null
+          ibs_evidence_id: string
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number
+          retry_count?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+          work_id: string
+        }
+        Update: {
+          created_at?: string
+          error_detail?: string | null
+          ibs_evidence_id?: string
+          id?: string
+          last_retry_at?: string | null
+          max_retries?: number
+          retry_count?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+          work_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ibs_sync_queue_work_id_fkey"
+            columns: ["work_id"]
+            isOneToOne: false
+            referencedRelation: "works"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           available_credits: number
