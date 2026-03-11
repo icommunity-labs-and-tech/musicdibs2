@@ -52,7 +52,7 @@ export function PromoteWorks() {
           Por tener una suscripción activa, tienes derecho a promocionarte en nuestras redes sociales.
         </p>
         <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
+          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume {FEATURE_COSTS.promote_work} créditos.
         </p>
         {noCredits ? (
           <NoCreditsAlert message="No tienes créditos suficientes para solicitar una promoción." />
