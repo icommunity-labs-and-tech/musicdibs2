@@ -160,6 +160,9 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         startPolling(res.evidenceId);
       } else {
         setStatus('success');
+        // Notify onboarding
+        window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
+        toast.success('🎉 ¡Enhorabuena! Has registrado tu primera obra en MusicDibs.');
       }
     } catch (err: any) { 
       setResult({ registrationId: '', status: 'error', ibsError: err?.message });
