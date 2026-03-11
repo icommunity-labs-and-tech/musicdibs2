@@ -177,7 +177,7 @@ export default function AdminWorksPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs">Estado</p>
-                  {statusBadge(detailWork.status)}
+                  {statusBadge(detailWork.status, detailWork.created_at)}
                 </div>
                 <div>
                   <p className="text-muted-foreground text-xs">Fecha de creación</p>
