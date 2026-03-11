@@ -69,6 +69,10 @@ export default function AdminMetricsPage() {
         <BarChart3 className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold">Métricas</h1>
         <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
+        <Button variant="outline" size="sm" className="ml-auto" onClick={() => loadMetrics(true)} disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          Actualizar
+        </Button>
       </div>
 
       {/* KPI cards */}
