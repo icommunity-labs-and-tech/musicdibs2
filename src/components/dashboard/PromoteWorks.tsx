@@ -8,6 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Megaphone, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { submitPromotionRequest } from '@/services/dashboardApi';
+import { useCredits } from '@/hooks/useCredits';
+import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 
 export function PromoteWorks() {
   const [open, setOpen] = useState(false);
