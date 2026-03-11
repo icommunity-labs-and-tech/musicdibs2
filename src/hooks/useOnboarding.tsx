@@ -80,9 +80,17 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
   // Listen for reset event from sidebar
   useEffect(() => {
-    const handler = () => reset();
-    window.addEventListener('musicdibs:reset-onboarding', handler);
-    return () => window.removeEventListener('musicdibs:reset-onboarding', handler);
+    const handleReset = () => reset();
+    const handleWorkRegistered = () => {
+      completeStep('registerWork');
+      completeStep('getCertificate');
+    };
+    window.addEventListener('musicdibs:reset-onboarding', handleReset);
+    window.addEventListener('musicdibs:work-registered', handleWorkRegistered);
+    return () => {
+      window.removeEventListener('musicdibs:reset-onboarding', handleReset);
+      window.removeEventListener('musicdibs:work-registered', handleWorkRegistered);
+    };
   }, []);
 
   useEffect(() => {
