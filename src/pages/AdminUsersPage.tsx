@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
+import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function AdminUsersPage() {
@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
 
   // Credit modal
-  const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
+  const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
 
@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
     try {
       await adminApi.adjustCredits(creditModal.userId, amt, creditReason);
       toast.success('Créditos ajustados');
-      setCreditModal({ open: false, userId: '', email: '' });
+      setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 });
       setCreditAmount('');
       setCreditReason('');
       load();
@@ -92,12 +92,25 @@ export default function AdminUsersPage() {
         <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por email o nombre..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className="pl-9" />
         </div>
         <Button onClick={handleSearch} variant="secondary">Buscar</Button>
+        <Button variant="outline" size="sm" onClick={async () => {
+          try {
+            const res = await adminApi.exportCsv('users');
+            const blob = new Blob([res.csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `usuarios_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click(); URL.revokeObjectURL(url);
+            toast.success('CSV descargado');
+          } catch (e: any) { toast.error(e.message); }
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Exportar CSV
+        </Button>
       </div>
 
       <div className="rounded-lg border border-border/40 overflow-hidden">
@@ -143,7 +156,7 @@ export default function AdminUsersPage() {
                       <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => { setCreditModal({ open: true, userId: u.user_id, email: u.email }); }}>
+                      <DropdownMenuItem onClick={() => { setCreditModal({ open: true, userId: u.user_id, email: u.email, currentCredits: u.available_credits }); }}>
                         Ajustar créditos
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -180,12 +193,18 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Credit adjustment modal */}
-      <Dialog open={creditModal.open} onOpenChange={open => !open && setCreditModal({ open: false, userId: '', email: '' })}>
+      <Dialog open={creditModal.open} onOpenChange={open => !open && setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 })}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajustar créditos — {creditModal.email}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Saldo actual: <span className="font-mono font-medium text-primary">{creditModal.currentCredits}</span> créditos</p>
+            {creditAmount && !isNaN(parseInt(creditAmount)) && (creditModal.currentCredits + parseInt(creditAmount)) < 0 && (
+              <div className="p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                ⚠️ El resultado sería negativo. El saldo se ajustará a 0.
+              </div>
+            )}
             <div>
               <Label>Cantidad (+/-)</Label>
               <Input type="number" value={creditAmount} onChange={e => setCreditAmount(e.target.value)} placeholder="Ej: 10 o -5" />
@@ -196,8 +215,8 @@ export default function AdminUsersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreditModal({ open: false, userId: '', email: '' })}>Cancelar</Button>
-            <Button onClick={handleAdjustCredits}>Aplicar</Button>
+            <Button variant="outline" onClick={() => setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 })}>Cancelar</Button>
+            <Button onClick={handleAdjustCredits} disabled={!creditReason.trim() || !creditAmount || isNaN(parseInt(creditAmount))}>Aplicar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
