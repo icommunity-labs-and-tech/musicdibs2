@@ -740,6 +740,9 @@ const AIStudioVideo = () => {
               </CardContent>
             </Card>
 
+                {!hasEnough(1) ? (
+                  <NoCreditsAlert message="No tienes créditos suficientes para generar un videoclip." />
+                ) : (
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating || !prompt.trim() || (mode === 'image_to_video' && !uploadedImage)}
@@ -754,10 +757,11 @@ const AIStudioVideo = () => {
                   ) : (
                     <>
                       <Video className="w-4 h-4 mr-2" />
-                      Generar Videoclip
+                      Generar Videoclip (1 crédito)
                     </>
                   )}
                 </Button>
+                )}
 
                 {error && (
                   <Alert variant="destructive">
