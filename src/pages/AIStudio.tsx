@@ -81,7 +81,8 @@ const AIStudio = () => {
         {/* Modules Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => {
-            const disabled = module.costsCredits && noCredits;
+            const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
+            const disabled = module.costsCredits && !hasEnough(cost);
             return (
             <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
               {disabled && (
