@@ -1,17 +1,30 @@
 import { useEffect, useState } from 'react';
-import { Coins } from 'lucide-react';
+import { Coins, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
+
+interface RecentTransaction {
+  id: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  created_at: string;
+}
 
 export function CreditBadge() {
   const { user } = useAuth();
   const [credits, setCredits] = useState<number | null>(null);
+  const [recent, setRecent] = useState<RecentTransaction[]>([]);
 
   useEffect(() => {
     if (!user) return;
 
-    // Initial fetch
     const fetchCredits = async () => {
       const { data } = await supabase
         .from('profiles')
@@ -20,9 +33,20 @@ export function CreditBadge() {
         .single();
       if (data) setCredits(data.available_credits);
     };
-    fetchCredits();
 
-    // Realtime subscription
+    const fetchRecent = async () => {
+      const { data } = await supabase
+        .from('credit_transactions')
+        .select('id, amount, type, description, created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+      if (data) setRecent(data);
+    };
+
+    fetchCredits();
+    fetchRecent();
+
     const channel = supabase
       .channel('credits-realtime')
       .on(
@@ -35,9 +59,8 @@ export function CreditBadge() {
         },
         (payload) => {
           const newCredits = (payload.new as any).available_credits;
-          if (typeof newCredits === 'number') {
-            setCredits(newCredits);
-          }
+          if (typeof newCredits === 'number') setCredits(newCredits);
+          fetchRecent();
         }
       )
       .subscribe();
@@ -49,14 +72,59 @@ export function CreditBadge() {
 
   if (credits === null) return null;
 
+  const formatDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  };
+
   return (
-    <Link
-      to="/dashboard/credits"
-      className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
-      title="Créditos disponibles"
-    >
-      <Coins className="h-3.5 w-3.5" />
-      <span className="tabular-nums">{credits}</span>
-    </Link>
+    <HoverCard openDelay={200} closeDelay={100}>
+      <HoverCardTrigger asChild>
+        <button
+          className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+          title="Créditos disponibles"
+        >
+          <Coins className="h-3.5 w-3.5" />
+          <span className="tabular-nums">{credits}</span>
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent align="end" className="w-72 p-0">
+        <div className="p-3 border-b border-border">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">Saldo actual</span>
+            <span className="text-lg font-bold tabular-nums text-foreground">{credits}</span>
+          </div>
+        </div>
+
+        <div className="p-3 space-y-2">
+          <span className="text-xs font-medium text-muted-foreground">Últimos movimientos</span>
+          {recent.length === 0 ? (
+            <p className="text-xs text-muted-foreground/70">Sin movimientos recientes</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {recent.map((tx) => (
+                <li key={tx.id} className="flex items-center justify-between text-xs">
+                  <span className="truncate max-w-[160px] text-foreground/80">
+                    {tx.description || tx.type}
+                  </span>
+                  <span className={`tabular-nums font-medium ${tx.amount < 0 ? 'text-destructive' : 'text-green-600'}`}>
+                    {tx.amount > 0 ? '+' : ''}{tx.amount} · {formatDate(tx.created_at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="border-t border-border p-2">
+          <Link
+            to="/dashboard/credits"
+            className="flex items-center justify-center gap-1.5 w-full rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium py-1.5 transition-colors"
+          >
+            Comprar créditos <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
