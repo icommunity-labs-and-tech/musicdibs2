@@ -58,13 +58,13 @@ serve(async (req) => {
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-OK] Signature ${signatureId} created`);
 
-    } else if (event === "identity.verification.success") {
+    } else if (event === "identity.verification.success" || event === "signature.verification.success") {
       const signatureId = data.signature_id;
       await supabaseAdmin
         .from("ibs_signatures")
         .update({ status: "success", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
-      console.log(`[IBS-WEBHOOK-SIG-OK] Identity verification success for ${signatureId}`);
+      console.log(`[IBS-WEBHOOK-SIG-OK] Verification success (${event}) for ${signatureId}`);
 
     } else {
       console.log(`[IBS-WEBHOOK-SIG-OK] Ignoring event: ${event}`);
