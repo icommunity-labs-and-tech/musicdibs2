@@ -1,17 +1,41 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // JWT authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabaseUser = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const STABILITY_API_KEY = Deno.env.get('STABILITY_API_KEY');
     
     if (!STABILITY_API_KEY) {
@@ -31,7 +55,6 @@ serve(async (req) => {
       );
     }
 
-    // Clamp duration to Stable Audio limits (5-180 seconds)
     const clampedDuration = Math.max(5, Math.min(180, duration || 30));
 
     console.log(`[GENERATE-AUDIO] Generating: "${prompt.substring(0, 50)}..." | ${clampedDuration}s | cfg: ${cfgScale}`);
@@ -58,7 +81,6 @@ serve(async (req) => {
       const errorText = await response.text();
       console.error(`[GENERATE-AUDIO] Stability API error: ${response.status} - ${errorText}`);
       
-      // Handle credit exhaustion specifically
       if (response.status === 402 || errorText.toLowerCase().includes('credits')) {
         return new Response(
           JSON.stringify({ 
@@ -95,21 +117,6 @@ serve(async (req) => {
         duration: clampedDuration,
         seed: payload.seed ?? null,
         finish_reason: payload.finish_reason ?? null,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
-    // Get the audio as an ArrayBuffer and convert to base64
-    const audioBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
-
-    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes`);
-
-    return new Response(
-      JSON.stringify({ 
-        audio: base64Audio,
-        format: 'audio/mpeg',
-        duration: clampedDuration 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
