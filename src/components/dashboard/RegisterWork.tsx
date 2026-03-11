@@ -444,6 +444,27 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             >
               {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en blockchain...</> : 'Registrar obra'}
             </Button>
+
+            {showDistributeBanner && lastRegisteredWorkId && (
+              <Card className="mt-4 border-emerald-500/30 bg-emerald-500/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
+                    <Radio className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <p className="text-sm font-semibold">¡Obra registrada! ¿La distribuimos?</p>
+                    <p className="text-xs text-muted-foreground">
+                      Llega a Spotify, Apple Music, Amazon Music y más de 150 plataformas con MusicDibs Distribución.
+                    </p>
+                    <DistributeButton
+                      workId={lastRegisteredWorkId}
+                      distributedAt={null}
+                      variant="banner"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </form>
         )}
       </CardContent>

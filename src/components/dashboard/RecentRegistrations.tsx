@@ -76,6 +76,16 @@ export function RecentRegistrations() {
                           <ExternalLink className="h-3 w-3" /> Certificado
                         </a>
                       )}
+                      {reg.status === 'registered' && (
+                        <div className="mt-1">
+                          <DistributeButton
+                            workId={reg.id}
+                            distributedAt={(reg as any).distributedAt || null}
+                            currentClicks={(reg as any).distributionClicks || 0}
+                            onDistributed={load}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

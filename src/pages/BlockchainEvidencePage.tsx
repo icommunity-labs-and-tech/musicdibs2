@@ -300,6 +300,14 @@ export default function BlockchainEvidencePage() {
                               </Button>
                             </a>
                           )}
+                          {work.status === 'registered' && (
+                            <DistributeButton
+                              workId={work.id}
+                              distributedAt={work.distributed_at}
+                              currentClicks={work.distribution_clicks || 0}
+                              onDistributed={loadWorks}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>

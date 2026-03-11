@@ -84,7 +84,7 @@ export default function AdminMetricsPage() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {[
           { label: 'Usuarios totales', value: metrics.total_users, icon: Users },
           { label: 'Nuevos (7d)', value: metrics.new_users_7d, icon: TrendingUp },
