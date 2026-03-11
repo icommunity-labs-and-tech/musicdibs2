@@ -5,8 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useCredits } from "@/hooks/useCredits";
 
 const AIStudio = () => {
+  const { hasEnough } = useCredits();
+  const noCredits = !hasEnough(1);
   const modules = [
     {
       title: "Crear Música",
@@ -73,8 +76,15 @@ const AIStudio = () => {
 
         {/* Modules Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          {modules.map((module) => (
-            <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${!module.available ? 'opacity-75' : ''}`}>
+          {modules.map((module) => {
+            const disabled = module.costsCredits && noCredits;
+            return (
+            <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
+              {disabled && (
+                <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
+                  Sin créditos
+                </Badge>
+              )}
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
               <CardHeader>
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
@@ -94,15 +104,25 @@ const AIStudio = () => {
                 )}
               </CardHeader>
               <CardContent>
+                {disabled ? (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to="/dashboard/credits">
+                      <Coins className="w-4 h-4 mr-2" />
+                      Comprar créditos
+                    </Link>
+                  </Button>
+                ) : (
                 <Button asChild className="w-full" variant={module.available ? "default" : "secondary"}>
                   <Link to={module.href}>
                     <Zap className="w-4 h-4 mr-2" />
                     {module.available ? "Comenzar" : "Ver Preview"}
                   </Link>
                 </Button>
+                )}
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
 
         {/* Features */}
