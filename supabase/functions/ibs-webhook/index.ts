@@ -23,16 +23,20 @@ serve(async (req) => {
   try {
     // Validate webhook secret from query parameter
     const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
+    const url = new URL(req.url);
+    const secretParam = url.searchParams.get("secret");
     if (webhookSecret) {
-      const url = new URL(req.url);
-      const secretParam = url.searchParams.get("secret");
+      const expectedPrefix = webhookSecret.substring(0, 4);
+      const receivedPrefix = secretParam ? secretParam.substring(0, 4) : "(none)";
+      console.log(`[IBS-WEBHOOK-EVIDENCE] Secret check — expected starts: "${expectedPrefix}…", received starts: "${receivedPrefix}…", match: ${secretParam === webhookSecret}`);
       if (secretParam !== webhookSecret) {
-        console.warn("[IBS-WEBHOOK-EVIDENCE] Invalid or missing webhook secret in query param");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    } else {
+      console.warn("[IBS-WEBHOOK-EVIDENCE] IBS_WEBHOOK_SECRET not configured, skipping validation");
     }
 
     const body = await req.json();

@@ -23,16 +23,20 @@ serve(async (req) => {
   try {
     // Validate webhook secret from query parameter
     const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
+    const url = new URL(req.url);
+    const secretParam = url.searchParams.get("secret");
     if (webhookSecret) {
-      const url = new URL(req.url);
-      const secretParam = url.searchParams.get("secret");
+      const expectedPrefix = webhookSecret.substring(0, 4);
+      const receivedPrefix = secretParam ? secretParam.substring(0, 4) : "(none)";
+      console.log(`[IBS-WEBHOOK-SIG-OK] Secret check — expected starts: "${expectedPrefix}…", received starts: "${receivedPrefix}…", match: ${secretParam === webhookSecret}`);
       if (secretParam !== webhookSecret) {
-        console.warn("[IBS-WEBHOOK-SIG-OK] Invalid or missing webhook secret in query param");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    } else {
+      console.warn("[IBS-WEBHOOK-SIG-OK] IBS_WEBHOOK_SECRET not configured, skipping validation");
     }
 
     const body = await req.json();
@@ -54,13 +58,13 @@ serve(async (req) => {
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-OK] Signature ${signatureId} created`);
 
-    } else if (event === "identity.verification.success") {
+    } else if (event === "identity.verification.success" || event === "signature.verification.success") {
       const signatureId = data.signature_id;
       await supabaseAdmin
         .from("ibs_signatures")
         .update({ status: "success", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
-      console.log(`[IBS-WEBHOOK-SIG-OK] Identity verification success for ${signatureId}`);
+      console.log(`[IBS-WEBHOOK-SIG-OK] Verification success (${event}) for ${signatureId}`);
 
     } else {
       console.log(`[IBS-WEBHOOK-SIG-OK] Ignoring event: ${event}`);
