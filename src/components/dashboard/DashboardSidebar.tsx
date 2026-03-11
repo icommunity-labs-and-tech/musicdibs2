@@ -14,6 +14,9 @@ import {
   Sparkles,
   Shield,
   HelpCircle,
+  Users,
+  BarChart3,
+  Settings2,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -51,11 +54,19 @@ const accountItems = [
   { title: 'Soporte', url: '/dashboard/support', icon: LifeBuoy },
 ];
 
+const adminItems = [
+  { title: 'Usuarios', url: '/dashboard/admin/users', icon: Users },
+  { title: 'Créditos', url: '/dashboard/admin/credits', icon: CreditCard },
+  { title: 'Obras', url: '/dashboard/admin/works', icon: Music },
+  { title: 'Métricas', url: '/dashboard/admin/metrics', icon: BarChart3 },
+  { title: 'Sistema', url: '/dashboard/admin/system', icon: Settings2 },
+];
+
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const isActive = (path: string) =>
@@ -128,6 +139,25 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-pink-500/10 text-pink-400 font-medium">
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3">

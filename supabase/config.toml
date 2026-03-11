@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.send-promotion-email]
 verify_jwt = false
+
+[functions.admin-action]
+verify_jwt = false

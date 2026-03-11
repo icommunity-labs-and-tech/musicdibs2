@@ -42,6 +42,12 @@ import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
 import AIStudioInspire from "./pages/AIStudioInspire";
 import AIStudioVideo from "./pages/AIStudioVideo";
+import { AdminGuard } from "./components/AdminGuard";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminCreditsPage from "./pages/AdminCreditsPage";
+import AdminWorksPage from "./pages/AdminWorksPage";
+import AdminMetricsPage from "./pages/AdminMetricsPage";
+import AdminSystemPage from "./pages/AdminSystemPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +93,11 @@ const App = () => (
               <Route path="billing" element={<BillingPage />} />
               <Route path="support" element={<SupportPage />} />
               <Route path="blockchain" element={<BlockchainEvidencePage />} />
+              <Route path="admin/users" element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
+              <Route path="admin/credits" element={<AdminGuard><AdminCreditsPage /></AdminGuard>} />
+              <Route path="admin/works" element={<AdminGuard><AdminWorksPage /></AdminGuard>} />
+              <Route path="admin/metrics" element={<AdminGuard><AdminMetricsPage /></AdminGuard>} />
+              <Route path="admin/system" element={<AdminGuard><AdminSystemPage /></AdminGuard>} />
             </Route>
             <Route path="/ai-studio" element={<AIStudio />} />
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
