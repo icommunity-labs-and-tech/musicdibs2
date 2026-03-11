@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -20,80 +20,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkBlocked = async (userId: string): Promise<boolean> => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('is_blocked')
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (data?.is_blocked) {
-      await supabase.auth.signOut();
-      setUser(null);
+  const initializeUser = useCallback(async (currentSession: Session | null) => {
+    if (!currentSession?.user) {
       setSession(null);
+      setUser(null);
       setIsAdmin(false);
-      return true;
+      setLoading(false);
+      return;
     }
-    return false;
-  };
 
-  const checkAdmin = async (userId: string) => {
-    const { data } = await supabase
+    setSession(currentSession);
+    setUser(currentSession.user);
+
+    // Check admin role
+    const { data: roleData } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', userId)
+      .eq('user_id', currentSession.user.id)
       .eq('role', 'admin')
       .maybeSingle();
-    setIsAdmin(data?.role === 'admin');
-  };
+
+    setIsAdmin(roleData?.role === 'admin');
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const blocked = await checkBlocked(session.user.id);
-        if (!blocked) {
-          await checkAdmin(session.user.id);
-        }
-        setLoading(false);
-      } else {
-        setIsAdmin(false);
-        setLoading(false);
-      }
+    // IMPORTANT: Set up listener BEFORE getting session (per Supabase docs)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      // Use setTimeout to avoid async work directly in callback
+      setTimeout(() => initializeUser(newSession), 0);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const blocked = await checkBlocked(session.user.id);
-        if (!blocked) {
-          await checkAdmin(session.user.id);
-        }
-        setLoading(false);
-      } else {
-        setIsAdmin(false);
-        setLoading(false);
-      }
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      initializeUser(currentSession);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [initializeUser]);
 
   const signIn = async (email: string, password: string) => {
     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-    if (!error && data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_blocked')
-        .eq('user_id', data.user.id)
-        .maybeSingle();
-      if (profile?.is_blocked) {
-        await supabase.auth.signOut();
+    if (error) {
+      // Supabase returns "User is banned" for banned users
+      if (error.message?.includes('banned')) {
         return { error: { message: 'Tu cuenta ha sido bloqueada. Contacta con soporte.' } };
       }
+      return { error };
     }
-    return { error };
+    return { error: null };
   };
 
   const signUp = async (email: string, password: string) => {
