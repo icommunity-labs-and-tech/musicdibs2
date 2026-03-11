@@ -459,8 +459,8 @@ const AIStudioEdit = () => {
                   </TabsContent>
                 </Tabs>
 
-                {!hasEnough(1) ? (
-                  <NoCreditsAlert message="No tienes créditos suficientes para editar música." />
+                {!hasEnough(FEATURE_COSTS.edit_audio) ? (
+                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.edit_audio} créditos para editar música.`} />
                 ) : (
                 <Button 
                   onClick={handleProcess} 
