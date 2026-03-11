@@ -176,35 +176,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     setLoading(false);
   };
 
-  const startPolling = (evidenceId: string) => {
-    setPolling(true);
-    let attempts = 0;
-    const maxAttempts = 30; // ~5 min at 10s intervals
-
-    const interval = setInterval(async () => {
-      attempts++;
-      try {
-        const pollResult = await pollEvidenceStatus(evidenceId);
-        if (pollResult.status === 'certified' || pollResult.certification?.hash) {
-          clearInterval(interval);
-          setPolling(false);
-          setResult(prev => prev ? {
-            ...prev,
-            status: 'registered',
-            blockchainHash: pollResult.certification?.hash,
-            certificateUrl: pollResult.certification?.links?.checker,
-          } : prev);
-          setStatus('success');
-        }
-      } catch (err) {
-        console.warn('Polling error:', err);
-      }
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        setPolling(false);
-      }
-    }, 10000);
-  };
 
   const resetForm = () => {
     setStatus('idle');
