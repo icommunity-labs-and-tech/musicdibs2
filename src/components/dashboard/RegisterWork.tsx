@@ -171,6 +171,26 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
           description: 'Recibirás una notificación cuando finalice. Puedes seguir registrando obras.',
           duration: 6000,
         });
+        setLastRegisteredWorkId(res.registrationId);
+        setShowDistributeBanner(false);
+        // Listen for status change to 'registered' via polling
+        if (res.registrationId) {
+          const pollInterval = setInterval(async () => {
+            const { data } = await supabase
+              .from('works')
+              .select('status')
+              .eq('id', res.registrationId)
+              .single();
+            if (data?.status === 'registered') {
+              setShowDistributeBanner(true);
+              clearInterval(pollInterval);
+            } else if (data?.status === 'failed') {
+              clearInterval(pollInterval);
+            }
+          }, 5000);
+          // Stop polling after 5 minutes
+          setTimeout(() => clearInterval(pollInterval), 300_000);
+        }
         resetForm();
       }
     } catch (err: any) { 
