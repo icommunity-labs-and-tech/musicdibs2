@@ -46,7 +46,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const prefill = (location.state as { prefill?: PrefillData })?.prefill;
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'failed' | 'error' | 'processing'>('idle');
+  const [status, setStatus] = useState<'idle' | 'failed' | 'error'>('idle');
   const [ownership, setOwnership] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [workType, setWorkType] = useState('');
