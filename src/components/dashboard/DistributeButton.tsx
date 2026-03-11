@@ -18,26 +18,27 @@ export function DistributeButton({ workId, distributedAt, currentClicks = 0, var
   const [loading, setLoading] = useState(false);
   const [distributed, setDistributed] = useState(!!distributedAt);
 
-  const handleClick = async () => {
+  const handleClick = () => {
+    // Open link FIRST (synchronous) to avoid popup blocker
+    window.open('https://dist.musicdibs.com', '_blank', 'noopener');
+
     if (!user) return;
     setLoading(true);
-    try {
-      await supabase
-        .from('works')
-        .update({
-          distributed_at: distributedAt ?? new Date().toISOString(),
-          distribution_clicks: currentClicks + 1,
-        })
-        .eq('id', workId)
-        .eq('user_id', user.id);
-
-      setDistributed(true);
-      onDistributed?.();
-    } catch (e) {
-      console.error('Error tracking distribution click:', e);
-    }
-    setLoading(false);
-    window.open('https://dist.musicdibs.com', '_blank', 'noopener');
+    // Track click in background — no toast, no blocking
+    supabase
+      .from('works')
+      .update({
+        distributed_at: distributedAt ?? new Date().toISOString(),
+        distribution_clicks: currentClicks + 1,
+      })
+      .eq('id', workId)
+      .eq('user_id', user.id)
+      .then(() => {
+        setDistributed(true);
+        onDistributed?.();
+      })
+      .catch((e) => console.error('Error tracking distribution click:', e))
+      .finally(() => setLoading(false));
   };
 
   const formattedDate = distributedAt

@@ -35,8 +35,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           const newRow = payload.new as any;
           const oldRow = payload.old as any;
 
-          // Only notify on status changes
-          if (oldRow.status === newRow.status) return;
+          // Only notify on actual status changes (not distribution clicks etc.)
+          if (!oldRow.status || oldRow.status === newRow.status) return;
+          if (oldRow.status === 'registered' || oldRow.status === 'failed') return;
 
           let notif: DashboardNotification | null = null;
 
