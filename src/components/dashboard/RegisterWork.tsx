@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw, Radio } from 'lucide-react';
 import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures } from '@/services/dashboardApi';
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
