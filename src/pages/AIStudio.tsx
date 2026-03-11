@@ -38,6 +38,7 @@ const AIStudio = () => {
       href: "/ai-studio/inspire",
       available: true,
       costsCredits: false,
+      featureKey: 'inspiration' as const,
       color: "from-amber-500 to-orange-500"
     },
     {
