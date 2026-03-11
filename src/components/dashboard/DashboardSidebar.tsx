@@ -12,6 +12,7 @@ import {
   Music,
   LogOut,
   Sparkles,
+  Shield,
 } from 'lucide-react';
 import {
   Sidebar,
