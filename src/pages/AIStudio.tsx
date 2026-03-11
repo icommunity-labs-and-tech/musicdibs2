@@ -14,6 +14,7 @@ const AIStudio = () => {
       icon: Wand2,
       href: "/ai-studio/create",
       available: true,
+      costsCredits: true,
       color: "from-purple-500 to-pink-500"
     },
     {
@@ -22,6 +23,7 @@ const AIStudio = () => {
       icon: Edit3,
       href: "/ai-studio/edit",
       available: true,
+      costsCredits: true,
       color: "from-blue-500 to-cyan-500"
     },
     {
@@ -30,6 +32,7 @@ const AIStudio = () => {
       icon: Lightbulb,
       href: "/ai-studio/inspire",
       available: true,
+      costsCredits: false,
       color: "from-amber-500 to-orange-500"
     },
     {
@@ -38,6 +41,7 @@ const AIStudio = () => {
       icon: Video,
       href: "/ai-studio/video",
       available: true,
+      costsCredits: true,
       color: "from-rose-500 to-red-500"
     }
   ];
