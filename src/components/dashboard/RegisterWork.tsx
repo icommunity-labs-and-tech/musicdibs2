@@ -65,6 +65,8 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [kycUrl, setKycUrl] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
 
+  const { hasEnough } = useCredits();
+  const noCredits = !hasEnough(1);
   const kycBlocked = summary && summary.kycStatus !== 'verified';
 
   useEffect(() => {
