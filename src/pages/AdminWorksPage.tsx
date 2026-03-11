@@ -42,13 +42,24 @@ export default function AdminWorksPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
-  const statusBadge = (status: string) => {
+  const getProcessingDelay = (createdAt: string) => {
+    const mins = (Date.now() - new Date(createdAt).getTime()) / 60000;
+    if (mins >= 60) return { label: 'Posible fallo', color: 'text-red-400' };
+    if (mins >= 15) return { label: 'Retrasada', color: 'text-amber-400' };
+    return { label: 'Certificando...', color: 'text-muted-foreground' };
+  };
+
+  const statusBadge = (status: string, createdAt?: string) => {
     if (status === 'processing') {
+      const delay = createdAt ? getProcessingDelay(createdAt) : null;
       return (
-        <Badge className="bg-yellow-500/20 text-yellow-400 animate-pulse">
-          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-          processing
-        </Badge>
+        <div className="flex flex-col gap-0.5">
+          <Badge className="bg-yellow-500/20 text-yellow-400 animate-pulse">
+            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            processing
+          </Badge>
+          {delay && <span className={`text-[10px] ${delay.color}`}>{delay.label}</span>}
+        </div>
       );
     }
     const map: Record<string, string> = {
