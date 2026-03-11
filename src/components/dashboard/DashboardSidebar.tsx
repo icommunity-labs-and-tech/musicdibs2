@@ -14,6 +14,9 @@ import {
   Sparkles,
   Shield,
   HelpCircle,
+  Users,
+  BarChart3,
+  Settings2,
 } from 'lucide-react';
 import {
   Sidebar,
