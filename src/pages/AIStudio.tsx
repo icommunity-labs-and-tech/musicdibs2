@@ -5,8 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useCredits } from "@/hooks/useCredits";
 
 const AIStudio = () => {
+  const { hasEnough } = useCredits();
+  const noCredits = !hasEnough(1);
   const modules = [
     {
       title: "Crear Música",
