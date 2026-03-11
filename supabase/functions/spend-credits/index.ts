@@ -7,6 +7,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Server-side cost configuration ─────────────────────────
+const FEATURE_COSTS: Record<string, number> = {
+  register_work: 1,
+  promote_work: 2,
+  generate_audio: 2,
+  edit_audio: 2,
+  inspiration: 0,
+  generate_video: 6,
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -40,21 +50,31 @@ serve(async (req) => {
     const userId = claimsData.claims.sub;
 
     // Parse body
-    const { amount, feature, description } = await req.json();
+    const { feature, description } = await req.json();
 
-    // Validate inputs
-    if (!amount || typeof amount !== "number" || amount < 1 || amount > 100) {
-      return new Response(JSON.stringify({ error: "Invalid amount (1-100)" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Validate feature
+    if (!feature || typeof feature !== "string" || !(feature in FEATURE_COSTS)) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid feature",
+          validFeatures: Object.keys(FEATURE_COSTS),
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
-    if (!feature || typeof feature !== "string" || feature.length > 50) {
-      return new Response(JSON.stringify({ error: "Invalid feature name" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Get cost from server config (ignore any client-sent amount)
+    const amount = FEATURE_COSTS[feature];
+
+    // Free features — no credit deduction needed
+    if (amount === 0) {
+      return new Response(
+        JSON.stringify({ success: true, spent: 0, remaining: null, feature }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Use service role for trusted operations
@@ -110,8 +130,8 @@ serve(async (req) => {
       });
     }
 
-    // Log the transaction (service role — bypasses RLS)
-    const txDescription = description || `Uso: ${feature}`;
+    // Log the transaction
+    const txDescription = description || `${feature}`;
     await supabaseAdmin.from("credit_transactions").insert({
       user_id: userId,
       amount: -amount,
