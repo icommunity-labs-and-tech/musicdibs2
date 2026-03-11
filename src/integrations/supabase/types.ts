@@ -227,6 +227,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_blocked: boolean | null
           kyc_status: string
           phone: string | null
           subscription_plan: string
@@ -238,6 +239,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_blocked?: boolean | null
           kyc_status?: string
           phone?: string | null
           subscription_plan?: string
@@ -249,6 +251,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_blocked?: boolean | null
           kyc_status?: string
           phone?: string | null
           subscription_plan?: string
