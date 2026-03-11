@@ -21,6 +21,7 @@ import { Footer } from "@/components/Footer";
 import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const AIStudioEdit = () => {
   const { toast } = useToast();
@@ -141,9 +142,9 @@ const AIStudioEdit = () => {
 
     setIsProcessing(true);
     try {
-      // Spend 1 credit before processing
+      // Spend credits before processing
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { amount: 1, feature: 'edit_audio', description: `Edición AI: ${variationType}` },
+        body: { feature: 'edit_audio', description: `Edición AI: ${variationType}` },
       });
       if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
       if (spendResult?.error) throw new Error(spendResult.error);
@@ -458,8 +459,8 @@ const AIStudioEdit = () => {
                   </TabsContent>
                 </Tabs>
 
-                {!hasEnough(1) ? (
-                  <NoCreditsAlert message="No tienes créditos suficientes para editar música." />
+                {!hasEnough(FEATURE_COSTS.edit_audio) ? (
+                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.edit_audio} créditos para editar música.`} />
                 ) : (
                 <Button 
                   onClick={handleProcess} 

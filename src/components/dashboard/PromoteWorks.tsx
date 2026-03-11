@@ -10,6 +10,7 @@ import { Megaphone, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { submitPromotionRequest } from '@/services/dashboardApi';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
+import { FEATURE_COSTS } from '@/lib/featureCosts';
 
 export function PromoteWorks() {
   const [open, setOpen] = useState(false);
@@ -17,7 +18,7 @@ export function PromoteWorks() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [consent, setConsent] = useState(false);
   const { hasEnough } = useCredits();
-  const noCredits = !hasEnough(1);
+  const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,7 +52,7 @@ export function PromoteWorks() {
           Por tener una suscripción activa, tienes derecho a promocionarte en nuestras redes sociales.
         </p>
         <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
-          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
+          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume {FEATURE_COSTS.promote_work} créditos.
         </p>
         {noCredits ? (
           <NoCreditsAlert message="No tienes créditos suficientes para solicitar una promoción." />
@@ -107,9 +108,9 @@ export function PromoteWorks() {
                     <AlertCircle className="h-4 w-4" /> Error al enviar la solicitud
                   </div>
                 )}
-                <p className="text-xs text-center text-muted-foreground">Se descontará 1 crédito de tu cuenta al enviar.</p>
+                <p className="text-xs text-center text-muted-foreground">Se descontarán {FEATURE_COSTS.promote_work} créditos de tu cuenta al enviar.</p>
                 <Button type="submit" className="w-full" disabled={loading || !consent}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar solicitud (1 crédito)'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : `Enviar solicitud (${FEATURE_COSTS.promote_work} créditos)`}
                 </Button>
               </form>
             )}

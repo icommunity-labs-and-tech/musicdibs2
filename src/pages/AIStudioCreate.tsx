@@ -29,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
@@ -146,9 +147,9 @@ const AIStudioCreate = () => {
     setGenerationError(null);
     
     try {
-      // Spend 1 credit before generating
+      // Spend credits before generating
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { amount: 1, feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` },
+        body: { feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` },
       });
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
@@ -474,8 +475,8 @@ const AIStudioCreate = () => {
                   <p className="text-xs text-muted-foreground">Bajo = más creativo, Alto = más fiel al prompt</p>
                 </div>
 
-                {!hasEnough(1) ? (
-                  <NoCreditsAlert message="No tienes créditos suficientes para generar música." />
+                {!hasEnough(FEATURE_COSTS.generate_audio) ? (
+                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_audio} créditos para generar música.`} />
                 ) : (
                 <Button 
                   onClick={handleGenerate} 

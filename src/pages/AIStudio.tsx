@@ -6,10 +6,10 @@ import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const AIStudio = () => {
-  const { hasEnough } = useCredits();
-  const noCredits = !hasEnough(1);
+  const { credits, hasEnough } = useCredits();
   const modules = [
     {
       title: "Crear Música",
@@ -18,6 +18,7 @@ const AIStudio = () => {
       href: "/ai-studio/create",
       available: true,
       costsCredits: true,
+      featureKey: 'generate_audio' as const,
       color: "from-purple-500 to-pink-500"
     },
     {
@@ -27,6 +28,7 @@ const AIStudio = () => {
       href: "/ai-studio/edit",
       available: true,
       costsCredits: true,
+      featureKey: 'edit_audio' as const,
       color: "from-blue-500 to-cyan-500"
     },
     {
@@ -36,6 +38,7 @@ const AIStudio = () => {
       href: "/ai-studio/inspire",
       available: true,
       costsCredits: false,
+      featureKey: 'inspiration' as const,
       color: "from-amber-500 to-orange-500"
     },
     {
@@ -45,6 +48,7 @@ const AIStudio = () => {
       href: "/ai-studio/video",
       available: true,
       costsCredits: true,
+      featureKey: 'generate_video' as const,
       color: "from-rose-500 to-red-500"
     }
   ];
@@ -77,7 +81,8 @@ const AIStudio = () => {
         {/* Modules Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {modules.map((module) => {
-            const disabled = module.costsCredits && noCredits;
+            const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
+            const disabled = module.costsCredits && !hasEnough(cost);
             return (
             <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
               {disabled && (
@@ -97,9 +102,9 @@ const AIStudio = () => {
                   )}
                 </CardTitle>
                 <CardDescription>{module.description}</CardDescription>
-                {module.costsCredits && (
+                {module.costsCredits && cost > 0 && (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Coins className="h-3 w-3" /> 1 crédito por uso
+                    <Coins className="h-3 w-3" /> {cost} crédito{cost > 1 ? 's' : ''} por uso
                   </span>
                 )}
               </CardHeader>
