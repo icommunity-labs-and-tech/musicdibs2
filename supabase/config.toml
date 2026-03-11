@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.ibs-webhook-signature-ko]
 verify_jwt = false
+
+[functions.send-promotion-email]
+verify_jwt = false
