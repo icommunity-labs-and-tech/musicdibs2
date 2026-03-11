@@ -34,7 +34,6 @@ serve(async (req) => {
     const callerUserId = claimsData.claims.sub as string;
     const callerEmail = (claimsData.claims as any).email as string || "";
 
-    // Admin check with service_role
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -72,45 +71,59 @@ serve(async (req) => {
       }
     }
 
+    // ── Helper: get all auth emails in one call ──────────────
+    async function getAllEmailsMap(): Promise<Record<string, string>> {
+      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const map: Record<string, string> = {};
+      (authUsers || []).forEach((u: any) => { if (u.email) map[u.id] = u.email; });
+      return map;
+    }
+
     // ── ACTIONS ──────────────────────────────────────────────
 
     if (action === "get_users") {
       const offset = payload.offset || 0;
       const search = payload.search || "";
 
-      let query = admin.from("profiles").select("*").order("created_at", { ascending: false }).range(offset, offset + 49);
-
-      if (search) {
-        query = query.or(`display_name.ilike.%${search}%`);
-      }
-
-      const { data: profiles, error } = await query;
+      const { data: profiles, error } = await admin
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + 49);
       if (error) return json({ error: error.message }, 500);
 
       const userIds = (profiles || []).map((p: any) => p.user_id);
+
+      // 1 query for all roles
       const { data: roles } = await admin.from("user_roles").select("user_id, role").in("user_id", userIds);
       const rolesMap: Record<string, string> = {};
       (roles || []).forEach((r: any) => { rolesMap[r.user_id] = r.role; });
 
-      const enriched = [];
-      for (const p of profiles || []) {
-        const { count } = await admin.from("works").select("*", { count: "exact", head: true }).eq("user_id", p.user_id);
-        enriched.push({ ...p, role: rolesMap[p.user_id] || "user", works_count: count || 0 });
+      // 1 query for all works counts
+      const { data: worksCounts } = await admin.from("works").select("user_id").in("user_id", userIds);
+      const worksCountMap: Record<string, number> = {};
+      (worksCounts || []).forEach((w: any) => {
+        worksCountMap[w.user_id] = (worksCountMap[w.user_id] || 0) + 1;
+      });
+
+      // 1 call for all emails
+      const emailsMap = await getAllEmailsMap();
+
+      let result = (profiles || []).map((p: any) => ({
+        ...p,
+        role: rolesMap[p.user_id] || "user",
+        works_count: worksCountMap[p.user_id] || 0,
+        email: emailsMap[p.user_id] || "",
+      }));
+
+      if (search) {
+        result = result.filter((u: any) =>
+          u.email.toLowerCase().includes(search.toLowerCase()) ||
+          u.display_name?.toLowerCase().includes(search.toLowerCase())
+        );
       }
 
-      const emailsMap: Record<string, string> = {};
-      for (const uid of userIds) {
-        const { data: authUser } = await admin.auth.admin.getUserById(uid);
-        if (authUser?.user?.email) emailsMap[uid] = authUser.user.email;
-      }
-
-      const result = enriched.map((u: any) => ({ ...u, email: emailsMap[u.user_id] || "" }));
-
-      const filtered = search
-        ? result.filter((u: any) => u.email.toLowerCase().includes(search.toLowerCase()) || u.display_name?.toLowerCase().includes(search.toLowerCase()))
-        : result;
-
-      return json({ users: filtered, total: filtered.length });
+      return json({ users: result, total: result.length });
     }
 
     if (action === "adjust_credits") {
@@ -123,7 +136,6 @@ serve(async (req) => {
       const { data: profile } = await admin.from("profiles").select("available_credits").eq("user_id", user_id).single();
       if (!profile) return json({ error: "User not found" }, 404);
 
-      // Get target email for audit
       const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
       const targetEmail = targetAuth?.user?.email || "";
 
@@ -226,13 +238,10 @@ serve(async (req) => {
       if (error) return json({ error: error.message }, 500);
 
       const userIds = [...new Set((works || []).map((w: any) => w.user_id))];
-      const emailsMap: Record<string, string> = {};
-      const namesMap: Record<string, string> = {};
-      for (const uid of userIds) {
-        const { data: authUser } = await admin.auth.admin.getUserById(uid as string);
-        if (authUser?.user?.email) emailsMap[uid as string] = authUser.user.email;
-      }
+      const emailsMap = await getAllEmailsMap();
+
       const { data: profiles } = await admin.from("profiles").select("user_id, display_name").in("user_id", userIds);
+      const namesMap: Record<string, string> = {};
       (profiles || []).forEach((p: any) => { namesMap[p.user_id] = p.display_name; });
 
       const enriched = (works || []).map((w: any) => ({
@@ -296,13 +305,7 @@ serve(async (req) => {
       const { data: txs, error } = await query;
       if (error) return json({ error: error.message }, 500);
 
-      const userIds = [...new Set((txs || []).map((t: any) => t.user_id))];
-      const emailsMap: Record<string, string> = {};
-      for (const uid of userIds) {
-        const { data: authUser } = await admin.auth.admin.getUserById(uid as string);
-        if (authUser?.user?.email) emailsMap[uid as string] = authUser.user.email;
-      }
-
+      const emailsMap = await getAllEmailsMap();
       const enriched = (txs || []).map((t: any) => ({ ...t, email: emailsMap[t.user_id] || "" }));
       return json({ transactions: enriched });
     }
@@ -311,14 +314,10 @@ serve(async (req) => {
       const { email } = payload;
       if (!email) return json({ error: "email required" }, 400);
 
-      let found: any = null;
-      let page = 1;
-      while (!found) {
-        const { data: { users } } = await admin.auth.admin.listUsers({ page, perPage: 500 });
-        if (!users || users.length === 0) break;
-        found = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
-        page++;
-      }
+      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const found = (authUsers || []).find(
+        (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+      );
       if (!found) return json({ error: "User not found" }, 404);
 
       const { data: profile } = await admin.from("profiles").select("*").eq("user_id", found.id).single();
@@ -330,9 +329,7 @@ serve(async (req) => {
 
       if (dataset === "users") {
         const { data: profiles } = await admin.from("profiles").select("*").order("created_at", { ascending: false });
-        const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
-        const emailsMap: Record<string, string> = {};
-        (authUsers || []).forEach((u: any) => { if (u.email) emailsMap[u.id] = u.email; });
+        const emailsMap = await getAllEmailsMap();
 
         const header = "email,display_name,plan,credits,kyc_status,is_blocked,created_at";
         const rows = (profiles || []).map((p: any) =>
@@ -343,12 +340,7 @@ serve(async (req) => {
 
       if (dataset === "transactions") {
         const { data: txs } = await admin.from("credit_transactions").select("*").order("created_at", { ascending: false }).limit(1000);
-        const userIds = [...new Set((txs || []).map((t: any) => t.user_id))];
-        const emailsMap: Record<string, string> = {};
-        for (const uid of userIds) {
-          const { data: authUser } = await admin.auth.admin.getUserById(uid as string);
-          if (authUser?.user?.email) emailsMap[uid as string] = authUser.user.email;
-        }
+        const emailsMap = await getAllEmailsMap();
         const header = "email,amount,type,description,created_at";
         const rows = (txs || []).map((t: any) =>
           `${emailsMap[t.user_id] || ""},${t.amount},${t.type},"${(t.description || "").replace(/"/g, '""')}",${t.created_at}`
@@ -358,12 +350,7 @@ serve(async (req) => {
 
       if (dataset === "works") {
         const { data: works } = await admin.from("works").select("*").order("created_at", { ascending: false }).limit(1000);
-        const userIds = [...new Set((works || []).map((w: any) => w.user_id))];
-        const emailsMap: Record<string, string> = {};
-        for (const uid of userIds) {
-          const { data: authUser } = await admin.auth.admin.getUserById(uid as string);
-          if (authUser?.user?.email) emailsMap[uid as string] = authUser.user.email;
-        }
+        const emailsMap = await getAllEmailsMap();
         const header = "email,title,type,status,blockchain_hash,created_at";
         const rows = (works || []).map((w: any) =>
           `${emailsMap[w.user_id] || ""},"${(w.title || "").replace(/"/g, '""')}",${w.type},${w.status},${w.blockchain_hash || ""},${w.created_at}`
@@ -385,15 +372,12 @@ serve(async (req) => {
 
     if (action === "get_admins") {
       const { data: adminRoles } = await admin.from("user_roles").select("*").eq("role", "admin");
-      const admins = [];
-      for (const r of adminRoles || []) {
-        const { data: authUser } = await admin.auth.admin.getUserById(r.user_id);
-        admins.push({
-          user_id: r.user_id,
-          email: authUser?.user?.email || "",
-          created_at: r.id,
-        });
-      }
+      const emailsMap = await getAllEmailsMap();
+      const admins = (adminRoles || []).map((r: any) => ({
+        user_id: r.user_id,
+        email: emailsMap[r.user_id] || "",
+        created_at: r.id,
+      }));
       return json({ admins });
     }
 
