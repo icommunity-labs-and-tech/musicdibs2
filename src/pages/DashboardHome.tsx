@@ -5,12 +5,15 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
+import { OnboardingChecklist } from '@/components/dashboard/OnboardingChecklist';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function DashboardHome() {
   const { user } = useAuth();
+  const { checkStepsFromDb } = useOnboarding();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
@@ -29,24 +32,34 @@ export default function DashboardHome() {
     return () => clearInterval(interval);
   }, [user]);
 
+  // Check onboarding steps from DB on mount
+  useEffect(() => {
+    checkStepsFromDb();
+  }, [checkStepsFromDb]);
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-[1400px]">
-      {/* Col 1: Account Summary + Verify + Promote */}
-      <div className="space-y-4">
-        <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
-        <VerifyRegistration />
-        <PromoteWorks />
-      </div>
+    <div className="space-y-4 max-w-[1400px]">
+      {/* Onboarding checklist */}
+      <OnboardingChecklist />
 
-      {/* Col 2: Register Work */}
-      <div className="space-y-4">
-        <RegisterWork summary={summary} />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Col 1: Account Summary + Verify + Promote */}
+        <div className="space-y-4">
+          <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
+          <VerifyRegistration />
+          <PromoteWorks />
+        </div>
 
-      {/* Col 3: Credit Store + Recent Registrations */}
-      <div className="space-y-4">
-        <CreditStore compact />
-        <RecentRegistrations />
+        {/* Col 2: Register Work */}
+        <div className="space-y-4">
+          <RegisterWork summary={summary} />
+        </div>
+
+        {/* Col 3: Credit Store + Recent Registrations */}
+        <div className="space-y-4">
+          <CreditStore compact />
+          <RecentRegistrations />
+        </div>
       </div>
     </div>
   );
