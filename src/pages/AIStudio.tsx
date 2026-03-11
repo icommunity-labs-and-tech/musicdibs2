@@ -28,6 +28,7 @@ const AIStudio = () => {
       href: "/ai-studio/edit",
       available: true,
       costsCredits: true,
+      featureKey: 'edit_audio' as const,
       color: "from-blue-500 to-cyan-500"
     },
     {
