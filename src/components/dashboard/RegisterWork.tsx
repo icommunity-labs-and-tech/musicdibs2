@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
-import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures, pollEvidenceStatus } from '@/services/dashboardApi';
+import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures } from '@/services/dashboardApi';
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
@@ -46,7 +46,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const prefill = (location.state as { prefill?: PrefillData })?.prefill;
 
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'failed' | 'error' | 'processing'>('idle');
+  const [status, setStatus] = useState<'idle' | 'failed' | 'error'>('idle');
   const [ownership, setOwnership] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [workType, setWorkType] = useState('');
@@ -64,7 +64,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [creatingSignature, setCreatingSignature] = useState(false);
   const [newSigName, setNewSigName] = useState('');
   const [kycUrl, setKycUrl] = useState<string | null>(null);
-  const [polling, setPolling] = useState(false);
+  
 
   const { hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.register_work);
@@ -156,18 +156,18 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         ownershipDeclaration: ownership,
         signatureId: selectedSignature,
       });
-      setResult(res);
       if (res.ibsError || res.status === 'failed') {
+        setResult(res);
         setStatus('failed');
-      } else if (res.status === 'processing' && res.evidenceId) {
-        setStatus('processing');
-        // Start polling for certification
-        startPolling(res.evidenceId);
       } else {
-        setStatus('success');
-        // Notify onboarding
+        // Success — reset form immediately so user can register more works
+        // Blockchain certification happens asynchronously via webhook
         window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
-        toast.success('🎉 ¡Enhorabuena! Has registrado tu primera obra en MusicDibs.');
+        toast.success('🎉 ¡Obra enviada! La certificación en blockchain se procesará en segundo plano.', {
+          description: 'Recibirás una notificación cuando finalice. Puedes seguir registrando obras.',
+          duration: 6000,
+        });
+        resetForm();
       }
     } catch (err: any) { 
       setResult({ registrationId: '', status: 'error', ibsError: err?.message });
@@ -176,35 +176,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     setLoading(false);
   };
 
-  const startPolling = (evidenceId: string) => {
-    setPolling(true);
-    let attempts = 0;
-    const maxAttempts = 30; // ~5 min at 10s intervals
-
-    const interval = setInterval(async () => {
-      attempts++;
-      try {
-        const pollResult = await pollEvidenceStatus(evidenceId);
-        if (pollResult.status === 'certified' || pollResult.certification?.hash) {
-          clearInterval(interval);
-          setPolling(false);
-          setResult(prev => prev ? {
-            ...prev,
-            status: 'registered',
-            blockchainHash: pollResult.certification?.hash,
-            certificateUrl: pollResult.certification?.links?.checker,
-          } : prev);
-          setStatus('success');
-        }
-      } catch (err) {
-        console.warn('Polling error:', err);
-      }
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        setPolling(false);
-      }
-    }, 10000);
-  };
 
   const resetForm = () => {
     setStatus('idle');
@@ -216,7 +187,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     setAiAudioUrl(null);
     setWorkType('');
     setResult(null);
-    setPolling(false);
+    
   };
 
   const hasFileOrAudio = file || aiAudioUrl;
@@ -245,59 +216,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             <Badge variant="outline" className="text-amber-600 border-amber-300">
               Estado: {summary?.kycStatus === 'pending' ? 'Pendiente' : 'No verificado'}
             </Badge>
-          </div>
-        ) : status === 'success' ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="font-medium text-sm">¡Obra registrada y certificada en blockchain!</p>
-            <p className="text-xs text-muted-foreground">ID: {result?.registrationId}</p>
-            {result?.blockchainHash && (
-              <div className="w-full space-y-1">
-                <p className="text-xs text-muted-foreground">Hash blockchain:</p>
-                <code className="text-[10px] bg-muted px-2 py-1 rounded block truncate">
-                  {result.blockchainHash}
-                </code>
-              </div>
-            )}
-            {result?.certificateUrl && (
-              <a
-                href={result.certificateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <LinkIcon className="h-3 w-3" /> Verificar en blockchain
-              </a>
-            )}
-            <div className="flex flex-col gap-2 w-full">
-              {aiAudioUrl && (
-                <Button variant="default" size="sm" asChild className="w-full">
-                  <Link to="/ai-studio/create">
-                    <Sparkles className="h-4 w-4 mr-1.5" />
-                    Volver a AI MusicDibs Studio
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" size="sm" className="w-full" onClick={resetForm}>
-                Registrar otra obra
-              </Button>
-            </div>
-          </div>
-        ) : status === 'processing' ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="font-medium text-sm">Certificando en blockchain...</p>
-            <p className="text-xs text-muted-foreground">
-              Tu obra está siendo certificada. Esto puede tardar unos minutos.
-            </p>
-            {result?.evidenceId && (
-              <p className="text-xs text-muted-foreground">Evidence ID: {result.evidenceId}</p>
-            )}
-            {polling && (
-              <Badge variant="outline" className="text-primary border-primary/30">
-                <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Verificando estado...
-              </Badge>
-            )}
           </div>
         ) : status === 'failed' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
