@@ -86,6 +86,7 @@ const App = () => (
               <Route path="profile" element={<ProfilePage />} />
               <Route path="billing" element={<BillingPage />} />
               <Route path="support" element={<SupportPage />} />
+              <Route path="blockchain" element={<BlockchainEvidencePage />} />
             </Route>
             <Route path="/ai-studio" element={<AIStudio />} />
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
