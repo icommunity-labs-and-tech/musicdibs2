@@ -32,6 +32,8 @@ interface WorkEvidence {
   certified_at: string | null;
   created_at: string;
   ibs_evidence_id: string | null;
+  distributed_at: string | null;
+  distribution_clicks: number;
 }
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
