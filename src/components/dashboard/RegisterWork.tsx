@@ -15,6 +15,8 @@ import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { supabase } from '@/integrations/supabase/client';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
