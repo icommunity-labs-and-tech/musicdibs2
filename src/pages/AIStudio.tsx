@@ -18,6 +18,7 @@ const AIStudio = () => {
       href: "/ai-studio/create",
       available: true,
       costsCredits: true,
+      featureKey: 'generate_audio' as const,
       color: "from-purple-500 to-pink-500"
     },
     {
