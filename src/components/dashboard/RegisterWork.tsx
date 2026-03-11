@@ -187,7 +187,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     setAiAudioUrl(null);
     setWorkType('');
     setResult(null);
-    setPolling(false);
+    
   };
 
   const hasFileOrAudio = file || aiAudioUrl;
