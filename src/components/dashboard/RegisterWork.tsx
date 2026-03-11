@@ -217,59 +217,6 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               Estado: {summary?.kycStatus === 'pending' ? 'Pendiente' : 'No verificado'}
             </Badge>
           </div>
-        ) : status === 'success' ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="font-medium text-sm">¡Obra registrada y certificada en blockchain!</p>
-            <p className="text-xs text-muted-foreground">ID: {result?.registrationId}</p>
-            {result?.blockchainHash && (
-              <div className="w-full space-y-1">
-                <p className="text-xs text-muted-foreground">Hash blockchain:</p>
-                <code className="text-[10px] bg-muted px-2 py-1 rounded block truncate">
-                  {result.blockchainHash}
-                </code>
-              </div>
-            )}
-            {result?.certificateUrl && (
-              <a
-                href={result.certificateUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                <LinkIcon className="h-3 w-3" /> Verificar en blockchain
-              </a>
-            )}
-            <div className="flex flex-col gap-2 w-full">
-              {aiAudioUrl && (
-                <Button variant="default" size="sm" asChild className="w-full">
-                  <Link to="/ai-studio/create">
-                    <Sparkles className="h-4 w-4 mr-1.5" />
-                    Volver a AI MusicDibs Studio
-                  </Link>
-                </Button>
-              )}
-              <Button variant="outline" size="sm" className="w-full" onClick={resetForm}>
-                Registrar otra obra
-              </Button>
-            </div>
-          </div>
-        ) : status === 'processing' ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="font-medium text-sm">Certificando en blockchain...</p>
-            <p className="text-xs text-muted-foreground">
-              Tu obra está siendo certificada. Esto puede tardar unos minutos.
-            </p>
-            {result?.evidenceId && (
-              <p className="text-xs text-muted-foreground">Evidence ID: {result.evidenceId}</p>
-            )}
-            {polling && (
-              <Badge variant="outline" className="text-primary border-primary/30">
-                <RefreshCw className="h-3 w-3 mr-1 animate-spin" /> Verificando estado...
-              </Badge>
-            )}
-          </div>
         ) : status === 'failed' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <XCircle className="h-10 w-10 text-destructive" />
