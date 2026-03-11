@@ -36,6 +36,7 @@ import CreditsPage from "./pages/CreditsPage";
 import ProfilePage from "./pages/ProfilePage";
 import BillingPage from "./pages/BillingPage";
 import SupportPage from "./pages/SupportPage";
+import BlockchainEvidencePage from "./pages/BlockchainEvidencePage";
 import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
@@ -85,6 +86,7 @@ const App = () => (
               <Route path="profile" element={<ProfilePage />} />
               <Route path="billing" element={<BillingPage />} />
               <Route path="support" element={<SupportPage />} />
+              <Route path="blockchain" element={<BlockchainEvidencePage />} />
             </Route>
             <Route path="/ai-studio" element={<AIStudio />} />
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
