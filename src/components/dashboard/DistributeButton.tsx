@@ -36,9 +36,11 @@ export function DistributeButton({ workId, distributedAt, currentClicks = 0, var
       .then(() => {
         setDistributed(true);
         onDistributed?.();
-      })
-      .catch((e) => console.error('Error tracking distribution click:', e))
-      .finally(() => setLoading(false));
+        setLoading(false);
+      }, (e) => {
+        console.error('Error tracking distribution click:', e);
+        setLoading(false);
+      });
   };
 
   const formattedDate = distributedAt
