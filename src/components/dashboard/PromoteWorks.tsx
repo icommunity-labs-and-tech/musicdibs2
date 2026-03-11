@@ -46,6 +46,9 @@ export function PromoteWorks() {
         <p className="text-sm text-muted-foreground">
           Por tener una suscripción activa, tienes derecho a promocionarte en nuestras redes sociales.
         </p>
+        <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
+        </p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="w-full" variant="hero" size="sm">Solicitar post</Button>
