@@ -14,6 +14,7 @@ import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures,
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
+import { FEATURE_COSTS } from '@/lib/featureCosts';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
