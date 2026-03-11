@@ -102,9 +102,9 @@ const AIStudio = () => {
                   )}
                 </CardTitle>
                 <CardDescription>{module.description}</CardDescription>
-                {module.costsCredits && (
+                {module.costsCredits && cost > 0 && (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Coins className="h-3 w-3" /> 1 crédito por uso
+                    <Coins className="h-3 w-3" /> {cost} crédito{cost > 1 ? 's' : ''} por uso
                   </span>
                 )}
               </CardHeader>
