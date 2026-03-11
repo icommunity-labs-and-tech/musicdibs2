@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield } from 'lucide-react';
+import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function AdminUsersPage() {
