@@ -98,7 +98,9 @@ serve(async (req) => {
     if (action === "adjust_credits") {
       const { user_id, amount, reason } = payload;
       if (!user_id || amount === undefined || !reason) return json({ error: "user_id, amount, reason required" }, 400);
-      if (amount < -1000 || amount > 1000) return json({ error: "amount must be between -1000 and 1000" }, 400);
+      if (amount === 0) return json({ error: "La cantidad no puede ser 0" }, 400);
+      if (amount < -1000 || amount > 1000) return json({ error: "La cantidad debe estar entre -1000 y 1000" }, 400);
+      if (typeof reason !== "string" || reason.trim().length < 5) return json({ error: "El motivo debe tener al menos 5 caracteres" }, 400);
 
       const { data: profile } = await admin.from("profiles").select("available_credits").eq("user_id", user_id).single();
       if (!profile) return json({ error: "User not found" }, 404);
@@ -237,6 +239,8 @@ serve(async (req) => {
       const offset = payload.offset || 0;
       let query = admin.from("credit_transactions").select("*").order("created_at", { ascending: false }).range(offset, offset + 49);
       if (payload.type_filter) query = query.eq("type", payload.type_filter);
+      if (payload.date_from) query = query.gte("created_at", payload.date_from + "T00:00:00Z");
+      if (payload.date_to) query = query.lte("created_at", payload.date_to + "T23:59:59Z");
 
       const { data: txs, error } = await query;
       if (error) return json({ error: error.message }, 500);

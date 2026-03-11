@@ -17,7 +17,7 @@ export const adminApi = {
   setAdminRole: (user_id: string, is_admin: boolean) => adminAction('set_admin_role', { user_id, is_admin }),
   getAllWorks: (offset = 0, status_filter = '', search = '') => adminAction('get_all_works', { offset, status_filter, search }),
   getMetrics: () => adminAction('get_metrics'),
-  getAllTransactions: (offset = 0, type_filter = '') => adminAction('get_all_transactions', { offset, type_filter }),
+  getAllTransactions: (offset = 0, type_filter = '', date_from = '', date_to = '') => adminAction('get_all_transactions', { offset, type_filter, date_from, date_to }),
   searchUserByEmail: (email: string) => adminAction('search_user_by_email', { email }),
   exportCsv: (dataset: string) => adminAction('export_csv', { dataset }),
   getAdmins: () => adminAction('get_admins'),
