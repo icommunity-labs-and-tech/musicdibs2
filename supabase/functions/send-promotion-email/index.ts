@@ -30,9 +30,9 @@ serve(async (req: Request) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      console.error("RESEND_API_KEY not configured");
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -100,29 +100,32 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-    const emailRes = await fetch("https://api.lovable.dev/api/v1/send-email", {
+    const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        from: "MusicDibs <noreply@musicdibs.com>",
         to: ["marketing@musicdibs.com"],
         cc: ["info@musicdibs.com"],
         subject: `Nueva solicitud de promoción: ${artistName} — ${workTitle}`,
         html,
-        purpose: "transactional",
       }),
     });
 
     if (!emailRes.ok) {
       const errText = await emailRes.text();
-      console.error("Email send failed:", errText);
+      console.error(`Resend API error [${emailRes.status}]:`, errText);
       return new Response(
         JSON.stringify({ error: "Failed to send email" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const result = await emailRes.json();
+    console.log("Email sent successfully:", result.id);
 
     return new Response(
       JSON.stringify({ success: true }),
