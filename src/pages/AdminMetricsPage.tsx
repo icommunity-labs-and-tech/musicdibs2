@@ -92,6 +92,8 @@ export default function AdminMetricsPage() {
           { label: 'Créditos vendidos', value: metrics.total_credits_sold, icon: CreditCard },
           { label: 'Créditos consumidos', value: metrics.total_credits_consumed, icon: CreditCard },
           { label: 'Conversión', value: `${conversionRate}%`, icon: TrendingUp },
+          { label: 'Obras distribuidas', value: distMetrics.distributed, icon: Radio },
+          { label: 'Clicks distribución', value: distMetrics.clicks, icon: MousePointerClick },
         ].map(kpi => (
           <Card key={kpi.label} className="border-border/40">
             <CardContent className="pt-4 pb-3 px-4">
