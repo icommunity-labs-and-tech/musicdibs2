@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export function useCredits() {
   const { user } = useAuth();
   const [credits, setCredits] = useState<number | null>(null);
+  const prevCreditsRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -15,7 +17,10 @@ export function useCredits() {
         .select('available_credits')
         .eq('user_id', user.id)
         .single();
-      if (data) setCredits(data.available_credits);
+      if (data) {
+        setCredits(data.available_credits);
+        prevCreditsRef.current = data.available_credits;
+      }
     };
     fetch();
 
@@ -28,7 +33,23 @@ export function useCredits() {
         filter: `user_id=eq.${user.id}`,
       }, (payload) => {
         const c = (payload.new as any).available_credits;
-        if (typeof c === 'number') setCredits(c);
+        if (typeof c === 'number') {
+          const prev = prevCreditsRef.current;
+          setCredits(c);
+          prevCreditsRef.current = c;
+
+          // Toast when credits reach 0 after a deduction
+          if (c === 0 && prev !== null && prev > 0) {
+            toast.warning('Te has quedado sin créditos', {
+              description: 'Compra más créditos para seguir usando las herramientas.',
+              action: {
+                label: 'Comprar',
+                onClick: () => { window.location.href = '/dashboard/credits'; },
+              },
+              duration: 8000,
+            });
+          }
+        }
       })
       .subscribe();
 

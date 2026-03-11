@@ -741,8 +741,8 @@ const AIStudioVideo = () => {
               </CardContent>
             </Card>
 
-                {!hasEnough(1) ? (
-                  <NoCreditsAlert message="No tienes créditos suficientes para generar un videoclip." />
+                {!hasEnough(FEATURE_COSTS.generate_video) ? (
+                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_video} créditos para generar un videoclip.`} />
                 ) : (
                 <Button
                   onClick={handleGenerate}
