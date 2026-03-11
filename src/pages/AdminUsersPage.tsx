@@ -143,7 +143,7 @@ export default function AdminUsersPage() {
                       <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => { setCreditModal({ open: true, userId: u.user_id, email: u.email }); }}>
+                      <DropdownMenuItem onClick={() => { setCreditModal({ open: true, userId: u.user_id, email: u.email, currentCredits: u.available_credits }); }}>
                         Ajustar créditos
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
