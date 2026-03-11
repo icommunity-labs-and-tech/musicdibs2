@@ -139,11 +139,8 @@ export function DashboardSidebar() {
           size="sm"
           className="w-full justify-start text-muted-foreground hover:text-foreground"
           onClick={() => {
-            try {
-              const { useOnboarding } = require('@/hooks/useOnboarding');
-              // Can't use hook here, so dispatch a custom event
-            } catch {}
             window.dispatchEvent(new CustomEvent('musicdibs:reset-onboarding'));
+            navigate('/dashboard');
           }}
         >
           <RotateCcw className="h-4 w-4 mr-2" />
