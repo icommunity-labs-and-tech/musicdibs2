@@ -11,6 +11,9 @@ const corsHeaders = {
  * Webhook for iCommunity Evidence events only:
  *   - evidence.certified
  *   - evidence.signed_pdf.certified
+ *
+ * Auth: iBS sends the webhook secret as ?secret=<value> in the URL
+ *       and the Supabase anon key as Authorization: Bearer <anon_key>
  */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,12 +21,13 @@ serve(async (req) => {
   }
 
   try {
+    // Validate webhook secret from query parameter
     const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
     if (webhookSecret) {
-      const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-      const token = authHeader?.replace(/^Bearer\s+/i, "").trim();
-      if (token !== webhookSecret) {
-        console.warn("[IBS-WEBHOOK] Invalid or missing authorization token");
+      const url = new URL(req.url);
+      const secretParam = url.searchParams.get("secret");
+      if (secretParam !== webhookSecret) {
+        console.warn("[IBS-WEBHOOK-EVIDENCE] Invalid or missing webhook secret in query param");
         return new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
