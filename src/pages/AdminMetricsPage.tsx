@@ -16,6 +16,7 @@ export default function AdminMetricsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [distMetrics, setDistMetrics] = useState({ distributed: 0, clicks: 0 });
+  const [syncQueueCount, setSyncQueueCount] = useState(0);
 
   const loadMetrics = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
