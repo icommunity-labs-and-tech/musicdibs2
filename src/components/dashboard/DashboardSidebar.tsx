@@ -34,7 +34,7 @@ import { Button } from '@/components/ui/button';
 const mainItems = [
   { title: 'Panel de control', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Registrar obra', url: '/dashboard/register', icon: Upload },
-  { title: 'Evidencias Blockchain', url: '/dashboard/blockchain', icon: Shield },
+  { title: 'Historial de registros', url: '/dashboard/blockchain', icon: Shield },
   { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
   { title: 'Promocionar', url: '/dashboard/promote', icon: Megaphone },
   { title: 'Créditos', url: '/dashboard/credits', icon: ShoppingBag },
