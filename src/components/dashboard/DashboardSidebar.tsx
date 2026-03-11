@@ -13,6 +13,7 @@ import {
   LogOut,
   Sparkles,
   Shield,
+  RotateCcw,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -133,6 +134,18 @@ export function DashboardSidebar() {
         {!collapsed && user && (
           <p className="text-xs text-muted-foreground truncate mb-2 px-1">{user.email}</p>
         )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent('musicdibs:reset-onboarding'));
+            navigate('/dashboard');
+          }}
+        >
+          <RotateCcw className="h-4 w-4 mr-2" />
+          {!collapsed && <span>Ver tutorial otra vez</span>}
+        </Button>
         <Button
           variant="ghost"
           size="sm"

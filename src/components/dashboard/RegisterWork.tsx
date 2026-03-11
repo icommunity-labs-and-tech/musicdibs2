@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -159,6 +160,9 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         startPolling(res.evidenceId);
       } else {
         setStatus('success');
+        // Notify onboarding
+        window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
+        toast.success('🎉 ¡Enhorabuena! Has registrado tu primera obra en MusicDibs.');
       }
     } catch (err: any) { 
       setResult({ registrationId: '', status: 'error', ibsError: err?.message });
