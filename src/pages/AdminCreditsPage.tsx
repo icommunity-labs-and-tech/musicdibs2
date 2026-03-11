@@ -3,13 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { CreditCard, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CreditCard, Search, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
 
 const typeBadge: Record<string, string> = {
   purchase: 'bg-green-500/20 text-green-400',
@@ -25,6 +24,8 @@ export default function AdminCreditsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [offset, setOffset] = useState(0);
   const [typeFilter, setTypeFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Quick adjust
@@ -36,13 +37,13 @@ export default function AdminCreditsPage() {
   const loadTx = async () => {
     setLoading(true);
     try {
-      const res = await adminApi.getAllTransactions(offset, typeFilter);
+      const res = await adminApi.getAllTransactions(offset, typeFilter, dateFrom, dateTo);
       setTransactions(res.transactions || []);
     } catch (e: any) { toast.error(e.message); }
     setLoading(false);
   };
 
-  useEffect(() => { loadTx(); }, [offset, typeFilter]);
+  useEffect(() => { loadTx(); }, [offset, typeFilter, dateFrom, dateTo]);
 
   const handleSearchUser = async () => {
     if (!searchEmail.trim()) return;
@@ -52,15 +53,46 @@ export default function AdminCreditsPage() {
     } catch (e: any) { toast.error(e.message); setFoundUser(null); }
   };
 
+  const parsedAmount = parseInt(amount);
+  const isAmountValid = !isNaN(parsedAmount) && parsedAmount !== 0 && parsedAmount >= -1000 && parsedAmount <= 1000;
+  const isReasonValid = reason.trim().length >= 5;
+  const resultingBalance = foundUser ? Math.max(0, foundUser.available_credits + (isAmountValid ? parsedAmount : 0)) : 0;
+
   const handleQuickAdjust = async () => {
-    const amt = parseInt(amount);
-    if (isNaN(amt) || !reason.trim() || !foundUser) { toast.error('Completa todos los campos'); return; }
+    if (!isAmountValid || !isReasonValid || !foundUser) {
+      if (!isAmountValid) toast.error('Cantidad inválida (entre -1000 y 1000, no puede ser 0)');
+      else if (!isReasonValid) toast.error('El motivo debe tener al menos 5 caracteres');
+      return;
+    }
     try {
-      await adminApi.adjustCredits(foundUser.user_id, amt, reason);
-      toast.success(`Créditos ajustados: ${amt > 0 ? '+' : ''}${amt}`);
+      await adminApi.adjustCredits(foundUser.user_id, parsedAmount, reason.slice(0, 200));
+      toast.success(`Créditos ajustados: ${parsedAmount > 0 ? '+' : ''}${parsedAmount}`);
       setAmount(''); setReason('');
       handleSearchUser(); // refresh
       loadTx();
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  const clearFilters = () => {
+    setTypeFilter('');
+    setDateFrom('');
+    setDateTo('');
+    setOffset(0);
+  };
+
+  const hasFilters = typeFilter || dateFrom || dateTo;
+
+  const handleExportCsv = async () => {
+    try {
+      const res = await adminApi.exportCsv('transactions');
+      const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transacciones_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('CSV descargado');
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -83,37 +115,71 @@ export default function AdminCreditsPage() {
           {foundUser && (
             <div className="space-y-3 p-3 rounded-lg bg-muted/30">
               <p className="text-sm"><strong>{foundUser.display_name || foundUser.email}</strong> — Saldo actual: <span className="font-mono text-primary">{foundUser.available_credits}</span> créditos</p>
+              
+              {isAmountValid && foundUser.available_credits + parsedAmount < 0 && (
+                <div className="p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                  ⚠️ El resultado sería negativo. El saldo se ajustará a 0.
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Cantidad (+/-)</Label>
                   <Input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="10 o -5" />
+                  {amount && !isAmountValid && (
+                    <p className="text-xs text-destructive mt-1">
+                      {parsedAmount === 0 ? 'No puede ser 0' : 'Entre -1000 y 1000'}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <Label>Motivo</Label>
-                  <Input value={reason} onChange={e => setReason(e.target.value)} placeholder="Motivo..." />
+                  <Label>Motivo <span className="text-muted-foreground">({reason.length}/200)</span></Label>
+                  <Input value={reason} onChange={e => setReason(e.target.value.slice(0, 200))} placeholder="Mínimo 5 caracteres..." />
+                  {reason.length > 0 && reason.length < 5 && (
+                    <p className="text-xs text-destructive mt-1">Mínimo 5 caracteres</p>
+                  )}
                 </div>
               </div>
-              <Button onClick={handleQuickAdjust} size="sm">Aplicar ajuste</Button>
+              <Button onClick={handleQuickAdjust} size="sm" disabled={!isAmountValid || !isReasonValid}>Aplicar ajuste</Button>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Transactions table */}
-      <div className="flex gap-2 items-center">
-        <Select value={typeFilter} onValueChange={v => { setTypeFilter(v === 'all' ? '' : v); setOffset(0); }}>
+      {/* Filters */}
+      <div className="flex gap-2 items-center flex-wrap">
+        <Select value={typeFilter || 'all'} onValueChange={v => { setTypeFilter(v === 'all' ? '' : v); setOffset(0); }}>
           <SelectTrigger className="w-40"><SelectValue placeholder="Filtrar tipo" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
             <SelectItem value="purchase">Compra</SelectItem>
             <SelectItem value="usage">Uso</SelectItem>
-            <SelectItem value="admin_grant">Admin</SelectItem>
+            <SelectItem value="admin_grant">Admin +</SelectItem>
+            <SelectItem value="admin_deduct">Admin -</SelectItem>
             <SelectItem value="onboarding">Onboarding</SelectItem>
             <SelectItem value="refund">Reembolso</SelectItem>
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-1">
+          <Label className="text-xs text-muted-foreground whitespace-nowrap">Desde</Label>
+          <Input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setOffset(0); }} className="w-36 h-9" />
+        </div>
+        <div className="flex items-center gap-1">
+          <Label className="text-xs text-muted-foreground whitespace-nowrap">Hasta</Label>
+          <Input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setOffset(0); }} className="w-36 h-9" />
+        </div>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-1" /> Limpiar filtros
+          </Button>
+        )}
+        <div className="flex-1" />
+        <Button variant="outline" size="sm" onClick={handleExportCsv}>
+          <Download className="h-4 w-4 mr-1" /> Exportar CSV
+        </Button>
       </div>
 
+      {/* Transactions table */}
       <div className="rounded-lg border border-border/40 overflow-hidden">
         <Table>
           <TableHeader>
@@ -128,6 +194,8 @@ export default function AdminCreditsPage() {
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
+            ) : transactions.length === 0 ? (
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Sin resultados para los filtros seleccionados</TableCell></TableRow>
             ) : transactions.map(t => (
               <TableRow key={t.id}>
                 <TableCell className="text-sm">{t.email}</TableCell>
