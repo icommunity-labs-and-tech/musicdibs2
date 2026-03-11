@@ -64,7 +64,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [creatingSignature, setCreatingSignature] = useState(false);
   const [newSigName, setNewSigName] = useState('');
   const [kycUrl, setKycUrl] = useState<string | null>(null);
-  const [polling, setPolling] = useState(false);
+  
 
   const { hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.register_work);
