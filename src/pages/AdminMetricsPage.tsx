@@ -21,8 +21,14 @@ export default function AdminMetricsPage() {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const data = await adminApi.getMetrics();
+      const [data, distCount, clicksData] = await Promise.all([
+        adminApi.getMetrics(),
+        supabase.from('works').select('*', { count: 'exact', head: true }).not('distributed_at', 'is', null),
+        supabase.from('works').select('distribution_clicks').not('distributed_at', 'is', null),
+      ]);
       setMetrics(data);
+      const totalClicks = (clicksData.data || []).reduce((s: number, w: any) => s + (w.distribution_clicks || 0), 0);
+      setDistMetrics({ distributed: distCount.count || 0, clicks: totalClicks });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
