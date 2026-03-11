@@ -474,6 +474,9 @@ const AIStudioCreate = () => {
                   <p className="text-xs text-muted-foreground">Bajo = más creativo, Alto = más fiel al prompt</p>
                 </div>
 
+                {!hasEnough(1) ? (
+                  <NoCreditsAlert message="No tienes créditos suficientes para generar música." />
+                ) : (
                 <Button 
                   onClick={handleGenerate} 
                   disabled={isGenerating || !prompt.trim()}
@@ -488,10 +491,11 @@ const AIStudioCreate = () => {
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Generar Música
+                      Generar Música (1 crédito)
                     </>
                   )}
                 </Button>
+                )}
 
                 {generationError && (
                   <Alert variant="destructive" className="mt-4">
