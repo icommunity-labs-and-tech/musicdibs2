@@ -458,6 +458,9 @@ const AIStudioEdit = () => {
                   </TabsContent>
                 </Tabs>
 
+                {!hasEnough(1) ? (
+                  <NoCreditsAlert message="No tienes créditos suficientes para editar música." />
+                ) : (
                 <Button 
                   onClick={handleProcess} 
                   disabled={isProcessing || !sourceSelected}
@@ -472,10 +475,11 @@ const AIStudioEdit = () => {
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Crear {variationType === 'similar' ? 'Variación' : variationType === 'mood_change' ? 'Versión' : variationType === 'extend' ? 'Extensión' : 'Edición'}
+                      Crear {variationType === 'similar' ? 'Variación' : variationType === 'mood_change' ? 'Versión' : variationType === 'extend' ? 'Extensión' : 'Edición'} (1 crédito)
                     </>
                   )}
                 </Button>
+                )}
               </CardContent>
             </Card>
           </div>
