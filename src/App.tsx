@@ -42,6 +42,12 @@ import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
 import AIStudioInspire from "./pages/AIStudioInspire";
 import AIStudioVideo from "./pages/AIStudioVideo";
+import { AdminGuard } from "./components/AdminGuard";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminCreditsPage from "./pages/AdminCreditsPage";
+import AdminWorksPage from "./pages/AdminWorksPage";
+import AdminMetricsPage from "./pages/AdminMetricsPage";
+import AdminSystemPage from "./pages/AdminSystemPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
