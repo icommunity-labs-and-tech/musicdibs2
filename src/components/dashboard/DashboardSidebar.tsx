@@ -13,7 +13,7 @@ import {
   LogOut,
   Sparkles,
   Shield,
-  RotateCcw,
+  HelpCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -98,7 +98,7 @@ export function DashboardSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {toolsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} data-tour="ai-studio">
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
@@ -139,12 +139,11 @@ export function DashboardSidebar() {
           size="sm"
           className="w-full justify-start text-muted-foreground hover:text-foreground"
           onClick={() => {
-            window.dispatchEvent(new CustomEvent('musicdibs:reset-onboarding'));
-            navigate('/dashboard');
+            window.dispatchEvent(new CustomEvent('musicdibs:start-tour'));
           }}
         >
-          <RotateCcw className="h-4 w-4 mr-2" />
-          {!collapsed && <span>Ver tutorial otra vez</span>}
+          <HelpCircle className="h-4 w-4 mr-2" />
+          {!collapsed && <span>Guía del panel</span>}
         </Button>
         <Button
           variant="ghost"
