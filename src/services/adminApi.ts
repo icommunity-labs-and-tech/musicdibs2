@@ -21,4 +21,5 @@ export const adminApi = {
   searchUserByEmail: (email: string) => adminAction('search_user_by_email', { email }),
   exportCsv: (dataset: string) => adminAction('export_csv', { dataset }),
   getAdmins: () => adminAction('get_admins'),
+  getAuditLog: (offset = 0, action_filter = '') => adminAction('get_audit_log', { offset, action_filter }),
 };

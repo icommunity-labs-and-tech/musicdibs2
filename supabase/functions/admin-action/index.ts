@@ -32,6 +32,7 @@ serve(async (req) => {
     if (claimsError || !claimsData?.claims) return json({ error: "Unauthorized" }, 401);
 
     const callerUserId = claimsData.claims.sub as string;
+    const callerEmail = (claimsData.claims as any).email as string || "";
 
     // Admin check with service_role
     const admin = createClient(
@@ -50,6 +51,27 @@ serve(async (req) => {
 
     const { action, payload = {} } = await req.json();
 
+    // ── Helper: write audit log ──────────────────────────────
+    async function audit(details: {
+      action: string;
+      target_user_id?: string;
+      target_email?: string;
+      details?: Record<string, unknown>;
+    }) {
+      try {
+        await admin.from("audit_log").insert({
+          admin_user_id: callerUserId,
+          admin_email: callerEmail,
+          action: details.action,
+          target_user_id: details.target_user_id || null,
+          target_email: details.target_email || null,
+          details: details.details || {},
+        });
+      } catch (e) {
+        console.error("[AUDIT] Failed to write audit log:", e);
+      }
+    }
+
     // ── ACTIONS ──────────────────────────────────────────────
 
     if (action === "get_users") {
@@ -65,20 +87,17 @@ serve(async (req) => {
       const { data: profiles, error } = await query;
       if (error) return json({ error: error.message }, 500);
 
-      // Enrich with roles and works count
       const userIds = (profiles || []).map((p: any) => p.user_id);
       const { data: roles } = await admin.from("user_roles").select("user_id, role").in("user_id", userIds);
       const rolesMap: Record<string, string> = {};
       (roles || []).forEach((r: any) => { rolesMap[r.user_id] = r.role; });
 
-      // Get works counts
       const enriched = [];
       for (const p of profiles || []) {
         const { count } = await admin.from("works").select("*", { count: "exact", head: true }).eq("user_id", p.user_id);
         enriched.push({ ...p, role: rolesMap[p.user_id] || "user", works_count: count || 0 });
       }
 
-      // Get emails from auth
       const emailsMap: Record<string, string> = {};
       for (const uid of userIds) {
         const { data: authUser } = await admin.auth.admin.getUserById(uid);
@@ -87,7 +106,6 @@ serve(async (req) => {
 
       const result = enriched.map((u: any) => ({ ...u, email: emailsMap[u.user_id] || "" }));
 
-      // Filter by email if search provided
       const filtered = search
         ? result.filter((u: any) => u.email.toLowerCase().includes(search.toLowerCase()) || u.display_name?.toLowerCase().includes(search.toLowerCase()))
         : result;
@@ -105,6 +123,10 @@ serve(async (req) => {
       const { data: profile } = await admin.from("profiles").select("available_credits").eq("user_id", user_id).single();
       if (!profile) return json({ error: "User not found" }, 404);
 
+      // Get target email for audit
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      const targetEmail = targetAuth?.user?.email || "";
+
       const newCredits = Math.max(0, profile.available_credits + amount);
       const { error: upErr } = await admin.from("profiles").update({ available_credits: newCredits, updated_at: new Date().toISOString() }).eq("user_id", user_id);
       if (upErr) return json({ error: upErr.message }, 500);
@@ -116,6 +138,13 @@ serve(async (req) => {
         description: reason.slice(0, 200),
       });
 
+      await audit({
+        action: "adjust_credits",
+        target_user_id: user_id,
+        target_email: targetEmail,
+        details: { amount, reason: reason.slice(0, 200), previous_balance: profile.available_credits, new_balance: newCredits },
+      });
+
       return json({ success: true, new_balance: newCredits });
     }
 
@@ -124,6 +153,15 @@ serve(async (req) => {
       if (!["pending", "verified", "rejected"].includes(status)) return json({ error: "Invalid status" }, 400);
       const { error } = await admin.from("profiles").update({ kyc_status: status, updated_at: new Date().toISOString() }).eq("user_id", user_id);
       if (error) return json({ error: error.message }, 500);
+
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      await audit({
+        action: "set_kyc",
+        target_user_id: user_id,
+        target_email: targetAuth?.user?.email || "",
+        details: { new_status: status },
+      });
+
       return json({ success: true });
     }
 
@@ -146,6 +184,14 @@ serve(async (req) => {
         await admin.auth.admin.signOut(user_id);
       }
 
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      await audit({
+        action: blocked ? "block_user" : "unblock_user",
+        target_user_id: user_id,
+        target_email: targetAuth?.user?.email || "",
+        details: { blocked },
+      });
+
       return json({ success: true });
     }
 
@@ -158,6 +204,15 @@ serve(async (req) => {
       } else {
         await admin.from("user_roles").delete().eq("user_id", user_id).eq("role", "admin");
       }
+
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      await audit({
+        action: is_admin ? "grant_admin" : "revoke_admin",
+        target_user_id: user_id,
+        target_email: targetAuth?.user?.email || "",
+        details: { is_admin },
+      });
+
       return json({ success: true });
     }
 
@@ -170,7 +225,6 @@ serve(async (req) => {
       const { data: works, error } = await query;
       if (error) return json({ error: error.message }, 500);
 
-      // Enrich with user info
       const userIds = [...new Set((works || []).map((w: any) => w.user_id))];
       const emailsMap: Record<string, string> = {};
       const namesMap: Record<string, string> = {};
@@ -199,20 +253,17 @@ serve(async (req) => {
       const { count: works_processing } = await admin.from("works").select("*", { count: "exact", head: true }).eq("status", "processing");
       const { count: works_failed } = await admin.from("works").select("*", { count: "exact", head: true }).eq("status", "failed");
 
-      // Credits
       const { data: posTx } = await admin.from("credit_transactions").select("amount").gt("amount", 0);
       const total_credits_sold = (posTx || []).reduce((s: number, t: any) => s + t.amount, 0);
       const { data: negTx } = await admin.from("credit_transactions").select("amount").lt("amount", 0);
       const total_credits_consumed = Math.abs((negTx || []).reduce((s: number, t: any) => s + t.amount, 0));
 
-      // Plan breakdown
       const { data: allProfiles } = await admin.from("profiles").select("subscription_plan");
       const plan_breakdown: Record<string, number> = {};
       (allProfiles || []).forEach((p: any) => {
         plan_breakdown[p.subscription_plan] = (plan_breakdown[p.subscription_plan] || 0) + 1;
       });
 
-      // Works per day (last 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
       const { data: recentWorks } = await admin.from("works").select("created_at").gte("created_at", thirtyDaysAgo);
       const works_per_day: Record<string, number> = {};
@@ -245,7 +296,6 @@ serve(async (req) => {
       const { data: txs, error } = await query;
       if (error) return json({ error: error.message }, 500);
 
-      // Enrich with emails
       const userIds = [...new Set((txs || []).map((t: any) => t.user_id))];
       const emailsMap: Record<string, string> = {};
       for (const uid of userIds) {
@@ -261,7 +311,6 @@ serve(async (req) => {
       const { email } = payload;
       if (!email) return json({ error: "email required" }, 400);
 
-      // Paginate through all auth users to find by email
       let found: any = null;
       let page = 1;
       while (!found) {
@@ -322,6 +371,15 @@ serve(async (req) => {
         return json({ csv: [header, ...rows].join("\n") });
       }
 
+      if (dataset === "audit") {
+        const { data: logs } = await admin.from("audit_log").select("*").order("created_at", { ascending: false }).limit(1000);
+        const header = "admin_email,action,target_email,details,created_at";
+        const rows = (logs || []).map((l: any) =>
+          `${l.admin_email},${l.action},${l.target_email || ""},"${JSON.stringify(l.details || {}).replace(/"/g, '""')}",${l.created_at}`
+        );
+        return json({ csv: [header, ...rows].join("\n") });
+      }
+
       return json({ error: "Invalid dataset" }, 400);
     }
 
@@ -333,10 +391,20 @@ serve(async (req) => {
         admins.push({
           user_id: r.user_id,
           email: authUser?.user?.email || "",
-          created_at: r.id, // approximation
+          created_at: r.id,
         });
       }
       return json({ admins });
+    }
+
+    if (action === "get_audit_log") {
+      const offset = payload.offset || 0;
+      let query = admin.from("audit_log").select("*").order("created_at", { ascending: false }).range(offset, offset + 49);
+      if (payload.action_filter) query = query.eq("action", payload.action_filter);
+
+      const { data: logs, error } = await query;
+      if (error) return json({ error: error.message }, 500);
+      return json({ logs: logs || [] });
     }
 
     return json({ error: "Unknown action" }, 400);
