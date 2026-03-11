@@ -115,6 +115,7 @@ export function PromoteWorks() {
             )}
           </DialogContent>
         </Dialog>
+        )}
       </CardContent>
     </Card>
   );

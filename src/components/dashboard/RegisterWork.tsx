@@ -229,7 +229,9 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {kycBlocked ? (
+        {noCredits ? (
+          <NoCreditsAlert message="No tienes créditos suficientes para registrar una obra." />
+        ) : kycBlocked ? (
           <div className="space-y-3 py-2">
             <div className="flex items-center gap-2 text-amber-600">
               <ShieldAlert className="h-5 w-5" />
