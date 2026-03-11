@@ -29,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
