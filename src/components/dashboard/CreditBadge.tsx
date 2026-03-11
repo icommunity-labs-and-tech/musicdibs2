@@ -81,11 +81,21 @@ export function CreditBadge() {
     <HoverCard openDelay={200} closeDelay={100}>
       <HoverCardTrigger asChild>
         <button
-          className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20 transition-colors"
+          className={`relative flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+            credits < 3
+              ? 'bg-destructive/15 text-destructive hover:bg-destructive/25 animate-pulse'
+              : 'bg-primary/10 text-primary hover:bg-primary/20'
+          }`}
           title="Créditos disponibles"
         >
           <Coins className="h-3.5 w-3.5" />
           <span className="tabular-nums">{credits}</span>
+          {credits < 3 && (
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive/75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-destructive" />
+            </span>
+          )}
         </button>
       </HoverCardTrigger>
       <HoverCardContent align="end" className="w-72 p-0">
