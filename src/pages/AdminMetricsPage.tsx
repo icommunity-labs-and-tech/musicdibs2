@@ -13,13 +13,23 @@ const STATUS_COLORS = ['hsl(142, 76%, 36%)', 'hsl(48, 96%, 53%)', 'hsl(0, 84%, 6
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    adminApi.getMetrics()
-      .then(setMetrics)
-      .catch((e: any) => toast.error(e.message))
-      .finally(() => setLoading(false));
+  const loadMetrics = useCallback(async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const data = await adminApi.getMetrics();
+      setMetrics(data);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
   const handleExport = async (dataset: string) => {
     try {
