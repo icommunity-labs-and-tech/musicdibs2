@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
 import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures, pollEvidenceStatus } from '@/services/dashboardApi';
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
+import { useCredits } from '@/hooks/useCredits';
+import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
