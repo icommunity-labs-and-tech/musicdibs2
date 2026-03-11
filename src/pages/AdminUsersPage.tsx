@@ -180,12 +180,18 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Credit adjustment modal */}
-      <Dialog open={creditModal.open} onOpenChange={open => !open && setCreditModal({ open: false, userId: '', email: '' })}>
+      <Dialog open={creditModal.open} onOpenChange={open => !open && setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 })}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajustar créditos — {creditModal.email}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Saldo actual: <span className="font-mono font-medium text-primary">{creditModal.currentCredits}</span> créditos</p>
+            {creditAmount && !isNaN(parseInt(creditAmount)) && (creditModal.currentCredits + parseInt(creditAmount)) < 0 && (
+              <div className="p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                ⚠️ El resultado sería negativo. El saldo se ajustará a 0.
+              </div>
+            )}
             <div>
               <Label>Cantidad (+/-)</Label>
               <Input type="number" value={creditAmount} onChange={e => setCreditAmount(e.target.value)} placeholder="Ej: 10 o -5" />
@@ -196,8 +202,8 @@ export default function AdminUsersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreditModal({ open: false, userId: '', email: '' })}>Cancelar</Button>
-            <Button onClick={handleAdjustCredits}>Aplicar</Button>
+            <Button variant="outline" onClick={() => setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 })}>Cancelar</Button>
+            <Button onClick={handleAdjustCredits} disabled={!creditReason.trim() || !creditAmount || isNaN(parseInt(creditAmount))}>Aplicar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
