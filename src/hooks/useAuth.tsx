@@ -47,22 +47,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id).then(() => setLoading(false));
+        const blocked = await checkBlocked(session.user.id);
+        if (!blocked) {
+          await checkAdmin(session.user.id);
+        }
+        setLoading(false);
       } else {
         setIsAdmin(false);
         setLoading(false);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id).then(() => setLoading(false));
+        const blocked = await checkBlocked(session.user.id);
+        if (!blocked) {
+          await checkAdmin(session.user.id);
+        }
+        setLoading(false);
       } else {
         setIsAdmin(false);
         setLoading(false);
