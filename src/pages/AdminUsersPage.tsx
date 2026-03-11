@@ -92,12 +92,25 @@ export default function AdminUsersPage() {
         <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por email o nombre..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSearch()} className="pl-9" />
         </div>
         <Button onClick={handleSearch} variant="secondary">Buscar</Button>
+        <Button variant="outline" size="sm" onClick={async () => {
+          try {
+            const res = await adminApi.exportCsv('users');
+            const blob = new Blob([res.csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `usuarios_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click(); URL.revokeObjectURL(url);
+            toast.success('CSV descargado');
+          } catch (e: any) { toast.error(e.message); }
+        }}>
+          <Download className="h-4 w-4 mr-1" /> Exportar CSV
+        </Button>
       </div>
 
       <div className="rounded-lg border border-border/40 overflow-hidden">
