@@ -261,8 +261,15 @@ serve(async (req) => {
       const { email } = payload;
       if (!email) return json({ error: "email required" }, 400);
 
-      const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 50 });
-      const found = (users || []).find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+      // Paginate through all auth users to find by email
+      let found: any = null;
+      let page = 1;
+      while (!found) {
+        const { data: { users } } = await admin.auth.admin.listUsers({ page, perPage: 500 });
+        if (!users || users.length === 0) break;
+        found = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase());
+        page++;
+      }
       if (!found) return json({ error: "User not found" }, 404);
 
       const { data: profile } = await admin.from("profiles").select("*").eq("user_id", found.id).single();
