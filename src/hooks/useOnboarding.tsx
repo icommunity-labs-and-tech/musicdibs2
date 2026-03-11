@@ -78,6 +78,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     }
   }, [user]);
 
+  // Listen for reset event from sidebar
+  useEffect(() => {
+    const handler = () => reset();
+    window.addEventListener('musicdibs:reset-onboarding', handler);
+    return () => window.removeEventListener('musicdibs:reset-onboarding', handler);
+  }, []);
+
   useEffect(() => {
     if (user && loaded) saveState(user.id, state);
   }, [state, user, loaded]);
