@@ -97,14 +97,16 @@ export default function AdminMetricsPage() {
           { label: 'Conversión', value: `${conversionRate}%`, icon: TrendingUp },
           { label: 'Obras distribuidas', value: distMetrics.distributed, icon: Radio },
           { label: 'Clicks distribución', value: distMetrics.clicks, icon: MousePointerClick },
-        ].map(kpi => (
-          <Card key={kpi.label} className="border-border/40">
+          { label: 'Cola blockchain', value: syncQueueCount, icon: Link, highlight: syncQueueCount > 0 ? 'amber' : 'green' },
+        ].map((kpi: any) => (
+          <Card key={kpi.label} className={`border-border/40 ${kpi.highlight === 'amber' ? 'border-amber-500/50 bg-amber-500/5' : kpi.highlight === 'green' ? 'border-green-500/50 bg-green-500/5' : ''}`}>
             <CardContent className="pt-4 pb-3 px-4">
               <div className="flex items-center gap-2 mb-1">
-                <kpi.icon className="h-4 w-4 text-muted-foreground" />
+                <kpi.icon className={`h-4 w-4 ${kpi.highlight === 'amber' ? 'text-amber-400' : kpi.highlight === 'green' ? 'text-green-400' : 'text-muted-foreground'}`} />
                 <p className="text-xs text-muted-foreground">{kpi.label}</p>
               </div>
               <p className="text-2xl font-bold">{kpi.value}</p>
+              {kpi.highlight === 'green' && <p className="text-[10px] text-green-400">Sin pendientes</p>}
             </CardContent>
           </Card>
         ))}

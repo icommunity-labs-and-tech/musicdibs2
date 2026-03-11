@@ -125,7 +125,7 @@ export default function AdminWorksPage() {
                 </TableCell>
                 <TableCell className="font-medium text-sm max-w-[200px] truncate">{w.title}</TableCell>
                 <TableCell><Badge variant="outline">{w.type}</Badge></TableCell>
-                <TableCell>{statusBadge(w.status)}</TableCell>
+                <TableCell>{statusBadge(w.status, w.created_at)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{new Date(w.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   {w.checker_url && w.status === 'registered' ? (

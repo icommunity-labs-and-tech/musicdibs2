@@ -84,6 +84,13 @@ serve(async (req) => {
           })
           .eq("id", work.id);
         console.log(`[IBS-WEBHOOK-EVIDENCE] Work ${work.id} certified. Hash: ${certHash}`);
+
+        // Resolve sync queue entry so cron doesn't retry
+        await supabaseAdmin
+          .from("ibs_sync_queue")
+          .update({ status: "resolved", updated_at: new Date().toISOString() })
+          .eq("ibs_evidence_id", evidenceId)
+          .in("status", ["waiting", "retrying"]);
       } else {
         console.warn(`[IBS-WEBHOOK-EVIDENCE] No work found for evidence ${evidenceId}`);
       }
