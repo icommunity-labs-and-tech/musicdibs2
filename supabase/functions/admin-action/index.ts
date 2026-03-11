@@ -127,11 +127,23 @@ serve(async (req) => {
 
     if (action === "toggle_block") {
       const { user_id, blocked } = payload;
-      const { error } = await admin.from("profiles").update({ is_blocked: blocked, updated_at: new Date().toISOString() }).eq("user_id", user_id);
+      if (!user_id || typeof blocked !== "boolean") return json({ error: "user_id and blocked are required" }, 400);
+
+      const { error } = await admin
+        .from("profiles")
+        .update({ is_blocked: blocked, updated_at: new Date().toISOString() })
+        .eq("user_id", user_id);
       if (error) return json({ error: error.message }, 500);
+
+      const { error: authErr } = await admin.auth.admin.updateUserById(user_id, {
+        ban_duration: blocked ? "876000h" : "none",
+      });
+      if (authErr) return json({ error: authErr.message }, 500);
+
       if (blocked) {
         await admin.auth.admin.signOut(user_id);
       }
+
       return json({ success: true });
     }
 
