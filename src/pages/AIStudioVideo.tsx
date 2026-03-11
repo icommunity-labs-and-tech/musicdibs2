@@ -29,6 +29,7 @@ import { Footer } from "@/components/Footer";
 import type { GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const VIDEO_STYLES = [
   { id: "cinematic", label: "Cinemático", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
