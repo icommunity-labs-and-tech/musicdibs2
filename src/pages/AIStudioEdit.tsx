@@ -141,6 +141,13 @@ const AIStudioEdit = () => {
 
     setIsProcessing(true);
     try {
+      // Spend 1 credit before processing
+      const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+        body: { amount: 1, feature: 'edit_audio', description: `Edición AI: ${variationType}` },
+      });
+      if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+      if (spendResult?.error) throw new Error(spendResult.error);
+
       const prompt = buildVariationPrompt();
       const duration = variationType === 'extend' ? newDuration : (selectedSource?.duration || 30);
 
