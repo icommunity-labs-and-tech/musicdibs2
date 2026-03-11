@@ -18,7 +18,7 @@ export function PromoteWorks() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [consent, setConsent] = useState(false);
   const { hasEnough } = useCredits();
-  const noCredits = !hasEnough(1);
+  const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
