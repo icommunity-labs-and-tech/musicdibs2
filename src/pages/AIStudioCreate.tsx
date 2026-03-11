@@ -146,9 +146,9 @@ const AIStudioCreate = () => {
     setGenerationError(null);
     
     try {
-      // Spend 1 credit before generating
+      // Spend credits before generating
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { amount: 1, feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` },
+        body: { feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` },
       });
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
