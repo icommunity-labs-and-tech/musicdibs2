@@ -71,6 +71,19 @@ export async function submitPromotionRequest(data: PromotionRequest): Promise<{ 
   });
 
   if (error) throw error;
+
+  // Send email notification
+  await supabase.functions.invoke('send-promotion-email', {
+    body: {
+      artistName: data.artistName,
+      mainLink: data.mainLink,
+      workTitle: data.workTitle,
+      description: data.description,
+      promotionGoal: data.promotionGoal,
+      socialNetworks: data.socialNetworks,
+    },
+  });
+
   return { success: true };
 }
 
