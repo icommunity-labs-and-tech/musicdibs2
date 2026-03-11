@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
     try {
       await adminApi.adjustCredits(creditModal.userId, amt, creditReason);
       toast.success('Créditos ajustados');
-      setCreditModal({ open: false, userId: '', email: '' });
+      setCreditModal({ open: false, userId: '', email: '', currentCredits: 0 });
       setCreditAmount('');
       setCreditReason('');
       load();
