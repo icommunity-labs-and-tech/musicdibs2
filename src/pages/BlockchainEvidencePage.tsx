@@ -127,9 +127,6 @@ export default function BlockchainEvidencePage() {
             <Shield className="h-5 w-5 text-primary" />
             Historial de registros
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Estado de tus obras registradas
-          </p>
         </div>
         <Button variant="outline" size="sm" onClick={loadWorks} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
