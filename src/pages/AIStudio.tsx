@@ -48,6 +48,7 @@ const AIStudio = () => {
       href: "/ai-studio/video",
       available: true,
       costsCredits: true,
+      featureKey: 'generate_video' as const,
       color: "from-rose-500 to-red-500"
     }
   ];
