@@ -62,4 +62,6 @@ export interface RecentRegistration {
   date: string;
   type: string;
   certificateUrl?: string;
+  distributedAt?: string | null;
+  distributionClicks?: number;
 }
