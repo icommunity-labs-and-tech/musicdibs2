@@ -10,6 +10,7 @@ import { Megaphone, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { submitPromotionRequest } from '@/services/dashboardApi';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
+import { FEATURE_COSTS } from '@/lib/featureCosts';
 
 export function PromoteWorks() {
   const [open, setOpen] = useState(false);
