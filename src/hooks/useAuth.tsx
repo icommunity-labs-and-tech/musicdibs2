@@ -20,6 +20,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const checkBlocked = async (userId: string): Promise<boolean> => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('is_blocked')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (data?.is_blocked) {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      return true;
+    }
+    return false;
+  };
+
   const checkAdmin = async (userId: string) => {
     const { data } = await supabase
       .from('user_roles')
