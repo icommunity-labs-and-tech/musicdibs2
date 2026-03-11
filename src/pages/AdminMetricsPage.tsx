@@ -1,25 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { BarChart3, Users, Music, CreditCard, Download, TrendingUp } from 'lucide-react';
+import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))'];
+const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--secondary))'];
 const STATUS_COLORS = ['hsl(142, 76%, 36%)', 'hsl(48, 96%, 53%)', 'hsl(0, 84%, 60%)'];
 
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    adminApi.getMetrics()
-      .then(setMetrics)
-      .catch((e: any) => toast.error(e.message))
-      .finally(() => setLoading(false));
+  const loadMetrics = useCallback(async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    else setLoading(true);
+    try {
+      const data = await adminApi.getMetrics();
+      setMetrics(data);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
   const handleExport = async (dataset: string) => {
     try {
@@ -28,7 +38,7 @@ export default function AdminMetricsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${dataset}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.download = `musicdibs-${dataset}-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success('CSV descargado');
@@ -59,6 +69,10 @@ export default function AdminMetricsPage() {
         <BarChart3 className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold">Métricas</h1>
         <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
+        <Button variant="outline" size="sm" className="ml-auto" onClick={() => loadMetrics(true)} disabled={refreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          Actualizar
+        </Button>
       </div>
 
       {/* KPI cards */}
