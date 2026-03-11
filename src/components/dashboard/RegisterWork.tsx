@@ -57,6 +57,8 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
   const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
+  const [lastRegisteredWorkId, setLastRegisteredWorkId] = useState<string | null>(null);
+  const [showDistributeBanner, setShowDistributeBanner] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // iBS Signatures
