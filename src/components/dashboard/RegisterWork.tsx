@@ -156,18 +156,18 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         ownershipDeclaration: ownership,
         signatureId: selectedSignature,
       });
-      setResult(res);
       if (res.ibsError || res.status === 'failed') {
+        setResult(res);
         setStatus('failed');
-      } else if (res.status === 'processing' && res.evidenceId) {
-        setStatus('processing');
-        // Start polling for certification
-        startPolling(res.evidenceId);
       } else {
-        setStatus('success');
-        // Notify onboarding
+        // Success — reset form immediately so user can register more works
+        // Blockchain certification happens asynchronously via webhook
         window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
-        toast.success('🎉 ¡Enhorabuena! Has registrado tu primera obra en MusicDibs.');
+        toast.success('🎉 ¡Obra enviada! La certificación en blockchain se procesará en segundo plano.', {
+          description: 'Recibirás una notificación cuando finalice. Puedes seguir registrando obras.',
+          duration: 6000,
+        });
+        resetForm();
       }
     } catch (err: any) { 
       setResult({ registrationId: '', status: 'error', ibsError: err?.message });
