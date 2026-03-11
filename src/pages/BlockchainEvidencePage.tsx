@@ -19,6 +19,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
 
 interface WorkEvidence {
   id: string;
@@ -32,6 +33,8 @@ interface WorkEvidence {
   certified_at: string | null;
   created_at: string;
   ibs_evidence_id: string | null;
+  distributed_at: string | null;
+  distribution_clicks: number;
 }
 
 const statusConfig: Record<string, { label: string; icon: React.ElementType; className: string }> = {
@@ -73,7 +76,7 @@ export default function BlockchainEvidencePage() {
     try {
       const { data, error } = await supabase
         .from('works')
-        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id')
+        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
@@ -296,6 +299,14 @@ export default function BlockchainEvidencePage() {
                                 Certificado
                               </Button>
                             </a>
+                          )}
+                          {work.status === 'registered' && (
+                            <DistributeButton
+                              workId={work.id}
+                              distributedAt={work.distributed_at}
+                              currentClicks={work.distribution_clicks || 0}
+                              onDistributed={loadWorks}
+                            />
                           )}
                         </div>
                       </div>

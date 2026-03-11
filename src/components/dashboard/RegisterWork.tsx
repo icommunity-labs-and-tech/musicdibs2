@@ -9,12 +9,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
+import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw, Radio } from 'lucide-react';
 import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures } from '@/services/dashboardApi';
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { supabase } from '@/integrations/supabase/client';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
@@ -55,6 +57,8 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [author, setAuthor] = useState('');
   const [description, setDescription] = useState('');
   const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
+  const [lastRegisteredWorkId, setLastRegisteredWorkId] = useState<string | null>(null);
+  const [showDistributeBanner, setShowDistributeBanner] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // iBS Signatures
@@ -167,6 +171,26 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
           description: 'Recibirás una notificación cuando finalice. Puedes seguir registrando obras.',
           duration: 6000,
         });
+        setLastRegisteredWorkId(res.registrationId);
+        setShowDistributeBanner(false);
+        // Listen for status change to 'registered' via polling
+        if (res.registrationId) {
+          const pollInterval = setInterval(async () => {
+            const { data } = await supabase
+              .from('works')
+              .select('status')
+              .eq('id', res.registrationId)
+              .single();
+            if (data?.status === 'registered') {
+              setShowDistributeBanner(true);
+              clearInterval(pollInterval);
+            } else if (data?.status === 'failed') {
+              clearInterval(pollInterval);
+            }
+          }, 5000);
+          // Stop polling after 5 minutes
+          setTimeout(() => clearInterval(pollInterval), 300_000);
+        }
         resetForm();
       }
     } catch (err: any) { 
@@ -420,6 +444,27 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             >
               {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en blockchain...</> : 'Registrar obra'}
             </Button>
+
+            {showDistributeBanner && lastRegisteredWorkId && (
+              <Card className="mt-4 border-emerald-500/30 bg-emerald-500/5">
+                <CardContent className="p-4 flex items-start gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10">
+                    <Radio className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <p className="text-sm font-semibold">¡Obra registrada! ¿La distribuimos?</p>
+                    <p className="text-xs text-muted-foreground">
+                      Llega a Spotify, Apple Music, Amazon Music y más de 150 plataformas con MusicDibs Distribución.
+                    </p>
+                    <DistributeButton
+                      workId={lastRegisteredWorkId}
+                      distributedAt={null}
+                      variant="banner"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </form>
         )}
       </CardContent>

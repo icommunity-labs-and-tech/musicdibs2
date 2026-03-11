@@ -414,6 +414,8 @@ export type Database = {
           checker_url: string | null
           created_at: string
           description: string | null
+          distributed_at: string | null
+          distribution_clicks: number | null
           file_path: string | null
           ibs_evidence_id: string | null
           ibs_signature_id: string | null
@@ -433,6 +435,8 @@ export type Database = {
           checker_url?: string | null
           created_at?: string
           description?: string | null
+          distributed_at?: string | null
+          distribution_clicks?: number | null
           file_path?: string | null
           ibs_evidence_id?: string | null
           ibs_signature_id?: string | null
@@ -452,6 +456,8 @@ export type Database = {
           checker_url?: string | null
           created_at?: string
           description?: string | null
+          distributed_at?: string | null
+          distribution_clicks?: number | null
           file_path?: string | null
           ibs_evidence_id?: string | null
           ibs_signature_id?: string | null

@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { History, FileText, ExternalLink, RefreshCw } from 'lucide-react';
 import { fetchRecentRegistrations } from '@/services/dashboardApi';
 import type { RecentRegistration } from '@/types/dashboard';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   processing: { label: 'En proceso', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
@@ -74,6 +75,16 @@ export function RecentRegistrations() {
                         >
                           <ExternalLink className="h-3 w-3" /> Certificado
                         </a>
+                      )}
+                      {reg.status === 'registered' && (
+                        <div className="mt-1">
+                          <DistributeButton
+                            workId={reg.id}
+                            distributedAt={(reg as any).distributedAt || null}
+                            currentClicks={(reg as any).distributionClicks || 0}
+                            onDistributed={load}
+                          />
+                        </div>
                       )}
                     </div>
                   </div>

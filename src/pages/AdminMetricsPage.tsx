@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw } from 'lucide-react';
+import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw, Radio, MousePointerClick } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--secondary))'];
@@ -14,13 +15,20 @@ export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [distMetrics, setDistMetrics] = useState({ distributed: 0, clicks: 0 });
 
   const loadMetrics = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const data = await adminApi.getMetrics();
+      const [data, distCount, clicksData] = await Promise.all([
+        adminApi.getMetrics(),
+        supabase.from('works').select('*', { count: 'exact', head: true }).not('distributed_at', 'is', null),
+        supabase.from('works').select('distribution_clicks').not('distributed_at', 'is', null),
+      ]);
       setMetrics(data);
+      const totalClicks = (clicksData.data || []).reduce((s: number, w: any) => s + (w.distribution_clicks || 0), 0);
+      setDistMetrics({ distributed: distCount.count || 0, clicks: totalClicks });
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -76,7 +84,7 @@ export default function AdminMetricsPage() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
         {[
           { label: 'Usuarios totales', value: metrics.total_users, icon: Users },
           { label: 'Nuevos (7d)', value: metrics.new_users_7d, icon: TrendingUp },
@@ -84,6 +92,8 @@ export default function AdminMetricsPage() {
           { label: 'Créditos vendidos', value: metrics.total_credits_sold, icon: CreditCard },
           { label: 'Créditos consumidos', value: metrics.total_credits_consumed, icon: CreditCard },
           { label: 'Conversión', value: `${conversionRate}%`, icon: TrendingUp },
+          { label: 'Obras distribuidas', value: distMetrics.distributed, icon: Radio },
+          { label: 'Clicks distribución', value: distMetrics.clicks, icon: MousePointerClick },
         ].map(kpi => (
           <Card key={kpi.label} className="border-border/40">
             <CardContent className="pt-4 pb-3 px-4">
