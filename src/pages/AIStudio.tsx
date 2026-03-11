@@ -6,10 +6,10 @@ import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
+import { FEATURE_COSTS } from "@/lib/featureCosts";
 
 const AIStudio = () => {
-  const { hasEnough } = useCredits();
-  const noCredits = !hasEnough(1);
+  const { credits, hasEnough } = useCredits();
   const modules = [
     {
       title: "Crear Música",
