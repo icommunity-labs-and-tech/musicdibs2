@@ -46,6 +46,9 @@ export function PromoteWorks() {
         <p className="text-sm text-muted-foreground">
           Por tener una suscripción activa, tienes derecho a promocionarte en nuestras redes sociales.
         </p>
+        <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
+        </p>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="w-full" variant="hero" size="sm">Solicitar post</Button>
@@ -97,8 +100,9 @@ export function PromoteWorks() {
                     <AlertCircle className="h-4 w-4" /> Error al enviar la solicitud
                   </div>
                 )}
+                <p className="text-xs text-center text-muted-foreground">Se descontará 1 crédito de tu cuenta al enviar.</p>
                 <Button type="submit" className="w-full" disabled={loading || !consent}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar solicitud'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar solicitud (1 crédito)'}
                 </Button>
               </form>
             )}

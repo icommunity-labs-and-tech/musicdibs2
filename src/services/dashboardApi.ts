@@ -60,6 +60,13 @@ export async function submitPromotionRequest(data: PromotionRequest): Promise<{ 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Spend 1 credit via secure edge function BEFORE processing
+  const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+    body: { amount: 1, feature: 'promotion', description: `Promoción: ${data.workTitle}` },
+  });
+  if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+  if (spendResult?.error) throw new Error(spendResult.error);
+
   const { error } = await supabase.from('promotion_requests').insert({
     user_id: user.id,
     artist_name: data.artistName,
