@@ -19,11 +19,14 @@ import {
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStudio";
+import { useCredits } from "@/hooks/useCredits";
+import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 
 const AIStudioEdit = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { hasEnough } = useCredits();
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -138,6 +141,13 @@ const AIStudioEdit = () => {
 
     setIsProcessing(true);
     try {
+      // Spend 1 credit before processing
+      const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+        body: { amount: 1, feature: 'edit_audio', description: `Edición AI: ${variationType}` },
+      });
+      if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+      if (spendResult?.error) throw new Error(spendResult.error);
+
       const prompt = buildVariationPrompt();
       const duration = variationType === 'extend' ? newDuration : (selectedSource?.duration || 30);
 
@@ -448,6 +458,9 @@ const AIStudioEdit = () => {
                   </TabsContent>
                 </Tabs>
 
+                {!hasEnough(1) ? (
+                  <NoCreditsAlert message="No tienes créditos suficientes para editar música." />
+                ) : (
                 <Button 
                   onClick={handleProcess} 
                   disabled={isProcessing || !sourceSelected}
@@ -462,10 +475,11 @@ const AIStudioEdit = () => {
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Crear {variationType === 'similar' ? 'Variación' : variationType === 'mood_change' ? 'Versión' : variationType === 'extend' ? 'Extensión' : 'Edición'}
+                      Crear {variationType === 'similar' ? 'Variación' : variationType === 'mood_change' ? 'Versión' : variationType === 'extend' ? 'Extensión' : 'Edición'} (1 crédito)
                     </>
                   )}
                 </Button>
+                )}
               </CardContent>
             </Card>
           </div>

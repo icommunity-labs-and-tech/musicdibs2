@@ -8,12 +8,16 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Megaphone, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { submitPromotionRequest } from '@/services/dashboardApi';
+import { useCredits } from '@/hooks/useCredits';
+import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 
 export function PromoteWorks() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [consent, setConsent] = useState(false);
+  const { hasEnough } = useCredits();
+  const noCredits = !hasEnough(1);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,6 +53,9 @@ export function PromoteWorks() {
         <p className="text-xs text-muted-foreground/80 flex items-center gap-1">
           <AlertCircle className="h-3 w-3" /> Cada solicitud de promoción consume 1 crédito.
         </p>
+        {noCredits ? (
+          <NoCreditsAlert message="No tienes créditos suficientes para solicitar una promoción." />
+        ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="w-full" variant="hero" size="sm">Solicitar post</Button>
@@ -108,6 +115,7 @@ export function PromoteWorks() {
             )}
           </DialogContent>
         </Dialog>
+        )}
       </CardContent>
     </Card>
   );

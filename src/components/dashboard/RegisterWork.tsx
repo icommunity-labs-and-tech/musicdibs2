@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Upload, Loader2, CheckCircle2, AlertCircle, ShieldAlert, FileUp, Music, Sparkles, XCircle, Link as LinkIcon, Key, RefreshCw } from 'lucide-react';
 import { registerWork, listIbsSignatures, createIbsSignature, syncIbsSignatures, pollEvidenceStatus } from '@/services/dashboardApi';
 import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
+import { useCredits } from '@/hooks/useCredits';
+import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 
 const workTypes = [
   { value: 'audio', label: 'Audio' },
@@ -63,6 +65,8 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [kycUrl, setKycUrl] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
 
+  const { hasEnough } = useCredits();
+  const noCredits = !hasEnough(1);
   const kycBlocked = summary && summary.kycStatus !== 'verified';
 
   useEffect(() => {
@@ -225,7 +229,9 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {kycBlocked ? (
+        {noCredits ? (
+          <NoCreditsAlert message="No tienes créditos suficientes para registrar una obra." />
+        ) : kycBlocked ? (
           <div className="space-y-3 py-2">
             <div className="flex items-center gap-2 text-amber-600">
               <ShieldAlert className="h-5 w-5" />

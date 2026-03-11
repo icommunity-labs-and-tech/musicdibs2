@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
@@ -13,6 +14,7 @@ const AIStudio = () => {
       icon: Wand2,
       href: "/ai-studio/create",
       available: true,
+      costsCredits: true,
       color: "from-purple-500 to-pink-500"
     },
     {
@@ -21,6 +23,7 @@ const AIStudio = () => {
       icon: Edit3,
       href: "/ai-studio/edit",
       available: true,
+      costsCredits: true,
       color: "from-blue-500 to-cyan-500"
     },
     {
@@ -29,6 +32,7 @@ const AIStudio = () => {
       icon: Lightbulb,
       href: "/ai-studio/inspire",
       available: true,
+      costsCredits: false,
       color: "from-amber-500 to-orange-500"
     },
     {
@@ -37,6 +41,7 @@ const AIStudio = () => {
       icon: Video,
       href: "/ai-studio/video",
       available: true,
+      costsCredits: true,
       color: "from-rose-500 to-red-500"
     }
   ];
@@ -82,6 +87,11 @@ const AIStudio = () => {
                   )}
                 </CardTitle>
                 <CardDescription>{module.description}</CardDescription>
+                {module.costsCredits && (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                    <Coins className="h-3 w-3" /> 1 crédito por uso
+                  </span>
+                )}
               </CardHeader>
               <CardContent>
                 <Button asChild className="w-full" variant={module.available ? "default" : "secondary"}>
