@@ -21,7 +21,7 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
 
   // Credit modal
-  const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
+  const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
 
