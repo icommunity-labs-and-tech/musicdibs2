@@ -85,10 +85,10 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: 'insufficient_credits',
-            message: 'Sin créditos disponibles',
+            message: 'Sin créditos disponibles en Stability AI',
             details: 'Tu cuenta de Stability AI no tiene créditos suficientes. Por favor, recarga créditos en platform.stability.ai para continuar generando audio.'
           }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       
