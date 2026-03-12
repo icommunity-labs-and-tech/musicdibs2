@@ -15,9 +15,16 @@ serve(async (req) => {
   }
 
   try {
-    // Auth: verify cron secret
+    // Auth: verify cron secret OR Authorization header with anon key
     const secret = req.headers.get("x-cron-secret");
-    if (!secret || secret !== Deno.env.get("CRON_SECRET")) {
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const authHeader = req.headers.get("Authorization");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    const validCronSecret = cronSecret && secret === cronSecret;
+    const validAnonKey = anonKey && authHeader === `Bearer ${anonKey}`;
+    
+    if (!validCronSecret && !validAnonKey) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
