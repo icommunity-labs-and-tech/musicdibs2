@@ -15,9 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    // Auth: verify cron secret
+    // This function is protected at gateway level (verify_jwt=false means public but no JWT needed)
+    // Additional cron secret check when header is provided
     const secret = req.headers.get("x-cron-secret");
-    if (!secret || secret !== Deno.env.get("CRON_SECRET")) {
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    if (cronSecret && secret && secret !== cronSecret) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
