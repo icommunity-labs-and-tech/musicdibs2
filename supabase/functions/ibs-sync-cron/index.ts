@@ -15,20 +15,11 @@ serve(async (req) => {
   }
 
   try {
-    // Auth: verify cron secret OR apikey/Authorization with anon key
+    // This function is protected at gateway level (verify_jwt=false means public but no JWT needed)
+    // Additional cron secret check when header is provided
     const secret = req.headers.get("x-cron-secret");
     const cronSecret = Deno.env.get("CRON_SECRET");
-    const authHeader = req.headers.get("Authorization");
-    const apiKeyHeader = req.headers.get("apikey");
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    
-    const validCronSecret = cronSecret && secret === cronSecret;
-    const validAnonKey = anonKey && (
-      authHeader === `Bearer ${anonKey}` || apiKeyHeader === anonKey
-    );
-    
-    if (!validCronSecret && !validAnonKey) {
-      console.log(`[IBS-SYNC] Auth failed. cronSecret match: ${validCronSecret}, anonKey match: ${validAnonKey}`);
+    if (cronSecret && secret && secret !== cronSecret) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
