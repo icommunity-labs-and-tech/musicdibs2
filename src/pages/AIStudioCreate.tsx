@@ -164,19 +164,23 @@ const AIStudioCreate = () => {
         }
       });
 
+      // supabase.functions.invoke returns { data, error }
+      // On non-2xx, error is set but data may ALSO contain the JSON body
       if (error) {
-        // Parse error details from edge function
-        let errorDetails: string | undefined;
-        if (error.context) {
-          try {
-            const parsed = JSON.parse(error.context);
-            errorDetails = parsed?.error || parsed?.details;
-          } catch { /* ignore parse errors */ }
+        // Try to extract structured error from response body
+        if (data?.error === 'insufficient_credits') {
+          throw { message: data.message || 'Sin créditos de Stability AI', details: data.details };
         }
-        throw { message: error.message, details: errorDetails };
+        if (data?.error) {
+          throw { message: data.error, details: data.details };
+        }
+        throw { message: error.message || 'Error al generar audio' };
       }
 
       if (data?.error) {
+        if (data.error === 'insufficient_credits') {
+          throw { message: data.message || 'Sin créditos de Stability AI', details: data.details };
+        }
         throw { message: data.error, details: data.details };
       }
 
