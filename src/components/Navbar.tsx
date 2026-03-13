@@ -20,6 +20,17 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Pages with light/white backgrounds need dark navbar text
+  const lightBgPages = ['/ai-studio', '/faq', '/contact', '/terms', '/privacy', '/cookies', '/sla', '/legal-validity'];
+  const isLightBg = lightBgPages.some(p => location.pathname.startsWith(p));
+
+  // Text color classes based on background
+  const navText = isLightBg ? 'text-foreground/80 hover:text-foreground' : 'text-white/80 hover:text-white';
+  const navTextStrong = isLightBg ? 'text-foreground hover:text-foreground' : 'text-white hover:text-white';
+  const navTextMuted = isLightBg ? 'text-foreground/70 hover:text-foreground' : 'text-white/70 hover:text-white';
+  const navIconColor = isLightBg ? 'text-foreground/70 hover:text-foreground hover:bg-foreground/10' : 'text-white/70 hover:text-white hover:bg-white/10';
+  const mobileToggleColor = isLightBg ? 'text-foreground' : 'text-white';
+
   const handleScroll = useCallback(() => {
     if (ticking.current) return;
     ticking.current = true;
