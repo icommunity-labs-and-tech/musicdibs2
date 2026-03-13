@@ -193,7 +193,7 @@ export const Navbar = () => {
               </div>
             </div>
             <button
-              className="lg:hidden text-white p-2"
+              className={`lg:hidden ${mobileToggleColor} p-2`}
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
             >
@@ -205,41 +205,41 @@ export const Navbar = () => {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="lg:hidden mx-6 mb-4 rounded-xl bg-black/70 backdrop-blur-lg border border-white/10 p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-          <button onClick={() => scrollToSection('services-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+        <div className={`lg:hidden mx-6 mb-4 rounded-xl ${isLightBg ? 'bg-background/95 border-border' : 'bg-black/70 border-white/10'} backdrop-blur-lg border p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
+          <button onClick={() => scrollToSection('services-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.services')}
           </button>
-          <button onClick={() => scrollToSection('pricing-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+          <button onClick={() => scrollToSection('pricing-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.pricing')}
           </button>
-          <button onClick={() => scrollToSection('tutorial-section')} className="block w-full text-left text-white/90 hover:text-white py-2 transition-colors">
+          <button onClick={() => scrollToSection('tutorial-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.howItWorks')}
           </button>
-          <Link to="/marketing" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.marketing', 'Marketing y Promos')}</Link>
-          <Link to="/faq" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.faq')}</Link>
+          <Link to="/marketing" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.marketing', 'Marketing y Promos')}</Link>
+          <Link to="/faq" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.faq')}</Link>
           
-          <Link to="/news" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.news')}</Link>
+          <Link to="/news" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.news')}</Link>
 
-          <div className="w-full h-px bg-white/10" />
+          <div className={`w-full h-px ${isLightBg ? 'bg-border' : 'bg-white/10'}`} />
 
-          <Link to="/contact" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.contact')}</Link>
-          <Link to="/partners" onClick={() => setMobileOpen(false)} className="block text-white/90 hover:text-white py-2 transition-colors">{t('nav.partners', 'Hazte Partner')}</Link>
+          <Link to="/contact" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.contact')}</Link>
+          <Link to="/partners" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.partners', 'Hazte Partner')}</Link>
 
           {/* Access to services accordion */}
-          <div className="border-t border-white/10 pt-3 mt-2">
+          <div className={`border-t ${isLightBg ? 'border-border' : 'border-white/10'} pt-3 mt-2`}>
             <button
               onClick={() => setMobileServicesOpen(!mobileServicesOpen)}
-              className="flex items-center justify-between w-full font-semibold text-white py-2 transition-colors"
+              className={`flex items-center justify-between w-full font-semibold ${navTextStrong} py-2 transition-colors`}
             >
               {t('nav.accessServices')}
               <ChevronDown className={`w-4 h-4 transition-transform ${mobileServicesOpen ? 'rotate-180' : ''}`} />
             </button>
             {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.login')}</Link>
-                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors font-medium">{t('nav.distribution')}</a>
-                <a href={links.market} target="_blank" rel="noopener noreferrer" className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.market')}</a>
-                <Link to="/verify" onClick={() => setMobileOpen(false)} className="block text-white/70 hover:text-white py-1 transition-colors">{t('nav.verifier')}</Link>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className={`block ${navTextMuted} py-1 transition-colors font-medium`}>{t('nav.login')}</Link>
+                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className={`block ${navTextMuted} py-1 transition-colors font-medium`}>{t('nav.distribution')}</a>
+                <a href={links.market} target="_blank" rel="noopener noreferrer" className={`block ${navTextMuted} py-1 transition-colors`}>{t('nav.market')}</a>
+                <Link to="/verify" onClick={() => setMobileOpen(false)} className={`block ${navTextMuted} py-1 transition-colors`}>{t('nav.verifier')}</Link>
               </div>
             )}
           </div>
