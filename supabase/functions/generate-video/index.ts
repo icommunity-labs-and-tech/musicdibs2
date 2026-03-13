@@ -108,9 +108,11 @@ serve(async (req) => {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        if (response.status === 402) {
-          return new Response(JSON.stringify({ error: 'Insufficient Runway credits. Please add credits at platform.stability.ai' }), {
-            status: 402,
+
+        // Runway returns 400 or 402 for insufficient credits
+        if (response.status === 402 || errorText.includes('not have enough credits')) {
+          return new Response(JSON.stringify({ error: 'insufficient_credits', provider: 'runway', message: 'No hay créditos suficientes en Runway. Recarga créditos en runway.com.' }), {
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
