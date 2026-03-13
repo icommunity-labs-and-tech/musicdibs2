@@ -120,31 +120,31 @@ export const Navbar = () => {
 
           {/* Desktop navigation links */}
           <div className="hidden lg:flex items-center space-x-8">
-            <button onClick={() => scrollToSection('services-section')} className="text-white/80 hover:text-white transition-colors">
+            <button onClick={() => scrollToSection('services-section')} className={`${navText} transition-colors`}>
               {t('nav.services')}
             </button>
-            <button onClick={() => scrollToSection('pricing-section')} className="text-white/80 hover:text-white transition-colors">
+            <button onClick={() => scrollToSection('pricing-section')} className={`${navText} transition-colors`}>
               {t('nav.pricing')}
             </button>
-            <button onClick={() => scrollToSection('tutorial-section')} className="text-white/80 hover:text-white transition-colors">
+            <button onClick={() => scrollToSection('tutorial-section')} className={`${navText} transition-colors`}>
               {t('nav.howItWorks')}
             </button>
-            <Link to="/marketing" className="text-white/80 hover:text-white transition-colors">{t('nav.marketing', 'Marketing y Promos')}</Link>
-            <Link to="/faq" className="text-white/80 hover:text-white transition-colors">{t('nav.faq')}</Link>
+            <Link to="/marketing" className={`${navText} transition-colors`}>{t('nav.marketing', 'Marketing y Promos')}</Link>
+            <Link to="/faq" className={`${navText} transition-colors`}>{t('nav.faq')}</Link>
             
-            <Link to="/news" className="text-white/80 hover:text-white transition-colors">{t('nav.news')}</Link>
+            <Link to="/news" className={`${navText} transition-colors`}>{t('nav.news')}</Link>
 
-            <div className="w-px h-5 bg-white/20" />
+            <div className={`w-px h-5 ${isLightBg ? 'bg-foreground/20' : 'bg-white/20'}`} />
 
-            <Link to="/contact" className="text-white/80 hover:text-white transition-colors">{t('nav.contact')}</Link>
-            <Link to="/partners" className="text-white/80 hover:text-white transition-colors">{t('nav.partners', 'Hazte Partner')}</Link>
+            <Link to="/contact" className={`${navText} transition-colors`}>{t('nav.contact')}</Link>
+            <Link to="/partners" className={`${navText} transition-colors`}>{t('nav.partners', 'Hazte Partner')}</Link>
           </div>
 
           {/* Language + CTA + Mobile toggle */}
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all"
+              className={`p-2 rounded-full ${navIconColor} transition-all`}
               aria-label="Toggle theme"
             >
               {theme === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
