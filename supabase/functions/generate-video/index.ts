@@ -82,7 +82,7 @@ serve(async (req) => {
       const body: Record<string, unknown> = {
         model: 'gen4_turbo',
         promptText,
-        ratio: ratio || '1280:768',
+        ratio: ratio || '1280:720',
         duration: duration || 5,
       };
 
