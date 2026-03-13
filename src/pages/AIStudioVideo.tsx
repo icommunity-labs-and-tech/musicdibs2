@@ -77,7 +77,7 @@ const AIStudioVideo = () => {
   // Inputs
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
-  const [aspectRatio, setAspectRatio] = useState("1280:768");
+  const [aspectRatio, setAspectRatio] = useState("1280:720");
   const [duration, setDuration] = useState(5);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageName, setUploadedImageName] = useState<string>("");
