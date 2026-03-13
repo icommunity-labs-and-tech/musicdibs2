@@ -43,8 +43,9 @@ const VIDEO_STYLES = [
 ] as const;
 
 const ASPECT_RATIOS = [
-  { id: "1280:768", label: "16:9 Horizontal", icon: "▬" },
-  { id: "768:1280", label: "9:16 Vertical", icon: "▮" },
+  { id: "1280:720", label: "16:9 Horizontal", icon: "▬" },
+  { id: "720:1280", label: "9:16 Vertical", icon: "▮" },
+  { id: "960:960", label: "1:1 Cuadrado", icon: "■" },
 ] as const;
 
 const DURATIONS = [
