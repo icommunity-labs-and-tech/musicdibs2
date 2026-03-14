@@ -54,13 +54,25 @@ async function findProfileByCustomerId(
   return null;
 }
 
+// Helper: get customer ID from an invoice (handles both old and new API shapes)
+function getInvoiceCustomerId(invoice: any): string {
+  return typeof invoice.customer === "string"
+    ? invoice.customer
+    : invoice.customer?.id ?? "";
+}
+
+// Helper: get price ID from invoice lines
+function getInvoicePriceId(invoice: any): string | undefined {
+  return invoice.lines?.data?.[0]?.price?.id;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-    apiVersion: "2025-08-27.basil",
+    apiVersion: "2026-02-25.clover",
   });
 
   const supabase = createClient(
@@ -81,7 +93,10 @@ serve(async (req) => {
       );
     }
 
-    const event: Stripe.Event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    // Use constructEventAsync for Deno compatibility
+    const event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
+
+    console.log(`[WEBHOOK] Received event: ${event.type}`);
 
     // ── checkout.session.completed ──────────────────────────────────────
     if (event.type === "checkout.session.completed") {
@@ -117,15 +132,41 @@ serve(async (req) => {
       }
     }
 
-    // ── invoice.payment_succeeded (renovaciones) ────────────────────────
-    if (event.type === "invoice.payment_succeeded") {
-      const invoice = event.data.object as Stripe.Invoice;
-      if (invoice.billing_reason === "subscription_cycle") {
-        const customerId = invoice.customer as string;
+    // ── invoice.payment_succeeded / invoice_payment.paid (renovaciones) ─
+    if (event.type === "invoice.payment_succeeded" || event.type === "invoice_payment.paid") {
+      const obj = event.data.object as any;
+
+      // For invoice_payment.paid, we need to fetch the invoice to get customer & lines
+      let customerId: string;
+      let billingReason: string | null = null;
+      let priceId: string | undefined;
+
+      if (event.type === "invoice_payment.paid") {
+        // New clover API: obj is an InvoicePayment, fetch the invoice
+        const invoiceId = typeof obj.invoice === "string" ? obj.invoice : obj.invoice?.id;
+        if (invoiceId) {
+          const invoice = await stripe.invoices.retrieve(invoiceId);
+          customerId = getInvoiceCustomerId(invoice);
+          billingReason = invoice.billing_reason as string | null;
+          priceId = getInvoicePriceId(invoice);
+        } else {
+          console.warn("[WEBHOOK] invoice_payment.paid: no invoice ID found");
+          return new Response(JSON.stringify({ received: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        // Legacy API: obj is the invoice itself
+        const invoice = obj;
+        customerId = getInvoiceCustomerId(invoice);
+        billingReason = invoice.billing_reason;
+        priceId = getInvoicePriceId(invoice);
+      }
+
+      if (billingReason === "subscription_cycle") {
         const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
         if (profile) {
-          const priceId = invoice.lines?.data?.[0]?.price?.id;
           const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
 
           if (credits > 0) {
@@ -148,14 +189,39 @@ serve(async (req) => {
       }
     }
 
-    // ── invoice.payment_failed (fallo en cobro) ──────────────────────────
-    if (event.type === "invoice.payment_failed") {
-      const invoice = event.data.object as Stripe.Invoice;
-      const customerId = invoice.customer as string;
-      const attemptCount = invoice.attempt_count;
-      const nextAttempt = invoice.next_payment_attempt
-        ? new Date(invoice.next_payment_attempt * 1000).toISOString()
-        : null;
+    // ── invoice.payment_failed / invoice_payment.failed ──────────────────
+    if (event.type === "invoice.payment_failed" || event.type === "invoice_payment.failed") {
+      const obj = event.data.object as any;
+
+      let customerId: string;
+      let attemptCount: number;
+      let nextAttempt: string | null;
+
+      if (event.type === "invoice_payment.failed") {
+        // New clover API
+        const invoiceId = typeof obj.invoice === "string" ? obj.invoice : obj.invoice?.id;
+        if (invoiceId) {
+          const invoice = await stripe.invoices.retrieve(invoiceId);
+          customerId = getInvoiceCustomerId(invoice);
+          attemptCount = invoice.attempt_count ?? 0;
+          nextAttempt = invoice.next_payment_attempt
+            ? new Date((invoice.next_payment_attempt as number) * 1000).toISOString()
+            : null;
+        } else {
+          console.warn("[WEBHOOK] invoice_payment.failed: no invoice ID found");
+          return new Response(JSON.stringify({ received: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        // Legacy API
+        const invoice = obj;
+        customerId = getInvoiceCustomerId(invoice);
+        attemptCount = invoice.attempt_count;
+        nextAttempt = invoice.next_payment_attempt
+          ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+          : null;
+      }
 
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
@@ -175,14 +241,15 @@ serve(async (req) => {
     // ── customer.subscription.updated (cambio de plan externo) ──────────
     if (event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId   = subscription.customer as string;
+      const customerId   = typeof subscription.customer === "string"
+        ? subscription.customer
+        : (subscription.customer as any)?.id ?? "";
       const priceId      = subscription.items?.data?.[0]?.price?.id;
       const status       = subscription.status;
 
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
       if (profile) {
-        // Sync plan name based on price
         const planName = priceId ? (PRICE_PLAN[priceId] || null) : null;
 
         if (status === "active" && planName) {
@@ -192,7 +259,6 @@ serve(async (req) => {
             .eq("user_id", profile.user_id);
           console.log(`[WEBHOOK] subscription.updated → plan set to ${planName} for user ${profile.user_id}`);
         } else if (status === "past_due" || status === "unpaid") {
-          // Keep current plan but log the issue
           await supabase.from("credit_transactions").insert({
             user_id:     profile.user_id,
             amount:      0,
@@ -215,7 +281,9 @@ serve(async (req) => {
     // ── customer.subscription.deleted (cancelación) ─────────────────────
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId   = subscription.customer as string;
+      const customerId   = typeof subscription.customer === "string"
+        ? subscription.customer
+        : (subscription.customer as any)?.id ?? "";
 
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
