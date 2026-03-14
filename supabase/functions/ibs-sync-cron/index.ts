@@ -15,11 +15,12 @@ serve(async (req) => {
   }
 
   try {
-    // This function is protected at gateway level (verify_jwt=false means public but no JWT needed)
-    // Additional cron secret check when header is provided
-    const secret = req.headers.get("x-cron-secret");
-    const cronSecret = Deno.env.get("CRON_SECRET");
-    if (cronSecret && secret && secret !== cronSecret) {
+    // ── Validar que la llamada viene de pg_cron ──────────────
+    const cronSecret = req.headers.get("x-cron-secret");
+    const expectedSecret = Deno.env.get("CRON_SECRET") ?? "ibs_cron_secret_2026_musicdibs";
+
+    if (cronSecret !== expectedSecret) {
+      console.warn("[IBS-SYNC-CRON] Unauthorized call — invalid x-cron-secret");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
