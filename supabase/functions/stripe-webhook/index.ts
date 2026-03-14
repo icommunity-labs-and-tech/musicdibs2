@@ -12,6 +12,48 @@ const PRICE_CREDITS: Record<string, number> = {
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,   // monthly
 };
 
+const PRICE_PLAN: Record<string, string> = {
+  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "Annual",
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
+};
+
+// Helper: find profile by stripe_customer_id with email fallback
+async function findProfileByCustomerId(
+  supabase: any,
+  stripe: any,
+  customerId: string,
+): Promise<{ user_id: string; available_credits: number } | null> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("user_id, available_credits")
+    .eq("stripe_customer_id", customerId)
+    .single();
+
+  if (profile) return profile;
+
+  // Fallback: email lookup for legacy users
+  console.warn(`[WEBHOOK] No profile for customer ${customerId} — trying email fallback`);
+  const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+  if (customer.email) {
+    const { data: authUser } = await supabase.auth.admin.getUserByEmail(customer.email);
+    if (authUser?.user) {
+      // Save stripe_customer_id for future lookups
+      await supabase
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("user_id", authUser.user.id);
+      
+      const { data: p } = await supabase
+        .from("profiles")
+        .select("user_id, available_credits")
+        .eq("user_id", authUser.user.id)
+        .single();
+      return p;
+    }
+  }
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
