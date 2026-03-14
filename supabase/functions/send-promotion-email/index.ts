@@ -107,7 +107,7 @@ serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "MusicDibs <onboarding@resend.dev>",
+        from: "MusicDibs <noreply@notify.musicdibs.com>",
         to: ["hello@icommunity.io"],
         subject: `Nueva solicitud de promoción: ${artistName} — ${workTitle}`,
         html,

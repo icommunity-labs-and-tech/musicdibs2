@@ -244,7 +244,7 @@ serve(async (req) => {
             const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
             if (RESEND_API_KEY) {
               const adminEmail = "info@musicdibs.com";
-              const fromEmail  = "onboarding@resend.dev"; // cambiar a noreply@musicdibs.com tras verificar dominio
+              const fromEmail  = "noreply@notify.musicdibs.com";
 
               const htmlBody = `
                 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">
