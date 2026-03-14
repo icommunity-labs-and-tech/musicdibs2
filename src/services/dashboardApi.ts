@@ -225,7 +225,7 @@ export async function fetchRecentRegistrations(limit = 10): Promise<RecentRegist
 
   const { data, error } = await supabase
     .from('works')
-    .select('id, title, status, created_at, type, certificate_url, distributed_at, distribution_clicks')
+    .select('id, title, status, created_at, type, certificate_url, distributed_at, distribution_clicks, blockchain_hash, blockchain_network, checker_url, ibs_evidence_id, certified_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(limit);
@@ -241,5 +241,10 @@ export async function fetchRecentRegistrations(limit = 10): Promise<RecentRegist
     certificateUrl: w.certificate_url || undefined,
     distributedAt: (w as any).distributed_at || null,
     distributionClicks: (w as any).distribution_clicks || 0,
+    blockchain_hash: w.blockchain_hash,
+    blockchain_network: w.blockchain_network,
+    checker_url: w.checker_url,
+    ibs_evidence_id: w.ibs_evidence_id,
+    certified_at: w.certified_at,
   }));
 }
