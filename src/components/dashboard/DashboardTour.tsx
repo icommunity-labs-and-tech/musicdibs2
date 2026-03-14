@@ -15,14 +15,14 @@ const steps: Step[] = [
     placement: 'center',
     title: 'Bienvenido a MusicDibs',
     content:
-      'Este es tu panel de control. Desde aquí puedes registrar tus obras, verificar registros, gestionar créditos y acceder a herramientas para músicos.\n\nTe mostramos rápidamente cómo funciona.',
+      'Este es tu panel de control. Desde aquí tienes una visión general y puedes acceder a todas las herramientas para músicos.\n\nTe mostramos rápidamente cómo funciona.',
     disableBeacon: true,
   },
   {
     target: '[data-tour="account-summary"]',
     title: 'Resumen de la cuenta',
     content:
-      'Aquí puedes ver un resumen de tu actividad:\n\n• Obras registradas\n• Registros pendientes\n• Créditos disponibles\n\nLos créditos son los que utilizas para registrar nuevas obras.',
+      'Aquí puedes ver un resumen de tu actividad:\n\n• Obras registradas\n• Registros pendientes\n• Créditos disponibles\n\nLos créditos son los que utilizas para usar cada herramienta: registros, promociones, distribución, creación con IA MusicDibs Studio.',
     disableBeacon: true,
   },
   {
@@ -36,7 +36,7 @@ const steps: Step[] = [
     target: '[data-tour="credit-store"]',
     title: 'Créditos',
     content:
-      'Los créditos te permiten registrar obras.\n\nPuedes comprar créditos individuales o usar una suscripción para reducir el coste por registro.',
+      'Los créditos te permiten usar todas las herramientas de la plataforma. Cada herramienta utiliza una cantidad de créditos diferente.\n\nPuedes comprar créditos individuales o usar una suscripción para reducir el coste por registro.',
     disableBeacon: true,
   },
   {
@@ -55,7 +55,7 @@ const steps: Step[] = [
     target: '[data-tour="ai-studio"]',
     title: 'AI MusicDibs Studio',
     content:
-      'Aquí encontrarás herramientas de IA para inspirarte, generar ideas musicales o mejorar composiciones.',
+      'Aquí encontrarás herramientas de IA para inspirarte, generar ideas musicales, videoclips o mejorar composiciones.',
     disableBeacon: true,
   },
   {
