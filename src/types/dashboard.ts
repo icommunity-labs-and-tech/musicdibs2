@@ -64,4 +64,9 @@ export interface RecentRegistration {
   certificateUrl?: string;
   distributedAt?: string | null;
   distributionClicks?: number;
+  blockchain_hash?: string | null;
+  blockchain_network?: string | null;
+  checker_url?: string | null;
+  ibs_evidence_id?: string | null;
+  certified_at?: string | null;
 }

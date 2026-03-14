@@ -7,6 +7,9 @@ import { History, FileText, ExternalLink, RefreshCw } from 'lucide-react';
 import { fetchRecentRegistrations } from '@/services/dashboardApi';
 import type { RecentRegistration } from '@/types/dashboard';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   processing: { label: 'En proceso', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
@@ -15,8 +18,16 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 export function RecentRegistrations() {
+  const { user } = useAuth();
   const [data, setData] = useState<RecentRegistration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.display_name) setDisplayName(data.display_name); });
+  }, [user]);
 
   const load = async () => {
     setLoading(true);
@@ -77,11 +88,27 @@ export function RecentRegistrations() {
                         </a>
                       )}
                       {reg.status === 'registered' && (
-                        <div className="mt-1">
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {reg.blockchain_hash && reg.ibs_evidence_id && (
+                            <CertificateButton
+                              work={{
+                                id: reg.id,
+                                title: reg.title,
+                                type: reg.type,
+                                blockchain_hash: reg.blockchain_hash,
+                                blockchain_network: reg.blockchain_network || 'Polygon',
+                                checker_url: reg.checker_url || undefined,
+                                ibs_evidence_id: reg.ibs_evidence_id,
+                                certified_at: reg.certified_at || undefined,
+                                created_at: reg.date,
+                              }}
+                              authorName={displayName || user?.email || 'Autor'}
+                            />
+                          )}
                           <DistributeButton
                             workId={reg.id}
-                            distributedAt={(reg as any).distributedAt || null}
-                            currentClicks={(reg as any).distributionClicks || 0}
+                            distributedAt={reg.distributedAt || null}
+                            currentClicks={reg.distributionClicks || 0}
                             onDistributed={load}
                           />
                         </div>

@@ -16,6 +16,7 @@ import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
 import { supabase } from '@/integrations/supabase/client';
 
 const workTypes = [
@@ -58,6 +59,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
   const [description, setDescription] = useState('');
   const [aiAudioUrl, setAiAudioUrl] = useState<string | null>(null);
   const [lastRegisteredWorkId, setLastRegisteredWorkId] = useState<string | null>(null);
+  const [lastRegisteredWork, setLastRegisteredWork] = useState<any>(null);
   const [showDistributeBanner, setShowDistributeBanner] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -178,11 +180,12 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
           const pollInterval = setInterval(async () => {
             const { data } = await supabase
               .from('works')
-              .select('status')
+              .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, ibs_evidence_id, certified_at, created_at')
               .eq('id', res.registrationId)
               .single();
             if (data?.status === 'registered') {
               setShowDistributeBanner(true);
+              setLastRegisteredWork(data);
               clearInterval(pollInterval);
             } else if (data?.status === 'failed') {
               clearInterval(pollInterval);
@@ -456,11 +459,29 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                     <p className="text-xs text-muted-foreground">
                       Llega a Spotify, Apple Music, Amazon Music y más de 150 plataformas con MusicDibs Distribución.
                     </p>
-                    <DistributeButton
-                      workId={lastRegisteredWorkId}
-                      distributedAt={null}
-                      variant="banner"
-                    />
+                    <div className="flex flex-wrap gap-1.5">
+                      {lastRegisteredWork?.blockchain_hash && lastRegisteredWork?.ibs_evidence_id && (
+                        <CertificateButton
+                          work={{
+                            id: lastRegisteredWork.id,
+                            title: lastRegisteredWork.title,
+                            type: lastRegisteredWork.type,
+                            blockchain_hash: lastRegisteredWork.blockchain_hash,
+                            blockchain_network: lastRegisteredWork.blockchain_network || 'Polygon',
+                            checker_url: lastRegisteredWork.checker_url || undefined,
+                            ibs_evidence_id: lastRegisteredWork.ibs_evidence_id,
+                            certified_at: lastRegisteredWork.certified_at || undefined,
+                            created_at: lastRegisteredWork.created_at,
+                          }}
+                          authorName={author || 'Autor'}
+                        />
+                      )}
+                      <DistributeButton
+                        workId={lastRegisteredWorkId}
+                        distributedAt={null}
+                        variant="banner"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
