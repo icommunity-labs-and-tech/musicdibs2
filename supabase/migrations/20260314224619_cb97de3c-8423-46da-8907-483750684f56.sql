@@ -1,0 +1,2 @@
+ALTER TABLE public.credit_transactions DROP CONSTRAINT credit_transactions_type_check;
+ALTER TABLE public.credit_transactions ADD CONSTRAINT credit_transactions_type_check CHECK (type = ANY (ARRAY['purchase', 'usage', 'bonus', 'refund', 'renewal', 'plan_change', 'onboarding', 'consumption', 'payment_failed', 'subscription_issue']));
