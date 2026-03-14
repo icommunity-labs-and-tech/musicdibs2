@@ -18,8 +18,16 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 export function RecentRegistrations() {
+  const { user } = useAuth();
   const [data, setData] = useState<RecentRegistration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [displayName, setDisplayName] = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.display_name) setDisplayName(data.display_name); });
+  }, [user]);
 
   const load = async () => {
     setLoading(true);
