@@ -180,11 +180,12 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
           const pollInterval = setInterval(async () => {
             const { data } = await supabase
               .from('works')
-              .select('status')
+              .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, ibs_evidence_id, certified_at, created_at')
               .eq('id', res.registrationId)
               .single();
             if (data?.status === 'registered') {
               setShowDistributeBanner(true);
+              setLastRegisteredWork(data);
               clearInterval(pollInterval);
             } else if (data?.status === 'failed') {
               clearInterval(pollInterval);
