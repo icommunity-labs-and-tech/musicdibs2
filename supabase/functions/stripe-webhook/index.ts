@@ -138,17 +138,76 @@ serve(async (req) => {
       }
     }
 
+    // ── invoice.payment_failed (fallo en cobro) ──────────────────────────
+    if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+      const attemptCount = invoice.attempt_count;
+      const nextAttempt = invoice.next_payment_attempt
+        ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+        : null;
+
+      const profile = await findProfileByCustomerId(supabase, stripe, customerId);
+
+      if (profile) {
+        await supabase.from("credit_transactions").insert({
+          user_id:     profile.user_id,
+          amount:      0,
+          type:        "payment_failed",
+          description: `Fallo en cobro de suscripción (intento ${attemptCount})${nextAttempt ? `. Próximo reintento: ${nextAttempt}` : ". No hay más reintentos."}`,
+        });
+        console.log(`[WEBHOOK] Payment failed for user ${profile.user_id} (attempt ${attemptCount})`);
+      } else {
+        console.warn(`[WEBHOOK] payment_failed: no profile found for customer ${customerId}`);
+      }
+    }
+
+    // ── customer.subscription.updated (cambio de plan externo) ──────────
+    if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as Stripe.Subscription;
+      const customerId   = subscription.customer as string;
+      const priceId      = subscription.items?.data?.[0]?.price?.id;
+      const status       = subscription.status;
+
+      const profile = await findProfileByCustomerId(supabase, stripe, customerId);
+
+      if (profile) {
+        // Sync plan name based on price
+        const planName = priceId ? (PRICE_PLAN[priceId] || null) : null;
+
+        if (status === "active" && planName) {
+          await supabase
+            .from("profiles")
+            .update({ subscription_plan: planName })
+            .eq("user_id", profile.user_id);
+          console.log(`[WEBHOOK] subscription.updated → plan set to ${planName} for user ${profile.user_id}`);
+        } else if (status === "past_due" || status === "unpaid") {
+          // Keep current plan but log the issue
+          await supabase.from("credit_transactions").insert({
+            user_id:     profile.user_id,
+            amount:      0,
+            type:        "subscription_issue",
+            description: `Suscripción en estado "${status}". Se requiere acción de pago.`,
+          });
+          console.log(`[WEBHOOK] subscription.updated → status ${status} for user ${profile.user_id}`);
+        } else if (status === "canceled" || status === "incomplete_expired") {
+          await supabase
+            .from("profiles")
+            .update({ subscription_plan: "Free" })
+            .eq("user_id", profile.user_id);
+          console.log(`[WEBHOOK] subscription.updated → reset to Free for user ${profile.user_id}`);
+        }
+      } else {
+        console.warn(`[WEBHOOK] subscription.updated: no profile found for customer ${customerId}`);
+      }
+    }
+
     // ── customer.subscription.deleted (cancelación) ─────────────────────
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId   = subscription.customer as string;
 
-      // Lookup directo por stripe_customer_id — sin listUsers()
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("stripe_customer_id", customerId)
-        .single();
+      const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
       if (profile) {
         await supabase
@@ -157,22 +216,7 @@ serve(async (req) => {
           .eq("user_id", profile.user_id);
         console.log(`[WEBHOOK] Reset to Free for user ${profile.user_id} (cancellation)`);
       } else {
-        // Fallback para usuarios anteriores sin stripe_customer_id
-        console.warn(`[WEBHOOK] No profile found for customer ${customerId} — trying email fallback`);
-        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-        if (customer.email) {
-          const { data: authUser } = await supabase.auth.admin.getUserByEmail(customer.email);
-          if (authUser?.user) {
-            await supabase
-              .from("profiles")
-              .update({
-                subscription_plan: "Free",
-                stripe_customer_id: customerId, // guardar para el futuro
-              })
-              .eq("user_id", authUser.user.id);
-            console.log(`[WEBHOOK] Fallback cancellation OK for ${authUser.user.id}`);
-          }
-        }
+        console.warn(`[WEBHOOK] subscription.deleted: no profile found for customer ${customerId}`);
       }
     }
 
