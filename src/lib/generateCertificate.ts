@@ -179,6 +179,9 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   doc.setFillColor(BGPAGE)
   doc.rect(0, 0, W, H, 'F')
 
+  // Marca de agua diagonal semitransparente
+  doc.addImage(watermarkImg, 'PNG', 0, 0, W, H)
+
   // Acento lateral izquierdo — gradiente corporativo
   const lateralColors = [PURPLE, BLUE_M, BLUE_L, '#8090D0', LGRAY]
   lateralColors.forEach((color, i) => {
