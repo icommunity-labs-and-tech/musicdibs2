@@ -459,11 +459,29 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                     <p className="text-xs text-muted-foreground">
                       Llega a Spotify, Apple Music, Amazon Music y más de 150 plataformas con MusicDibs Distribución.
                     </p>
-                    <DistributeButton
-                      workId={lastRegisteredWorkId}
-                      distributedAt={null}
-                      variant="banner"
-                    />
+                    <div className="flex flex-wrap gap-1.5">
+                      {lastRegisteredWork?.blockchain_hash && lastRegisteredWork?.ibs_evidence_id && (
+                        <CertificateButton
+                          work={{
+                            id: lastRegisteredWork.id,
+                            title: lastRegisteredWork.title,
+                            type: lastRegisteredWork.type,
+                            blockchain_hash: lastRegisteredWork.blockchain_hash,
+                            blockchain_network: lastRegisteredWork.blockchain_network || 'Polygon',
+                            checker_url: lastRegisteredWork.checker_url || undefined,
+                            ibs_evidence_id: lastRegisteredWork.ibs_evidence_id,
+                            certified_at: lastRegisteredWork.certified_at || undefined,
+                            created_at: lastRegisteredWork.created_at,
+                          }}
+                          authorName={author || 'Autor'}
+                        />
+                      )}
+                      <DistributeButton
+                        workId={lastRegisteredWorkId}
+                        distributedAt={null}
+                        variant="banner"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
