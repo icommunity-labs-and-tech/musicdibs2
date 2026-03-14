@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, CreditCard, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { AlertTriangle, CreditCard, X, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
