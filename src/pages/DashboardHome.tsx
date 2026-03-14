@@ -36,7 +36,7 @@ export default function DashboardHome() {
   return (
     <div className="space-y-4 max-w-[1400px]">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Col 1: Account Summary + Verify + Promote */}
+        {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
           <div data-tour="account-summary">
             <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
@@ -44,10 +44,9 @@ export default function DashboardHome() {
           <div data-tour="verify-registration">
             <VerifyRegistration />
           </div>
-          <PromoteWorks />
         </div>
 
-        {/* Col 2: Register CTA */}
+        {/* Col 2: Register CTA + Promote */}
         <div className="space-y-4">
           <div data-tour="register-work">
             <Card className="border-border/40 shadow-sm">
@@ -67,6 +66,7 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
+          <PromoteWorks />
         </div>
 
         {/* Col 3: Credit Store + Recent Registrations */}
