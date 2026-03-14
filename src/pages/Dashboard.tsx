@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
-import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
-import { Music, LogOut, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Music, LogOut, Loader2, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { DashboardSummary } from '@/types/dashboard';
 
