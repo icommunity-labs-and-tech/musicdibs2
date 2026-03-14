@@ -4,6 +4,7 @@ import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
+import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
