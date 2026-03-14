@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
-import { RegisterWork } from '@/components/dashboard/RegisterWork';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
-import { Music, LogOut, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Music, LogOut, Loader2, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { DashboardSummary } from '@/types/dashboard';
 
@@ -75,7 +75,22 @@ export default function Dashboard() {
           <CreditStore />
 
           {/* Row 2 */}
-          <RegisterWork summary={summary} />
+          <Card className="border-border/40 shadow-sm">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold">Registrar una nueva obra</h3>
+                <p className="text-sm text-muted-foreground">
+                  Inicia el proceso de registro y protección de tu obra paso a paso.
+                </p>
+              </div>
+              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                Ir al registro
+              </Button>
+            </CardContent>
+          </Card>
           <VerifyRegistration />
           <RecentRegistrations />
         </div>
