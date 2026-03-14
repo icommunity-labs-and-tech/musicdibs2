@@ -2,8 +2,9 @@ import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
 import logoMusicdibs from '@/assets/logo_musicdibs.jpg'
 
-// Paleta corporativa MusicDibs (extraída de logos oficiales)
+// Paleta corporativa MusicDibs
 const NAVY     = '#1A1C42'
+const NAVY2    = '#13153A'
 const PURPLE   = '#431884'
 const BLUE_M   = '#3A50B0'
 const BLUE_L   = '#5972C2'
@@ -73,6 +74,7 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
     return y + 12
   }
 
+  // Badge helper — corrected vertical text centering
   const badge = (
     x: number, y: number, text: string,
     fill: string, stroke: string, tc: string,
@@ -84,15 +86,17 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
     const bw = tw + 8
     rr(x, y, bw, bh, r, fill, stroke, 0.5)
     doc.setTextColor(tc)
-    doc.text(text, x + (bw - tw) / 2, y + bh / 2 + 2.5)
+    // jsPDF text y = baseline; for small sizes, offset ~60% of font size in mm
+    const fontMm = sz * 0.3528 // pt to mm
+    doc.text(text, x + (bw - tw) / 2, y + (bh + fontMm * 0.7) / 2)
     return bw
   }
 
-  const makeQR = async (url: string): Promise<string> => {
+  const makeQR = async (url: string, dark = '#1A1C42'): Promise<string> => {
     return await QRCode.toDataURL(url, {
       width: 256,
       margin: 1,
-      color: { dark: '#1A1C42', light: '#FFFFFF' }
+      color: { dark, light: '#FFFFFF' }
     })
   }
 
@@ -121,12 +125,25 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
     })
   }
 
+  // Trunca texto largo para que quepa en un ancho máximo (mm)
+  const truncateText = (text: string, maxWidth: number): string => {
+    if (doc.getTextWidth(text) <= maxWidth) return text
+    let t = text
+    while (t.length > 3 && doc.getTextWidth(t + '…') > maxWidth) {
+      t = t.slice(0, -1)
+    }
+    return t + '…'
+  }
+
   // ── PRE-GENERAR ASSETS ─────────────────────────────────────
   const [qr1DataUrl, qr2DataUrl, logoDataUrl] = await Promise.all([
-    makeQR(data.checkerUrl),
-    makeQR(data.ibsUrl),
+    makeQR(data.checkerUrl, NAVY),
+    makeQR(data.ibsUrl, PURPLE),
     imgToBase64(logoMusicdibs),
   ])
+
+  // Detect logo format from dataURL
+  const logoFormat = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG'
 
   const gradHeader  = makeGradient(630, 150, PURPLE, NAVY)
   const gradFooter  = makeGradient(630, 50,  PURPLE, NAVY)
@@ -135,7 +152,7 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   doc.setFillColor(BGPAGE)
   doc.rect(0, 0, W, H, 'F')
 
-  // Acento lateral izquierdo
+  // Acento lateral izquierdo — gradiente corporativo
   const lateralColors = [PURPLE, BLUE_M, BLUE_L, '#8090D0', LGRAY]
   lateralColors.forEach((color, i) => {
     doc.setFillColor(color)
@@ -146,14 +163,18 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   const headerH = 50
   doc.addImage(gradHeader, 'PNG', 0, 0, W, headerH)
 
+  // Línea inferior cabecera
   doc.setFillColor(BLUE_L)
   doc.rect(0, headerH - 1.5, W, 1.5, 'F')
 
-  const logoH = 22, logoW = logoH * (125 / 126)
+  // Logo — detect aspect ratio from original (701×486)
+  const logoAspect = 701 / 486
+  const logoH = 22, logoW = logoH * logoAspect
   const logoX = M + 2, logoY = (headerH - logoH) / 2
-  rr(logoX - 2, logoY - 1, logoW + 4, logoH + 2, 2, NAVY)
-  doc.addImage(logoDataUrl, 'JPEG', logoX, logoY, logoW, logoH)
+  rr(logoX - 2, logoY - 1, logoW + 4, logoH + 2, 2, NAVY2)
+  doc.addImage(logoDataUrl, logoFormat, logoX, logoY, logoW, logoH)
 
+  // Título certificado (derecha)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.setTextColor('#FFFFFF')
@@ -165,7 +186,8 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   doc.text('Musicdibs certifica que el siguiente documento', W - M, 22.5, { align: 'right' })
   doc.text('ha sido registrado en blockchain', W - M, 27, { align: 'right' })
 
-  rr(W - M - 52, 32, 52, 7, 1.5, '#FFFFFF22')
+  // ID certificado — subtle background (no transparency, use a solid muted color)
+  rr(W - M - 52, 32, 52, 7, 1.5, NAVY2)
   doc.setFont('courier', 'bold')
   doc.setFontSize(7)
   doc.setTextColor('#C4C8F0')
@@ -174,6 +196,8 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   // ── CUERPO ─────────────────────────────────────────────────
   let y = headerH + 9
   const col2 = W / 2 + 2
+  const maxTitleW = col2 - CX - 4  // max width for title text
+  const maxCol2W = W - M - col2 - 2 // max width for col2 content
 
   // ═══ DATOS DEL CONTENIDO ═══════════════════════════════════
   y = sectionHeader(CX, y, '  DATOS DEL CONTENIDO')
@@ -182,12 +206,14 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   lbl(col2, y, 'Tipo de archivo')
   y += 4.5
 
+  // Title — truncate if too long, or wrap to 2 lines for very long titles
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
   doc.setTextColor(NAVY)
-  doc.text(data.title, CX, y)
+  const titleLines = doc.splitTextToSize(data.title, maxTitleW)
+  doc.text(titleLines.slice(0, 2), CX, y)
   badge(col2, y - 4.5, data.fileType, '#EEF2FF', '#6366F1', '#4338CA')
-  y += 7
+  y += titleLines.length > 1 ? 12 : 7
 
   lbl(CX, y, 'Nombre del fichero')
   lbl(col2, y, 'Tamaño')
@@ -196,20 +222,23 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor('#334155')
-  doc.text(data.filename, CX, y)
+  doc.text(truncateText(data.filename, maxTitleW), CX, y)
   doc.text(data.filesize, col2, y)
   y += 7
 
+  // Descripción (solo si existe) — dynamic height
   if (data.description) {
     lbl(CX, y, 'Descripción de la obra')
     y += 4.5
-    rr(CX - 2, y, W - CX - M + 2, 12, 1.5, '#F0F2FF', '#C7D2FE', 0.4)
     doc.setFont('helvetica', 'italic')
     doc.setFontSize(8.5)
     doc.setTextColor('#475569')
     const descLines = doc.splitTextToSize(data.description, W - CX - M - 6)
-    doc.text(descLines.slice(0, 2), CX + 2, y + 4)
-    y += 17
+    const visibleLines = descLines.slice(0, 3)
+    const boxH = Math.max(10, visibleLines.length * 4 + 4)
+    rr(CX - 2, y, W - CX - M + 2, boxH, 1.5, '#F0F2FF', '#C7D2FE', 0.4)
+    doc.text(visibleLines, CX + 2, y + 4)
+    y += boxH + 5
   }
 
   div(y); y += 9
@@ -224,7 +253,7 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(13)
   doc.setTextColor(NAVY)
-  doc.text(data.authorName, CX, y)
+  doc.text(truncateText(data.authorName, maxTitleW), CX, y)
   if (data.authorDocId) {
     badge(col2, y - 4.5, data.authorDocId, LGRAY, LGRAY, '#334155')
   }
@@ -246,26 +275,37 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   badge(col2, y - 4.5, data.network, '#EEEEFF', BLUE_L, BLUE_M)
   y += 8
 
+  // TX Hash — caja navy
   lbl(CX, y, 'Identificador de la transacción (TX Hash)')
   y += 5
-  rr(CX - 2, y, W - CX - M + 2, 13, 2, NAVY)
+  const hashBoxW = W - CX - M + 2
+  rr(CX - 2, y, hashBoxW, 13, 2, NAVY)
   doc.setFont('courier', 'bold')
   doc.setFontSize(7.8)
   doc.setTextColor('#FFFFFF')
-  const half = Math.floor(data.txHash.length / 2)
-  doc.text(data.txHash.slice(0, half), CX + 3, y + 4)
-  doc.text(data.txHash.slice(half), CX + 3, y + 9)
+  // Split hash intelligently to fit the box
+  const hashMaxChars = Math.floor(hashBoxW / 2.2) // approximate chars per line
+  if (data.txHash.length > hashMaxChars) {
+    doc.text(data.txHash.slice(0, hashMaxChars), CX + 3, y + 4)
+    doc.text(data.txHash.slice(hashMaxChars), CX + 3, y + 9)
+  } else {
+    doc.text(data.txHash, CX + 3, y + 7)
+  }
   y += 16
 
+  // Huella digital — caja indigo claro
   lbl(CX, y, `Huella digital del archivo · ${data.algorithm}`)
   y += 5
-  rr(CX - 2, y, W - CX - M + 2, 13, 2, INDIGO_L, '#C7D2FE', 0.4)
+  rr(CX - 2, y, hashBoxW, 13, 2, INDIGO_L, '#C7D2FE', 0.4)
   doc.setFont('courier', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(INDIGO_T)
-  const fpHalf = Math.floor(data.fingerprint.length / 2)
-  doc.text(data.fingerprint.slice(0, fpHalf), CX + 3, y + 4)
-  doc.text(data.fingerprint.slice(fpHalf), CX + 3, y + 9)
+  if (data.fingerprint.length > hashMaxChars) {
+    doc.text(data.fingerprint.slice(0, hashMaxChars), CX + 3, y + 4)
+    doc.text(data.fingerprint.slice(hashMaxChars), CX + 3, y + 9)
+  } else {
+    doc.text(data.fingerprint, CX + 3, y + 7)
+  }
   y += 16
 
   div(y); y += 9
@@ -274,52 +314,51 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   y = sectionHeader(CX, y, '  VERIFICACIÓN INDEPENDIENTE')
 
   const qrSz = 29
-  const mid = W / 2
+  const qrBoxSz = qrSz + 3
 
   // QR 1 — Blockchain Explorer (izquierda)
-  rr(CX - 1.5, y, qrSz + 3, qrSz + 3, 2, NAVY)
+  rr(CX - 1.5, y, qrBoxSz, qrBoxSz, 2, NAVY)
   doc.addImage(qr1DataUrl, 'PNG', CX, y + 1.5, qrSz, qrSz)
 
-  const tx1 = CX + qrSz + 5
+  const tx1 = CX + qrBoxSz + 4
+  const labelW1 = W / 2 - tx1 - 2
   lbl(tx1, y + 3, 'Checker blockchain explorer')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(NAVY)
   doc.text('iCommunity Checker', tx1, y + 9)
   doc.setFont('courier', 'normal')
-  doc.setFontSize(5.8)
+  doc.setFontSize(5.5)
   doc.setTextColor(BLUE_M)
-  const url1Lines = doc.splitTextToSize(data.checkerUrl, W/2 - CX - qrSz - 8)
-  doc.text(url1Lines, tx1, y + 14)
-  badge(tx1, y + 23, '✓  VÁLIDO EN BLOCKCHAIN', '#ECFDF5', '#059669', '#059669')
+  const url1Lines = doc.splitTextToSize(data.checkerUrl, labelW1)
+  doc.text(url1Lines.slice(0, 2), tx1, y + 14)
+  badge(tx1, y + 23, '✓  VÁLIDO EN BLOCKCHAIN', '#ECFDF5', '#059669', '#059669', 5.5, 1.5, 6.5)
 
   // QR 2 — Panel iBS (derecha)
-  const q2x = mid + 2
-  const qr2Purple = await QRCode.toDataURL(data.ibsUrl, {
-    width: 256, margin: 1,
-    color: { dark: '#431884', light: '#FFFFFF' }
-  })
-  rr(q2x - 1.5, y, qrSz + 3, qrSz + 3, 2, NAVY)
-  doc.addImage(qr2Purple, 'PNG', q2x, y + 1.5, qrSz, qrSz)
+  const q2x = W / 2 + 2
+  rr(q2x - 1.5, y, qrBoxSz, qrBoxSz, 2, NAVY)
+  doc.addImage(qr2DataUrl, 'PNG', q2x, y + 1.5, qrSz, qrSz)
 
-  const tx2 = q2x + qrSz + 5
+  const tx2 = q2x + qrBoxSz + 4
+  const labelW2 = W - M - tx2 - 2
   lbl(tx2, y + 3, 'Evidencia en plataforma iBS')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(NAVY)
   doc.text('Panel iCommunity Labs', tx2, y + 9)
   doc.setFont('courier', 'normal')
-  doc.setFontSize(5.8)
+  doc.setFontSize(5.5)
   doc.setTextColor(BLUE_M)
-  const url2Lines = doc.splitTextToSize(data.ibsUrl, W/2 - q2x - qrSz - 5)
-  doc.text(url2Lines, tx2, y + 14)
-  badge(tx2, y + 23, '⛓  CERTIFICADO iBS', '#EEF2FF', '#6366F1', '#4338CA')
+  const url2Lines = doc.splitTextToSize(data.ibsUrl, labelW2)
+  doc.text(url2Lines.slice(0, 2), tx2, y + 14)
+  badge(tx2, y + 23, '⛓  CERTIFICADO iBS', '#EEF2FF', '#6366F1', '#4338CA', 5.5, 1.5, 6.5)
 
   // ── FOOTER ─────────────────────────────────────────────────
   const footerH = 15
   const footerY = H - footerH
   doc.addImage(gradFooter, 'PNG', 0, footerY, W, footerH)
 
+  // Línea superior footer
   doc.setFillColor(BLUE_L)
   doc.rect(0, footerY, W, 1.2, 'F')
 
@@ -335,12 +374,16 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
     M + 3, footerY + 10
   )
 
-  doc.addImage(logoDataUrl, 'JPEG', W - M - 12, footerY + 1.5, 12, 12)
+  // Logo miniatura en footer
+  const footLogoH = 11
+  const footLogoW = footLogoH * logoAspect
+  doc.addImage(logoDataUrl, logoFormat, W - M - footLogoW, footerY + 2, footLogoW, footLogoH)
 
   // ── GUARDAR ────────────────────────────────────────────────
   const safeName = data.title
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
     .substring(0, 40)
   doc.save(`certificado-musicdibs-${safeName}.pdf`)
 }
