@@ -77,7 +77,15 @@ export function PaymentAlertBanner() {
           ) : (
             <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
           )}
-          <span className="flex-1">{alert.description}</span>
+          <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+            <span>{alert.description}</span>
+            <button
+              onClick={() => navigate('/dashboard/billing')}
+              className="inline-flex items-center gap-1 text-xs font-medium underline underline-offset-2 hover:opacity-80 transition-opacity whitespace-nowrap"
+            >
+              Gestionar pago <ArrowRight className="h-3 w-3" />
+            </button>
+          </div>
           <button
             onClick={() => setDismissed(prev => new Set(prev).add(alert.id))}
             className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
