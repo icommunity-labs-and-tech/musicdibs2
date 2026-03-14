@@ -70,6 +70,14 @@ export default function BlockchainEvidencePage() {
   const [works, setWorks] = useState<WorkEvidence[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState('');
+
+  // Fetch display name
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('profiles').select('display_name').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.display_name) setDisplayName(data.display_name); });
+  }, [user]);
 
   const loadWorks = async () => {
     if (!user) return;
