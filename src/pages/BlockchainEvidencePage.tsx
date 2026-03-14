@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
 
 interface WorkEvidence {
   id: string;
