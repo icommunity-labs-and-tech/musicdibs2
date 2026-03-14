@@ -75,7 +75,22 @@ export default function Dashboard() {
           <CreditStore />
 
           {/* Row 2 */}
-          <RegisterWork summary={summary} />
+          <Card className="border-border/40 shadow-sm">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold">Registrar una nueva obra</h3>
+                <p className="text-sm text-muted-foreground">
+                  Inicia el proceso de registro y protección de tu obra paso a paso.
+                </p>
+              </div>
+              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                Ir al registro
+              </Button>
+            </CardContent>
+          </Card>
           <VerifyRegistration />
           <RecentRegistrations />
         </div>
