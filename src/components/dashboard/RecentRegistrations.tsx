@@ -47,9 +47,9 @@ export function RecentRegistrations() {
           <RefreshCw className="h-4 w-4" />
         </button>
       </CardHeader>
-      <CardContent className="px-2">
+      <CardContent className="px-0 pb-0">
         {loading ? (
-          <div className="space-y-3 px-4">
+          <div className="space-y-3 px-6 pb-4">
             {[1,2,3,4].map(i => <Skeleton key={i} className="h-14 w-full" />)}
           </div>
         ) : data.length === 0 ? (
@@ -58,67 +58,83 @@ export function RecentRegistrations() {
             Aún no tienes registros
           </div>
         ) : (
-          <ScrollArea className="h-[240px]">
-            <div className="space-y-1 px-2">
-              {data.map(reg => {
-                const sc = statusConfig[reg.status] || statusConfig.processing;
-                return (
-                  <div key={reg.id} className="flex items-start gap-3 rounded-lg p-3 hover:bg-muted/50 transition-colors group">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <p className="text-sm font-medium truncate">{reg.title}</p>
-                      <div className="flex items-center gap-2">
+          <div className="overflow-x-auto">
+            {/* Header */}
+            <div className="hidden sm:grid sm:grid-cols-[1fr_100px_110px_auto] gap-4 items-center px-6 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <span>Obra</span>
+              <span>Estado</span>
+              <span>Fecha</span>
+              <span className="text-right">Acciones</span>
+            </div>
+            <ScrollArea className="max-h-[360px]">
+              <div className="divide-y divide-border/20">
+                {data.map(reg => {
+                  const sc = statusConfig[reg.status] || statusConfig.processing;
+                  return (
+                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_110px_auto] gap-2 sm:gap-4 items-center px-6 py-3 hover:bg-muted/50 transition-colors">
+                      {/* Title + type */}
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileText className="h-4 w-4 text-primary" />
+                        </div>
+                        <p className="text-sm font-medium truncate">{reg.title}</p>
+                      </div>
+
+                      {/* Status */}
+                      <div>
                         <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${sc.className}`}>
                           {sc.label}
                         </Badge>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(reg.date).toLocaleDateString('es-ES')}
-                        </span>
                       </div>
-                      {reg.certificateUrl && (
-                        <a
-                          href={reg.certificateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-                        >
-                          <ExternalLink className="h-3 w-3" /> Certificado
-                        </a>
-                      )}
-                      {reg.status === 'registered' && (
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {reg.blockchain_hash && reg.ibs_evidence_id && (
-                            <CertificateButton
-                              work={{
-                                id: reg.id,
-                                title: reg.title,
-                                type: reg.type,
-                                blockchain_hash: reg.blockchain_hash,
-                                blockchain_network: reg.blockchain_network || 'Polygon',
-                                checker_url: reg.checker_url || undefined,
-                                ibs_evidence_id: reg.ibs_evidence_id,
-                                certified_at: reg.certified_at || undefined,
-                                created_at: reg.date,
-                              }}
-                              authorName={displayName || user?.email || 'Autor'}
-                            />
-                          )}
+
+                      {/* Date */}
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(reg.date).toLocaleDateString('es-ES')}
+                      </span>
+
+                      {/* Actions */}
+                      <div className="flex items-center justify-end gap-2">
+                        {reg.certificateUrl && (
+                          <a
+                            href={reg.certificateUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline whitespace-nowrap"
+                          >
+                            <ExternalLink className="h-3 w-3" /> Certificado
+                          </a>
+                        )}
+                        {reg.status === 'registered' && reg.blockchain_hash && reg.ibs_evidence_id && (
+                          <CertificateButton
+                            work={{
+                              id: reg.id,
+                              title: reg.title,
+                              type: reg.type,
+                              blockchain_hash: reg.blockchain_hash,
+                              blockchain_network: reg.blockchain_network || 'Polygon',
+                              checker_url: reg.checker_url || undefined,
+                              ibs_evidence_id: reg.ibs_evidence_id,
+                              certified_at: reg.certified_at || undefined,
+                              created_at: reg.date,
+                            }}
+                            authorName={displayName || user?.email || 'Autor'}
+                          />
+                        )}
+                        {reg.status === 'registered' && (
                           <DistributeButton
                             workId={reg.id}
                             distributedAt={reg.distributedAt || null}
                             currentClicks={reg.distributionClicks || 0}
                             onDistributed={load}
                           />
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </div>
         )}
       </CardContent>
     </Card>
