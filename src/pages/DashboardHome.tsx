@@ -36,6 +36,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-6 max-w-[1400px]">
+      <PaymentAlertBanner />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
