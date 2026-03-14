@@ -65,6 +65,13 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Backfill stripe_customer_id si no lo tiene guardado aún
+    await supabaseClient
+      .from("profiles")
+      .update({ stripe_customer_id: customerId })
+      .eq("user_id", user.id)
+      .is("stripe_customer_id", null);
+
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
