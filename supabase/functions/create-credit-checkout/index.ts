@@ -198,6 +198,16 @@ serve(async (req) => {
       },
     });
 
+    // Guardar stripe_customer_id en profiles si aún no lo tiene
+    const resolvedCustomerId = session.customer as string | undefined;
+    if (resolvedCustomerId && user.id) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({ stripe_customer_id: resolvedCustomerId })
+        .eq("user_id", user.id)
+        .is("stripe_customer_id", null); // solo si no lo tiene ya
+    }
+
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
