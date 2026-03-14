@@ -8,7 +8,8 @@ import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { NotificationToaster } from '@/components/dashboard/NotificationToaster';
 import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { DashboardTour } from '@/components/dashboard/DashboardTour';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Plus } from 'lucide-react';
 
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
