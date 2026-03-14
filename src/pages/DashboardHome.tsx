@@ -34,7 +34,7 @@ export default function DashboardHome() {
   }, [user]);
 
   return (
-    <div className="space-y-4 max-w-[1400px]">
+    <div className="space-y-6 max-w-[1400px]">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
@@ -69,15 +69,17 @@ export default function DashboardHome() {
           <PromoteWorks />
         </div>
 
-        {/* Col 3: Credit Store + Recent Registrations */}
+        {/* Col 3: Credit Store */}
         <div className="space-y-4">
           <div data-tour="credit-store">
             <CreditStore compact />
           </div>
-          <div data-tour="recent-registrations">
-            <RecentRegistrations />
-          </div>
         </div>
+      </div>
+
+      {/* Full-width Recent Registrations */}
+      <div data-tour="recent-registrations">
+        <RecentRegistrations />
       </div>
     </div>
   );
