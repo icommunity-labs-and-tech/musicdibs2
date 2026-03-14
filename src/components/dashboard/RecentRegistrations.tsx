@@ -88,11 +88,27 @@ export function RecentRegistrations() {
                         </a>
                       )}
                       {reg.status === 'registered' && (
-                        <div className="mt-1">
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {reg.blockchain_hash && reg.ibs_evidence_id && (
+                            <CertificateButton
+                              work={{
+                                id: reg.id,
+                                title: reg.title,
+                                type: reg.type,
+                                blockchain_hash: reg.blockchain_hash,
+                                blockchain_network: reg.blockchain_network || 'Polygon',
+                                checker_url: reg.checker_url || undefined,
+                                ibs_evidence_id: reg.ibs_evidence_id,
+                                certified_at: reg.certified_at || undefined,
+                                created_at: reg.date,
+                              }}
+                              authorName={displayName || user?.email || 'Autor'}
+                            />
+                          )}
                           <DistributeButton
                             workId={reg.id}
-                            distributedAt={(reg as any).distributedAt || null}
-                            currentClicks={(reg as any).distributionClicks || 0}
+                            distributedAt={reg.distributedAt || null}
+                            currentClicks={reg.distributionClicks || 0}
                             onDistributed={load}
                           />
                         </div>
