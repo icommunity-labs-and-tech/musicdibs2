@@ -310,12 +310,29 @@ export default function BlockchainEvidencePage() {
                             </a>
                           )}
                           {work.status === 'registered' && (
-                            <DistributeButton
-                              workId={work.id}
-                              distributedAt={work.distributed_at}
-                              currentClicks={work.distribution_clicks || 0}
-                              onDistributed={loadWorks}
-                            />
+                            <>
+                              <CertificateButton
+                                work={{
+                                  id: work.id,
+                                  title: work.title,
+                                  type: work.type,
+                                  description: undefined,
+                                  blockchain_hash: work.blockchain_hash!,
+                                  blockchain_network: work.blockchain_network!,
+                                  checker_url: work.checker_url || undefined,
+                                  ibs_evidence_id: work.ibs_evidence_id!,
+                                  certified_at: work.certified_at || undefined,
+                                  created_at: work.created_at,
+                                }}
+                                authorName={displayName || user?.email || 'Autor'}
+                              />
+                              <DistributeButton
+                                workId={work.id}
+                                distributedAt={work.distributed_at}
+                                currentClicks={work.distribution_clicks || 0}
+                                onDistributed={loadWorks}
+                              />
+                            </>
                           )}
                         </div>
                       </div>
