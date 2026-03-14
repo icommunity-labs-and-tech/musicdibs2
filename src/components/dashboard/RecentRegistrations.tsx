@@ -7,6 +7,9 @@ import { History, FileText, ExternalLink, RefreshCw } from 'lucide-react';
 import { fetchRecentRegistrations } from '@/services/dashboardApi';
 import type { RecentRegistration } from '@/types/dashboard';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   processing: { label: 'En proceso', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
