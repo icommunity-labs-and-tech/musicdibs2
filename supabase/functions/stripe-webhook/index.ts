@@ -396,3 +396,12 @@ async function addCredits(supabase: any, userId: string, credits: number, descri
 
   console.log(`[WEBHOOK] Added ${credits} credits to user ${userId}`);
 }
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
