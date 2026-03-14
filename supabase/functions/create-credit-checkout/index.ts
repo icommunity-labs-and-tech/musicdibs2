@@ -140,7 +140,6 @@ serve(async (req) => {
           await stripe.subscriptions.update(currentSub.id, {
             items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
             proration_behavior: "none",
-            billing_cycle_anchor: "unchanged",
           });
 
           // Only update the plan name, do NOT touch credits
