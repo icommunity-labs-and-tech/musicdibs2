@@ -122,17 +122,11 @@ serve(async (req) => {
       const invoice = event.data.object as Stripe.Invoice;
       if (invoice.billing_reason === "subscription_cycle") {
         const customerId = invoice.customer as string;
-
-        // Lookup directo por stripe_customer_id — sin listUsers()
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("user_id, available_credits")
-          .eq("stripe_customer_id", customerId)
-          .single();
+        const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
         if (profile) {
-          const priceId  = invoice.lines?.data?.[0]?.price?.id;
-          const credits  = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
+          const priceId = invoice.lines?.data?.[0]?.price?.id;
+          const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
 
           if (credits > 0) {
             await supabase
@@ -149,33 +143,7 @@ serve(async (req) => {
             console.log(`[WEBHOOK] Reset credits to ${credits} for user ${profile.user_id} (renewal)`);
           }
         } else {
-          // Fallback: stripe_customer_id no está guardado aún (usuarios anteriores)
-          // Intentar buscar por email una sola vez y guardar el customer_id para el futuro
-          console.warn(`[WEBHOOK] No profile found for customer ${customerId} — trying email fallback`);
-          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-          if (customer.email) {
-            const { data: authUser } = await supabase.auth.admin.getUserByEmail(customer.email);
-            if (authUser?.user) {
-              const priceId = invoice.lines?.data?.[0]?.price?.id;
-              const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
-              if (credits > 0) {
-                await supabase
-                  .from("profiles")
-                  .update({
-                    available_credits: credits,
-                    stripe_customer_id: customerId, // guardar para el futuro
-                  })
-                  .eq("user_id", authUser.user.id);
-                await supabase.from("credit_transactions").insert({
-                  user_id:     authUser.user.id,
-                  amount:      credits,
-                  type:        "renewal",
-                  description: `Renovación (fallback email): créditos reiniciados a ${credits}`,
-                });
-                console.log(`[WEBHOOK] Fallback renewal OK for ${authUser.user.id}, customer_id saved`);
-              }
-            }
-          }
+          console.warn(`[WEBHOOK] payment_succeeded: no profile found for customer ${customerId}`);
         }
       }
     }
