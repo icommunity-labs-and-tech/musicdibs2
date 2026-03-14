@@ -148,9 +148,39 @@ export async function generateCertificate(data: CertificateData): Promise<void> 
   const gradHeader  = makeGradient(630, 150, PURPLE, NAVY)
   const gradFooter  = makeGradient(630, 50,  PURPLE, NAVY)
 
+  // Genera marca de agua diagonal semitransparente via canvas
+  const makeWatermark = (pageW: number, pageH: number): string => {
+    const scale = 3 // resolution multiplier
+    const canvas = document.createElement('canvas')
+    canvas.width = pageW * scale
+    canvas.height = pageH * scale
+    const ctx = canvas.getContext('2d')!
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.save()
+    ctx.translate(canvas.width / 2, canvas.height / 2)
+    ctx.rotate(-35 * Math.PI / 180)
+    ctx.font = `bold ${42 * scale}px Helvetica, Arial, sans-serif`
+    ctx.fillStyle = 'rgba(26, 28, 66, 0.04)' // NAVY at 4% opacity
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    // Tile the watermark text across the page
+    for (let row = -3; row <= 3; row++) {
+      for (let col = -2; col <= 2; col++) {
+        ctx.fillText('MUSICDIBS', col * 220 * scale, row * 80 * scale)
+      }
+    }
+    ctx.restore()
+    return canvas.toDataURL('image/png')
+  }
+
+  const watermarkImg = makeWatermark(W, H)
+
   // ── FONDO ──────────────────────────────────────────────────
   doc.setFillColor(BGPAGE)
   doc.rect(0, 0, W, H, 'F')
+
+  // Marca de agua diagonal semitransparente
+  doc.addImage(watermarkImg, 'PNG', 0, 0, W, H)
 
   // Acento lateral izquierdo — gradiente corporativo
   const lateralColors = [PURPLE, BLUE_M, BLUE_L, '#8090D0', LGRAY]
