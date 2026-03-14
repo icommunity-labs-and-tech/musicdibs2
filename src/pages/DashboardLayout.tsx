@@ -8,7 +8,8 @@ import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { NotificationToaster } from '@/components/dashboard/NotificationToaster';
 import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { DashboardTour } from '@/components/dashboard/DashboardTour';
-import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, Plus } from 'lucide-react';
 
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
@@ -38,6 +39,15 @@ export default function DashboardLayout() {
                 <h1 className="text-sm font-semibold text-muted-foreground">Panel de control</h1>
               </div>
               <div className="flex items-center gap-3">
+                <Button
+                  variant="hero"
+                  size="sm"
+                  className="hidden md:inline-flex h-8 text-xs rounded-full px-4"
+                  onClick={() => navigate('/dashboard/register')}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Registrar obra
+                </Button>
                 <CreditBadge />
                 <NotificationBell />
               </div>
