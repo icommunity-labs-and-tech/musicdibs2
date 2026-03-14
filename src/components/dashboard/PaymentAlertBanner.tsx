@@ -15,6 +15,7 @@ interface PaymentAlert {
 
 export function PaymentAlertBanner() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [alerts, setAlerts] = useState<PaymentAlert[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
