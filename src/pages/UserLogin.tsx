@@ -74,7 +74,7 @@ export default function UserLogin() {
         <CardHeader className="text-center space-y-3">
           <img src="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" alt="MusicDibs" className="mx-auto h-14 w-auto invert" />
           
-          <CardDescription>Accede a tu consola de operaci</CardDescription>
+          <CardDescription>Accede a tu consola de operación y gestión</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
