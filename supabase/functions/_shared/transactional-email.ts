@@ -171,3 +171,36 @@ export function workCertifiedEmail(data: {
     text: `Hola ${name}, tu obra "${workTitle}" ha sido certificada en ${network}. Hash: ${blockchainHash}. ${checkerUrl ? `Verificar: ${checkerUrl}` : ""} Panel: https://musicdibs.com/dashboard`,
   };
 }
+
+// ─── 4. Payment Failure Notification ────────────────────────────────────────
+
+export function paymentFailedEmail(data: {
+  name: string;
+  description: string;
+  attemptCount: number;
+  nextAttempt: string | null;
+}) {
+  const { name, description, attemptCount, nextAttempt } = data;
+  const safeName = escapeHtml(name);
+  const safeDesc = escapeHtml(description);
+
+  const nextRetryLine = nextAttempt
+    ? `<p style="margin:12px 0 0;color:#d1d5db;font-size:14px;text-align:center;">Próximo reintento: <strong style="color:#f3f4f6;">${escapeHtml(new Date(nextAttempt).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }))}</strong></p>`
+    : `<p style="margin:12px 0 0;color:#fca5a5;font-size:14px;text-align:center;font-weight:600;">No hay más reintentos programados. Actualiza tu método de pago para evitar la cancelación.</p>`;
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, no hemos podido procesar el cobro de tu suscripción.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(185,28,28,0.12));border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Detalle", safeDesc)}
+      ${infoRow("Intento", `${attemptCount}`)}
+    </table>
+    ${nextRetryLine}
+    <p style="margin:20px 0 0;color:#9ca3af;font-size:13px;text-align:center;">Si ya has resuelto el problema, puedes ignorar este mensaje.</p>
+    ${cta("https://musicdibs.com/dashboard/billing", "Actualizar método de pago →")}`;
+
+  return {
+    subject: `⚠️ Fallo en el cobro de tu suscripción — MusicDibs`,
+    html: wrap("⚠️", "Fallo en el cobro", body),
+    text: `Hola ${name}, no hemos podido procesar el cobro de tu suscripción. ${description}. Actualiza tu método de pago: https://musicdibs.com/dashboard/billing`,
+  };
+}
