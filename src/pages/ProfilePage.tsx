@@ -43,6 +43,7 @@ const kycConfig: Record<string, { label: string; icon: typeof CheckCircle2; badg
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Profile editing
   const [editing, setEditing] = useState(false);
