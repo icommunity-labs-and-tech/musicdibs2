@@ -22,4 +22,5 @@ export const adminApi = {
   exportCsv: (dataset: string) => adminAction('export_csv', { dataset }),
   getAdmins: () => adminAction('get_admins'),
   getAuditLog: (offset = 0, action_filter = '') => adminAction('get_audit_log', { offset, action_filter }),
+  callAction: (action: string, payload: Record<string, any> = {}) => adminAction(action, payload),
 };

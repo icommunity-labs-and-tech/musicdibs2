@@ -4,9 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw, Radio, MousePointerClick, Link } from 'lucide-react';
+import {
+  BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw,
+  Radio, MousePointerClick, Link, AlertTriangle, CheckCircle2, Clock,
+  RotateCcw, XCircle, ChevronDown, ChevronUp, Loader2,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const PIE_COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--secondary))'];
 const STATUS_COLORS = ['hsl(142, 76%, 36%)', 'hsl(48, 96%, 53%)', 'hsl(0, 84%, 60%)'];
@@ -17,6 +23,37 @@ export default function AdminMetricsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [distMetrics, setDistMetrics] = useState({ distributed: 0, clicks: 0 });
   const [syncQueueCount, setSyncQueueCount] = useState(0);
+
+  const [ibsQueue, setIbsQueue] = useState<any>(null);
+  const [ibsLoading, setIbsLoading] = useState(true);
+  const [retrying, setRetrying] = useState<string | null>(null);
+  const [queueExpanded, setQueueExpanded] = useState(false);
+
+  const loadIbsQueue = async () => {
+    setIbsLoading(true);
+    try {
+      const res = await adminApi.callAction('get_ibs_queue', {});
+      setIbsQueue(res);
+      if ((res.exhausted_count || 0) + (res.stale_count || 0) > 0) {
+        setQueueExpanded(true);
+      }
+    } catch (e: any) {
+      toast.error('Error cargando estado de la cola: ' + e.message);
+    }
+    setIbsLoading(false);
+  };
+
+  const handleRetryItem = async (queueId: string, workId: string) => {
+    setRetrying(queueId);
+    try {
+      await adminApi.callAction('retry_ibs_queue_item', { queueId, workId });
+      toast.success('Reintento programado — el cron procesará la obra en los próximos 15 minutos');
+      await loadIbsQueue();
+    } catch (e: any) {
+      toast.error('Error al programar reintento: ' + e.message);
+    }
+    setRetrying(null);
+  };
 
   const loadMetrics = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
@@ -32,6 +69,7 @@ export default function AdminMetricsPage() {
       const totalClicks = (clicksData.data || []).reduce((s: number, w: any) => s + (w.distribution_clicks || 0), 0);
       setDistMetrics({ distributed: distCount.count || 0, clicks: totalClicks });
       setSyncQueueCount(syncQueue.count || 0);
+      await loadIbsQueue();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -73,6 +111,8 @@ export default function AdminMetricsPage() {
     { name: 'Procesando', value: metrics.works_processing },
     { name: 'Fallidas', value: metrics.works_failed },
   ].filter(d => d.value > 0);
+
+  const hasQueueProblems = ibsQueue && (ibsQueue.exhausted_count > 0 || ibsQueue.stale_count > 0);
 
   return (
     <div className="space-y-6">
@@ -166,6 +206,150 @@ export default function AdminMetricsPage() {
         <Button variant="outline" onClick={() => handleExport('transactions')}><Download className="h-4 w-4 mr-2" /> Exportar transacciones</Button>
         <Button variant="outline" onClick={() => handleExport('works')}><Download className="h-4 w-4 mr-2" /> Exportar obras</Button>
       </div>
+
+      {/* ── Panel Monitoring iBS Blockchain Queue ─────────────── */}
+      <Card className={`border-border/40 ${hasQueueProblems ? 'border-red-500/40 bg-red-500/5' : 'border-green-500/30 bg-green-500/5'}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {hasQueueProblems
+                ? <AlertTriangle className="h-5 w-5 text-red-400" />
+                : <CheckCircle2 className="h-5 w-5 text-green-400" />
+              }
+              <CardTitle className="text-base">Monitoring · Cola Blockchain iBS</CardTitle>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {!ibsLoading && ibsQueue && (
+                <div className="flex items-center gap-4 text-sm">
+                  <span className={`flex items-center gap-1 ${ibsQueue.exhausted_count > 0 ? 'text-red-400' : 'text-muted-foreground'}`}>
+                    <XCircle className="h-3.5 w-3.5" />
+                    {ibsQueue.exhausted_count} agotados
+                  </span>
+                  <span className={`flex items-center gap-1 ${ibsQueue.stale_count > 0 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                    <Clock className="h-3.5 w-3.5" />
+                    {ibsQueue.stale_count} bloqueados
+                  </span>
+                  <span className="flex items-center gap-1 text-green-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {ibsQueue.resolved_24h} resueltos (24h)
+                  </span>
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setQueueExpanded(e => !e)}
+                className="h-7 px-2"
+              >
+                {queueExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+
+        {queueExpanded && (
+          <CardContent>
+            {ibsLoading ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Cargando estado de la cola...
+              </div>
+            ) : !ibsQueue || ibsQueue.items?.length === 0 ? (
+              <div className="flex items-center justify-center gap-2 py-8 text-green-400">
+                <CheckCircle2 className="h-5 w-5" />
+                Sin registros problemáticos. La cola está sana.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Registros que requieren atención. Los agotados han superado el
+                  máximo de reintentos automáticos — usa el botón de reintento
+                  para relanzarlos manualmente.
+                </p>
+                <TooltipProvider>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Obra</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Evidence ID</TableHead>
+                        <TableHead>Intentos</TableHead>
+                        <TableHead>Error</TableHead>
+                        <TableHead>Creado</TableHead>
+                        <TableHead>Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ibsQueue.items.map((item: any) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium max-w-[200px] truncate">
+                            {item.work_title}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={item.status === 'exhausted' ? 'border-red-500/50 text-red-400' : 'border-amber-500/50 text-amber-400'}>
+                              {item.status === 'exhausted'
+                                ? <><XCircle className="h-3 w-3 mr-1" /> Agotado</>
+                                : <><Clock className="h-3 w-3 mr-1" /> Bloqueado</>
+                              }
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-mono">
+                            {item.ibs_evidence_id
+                              ? item.ibs_evidence_id.slice(0, 12) + '...'
+                              : '—'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            {item.retry_count}/{item.max_retries}
+                          </TableCell>
+                          <TableCell className="max-w-[180px]">
+                            <UiTooltip>
+                              <TooltipTrigger asChild>
+                                <span className="text-xs text-muted-foreground truncate block cursor-help">
+                                  {item.error_detail
+                                    ? item.error_detail.slice(0, 30) + '...'
+                                    : '—'
+                                  }
+                                </span>
+                              </TooltipTrigger>
+                              {item.error_detail && (
+                                <TooltipContent className="max-w-sm">
+                                  <p className="text-xs">{item.error_detail}</p>
+                                </TooltipContent>
+                              )}
+                            </UiTooltip>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {new Date(item.created_at).toLocaleString('es-ES', {
+                              day: '2-digit', month: '2-digit',
+                              hour: '2-digit', minute: '2-digit',
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRetryItem(item.id, item.work_id)}
+                              disabled={retrying === item.id}
+                            >
+                              {retrying === item.id
+                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                : <><RotateCcw className="h-3.5 w-3.5 mr-1" /> Reintentar</>
+                              }
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TooltipProvider>
+              </div>
+            )}
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 }
