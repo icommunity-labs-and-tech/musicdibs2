@@ -148,6 +148,8 @@ serve(async (req) => {
         run_id: crypto.randomUUID(),
         message_id: messageId,
         to: email,
+        from: "MusicDibs <noreply@notify.musicdibs.com>",
+        sender_domain: "notify.musicdibs.com",
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
         purpose: "transactional",
