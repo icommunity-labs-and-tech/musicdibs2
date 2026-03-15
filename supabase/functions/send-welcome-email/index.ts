@@ -152,6 +152,7 @@ serve(async (req) => {
         sender_domain: "notify.musicdibs.com",
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
+        text: `¡Bienvenido a MusicDibs, ${name}! Tu cuenta está lista. Tienes 1 crédito de bienvenida para registrar tu primera obra. Accede a tu panel: ${dashboardUrl}`,
         purpose: "transactional",
         label: "welcome_email",
         queued_at: new Date().toISOString(),
