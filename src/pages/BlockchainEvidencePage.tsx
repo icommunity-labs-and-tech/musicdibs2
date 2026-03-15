@@ -90,10 +90,16 @@ export default function BlockchainEvidencePage() {
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('works')
         .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks', { count: 'exact' })
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+
+      const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
 
