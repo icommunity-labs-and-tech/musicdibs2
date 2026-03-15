@@ -20,6 +20,9 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Hide navbar on dashboard pages (they have their own sidebar)
+  if (location.pathname.startsWith('/dashboard')) return null;
+
   // Pages with light/white backgrounds need dark navbar text
   const lightBgPages = ['/ai-studio', '/faq', '/contact', '/terms', '/privacy', '/cookies', '/sla', '/legal-validity'];
   const isLightBg = lightBgPages.some(p => location.pathname.startsWith(p));
