@@ -10,6 +10,7 @@ import {
   Heading,
   Html,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -23,17 +24,22 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
     <Head />
     <Preview>Restablece tu contraseña en MusicDibs</Preview>
     <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Restablecer contraseña</Heading>
-        <Text style={text}>
-          Hemos recibido una solicitud para restablecer tu contraseña en MusicDibs. Haz clic en el botón para elegir una nueva contraseña.
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Restablecer Contraseña
-        </Button>
-        <Text style={footer}>
-          Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña no será modificada.
-        </Text>
+      <Container style={wrapper}>
+        <Section style={logoSection}>
+          <Text style={logoText}>MUSICDIBS</Text>
+          <Text style={tagline}>by iCommunity · Registro de Propiedad Intelectual</Text>
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>🔑 Restablece tu contraseña</Heading>
+          <Text style={text}>
+            Hemos recibido una solicitud para restablecer tu contraseña en MusicDibs. Haz clic en el botón para elegir una nueva.
+          </Text>
+          <Button style={button} href={confirmationUrl}>
+            Restablecer contraseña →
+          </Button>
+          <Text style={footer}>Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña no se modificará.</Text>
+        </Section>
+        <Text style={bottom}>musicdibs.com · Soporte</Text>
       </Container>
     </Body>
   </Html>
@@ -41,9 +47,14 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#f4f0fa', fontFamily: 'Arial, sans-serif' }
-const container = { backgroundColor: '#ffffff', padding: '32px', borderRadius: '8px', margin: '40px auto', maxWidth: '480px' }
-const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a0a2e', margin: '0 0 20px' }
-const text = { fontSize: '14px', color: '#55575d', lineHeight: '1.6', margin: '0 0 20px' }
-const button = { backgroundColor: '#8b5cf6', color: '#ffffff', fontSize: '14px', borderRadius: '8px', padding: '12px 24px', textDecoration: 'none' }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#0d0618', fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }
+const wrapper = { padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }
+const logoSection = { textAlign: 'center' as const, marginBottom: '30px' }
+const logoText = { color: '#a855f7', fontSize: '22px', fontWeight: '800' as const, letterSpacing: '1px', margin: '0' }
+const tagline = { color: '#9ca3af', fontSize: '11px', margin: '4px 0 0' }
+const card = { backgroundColor: '#1a0a2e', borderRadius: '16px', padding: '40px 36px', textAlign: 'center' as const }
+const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#f3f4f6', margin: '0 0 16px' }
+const text = { fontSize: '15px', color: '#d1d5db', lineHeight: '1.7', margin: '0 0 20px' }
+const button = { backgroundColor: '#a855f7', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '10px', padding: '14px 40px', textDecoration: 'none' }
+const footer = { fontSize: '12px', color: '#6b7280', margin: '24px 0 0' }
+const bottom = { fontSize: '11px', color: '#6b7280', textAlign: 'center' as const, marginTop: '28px', lineHeight: '1.6' }

@@ -11,6 +11,7 @@ import {
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -26,21 +27,23 @@ export const EmailChangeEmail = ({ siteName, email, newEmail, confirmationUrl }:
     <Head />
     <Preview>Confirma el cambio de email en MusicDibs</Preview>
     <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirmar cambio de email</Heading>
-        <Text style={text}>
-          Has solicitado cambiar tu dirección de email en MusicDibs de{' '}
-          <Link href={`mailto:${email}`} style={link}>{email}</Link>{' '}
-          a{' '}
-          <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
-        </Text>
-        <Text style={text}>Haz clic en el botón para confirmar este cambio:</Text>
-        <Button style={button} href={confirmationUrl}>
-          Confirmar Cambio de Email
-        </Button>
-        <Text style={footer}>
-          Si no solicitaste este cambio, protege tu cuenta de inmediato.
-        </Text>
+      <Container style={wrapper}>
+        <Section style={logoSection}>
+          <Text style={logoText}>MUSICDIBS</Text>
+          <Text style={tagline}>by iCommunity · Registro de Propiedad Intelectual</Text>
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>📧 Confirma el cambio de email</Heading>
+          <Text style={text}>
+            Has solicitado cambiar tu email de <Link href={`mailto:${email}`} style={link}>{email}</Link> a <Link href={`mailto:${newEmail}`} style={link}>{newEmail}</Link>.
+          </Text>
+          <Text style={text}>Haz clic en el botón para confirmar:</Text>
+          <Button style={button} href={confirmationUrl}>
+            Confirmar cambio →
+          </Button>
+          <Text style={footer}>Si no solicitaste este cambio, protege tu cuenta de inmediato.</Text>
+        </Section>
+        <Text style={bottom}>musicdibs.com · Soporte</Text>
       </Container>
     </Body>
   </Html>
@@ -48,10 +51,15 @@ export const EmailChangeEmail = ({ siteName, email, newEmail, confirmationUrl }:
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#f4f0fa', fontFamily: 'Arial, sans-serif' }
-const container = { backgroundColor: '#ffffff', padding: '32px', borderRadius: '8px', margin: '40px auto', maxWidth: '480px' }
-const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#1a0a2e', margin: '0 0 20px' }
-const text = { fontSize: '14px', color: '#55575d', lineHeight: '1.6', margin: '0 0 20px' }
-const link = { color: '#8b5cf6', textDecoration: 'underline' }
-const button = { backgroundColor: '#8b5cf6', color: '#ffffff', fontSize: '14px', borderRadius: '8px', padding: '12px 24px', textDecoration: 'none' }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#0d0618', fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }
+const wrapper = { padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }
+const logoSection = { textAlign: 'center' as const, marginBottom: '30px' }
+const logoText = { color: '#a855f7', fontSize: '22px', fontWeight: '800' as const, letterSpacing: '1px', margin: '0' }
+const tagline = { color: '#9ca3af', fontSize: '11px', margin: '4px 0 0' }
+const card = { backgroundColor: '#1a0a2e', borderRadius: '16px', padding: '40px 36px', textAlign: 'center' as const }
+const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#f3f4f6', margin: '0 0 16px' }
+const text = { fontSize: '15px', color: '#d1d5db', lineHeight: '1.7', margin: '0 0 20px' }
+const link = { color: '#a855f7', textDecoration: 'none' }
+const button = { backgroundColor: '#a855f7', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '10px', padding: '14px 40px', textDecoration: 'none' }
+const footer = { fontSize: '12px', color: '#6b7280', margin: '24px 0 0' }
+const bottom = { fontSize: '11px', color: '#6b7280', textAlign: 'center' as const, marginTop: '28px', lineHeight: '1.6' }
