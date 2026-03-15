@@ -36,6 +36,18 @@ export default function UserLogin() {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    setError('');
+    setAppleLoading(true);
+    const result = await lovable.auth.signInWithOAuth('apple', {
+      redirect_uri: window.location.origin,
+    });
+    if (result?.error) {
+      setError(result.error.message || 'Error al iniciar sesión con Apple');
+      setAppleLoading(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(''); setLoading(true);
