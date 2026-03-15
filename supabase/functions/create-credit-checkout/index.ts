@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { planChangeEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -126,6 +127,34 @@ serve(async (req) => {
 
           logStep("Upgrade completed", { newPlan: newPlanName, addedCredits: plan.credits, totalCredits: updatedCredits });
 
+          // Send plan change email
+          try {
+            const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
+            const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
+            const email = planChangeEmail({
+              name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
+              isUpgrade: true, creditsAdded: plan.credits,
+            });
+            const messageId = crypto.randomUUID();
+            await supabaseAdmin.from("email_send_log").insert({
+              message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
+            });
+            await supabaseAdmin.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: messageId,
+                to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: email.subject, html: email.html, text: email.text,
+                purpose: "transactional", label: "plan_change",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            logStep("Plan change email enqueued", { email: user.email });
+          } catch (emailErr) {
+            console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing plan change email:", emailErr);
+          }
+
           return new Response(JSON.stringify({
             switched: true,
             plan: newPlanName,
@@ -155,6 +184,34 @@ serve(async (req) => {
           });
 
           logStep("Downgrade completed", { newPlan: newPlanName });
+
+          // Send plan change email
+          try {
+            const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
+            const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
+            const email = planChangeEmail({
+              name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
+              isUpgrade: false, creditsAdded: 0, creditsKept: currentCredits,
+            });
+            const messageId = crypto.randomUUID();
+            await supabaseAdmin.from("email_send_log").insert({
+              message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
+            });
+            await supabaseAdmin.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: messageId,
+                to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: email.subject, html: email.html, text: email.text,
+                purpose: "transactional", label: "plan_change",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            logStep("Downgrade email enqueued", { email: user.email });
+          } catch (emailErr) {
+            console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing downgrade email:", emailErr);
+          }
 
           return new Response(JSON.stringify({
             switched: true,
