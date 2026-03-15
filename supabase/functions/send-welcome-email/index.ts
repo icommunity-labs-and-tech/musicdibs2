@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,11 +22,13 @@ serve(async (req) => {
   }
 
   try {
-    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-    if (!RESEND_API_KEY) {
-      console.error("[WELCOME-EMAIL] RESEND_API_KEY not configured");
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+    if (!supabaseUrl || !serviceKey) {
+      console.error("[WELCOME-EMAIL] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
       return new Response(
-        JSON.stringify({ error: "Email service not configured" }),
+        JSON.stringify({ error: "Service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -176,34 +179,30 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    const emailRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "MusicDibs <noreply@notify.musicdibs.com>",
-        to: [email],
+    // Enqueue via pgmq transactional_emails queue (processed by process-email-queue)
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    const { data: msgId, error: enqueueError } = await supabase.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        to: email,
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
-      }),
+      },
     });
 
-    if (!emailRes.ok) {
-      const errText = await emailRes.text();
-      console.error(`[WELCOME-EMAIL] Resend error [${emailRes.status}]:`, errText);
+    if (enqueueError) {
+      console.error("[WELCOME-EMAIL] Enqueue error:", enqueueError);
       return new Response(
-        JSON.stringify({ error: "Failed to send email" }),
+        JSON.stringify({ error: "Failed to enqueue email" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const result = await emailRes.json();
-    console.log(`[WELCOME-EMAIL] Sent to ${email}, id: ${result.id}`);
+    console.log(`[WELCOME-EMAIL] Enqueued for ${email}, msgId: ${msgId}`);
 
     return new Response(
-      JSON.stringify({ success: true, emailId: result.id }),
+      JSON.stringify({ success: true, msgId }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
