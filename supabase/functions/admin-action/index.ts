@@ -27,7 +27,8 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user: callerUser }, error: userError } = await supabaseUser.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: callerUser }, error: userError } = await supabaseUser.auth.getUser(token);
     if (userError || !callerUser) return json({ error: "Unauthorized" }, 401);
 
     const callerUserId = callerUser.id;
