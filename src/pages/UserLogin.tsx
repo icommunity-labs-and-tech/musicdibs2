@@ -21,8 +21,6 @@ export default function UserLogin() {
       navigate('/dashboard', { replace: true });
     }
   }, [user, authLoading, navigate]);
-  const { signIn, signUp } = useAuth();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
