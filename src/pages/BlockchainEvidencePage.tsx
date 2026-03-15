@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,7 +73,8 @@ export default function BlockchainEvidencePage() {
   const [displayName, setDisplayName] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 20;
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const PAGE_SIZE = 5;
 
   // Fetch display name
   useEffect(() => {
@@ -89,10 +90,16 @@ export default function BlockchainEvidencePage() {
       const from = pageNum * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { data, error, count } = await supabase
+      let query = supabase
         .from('works')
         .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks', { count: 'exact' })
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+
+      const { data, error, count } = await query
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -109,8 +116,13 @@ export default function BlockchainEvidencePage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   useEffect(() => {
-    loadWorks(page);
-  }, [user, page]);
+    setPage(0);
+    loadWorks(0);
+  }, [user, statusFilter]);
+
+  useEffect(() => {
+    if (page > 0) loadWorks(page);
+  }, [page]);
 
   // Realtime subscription
   useEffect(() => {
@@ -192,6 +204,27 @@ export default function BlockchainEvidencePage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { key: 'all', label: 'Todas', icon: FileText },
+          { key: 'registered', label: 'Certificadas', icon: CheckCircle2 },
+          { key: 'processing', label: 'En proceso', icon: Clock },
+          { key: 'failed', label: 'Fallidas', icon: XCircle },
+        ].map(({ key, label, icon: Icon }) => (
+          <Button
+            key={key}
+            variant={statusFilter === key ? 'default' : 'outline'}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setStatusFilter(key)}
+          >
+            <Icon className="h-3.5 w-3.5 mr-1.5" />
+            {label}
+          </Button>
+        ))}
       </div>
 
       {/* Evidence List */}
