@@ -7,6 +7,8 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.chat-support]
     verify_jwt = false
+  [functions.check-subscription]
+    verify_jwt = false
   [functions.create-credit-checkout]
     verify_jwt = false
   [functions.extract-url-content]
