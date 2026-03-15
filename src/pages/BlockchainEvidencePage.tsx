@@ -121,7 +121,7 @@ export default function BlockchainEvidencePage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'works', filter: `user_id=eq.${user.id}` },
-        () => loadWorks()
+        () => loadWorks(page)
       )
       .subscribe();
 
