@@ -429,6 +429,16 @@ const AIStudioVideo = () => {
 
       const { data, error: fnError } = await supabase.functions.invoke('generate-video', { body });
 
+      // Rate limit
+      if (data?.error === 'rate_limit_exceeded') {
+        toast({
+          title: 'Demasiadas generaciones',
+          description: data.message || 'Espera unos segundos antes de volver a generar.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
 
