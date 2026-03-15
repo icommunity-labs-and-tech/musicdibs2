@@ -73,7 +73,8 @@ export default function BlockchainEvidencePage() {
   const [displayName, setDisplayName] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
-  const PAGE_SIZE = 20;
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const PAGE_SIZE = 5;
 
   // Fetch display name
   useEffect(() => {
