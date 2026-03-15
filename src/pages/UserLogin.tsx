@@ -16,6 +16,7 @@ export default function UserLogin() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showLoginPw, setShowLoginPw] = useState(false);
