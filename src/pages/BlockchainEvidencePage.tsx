@@ -346,7 +346,7 @@ export default function BlockchainEvidencePage() {
                                 workId={work.id}
                                 distributedAt={work.distributed_at}
                                 currentClicks={work.distribution_clicks || 0}
-                                onDistributed={loadWorks}
+                                onDistributed={() => loadWorks(page)}
                               />
                             </>
                           )}
