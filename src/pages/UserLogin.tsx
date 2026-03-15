@@ -12,6 +12,15 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export default function UserLogin() {
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to dashboard if already authenticated (e.g. after OAuth return)
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
