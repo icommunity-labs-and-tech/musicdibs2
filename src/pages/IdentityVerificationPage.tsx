@@ -100,6 +100,7 @@ export default function IdentityVerificationPage() {
       if (data?.kyc_status === 'verified') {
         setKycStatus('verified');
         setPolling(false);
+        setKycUrl(null);
         toast.success('¡Identidad verificada correctamente!');
       } else if (data?.kyc_status === 'pending') {
         setKycStatus('pending');
@@ -125,12 +126,49 @@ export default function IdentityVerificationPage() {
           if (newStatus === 'verified') {
             toast.success('¡Identidad verificada correctamente!');
             setPolling(false);
+            setKycUrl(null);
           }
         }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, kycStatus]);
+
+  // Listen for postMessage from iframe (iCommunity sends completion events)
+  useEffect(() => {
+    if (step !== 2 || !kycUrl) return;
+    const handleMessage = async (event: MessageEvent) => {
+      const msg = typeof event.data === 'string' ? event.data : event.data?.type || event.data?.status;
+      const msgStr = JSON.stringify(event.data).toLowerCase();
+      if (
+        msgStr.includes('completed') ||
+        msgStr.includes('success') ||
+        msgStr.includes('verified') ||
+        msgStr.includes('finish') ||
+        msg === 'verification_complete'
+      ) {
+        console.log('[KYC] iframe postMessage received:', event.data);
+        setKycUrl(null);
+        // Check actual status
+        if (user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('kyc_status')
+            .eq('user_id', user.id)
+            .single();
+          if (data?.kyc_status === 'verified') {
+            setKycStatus('verified');
+            setPolling(false);
+            toast.success('¡Identidad verificada correctamente!');
+          } else {
+            toast.info('Verificación completada. Procesando resultado…');
+          }
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [step, kycUrl, user]);
 
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
