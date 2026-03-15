@@ -206,6 +206,27 @@ export default function BlockchainEvidencePage() {
         </Card>
       </div>
 
+      {/* Filters */}
+      <div className="flex gap-1.5 flex-wrap">
+        {[
+          { key: 'all', label: 'Todas', icon: FileText },
+          { key: 'registered', label: 'Certificadas', icon: CheckCircle2 },
+          { key: 'processing', label: 'En proceso', icon: Clock },
+          { key: 'failed', label: 'Fallidas', icon: XCircle },
+        ].map(({ key, label, icon: Icon }) => (
+          <Button
+            key={key}
+            variant={statusFilter === key ? 'default' : 'outline'}
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setStatusFilter(key)}
+          >
+            <Icon className="h-3.5 w-3.5 mr-1.5" />
+            {label}
+          </Button>
+        ))}
+      </div>
+
       {/* Evidence List */}
       <Card className="border-border/40 shadow-sm">
         <CardHeader className="pb-3">
