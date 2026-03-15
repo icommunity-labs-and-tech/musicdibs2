@@ -214,7 +214,8 @@ export default function BlockchainEvidencePage() {
                   return (
                     <div
                       key={work.id}
-                      className="rounded-lg border border-border/40 p-4 hover:bg-muted/30 transition-colors"
+                      className="rounded-lg border border-border/40 p-4 hover:bg-muted/30 transition-colors cursor-pointer"
+                      onClick={() => setExpandedId(expandedId === work.id ? null : work.id)}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -228,6 +229,9 @@ export default function BlockchainEvidencePage() {
                                 <StatusIcon className={`h-3 w-3 mr-1 ${work.status === 'processing' ? 'animate-spin' : ''}`} />
                                 {sc.label}
                               </Badge>
+                              <span className="text-[10px] text-muted-foreground/60 ml-auto">
+                                {expandedId === work.id ? '▲ ocultar' : '▼ ver progreso'}
+                              </span>
                             </div>
 
                             <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
@@ -257,7 +261,7 @@ export default function BlockchainEvidencePage() {
                                   {truncateHash(work.blockchain_hash)}
                                 </code>
                                 <button
-                                  onClick={() => copyHash(work.blockchain_hash!, work.id)}
+                                  onClick={(e) => { e.stopPropagation(); copyHash(work.blockchain_hash!, work.id); }}
                                   className="text-muted-foreground hover:text-foreground transition-colors"
                                   title="Copiar hash"
                                 >
@@ -286,7 +290,7 @@ export default function BlockchainEvidencePage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col gap-1.5 shrink-0">
+                        <div className="flex flex-col gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                           {work.checker_url && (
                             <a
                               href={work.checker_url}
@@ -338,6 +342,16 @@ export default function BlockchainEvidencePage() {
                           )}
                         </div>
                       </div>
+
+                      {/* Timeline expandible */}
+                      {expandedId === work.id && (
+                        <WorkTimeline
+                          workStatus={work.status as 'processing' | 'registered' | 'failed'}
+                          createdAt={work.created_at}
+                          certifiedAt={work.certified_at}
+                          ibsEvidenceId={work.ibs_evidence_id}
+                        />
+                      )}
                     </div>
                   );
                 })}
