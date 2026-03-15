@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,13 +21,11 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-    if (!supabaseUrl || !serviceKey) {
-      console.error("[WELCOME-EMAIL] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("[WELCOME-EMAIL] LOVABLE_API_KEY not configured");
       return new Response(
-        JSON.stringify({ error: "Service not configured" }),
+        JSON.stringify({ error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -179,33 +176,35 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    // Enqueue via pgmq transactional_emails queue (processed by process-email-queue)
-    const supabase = createClient(supabaseUrl, serviceKey);
-
-    const { data: msgId, error: enqueueError } = await supabase.rpc("enqueue_email", {
-      queue_name: "transactional_emails",
-      payload: {
-        to: email,
+    // Send via Lovable Email API directly
+    const emailRes = await fetch("https://api.lovable.dev/api/v1/send-email", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: [email],
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
         purpose: "transactional",
-        label: "welcome_email",
-        queued_at: new Date().toISOString(),
-      },
+      }),
     });
 
-    if (enqueueError) {
-      console.error("[WELCOME-EMAIL] Enqueue error:", enqueueError);
+    if (!emailRes.ok) {
+      const errText = await emailRes.text();
+      console.error(`[WELCOME-EMAIL] Lovable Email API error [${emailRes.status}]:`, errText);
       return new Response(
-        JSON.stringify({ error: "Failed to enqueue email" }),
+        JSON.stringify({ error: "Failed to send email" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`[WELCOME-EMAIL] Enqueued for ${email}, msgId: ${msgId}`);
+    const result = await emailRes.json();
+    console.log(`[WELCOME-EMAIL] Sent to ${email}`, result);
 
     return new Response(
-      JSON.stringify({ success: true, msgId }),
+      JSON.stringify({ success: true }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
