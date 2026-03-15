@@ -216,7 +216,7 @@ export default function BlockchainEvidencePage() {
               </p>
             </div>
           ) : (
-            <ScrollArea className="max-h-[500px]">
+            <>
               <div className="space-y-2">
                 {works.map((work) => {
                   const sc = statusConfig[work.status] || statusConfig.processing;
