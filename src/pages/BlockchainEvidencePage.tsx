@@ -72,6 +72,7 @@ export default function BlockchainEvidencePage() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   // Fetch display name
   useEffect(() => {
