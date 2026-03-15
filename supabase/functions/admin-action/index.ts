@@ -391,6 +391,91 @@ serve(async (req) => {
       return json({ logs: logs || [] });
     }
 
+    // ── get_ibs_queue ─────────────────────────────────────────────
+    if (action === "get_ibs_queue") {
+      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+      const [exhausted, stale, resolved_24h] = await Promise.all([
+        admin
+          .from("ibs_sync_queue")
+          .select("id, work_id, user_id, ibs_evidence_id, retry_count, max_retries, error_detail, created_at, updated_at")
+          .eq("status", "exhausted")
+          .order("updated_at", { ascending: false })
+          .limit(20),
+        admin
+          .from("ibs_sync_queue")
+          .select("id, work_id, user_id, ibs_evidence_id, retry_count, max_retries, status, created_at, updated_at")
+          .in("status", ["waiting", "retrying"])
+          .lt("created_at", thirtyMinAgo)
+          .order("created_at", { ascending: true })
+          .limit(20),
+        admin
+          .from("ibs_sync_queue")
+          .select("*", { count: "exact", head: true })
+          .eq("status", "resolved")
+          .gte("updated_at", new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+      ]);
+
+      const allItems = [
+        ...(exhausted.data || []).map((r: any) => ({ ...r, status: "exhausted" })),
+        ...(stale.data || []),
+      ];
+
+      let itemsWithTitle = allItems;
+      if (allItems.length > 0) {
+        const workIds = [...new Set(allItems.map((r: any) => r.work_id))];
+        const { data: works } = await admin
+          .from("works")
+          .select("id, title, type")
+          .in("id", workIds);
+        const workMap: Record<string, any> = {};
+        (works || []).forEach((w: any) => { workMap[w.id] = w; });
+        itemsWithTitle = allItems.map((r: any) => ({
+          ...r,
+          work_title: workMap[r.work_id]?.title || "Obra desconocida",
+          work_type: workMap[r.work_id]?.type || "unknown",
+        }));
+      }
+
+      return json({
+        exhausted_count: exhausted.data?.length || 0,
+        stale_count: stale.data?.length || 0,
+        resolved_24h: resolved_24h.count || 0,
+        items: itemsWithTitle,
+      });
+    }
+
+    // ── retry_ibs_queue_item ──────────────────────────────────────
+    if (action === "retry_ibs_queue_item") {
+      const { queueId, workId } = payload;
+      if (!queueId || !workId) throw new Error("queueId and workId are required");
+
+      await admin
+        .from("ibs_sync_queue")
+        .update({
+          status: "waiting",
+          retry_count: 0,
+          error_detail: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", queueId);
+
+      await admin
+        .from("works")
+        .update({
+          status: "processing",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", workId);
+
+      await audit({
+        action: "retry_ibs_queue",
+        details: { queueId, workId },
+      });
+
+      return json({ success: true });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);
