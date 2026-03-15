@@ -41,33 +41,35 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub as string;
 
-    // Rate limiting: max 3 video generations per 10 minutes per user
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
-
-    const { data: allowed, error: rlError } = await supabaseAdmin.rpc('check_rate_limit', {
-      _user_id: userId,
-      _feature: 'generate_video',
-      _max_requests: 3,
-      _window_seconds: 600,
-    });
-
-    if (rlError || !allowed) {
-      console.warn(`[GENERATE-VIDEO] Rate limited user ${userId}`);
-      return new Response(
-        JSON.stringify({ error: 'Has superado el límite de generaciones de vídeo. Espera unos minutos e inténtalo de nuevo.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const RUNWAY_API_KEY = Deno.env.get('RUNWAY_API_KEY');
     if (!RUNWAY_API_KEY) {
       throw new Error('RUNWAY_API_KEY is not configured');
     }
 
     const { action, mode, promptText, promptImage, ratio, duration, taskId } = await req.json();
+
+    // Rate limiting only for generation, not status checks
+    if (action === 'generate') {
+      const supabaseAdmin = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      );
+
+      const { data: allowed, error: rlError } = await supabaseAdmin.rpc('check_rate_limit', {
+        _user_id: userId,
+        _feature: 'generate_video',
+        _max_requests: 3,
+        _window_seconds: 600,
+      });
+
+      if (rlError || !allowed) {
+        console.warn(`[GENERATE-VIDEO] Rate limited user ${userId}`);
+        return new Response(
+          JSON.stringify({ error: 'Has superado el límite de generaciones de vídeo. Espera unos minutos e inténtalo de nuevo.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     const headers = {
       'Authorization': `Bearer ${RUNWAY_API_KEY}`,
