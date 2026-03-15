@@ -188,6 +188,9 @@ serve(async (req) => {
         to: email,
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
+        purpose: "transactional",
+        label: "welcome_email",
+        queued_at: new Date().toISOString(),
       },
     });
 
