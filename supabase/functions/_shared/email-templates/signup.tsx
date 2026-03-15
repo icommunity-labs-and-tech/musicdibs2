@@ -11,6 +11,7 @@ import {
   Html,
   Link,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -27,32 +28,30 @@ export const SignupEmail = ({
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirma tu email en MusicDibs</Preview>
     <Body style={main}>
-      <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
-        </Text>
+      <Container style={wrapper}>
+        <Section style={logoSection}>
+          <Text style={logoText}>MUSICDIBS</Text>
+          <Text style={tagline}>by iCommunity · Registro de Propiedad Intelectual</Text>
+        </Section>
+        <Section style={card}>
+          <Heading style={h1}>🎵 Confirma tu email</Heading>
+          <Text style={text}>
+            ¡Gracias por registrarte en{' '}
+            <Link href={siteUrl} style={link}><strong>MusicDibs</strong></Link>!
+          </Text>
+          <Text style={text}>
+            Confirma tu dirección de email (<Link href={`mailto:${recipient}`} style={link}>{recipient}</Link>) haciendo clic en el botón:
+          </Text>
+          <Button style={button} href={confirmationUrl}>
+            Verificar email →
+          </Button>
+          <Text style={footer}>Si no creaste una cuenta, puedes ignorar este email.</Text>
+        </Section>
+        <Text style={bottom}>musicdibs.com · Soporte</Text>
       </Container>
     </Body>
   </Html>
@@ -60,27 +59,15 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#0d0618', fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif" }
+const wrapper = { padding: '40px 20px', maxWidth: '600px', margin: '0 auto' }
+const logoSection = { textAlign: 'center' as const, marginBottom: '30px' }
+const logoText = { color: '#a855f7', fontSize: '22px', fontWeight: '800' as const, letterSpacing: '1px', margin: '0' }
+const tagline = { color: '#9ca3af', fontSize: '11px', margin: '4px 0 0' }
+const card = { backgroundColor: '#1a0a2e', borderRadius: '16px', padding: '40px 36px', textAlign: 'center' as const }
+const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#f3f4f6', margin: '0 0 16px' }
+const text = { fontSize: '15px', color: '#d1d5db', lineHeight: '1.7', margin: '0 0 20px' }
+const link = { color: '#a855f7', textDecoration: 'none' }
+const button = { backgroundColor: '#a855f7', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '10px', padding: '14px 40px', textDecoration: 'none' }
+const footer = { fontSize: '12px', color: '#6b7280', margin: '24px 0 0' }
+const bottom = { fontSize: '11px', color: '#6b7280', textAlign: 'center' as const, marginTop: '28px', lineHeight: '1.6' }
