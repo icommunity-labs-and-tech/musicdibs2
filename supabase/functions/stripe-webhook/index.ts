@@ -120,15 +120,58 @@ serve(async (req) => {
         }
 
         // Guardar stripe_customer_id para evitar listUsers() en futuros eventos
+        let resolvedCustomerId: string | undefined;
         if (session.customer) {
-          const customerId = typeof session.customer === "string"
+          resolvedCustomerId = typeof session.customer === "string"
             ? session.customer
             : session.customer.id;
           await supabase
             .from("profiles")
-            .update({ stripe_customer_id: customerId })
+            .update({ stripe_customer_id: resolvedCustomerId })
             .eq("user_id", userId);
-          console.log(`[WEBHOOK] Saved stripe_customer_id ${customerId} for user ${userId}`);
+          console.log(`[WEBHOOK] Saved stripe_customer_id ${resolvedCustomerId} for user ${userId}`);
+        }
+
+        // Send purchase confirmation email
+        try {
+          const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
+          if (authUser?.email) {
+            const displayName = authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            // Try to get invoice URL from Stripe
+            let invoiceUrl: string | undefined;
+            if (resolvedCustomerId) {
+              try {
+                const invoices = await stripe.invoices.list({ customer: resolvedCustomerId, limit: 1 });
+                if (invoices.data[0]?.hosted_invoice_url) {
+                  invoiceUrl = invoices.data[0].hosted_invoice_url;
+                }
+              } catch (e) { console.warn("[WEBHOOK] Could not fetch invoice URL:", e); }
+            }
+            const email = creditPurchaseEmail({
+              name: displayName,
+              planName: planMap[planId] || planId,
+              credits,
+              invoiceUrl,
+            });
+            const messageId = crypto.randomUUID();
+            await supabase.from("email_send_log").insert({
+              message_id: messageId, template_name: "credit_purchase", recipient_email: authUser.email, status: "pending",
+            });
+            await supabase.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: messageId,
+                to: authUser.email, from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: email.subject, html: email.html, text: email.text,
+                purpose: "transactional", label: "credit_purchase",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            console.log(`[WEBHOOK] Purchase confirmation email enqueued for ${authUser.email}`);
+          }
+        } catch (emailErr) {
+          console.error("[WEBHOOK] Error enqueuing purchase email:", emailErr);
         }
       }
     }

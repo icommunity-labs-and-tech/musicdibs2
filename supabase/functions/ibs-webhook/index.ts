@@ -86,6 +86,45 @@ serve(async (req) => {
           .eq("id", work.id);
         console.log(`[IBS-WEBHOOK-EVIDENCE] Work ${work.id} certified. Hash: ${certHash}`);
 
+        // Send work certified email
+        try {
+          const { data: workFull } = await supabaseAdmin
+            .from("works")
+            .select("title")
+            .eq("id", work.id)
+            .single();
+          const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(work.user_id);
+          if (authUser?.email && workFull) {
+            const displayName = authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            const email = workCertifiedEmail({
+              name: displayName,
+              workTitle: workFull.title,
+              blockchainHash: certHash || "",
+              network: network || "polygon",
+              checkerUrl,
+              certificateUrl: signedPdfUrl || checkerUrl,
+            });
+            const messageId = crypto.randomUUID();
+            await supabaseAdmin.from("email_send_log").insert({
+              message_id: messageId, template_name: "work_certified", recipient_email: authUser.email, status: "pending",
+            });
+            await supabaseAdmin.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: messageId,
+                to: authUser.email, from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: email.subject, html: email.html, text: email.text,
+                purpose: "transactional", label: "work_certified",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            console.log(`[IBS-WEBHOOK-EVIDENCE] Work certified email enqueued for ${authUser.email}`);
+          }
+        } catch (emailErr) {
+          console.error("[IBS-WEBHOOK-EVIDENCE] Error enqueuing work certified email:", emailErr);
+        }
+
         // Resolve sync queue entry so cron doesn't retry
         await supabaseAdmin
           .from("ibs_sync_queue")
