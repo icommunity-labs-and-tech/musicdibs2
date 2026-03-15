@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const kycConfig: Record<string, { label: string; icon: typeof CheckCircle2; badg
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Profile editing
   const [editing, setEditing] = useState(false);
@@ -271,7 +273,9 @@ export default function ProfilePage() {
                   <p className="text-xs text-muted-foreground">
                     Necesitas verificar tu identidad para poder registrar obras.
                   </p>
-                  <Button variant="outline" size="sm">Iniciar verificación</Button>
+                  <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate('/dashboard/verify-identity')}>
+                    <Shield className="h-3.5 w-3.5" /> Iniciar verificación
+                  </Button>
                 </div>
               )}
             </>

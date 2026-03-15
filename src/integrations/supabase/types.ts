@@ -417,6 +417,7 @@ export type Database = {
           available_credits: number
           created_at: string
           display_name: string | null
+          ibs_signature_id: string | null
           id: string
           is_blocked: boolean | null
           kyc_status: string
@@ -430,6 +431,7 @@ export type Database = {
           available_credits?: number
           created_at?: string
           display_name?: string | null
+          ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string
@@ -443,6 +445,7 @@ export type Database = {
           available_credits?: number
           created_at?: string
           display_name?: string | null
+          ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string

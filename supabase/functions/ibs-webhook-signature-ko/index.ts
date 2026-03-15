@@ -7,21 +7,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/**
- * Webhook for failed iCommunity signature/identity events:
- *   - signature.failed
- *   - identity.verification.failed
- *
- * Auth: iBS sends the webhook secret as ?secret=<value> in the URL
- *       and the Supabase anon key as Authorization: Bearer <anon_key>
- */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate webhook secret from query parameter
     const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
     const url = new URL(req.url);
     const secretParam = url.searchParams.get("secret");
@@ -58,6 +49,20 @@ serve(async (req) => {
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-KO] Signature ${signatureId} failed`);
 
+      // Reset kyc_status to unverified
+      const { data: sigFailed } = await supabaseAdmin
+        .from("ibs_signatures")
+        .select("user_id")
+        .eq("ibs_signature_id", signatureId)
+        .single();
+      if (sigFailed?.user_id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ kyc_status: "unverified", ibs_signature_id: null, updated_at: new Date().toISOString() })
+          .eq("user_id", sigFailed.user_id);
+        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${sigFailed.user_id}`);
+      }
+
     } else if (event === "identity.verification.failed") {
       const signatureId = data.signature_id;
       await supabaseAdmin
@@ -65,6 +70,20 @@ serve(async (req) => {
         .update({ status: "verification_failed", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-KO] Identity verification failed for ${signatureId}`);
+
+      // Reset kyc_status to unverified
+      const { data: sigVerFailed } = await supabaseAdmin
+        .from("ibs_signatures")
+        .select("user_id")
+        .eq("ibs_signature_id", signatureId)
+        .single();
+      if (sigVerFailed?.user_id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ kyc_status: "unverified", ibs_signature_id: null, updated_at: new Date().toISOString() })
+          .eq("user_id", sigVerFailed.user_id);
+        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${sigVerFailed.user_id}`);
+      }
 
     } else {
       console.log(`[IBS-WEBHOOK-SIG-KO] Ignoring event: ${event}`);
