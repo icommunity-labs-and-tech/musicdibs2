@@ -21,6 +21,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
 import { CertificateButton } from '@/components/dashboard/CertificateButton';
+import { WorkTimeline } from '@/components/dashboard/WorkTimeline';
 
 interface WorkEvidence {
   id: string;
