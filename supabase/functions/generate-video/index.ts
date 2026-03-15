@@ -48,28 +48,49 @@ serve(async (req) => {
 
     const { action, mode, promptText, promptImage, ratio, duration, taskId } = await req.json();
 
-    // Rate limiting only for generation, not status checks
+    // ── Rate limiting: solo para generate, no para status (polling) ──
     if (action === 'generate') {
       const supabaseAdmin = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
       );
 
-      const { data: allowed, error: rlError } = await supabaseAdmin.rpc('check_rate_limit', {
-        _user_id: userId,
-        _feature: 'generate_video',
-        _max_requests: 3,
-        _window_seconds: 600,
-      });
+      const VIDEO_LIMIT = 1;
+      const WINDOW_SECS = 60;
+      const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
 
-      if (rlError || !allowed) {
-        console.warn(`[GENERATE-VIDEO] Rate limited user ${userId}`);
+      const { count: recentCalls } = await supabaseAdmin
+        .from('ai_rate_limits')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('function_name', 'generate-video')
+        .gte('called_at', windowStart);
+
+      if ((recentCalls ?? 0) >= VIDEO_LIMIT) {
+        console.warn(`[GENERATE-VIDEO] Rate limit exceeded for user ${userId}`);
         return new Response(
-          JSON.stringify({ error: 'Has superado el límite de generaciones de vídeo. Espera unos minutos e inténtalo de nuevo.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({
+            error: 'rate_limit_exceeded',
+            message: `Máximo ${VIDEO_LIMIT} generación de vídeo por minuto. Espera unos segundos e inténtalo de nuevo.`,
+            retryAfter: WINDOW_SECS,
+          }),
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+              'Retry-After': String(WINDOW_SECS),
+            },
+          }
         );
       }
+
+      // Registrar esta llamada
+      await supabaseAdmin
+        .from('ai_rate_limits')
+        .insert({ user_id: userId, function_name: 'generate-video' });
     }
+    // ── Fin rate limiting ──
 
     const headers = {
       'Authorization': `Bearer ${RUNWAY_API_KEY}`,

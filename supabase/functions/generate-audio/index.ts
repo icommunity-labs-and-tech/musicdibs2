@@ -38,26 +38,47 @@ serve(async (req) => {
 
     const userId = claimsData.claims.sub as string;
 
-    // Rate limiting: max 5 audio generations per 10 minutes per user
+    // ── Rate limiting: máx 3 generaciones por usuario en 60 segundos ──
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { data: allowed, error: rlError } = await supabaseAdmin.rpc('check_rate_limit', {
-      _user_id: userId,
-      _feature: 'generate_audio',
-      _max_requests: 5,
-      _window_seconds: 600,
-    });
+    const AUDIO_LIMIT = 3;
+    const WINDOW_SECS = 60;
+    const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
 
-    if (rlError || !allowed) {
-      console.warn(`[GENERATE-AUDIO] Rate limited user ${userId}`);
+    const { count: recentCalls } = await supabaseAdmin
+      .from('ai_rate_limits')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('function_name', 'generate-audio')
+      .gte('called_at', windowStart);
+
+    if ((recentCalls ?? 0) >= AUDIO_LIMIT) {
+      console.warn(`[GENERATE-AUDIO] Rate limit exceeded for user ${userId}`);
       return new Response(
-        JSON.stringify({ error: 'Has superado el límite de generaciones. Espera unos minutos e inténtalo de nuevo.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({
+          error: 'rate_limit_exceeded',
+          message: `Máximo ${AUDIO_LIMIT} generaciones por minuto. Espera unos segundos e inténtalo de nuevo.`,
+          retryAfter: WINDOW_SECS,
+        }),
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Retry-After': String(WINDOW_SECS),
+          },
+        }
       );
     }
+
+    // Registrar esta llamada
+    await supabaseAdmin
+      .from('ai_rate_limits')
+      .insert({ user_id: userId, function_name: 'generate-audio' });
+    // ── Fin rate limiting ──
 
     const STABILITY_API_KEY = Deno.env.get('STABILITY_API_KEY');
     

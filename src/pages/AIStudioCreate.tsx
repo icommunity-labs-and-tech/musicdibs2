@@ -167,6 +167,15 @@ const AIStudioCreate = () => {
       // supabase.functions.invoke returns { data, error }
       // On non-2xx, error is set but data may ALSO contain the JSON body
       if (error) {
+        // Rate limit
+        if (data?.error === 'rate_limit_exceeded') {
+          toast({
+            title: 'Demasiadas generaciones',
+            description: data.message || 'Espera unos segundos antes de volver a generar.',
+            variant: 'destructive',
+          });
+          return;
+        }
         // Try to extract structured error from response body
         if (data?.error === 'insufficient_credits') {
           throw { message: data.message || 'Sin créditos de Stability AI', details: data.details };
