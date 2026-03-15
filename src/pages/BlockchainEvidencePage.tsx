@@ -366,7 +366,35 @@ export default function BlockchainEvidencePage() {
                   );
                 })}
               </div>
-            </ScrollArea>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/40">
+                  <p className="text-xs text-muted-foreground">
+                    {totalCount} obra{totalCount !== 1 ? 's' : ''} · Página {page + 1} de {totalPages}
+                  </p>
+                  <div className="flex gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={page === 0}
+                      onClick={() => setPage(p => p - 1)}
+                    >
+                      ← Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={page >= totalPages - 1}
+                      onClick={() => setPage(p => p + 1)}
+                    >
+                      Siguiente →
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
