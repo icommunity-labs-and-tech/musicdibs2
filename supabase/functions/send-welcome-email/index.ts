@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { sendLovableEmail } from "npm:@lovable.dev/email-js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,8 +22,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) {
       console.error("[WELCOME-EMAIL] LOVABLE_API_KEY not configured");
       return new Response(
         JSON.stringify({ error: "Email service not configured" }),
@@ -62,34 +63,24 @@ serve(async (req) => {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0618;">
     <tr><td align="center" style="padding:40px 20px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-
-        <!-- Header -->
         <tr><td align="center" style="padding:0 0 30px;">
           <h2 style="margin:0;color:#a855f7;font-size:22px;font-weight:800;letter-spacing:1px;">MUSICDIBS</h2>
           <p style="margin:4px 0 0;color:#9ca3af;font-size:11px;">by iCommunity · Registro de Propiedad Intelectual</p>
         </td></tr>
-
-        <!-- Icon -->
         <tr><td align="center" style="padding:0 0 24px;">
           <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#6d28d9);display:flex;align-items:center;justify-content:center;">
             <span style="font-size:32px;line-height:64px;">🎵</span>
           </div>
         </td></tr>
-
-        <!-- Body card -->
         <tr><td style="background-color:#1a0a2e;border-radius:16px;padding:40px 36px;">
-
           <h1 style="margin:0 0 16px;color:#f3f4f6;font-size:24px;font-weight:700;text-align:center;">
             ¡Bienvenido, ${escapeHtml(name)}!
           </h1>
-
           <p style="margin:0 0 28px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">
             Tu cuenta en MusicDibs está lista. Ahora puedes registrar tus obras
             musicales en blockchain y proteger tu propiedad intelectual de forma
             permanente e inmutable.
           </p>
-
-          <!-- Credit badge -->
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
             <tr><td align="center">
               <table role="presentation" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(109,40,217,0.15));border:1px solid rgba(168,85,247,0.3);border-radius:12px;padding:20px 32px;">
@@ -105,10 +96,7 @@ serve(async (req) => {
               </table>
             </td></tr>
           </table>
-
-          <!-- Steps -->
           <h3 style="margin:0 0 20px;color:#e5e7eb;font-size:16px;font-weight:600;text-align:center;">Cómo empezar</h3>
-
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
             <tr>
               <td width="36" valign="top" style="padding-right:12px;">
@@ -122,7 +110,6 @@ serve(async (req) => {
               </td>
             </tr>
           </table>
-
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
             <tr>
               <td width="36" valign="top" style="padding-right:12px;">
@@ -134,7 +121,6 @@ serve(async (req) => {
               </td>
             </tr>
           </table>
-
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
             <tr>
               <td width="36" valign="top" style="padding-right:12px;">
@@ -148,8 +134,6 @@ serve(async (req) => {
               </td>
             </tr>
           </table>
-
-          <!-- CTA -->
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr><td align="center">
               <a href="${dashboardUrl}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:10px;">
@@ -157,10 +141,7 @@ serve(async (req) => {
               </a>
             </td></tr>
           </table>
-
         </td></tr>
-
-        <!-- Footer -->
         <tr><td style="padding:28px 20px 0;text-align:center;">
           <p style="margin:0;color:#6b7280;font-size:11px;line-height:1.6;">
             Este correo fue enviado automáticamente porque te registraste en MusicDibs.<br/>
@@ -169,39 +150,25 @@ serve(async (req) => {
             <a href="https://musicdibs.com/contact" style="color:#9ca3af;text-decoration:none;">Soporte</a>
           </p>
         </td></tr>
-
       </table>
     </td></tr>
   </table>
 </body>
 </html>`;
 
-    // Send via Lovable Email API directly
-    const emailRes = await fetch("https://api.lovable.dev/api/v1/send-email", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: [email],
+    // Send via Lovable Email SDK
+    await sendLovableEmail(
+      {
+        to: email,
         subject: "🎵 Bienvenido a MusicDibs — tu crédito de bienvenida te espera",
         html,
         purpose: "transactional",
-      }),
-    });
+        label: "welcome_email",
+      },
+      { apiKey, sendUrl: Deno.env.get("LOVABLE_SEND_URL") }
+    );
 
-    if (!emailRes.ok) {
-      const errText = await emailRes.text();
-      console.error(`[WELCOME-EMAIL] Lovable Email API error [${emailRes.status}]:`, errText);
-      return new Response(
-        JSON.stringify({ error: "Failed to send email" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const result = await emailRes.json();
-    console.log(`[WELCOME-EMAIL] Sent to ${email}`, result);
+    console.log(`[WELCOME-EMAIL] Sent to ${email}`);
 
     return new Response(
       JSON.stringify({ success: true }),
