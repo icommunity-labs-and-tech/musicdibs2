@@ -37,6 +37,7 @@ import ProfilePage from "./pages/ProfilePage";
 import BillingPage from "./pages/BillingPage";
 import SupportPage from "./pages/SupportPage";
 import BlockchainEvidencePage from "./pages/BlockchainEvidencePage";
+import IdentityVerificationPage from "./pages/IdentityVerificationPage";
 import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
