@@ -83,23 +83,31 @@ export default function BlockchainEvidencePage() {
       .then(({ data }) => { if (data?.display_name) setDisplayName(data.display_name); });
   }, [user]);
 
-  const loadWorks = async () => {
+  const loadWorks = async (pageNum = 0) => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const from = pageNum * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error, count } = await supabase
         .from('works')
-        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks')
+        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks', { count: 'exact' })
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setWorks((data as WorkEvidence[]) || []);
+      setTotalCount(count || 0);
     } catch (e) {
       console.error('Error loading works:', e);
     }
     setLoading(false);
   };
+
+  const [totalCount, setTotalCount] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   useEffect(() => {
     loadWorks();
