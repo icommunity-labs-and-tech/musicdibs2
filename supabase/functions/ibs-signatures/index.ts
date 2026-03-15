@@ -101,6 +101,13 @@ serve(async (req) => {
         kyc_url: result.url,
       });
 
+      // Update profiles.kyc_status to pending (service_role bypasses RLS)
+      await supabaseAdmin
+        .from("profiles")
+        .update({ kyc_status: "pending", ibs_signature_id: result.signature_id, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+      console.log(`[IBS-SIGNATURES] KYC set to pending for user ${user.id}`);
+
       return new Response(JSON.stringify({
         signatureId: result.signature_id,
         kycUrl: result.url,

@@ -192,11 +192,7 @@ export default function IdentityVerificationPage() {
 
       setKycUrl(url);
 
-      await supabase
-        .from('profiles')
-        .update({ kyc_status: 'pending', updated_at: new Date().toISOString() })
-        .eq('user_id', user!.id);
-
+      // kyc_status is set to 'pending' by the edge function (service_role)
       setKycStatus('pending');
       setStep(2);
       setPolling(true);
