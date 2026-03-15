@@ -7,21 +7,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/**
- * Webhook for successful iCommunity signature/identity events:
- *   - signature.created
- *   - identity.verification.success
- *
- * Auth: iBS sends the webhook secret as ?secret=<value> in the URL
- *       and the Supabase anon key as Authorization: Bearer <anon_key>
- */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Validate webhook secret from query parameter
     const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
     const url = new URL(req.url);
     const secretParam = url.searchParams.get("secret");
@@ -58,6 +49,20 @@ serve(async (req) => {
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-OK] Signature ${signatureId} created`);
 
+      // Mark kyc_status as pending when verification starts
+      const { data: sigPending } = await supabaseAdmin
+        .from("ibs_signatures")
+        .select("user_id")
+        .eq("ibs_signature_id", signatureId)
+        .single();
+      if (sigPending?.user_id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ kyc_status: "pending", ibs_signature_id: signatureId, updated_at: new Date().toISOString() })
+          .eq("user_id", sigPending.user_id);
+        console.log(`[IBS-WEBHOOK-SIG-OK] KYC set to pending for user ${sigPending.user_id}`);
+      }
+
     } else if (event === "identity.verification.success" || event === "signature.verification.success") {
       const signatureId = data.signature_id;
       await supabaseAdmin
@@ -65,6 +70,20 @@ serve(async (req) => {
         .update({ status: "success", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
       console.log(`[IBS-WEBHOOK-SIG-OK] Verification success (${event}) for ${signatureId}`);
+
+      // Update kyc_status to verified in profiles
+      const { data: sig } = await supabaseAdmin
+        .from("ibs_signatures")
+        .select("user_id")
+        .eq("ibs_signature_id", signatureId)
+        .single();
+      if (sig?.user_id) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ kyc_status: "verified", ibs_signature_id: signatureId, updated_at: new Date().toISOString() })
+          .eq("user_id", sig.user_id);
+        console.log(`[IBS-WEBHOOK-SIG-OK] KYC verified in profiles for user ${sig.user_id}`);
+      }
 
     } else {
       console.log(`[IBS-WEBHOOK-SIG-OK] Ignoring event: ${event}`);

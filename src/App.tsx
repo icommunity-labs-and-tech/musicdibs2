@@ -94,6 +94,7 @@ const App = () => (
               <Route path="billing" element={<BillingPage />} />
               <Route path="support" element={<SupportPage />} />
               <Route path="blockchain" element={<BlockchainEvidencePage />} />
+              <Route path="verify-identity" element={<IdentityVerificationPage />} />
               <Route path="admin/users" element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
               <Route path="admin/credits" element={<AdminGuard><AdminCreditsPage /></AdminGuard>} />
               <Route path="admin/works" element={<AdminGuard><AdminWorksPage /></AdminGuard>} />
