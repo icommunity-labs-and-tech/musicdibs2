@@ -152,7 +152,7 @@ export default function BlockchainEvidencePage() {
             Historial de registros
           </h2>
         </div>
-        <Button variant="outline" size="sm" onClick={loadWorks} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
