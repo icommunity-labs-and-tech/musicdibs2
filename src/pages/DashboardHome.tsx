@@ -67,7 +67,7 @@ export default function DashboardHome() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 shrink-0"
-                onClick={() => navigate('/dashboard/profile')}
+                onClick={() => navigate('/dashboard/verify-identity')}
               >
                 <Shield className="h-3.5 w-3.5" /> Verificar identidad
               </Button>
