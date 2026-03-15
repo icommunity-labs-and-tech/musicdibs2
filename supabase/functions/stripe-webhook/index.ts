@@ -278,64 +278,57 @@ serve(async (req) => {
         });
         console.log(`[WEBHOOK] Payment failed for user ${profile.user_id} (attempt ${attemptCount})`);
 
-        // Send email notification to user + admin
+        // Send email notification via pgmq queue
         try {
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
           const userEmail = customer.email || "";
           const userName  = customer.name || userEmail;
 
           if (userEmail) {
-            const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-            if (RESEND_API_KEY) {
-              const adminEmail = "info@musicdibs.com";
-              const fromEmail  = "noreply@notify.musicdibs.com";
+            const email = paymentFailedEmail({
+              name: userName,
+              description,
+              attemptCount,
+              nextAttempt,
+            });
+            const messageId = crypto.randomUUID();
+            await supabase.from("email_send_log").insert({
+              message_id: messageId, template_name: "payment_failed", recipient_email: userEmail, status: "pending",
+            });
+            await supabase.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: messageId,
+                to: userEmail, from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: email.subject, html: email.html, text: email.text,
+                purpose: "transactional", label: "payment_failed",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            console.log(`[WEBHOOK] Payment failure email enqueued for ${userEmail}`);
 
-              const htmlBody = `
-                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-                  <h2 style="color:#e11d48;">⚠️ Fallo en el cobro de tu suscripción</h2>
-                  <p>Hola <strong>${escapeHtml(userName)}</strong>,</p>
-                  <p>No hemos podido procesar el cobro de tu suscripción en MusicDibs.</p>
-                  <p><strong>Detalle:</strong> ${escapeHtml(description)}</p>
-                  <p>Para evitar la interrupción de tu servicio, por favor actualiza tu método de pago accediendo a tu panel:</p>
-                  <p style="text-align:center;margin:24px 0;">
-                    <a href="https://musicdibs2.lovable.app/dashboard/billing" 
-                       style="background:#e11d48;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;">
-                      Actualizar método de pago
-                    </a>
-                  </p>
-                  <p style="color:#666;font-size:13px;">Si ya has resuelto el problema, puedes ignorar este mensaje.</p>
-                  <hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
-                  <p style="color:#999;font-size:12px;">MusicDibs — Protege tu música</p>
-                </div>
-              `;
-
-              const emailRes = await fetch("https://api.resend.com/emails", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${RESEND_API_KEY}`,
-                },
-                body: JSON.stringify({
-                  from: fromEmail,
-                  to: [userEmail],
-                  cc: [adminEmail],
-                  subject: "⚠️ Fallo en el cobro de tu suscripción — MusicDibs",
-                  html: htmlBody,
-                }),
-              });
-
-              if (emailRes.ok) {
-                console.log(`[WEBHOOK] Payment failure email sent to ${userEmail} (cc: ${adminEmail})`);
-              } else {
-                const errText = await emailRes.text();
-                console.error(`[WEBHOOK] Email send failed: ${emailRes.status} ${errText}`);
-              }
-            } else {
-              console.warn("[WEBHOOK] RESEND_API_KEY not configured, skipping email");
-            }
+            // Also notify admin
+            const adminMessageId = crypto.randomUUID();
+            await supabase.from("email_send_log").insert({
+              message_id: adminMessageId, template_name: "payment_failed_admin", recipient_email: "info@musicdibs.com", status: "pending",
+            });
+            await supabase.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                run_id: crypto.randomUUID(), message_id: adminMessageId,
+                to: "info@musicdibs.com", from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: `⚠️ Fallo de pago — ${userEmail}`,
+                html: email.html, text: email.text,
+                purpose: "transactional", label: "payment_failed_admin",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            console.log(`[WEBHOOK] Payment failure admin notification enqueued`);
           }
         } catch (emailErr) {
-          console.error("[WEBHOOK] Error sending payment failure email:", emailErr);
+          console.error("[WEBHOOK] Error enqueuing payment failure email:", emailErr);
         }
       } else {
         console.warn(`[WEBHOOK] payment_failed: no profile found for customer ${customerId}`);
