@@ -34,7 +34,6 @@ export default function UserLogin() {
       setGoogleLoading(false);
     }
   };
-  const [forgotEmail, setForgotEmail] = useState('');
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
