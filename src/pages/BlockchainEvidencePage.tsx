@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Shield,
   ExternalLink,
@@ -73,6 +72,8 @@ export default function BlockchainEvidencePage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   // Fetch display name
   useEffect(() => {
@@ -81,27 +82,35 @@ export default function BlockchainEvidencePage() {
       .then(({ data }) => { if (data?.display_name) setDisplayName(data.display_name); });
   }, [user]);
 
-  const loadWorks = async () => {
+  const loadWorks = async (pageNum = 0) => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const from = pageNum * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error, count } = await supabase
         .from('works')
-        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks')
+        .select('id, title, type, status, blockchain_hash, blockchain_network, checker_url, certificate_url, certified_at, created_at, ibs_evidence_id, distributed_at, distribution_clicks', { count: 'exact' })
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setWorks((data as WorkEvidence[]) || []);
+      setTotalCount(count || 0);
     } catch (e) {
       console.error('Error loading works:', e);
     }
     setLoading(false);
   };
 
+  const [totalCount, setTotalCount] = useState(0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
   useEffect(() => {
-    loadWorks();
-  }, [user]);
+    loadWorks(page);
+  }, [user, page]);
 
   // Realtime subscription
   useEffect(() => {
@@ -111,7 +120,7 @@ export default function BlockchainEvidencePage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'works', filter: `user_id=eq.${user.id}` },
-        () => loadWorks()
+        () => loadWorks(page)
       )
       .subscribe();
 
@@ -142,7 +151,7 @@ export default function BlockchainEvidencePage() {
             Historial de registros
           </h2>
         </div>
-        <Button variant="outline" size="sm" onClick={loadWorks} disabled={loading}>
+        <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
@@ -206,7 +215,7 @@ export default function BlockchainEvidencePage() {
               </p>
             </div>
           ) : (
-            <ScrollArea className="max-h-[500px]">
+            <>
               <div className="space-y-2">
                 {works.map((work) => {
                   const sc = statusConfig[work.status] || statusConfig.processing;
@@ -336,7 +345,7 @@ export default function BlockchainEvidencePage() {
                                 workId={work.id}
                                 distributedAt={work.distributed_at}
                                 currentClicks={work.distribution_clicks || 0}
-                                onDistributed={loadWorks}
+                                onDistributed={() => loadWorks(page)}
                               />
                             </>
                           )}
@@ -356,7 +365,35 @@ export default function BlockchainEvidencePage() {
                   );
                 })}
               </div>
-            </ScrollArea>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/40">
+                  <p className="text-xs text-muted-foreground">
+                    {totalCount} obra{totalCount !== 1 ? 's' : ''} · Página {page + 1} de {totalPages}
+                  </p>
+                  <div className="flex gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={page === 0}
+                      onClick={() => setPage(p => p - 1)}
+                    >
+                      ← Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={page >= totalPages - 1}
+                      onClick={() => setPage(p => p + 1)}
+                    >
+                      Siguiente →
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
