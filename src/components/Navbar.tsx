@@ -98,8 +98,8 @@ export const Navbar = () => {
 
   const { theme, toggleTheme } = useTheme();
 
-  // Hide navbar on dashboard pages (they have their own sidebar)
-  if (isDashboard) return null;
+  // Hide navbar on dashboard and AI Studio pages
+  if (isDashboard || isAiStudio) return null;
 
   return (
     <nav
