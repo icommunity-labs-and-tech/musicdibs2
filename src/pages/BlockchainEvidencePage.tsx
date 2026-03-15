@@ -116,8 +116,13 @@ export default function BlockchainEvidencePage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   useEffect(() => {
-    loadWorks(page);
-  }, [user, page]);
+    setPage(0);
+    loadWorks(0);
+  }, [user, statusFilter]);
+
+  useEffect(() => {
+    if (page > 0) loadWorks(page);
+  }, [page]);
 
   // Realtime subscription
   useEffect(() => {
