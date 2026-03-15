@@ -100,6 +100,7 @@ export default function IdentityVerificationPage() {
       if (data?.kyc_status === 'verified') {
         setKycStatus('verified');
         setPolling(false);
+        setKycUrl(null);
         toast.success('¡Identidad verificada correctamente!');
       } else if (data?.kyc_status === 'pending') {
         setKycStatus('pending');
