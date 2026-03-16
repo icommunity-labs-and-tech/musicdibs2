@@ -115,14 +115,17 @@ export default function AdminUsersPage() {
 
       <div className="rounded-lg border border-border/40 overflow-hidden">
         <Table>
-          <TableHeader>
+           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead>Email</TableHead>
+              <TableHead>Usuario</TableHead>
+              <TableHead>Teléfono</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Créditos</TableHead>
               <TableHead>KYC</TableHead>
               <TableHead>Obras</TableHead>
               <TableHead>Alta</TableHead>
+              <TableHead>Últ. actividad</TableHead>
+              <TableHead>Stripe</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
