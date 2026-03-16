@@ -164,10 +164,22 @@ export default function BlockchainEvidencePage() {
             Historial de registros
           </h2>
         </div>
-        <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToCsv}
+            disabled={loading || works.length === 0}
+            title="Exportar mis obras a CSV"
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
