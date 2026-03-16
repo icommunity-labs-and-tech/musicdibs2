@@ -19,21 +19,16 @@ export default function BillingPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    // Sync with Stripe first, then read from profiles
-    supabase.functions.invoke('check-subscription').then(() => {
-      supabase
-        .from('profiles')
-        .select('subscription_plan')
-        .eq('user_id', user.id)
-        .single()
-        .then(({ data }) => {
-          setPlan(data?.subscription_plan ?? 'Free');
-        });
+    supabase.functions.invoke('check-subscription').then(({ data }) => {
+      setPlan(data?.plan ?? 'Free');
+      setCancelAtPeriodEnd(data?.cancel_at_period_end ?? false);
+      setSubscriptionEnd(data?.subscription_end ?? null);
     }).catch(() => {
-      // Fallback: just read from profiles
       supabase
         .from('profiles')
         .select('subscription_plan')
