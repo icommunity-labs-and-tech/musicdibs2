@@ -1,5 +1,7 @@
 import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { NavLink } from '@/components/NavLink';
+import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard,
   Upload,
