@@ -141,7 +141,7 @@ export default function AdminUsersPage() {
               <TableRow key={u.user_id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedUser(u)}>
                 <TableCell>
                   <div>
-                    <p className="font-medium text-sm">{u.display_name || '—'}</p>
+                    <p className="font-medium text-sm">{u.display_name || u.email?.split('@')[0] || '—'}</p>
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                 </TableCell>
