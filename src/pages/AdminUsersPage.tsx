@@ -12,6 +12,7 @@ import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
 import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import UserDetailSheet from '@/components/admin/UserDetailSheet';
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ export default function AdminUsersPage() {
   const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -136,7 +138,7 @@ export default function AdminUsersPage() {
             ) : users.length === 0 ? (
               <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
             ) : users.map(u => (
-              <TableRow key={u.user_id}>
+              <TableRow key={u.user_id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedUser(u)}>
                 <TableCell>
                   <div>
                     <p className="font-medium text-sm">{u.display_name || '—'}</p>
@@ -160,7 +162,7 @@ export default function AdminUsersPage() {
                     ? <Badge className="bg-destructive/20 text-destructive">Bloqueado</Badge>
                     : <Badge className="bg-green-500/20 text-green-400">Activo</Badge>}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={e => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
@@ -230,6 +232,7 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <UserDetailSheet user={selectedUser} open={!!selectedUser} onOpenChange={open => !open && setSelectedUser(null)} />
     </div>
   );
 }
