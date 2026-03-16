@@ -76,160 +76,223 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // For subscriptions, check if user already has an active one
-    if (plan.mode === "subscription" && customerId) {
-      const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
-      if (subs.data.length > 0) {
-        const currentSub = subs.data[0];
-        const currentPriceId = currentSub.items.data[0]?.price?.id;
-        const currentPlanId = currentPriceId ? PRICE_TO_PLAN[currentPriceId] : null;
+    // Detect current active-like subscription once (used by all flows)
+    let currentSub: Stripe.Subscription | null = null;
+    let currentPriceId: string | null = null;
+    let currentPlanId: string | null = null;
 
-        // If user is trying to subscribe to the same plan, block it
-        if (currentPlanId === planId) {
-          return new Response(JSON.stringify({
-            already_subscribed: true,
-            plan: planId,
-            message: "Ya estás suscrito a este plan.",
-          }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          });
-        }
+    if (customerId) {
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
+      currentSub = subs.data.find((sub) => ["active", "trialing", "past_due", "unpaid"].includes(sub.status)) ?? null;
+      currentPriceId = currentSub?.items.data[0]?.price?.id ?? null;
+      currentPlanId = currentPriceId ? (PRICE_TO_PLAN[currentPriceId] ?? null) : null;
+    }
 
-        const currentRank = currentPlanId === "annual" ? 2 : 1;
-        const targetRank = planId === "annual" ? 2 : 1;
-        const isUpgrade = targetRank > currentRank;
+    const planNameMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
+    const currentPlanName = currentPlanId ? (planNameMap[currentPlanId] || currentPlanId) : "Free";
+    const newPlanName = planNameMap[planId] || planId;
 
-        const planNameMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
-        const newPlanName = planNameMap[planId] || planId;
-
-        if (isUpgrade) {
-          // UPGRADE: charge prorated difference immediately, add new credits
-          logStep("Upgrading subscription", { from: currentPlanId, to: planId });
-          await stripe.subscriptions.update(currentSub.id, {
-            items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
-            proration_behavior: "create_prorations",
-          });
-
-          // Get current credits and ADD the new plan's credits
-          const { data: profile } = await supabaseAdmin
-            .from("profiles")
-            .select("available_credits")
-            .eq("user_id", user.id)
-            .single();
-          const currentCredits = profile?.available_credits ?? 0;
-          const updatedCredits = currentCredits + plan.credits;
-
-          await supabaseAdmin.from("profiles").update({
-            subscription_plan: newPlanName,
-            available_credits: updatedCredits,
-          }).eq("user_id", user.id);
-
-          await supabaseAdmin.from("credit_transactions").insert({
-            user_id: user.id,
-            amount: plan.credits,
-            type: "plan_change",
-            description: `Upgrade a ${newPlanName}: +${plan.credits} créditos añadidos`,
-          });
-
-          logStep("Upgrade completed", { newPlan: newPlanName, addedCredits: plan.credits, totalCredits: updatedCredits });
-
-          // Send plan change email
-          try {
-            const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
-            const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
-            const email = planChangeEmail({
-              name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
-              isUpgrade: true, creditsAdded: plan.credits,
-            });
-            const messageId = crypto.randomUUID();
-            await supabaseAdmin.from("email_send_log").insert({
-              message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
-            });
-            await supabaseAdmin.rpc("enqueue_email", {
-              queue_name: "transactional_emails",
-              payload: {
-                run_id: crypto.randomUUID(), message_id: messageId,
-                to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
-                subject: email.subject, html: email.html, text: email.text,
-                purpose: "transactional", label: "plan_change",
-                queued_at: new Date().toISOString(),
-              },
-            });
-            logStep("Plan change email enqueued", { email: user.email });
-          } catch (emailErr) {
-            console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing plan change email:", emailErr);
-          }
-
-          return new Response(JSON.stringify({
-            switched: true,
-            plan: newPlanName,
-            message: `Upgrade a ${newPlanName}. Se han añadido ${plan.credits} créditos.`,
-          }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          });
-        } else {
-          // DOWNGRADE: no charge, change takes effect at next billing period, keep current credits
-          logStep("Downgrading subscription", { from: currentPlanId, to: planId });
-          await stripe.subscriptions.update(currentSub.id, {
-            items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
-            proration_behavior: "none",
-          });
-
-          // Only update the plan name, do NOT touch credits
-          await supabaseAdmin.from("profiles").update({
-            subscription_plan: newPlanName,
-          }).eq("user_id", user.id);
-
-          await supabaseAdmin.from("credit_transactions").insert({
-            user_id: user.id,
-            amount: 0,
-            type: "plan_change",
-            description: `Downgrade a ${newPlanName}: los créditos actuales se mantienen hasta fin de periodo`,
-          });
-
-          logStep("Downgrade completed", { newPlan: newPlanName });
-
-          // Send plan change email
-          try {
-            const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
-            const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
-            const email = planChangeEmail({
-              name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
-              isUpgrade: false, creditsAdded: 0, creditsKept: currentCredits,
-            });
-            const messageId = crypto.randomUUID();
-            await supabaseAdmin.from("email_send_log").insert({
-              message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
-            });
-            await supabaseAdmin.rpc("enqueue_email", {
-              queue_name: "transactional_emails",
-              payload: {
-                run_id: crypto.randomUUID(), message_id: messageId,
-                to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
-                subject: email.subject, html: email.html, text: email.text,
-                purpose: "transactional", label: "plan_change",
-                queued_at: new Date().toISOString(),
-              },
-            });
-            logStep("Downgrade email enqueued", { email: user.email });
-          } catch (emailErr) {
-            console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing downgrade email:", emailErr);
-          }
-
-          return new Response(JSON.stringify({
-            switched: true,
-            plan: newPlanName,
-            message: `Cambio a ${newPlanName}. Tus créditos actuales se mantienen hasta fin de periodo.`,
-          }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-            status: 200,
-          });
-        }
+    // Individual from an active subscription means "cancel renewal" (annual/monthly -> individual)
+    if (planId === "individual" && currentSub && currentPlanId) {
+      if (currentSub.cancel_at_period_end) {
+        return new Response(JSON.stringify({
+          switched: true,
+          cancelled_to_individual: true,
+          plan: currentPlanName,
+          message: "La renovación ya está cancelada. Tu plan actual seguirá activo hasta fin de periodo.",
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
       }
+
+      logStep("Cancelling renewal (to individual)", { from: currentPlanId });
+      await stripe.subscriptions.update(currentSub.id, {
+        cancel_at_period_end: true,
+      });
+
+      await supabaseAdmin.from("profiles").update({
+        subscription_plan: currentPlanName,
+      }).eq("user_id", user.id);
+
+      await supabaseAdmin.from("credit_transactions").insert({
+        user_id: user.id,
+        amount: 0,
+        type: "plan_change",
+        description: `Cancelación de renovación de plan ${currentPlanName}: el cambio a Individual se aplicará al finalizar el periodo`,
+      });
+
+      return new Response(JSON.stringify({
+        switched: true,
+        cancelled_to_individual: true,
+        plan: currentPlanName,
+        message: `Renovación cancelada. Tu plan ${currentPlanName} seguirá activo hasta fin de periodo.`,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Existing subscription + target subscription => upgrade/downgrade or reactivation
+    if (plan.mode === "subscription" && currentSub && currentPlanId) {
+      if (currentPlanId === planId) {
+        // If renewal was previously canceled, same-plan click reactivates it
+        if (currentSub.cancel_at_period_end) {
+          logStep("Reactivating canceled renewal", { planId });
+          await stripe.subscriptions.update(currentSub.id, { cancel_at_period_end: false });
+          await supabaseAdmin.from("profiles").update({ subscription_plan: newPlanName }).eq("user_id", user.id);
+          return new Response(JSON.stringify({
+            switched: true,
+            reactivated: true,
+            plan: newPlanName,
+            message: `Se ha reactivado la renovación de tu plan ${newPlanName}.`,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
+        }
+
+        return new Response(JSON.stringify({
+          already_subscribed: true,
+          plan: currentPlanId,
+          message: "Ya estás suscrito a este plan.",
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      const currentRank = currentPlanId === "annual" ? 2 : 1;
+      const targetRank = planId === "annual" ? 2 : 1;
+      const isUpgrade = targetRank > currentRank;
+
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("available_credits")
+        .eq("user_id", user.id)
+        .single();
+      const currentCredits = profile?.available_credits ?? 0;
+
+      if (isUpgrade) {
+        // UPGRADE: charge prorated difference immediately, add new credits
+        logStep("Upgrading subscription", { from: currentPlanId, to: planId });
+        await stripe.subscriptions.update(currentSub.id, {
+          items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
+          proration_behavior: "create_prorations",
+          cancel_at_period_end: false,
+        });
+
+        const updatedCredits = currentCredits + plan.credits;
+
+        await supabaseAdmin.from("profiles").update({
+          subscription_plan: newPlanName,
+          available_credits: updatedCredits,
+        }).eq("user_id", user.id);
+
+        await supabaseAdmin.from("credit_transactions").insert({
+          user_id: user.id,
+          amount: plan.credits,
+          type: "plan_change",
+          description: `Upgrade a ${newPlanName}: +${plan.credits} créditos añadidos`,
+        });
+
+        logStep("Upgrade completed", { newPlan: newPlanName, addedCredits: plan.credits, totalCredits: updatedCredits });
+
+        // Send plan change email
+        try {
+          const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
+          const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
+          const email = planChangeEmail({
+            name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
+            isUpgrade: true, creditsAdded: plan.credits,
+          });
+          const messageId = crypto.randomUUID();
+          await supabaseAdmin.from("email_send_log").insert({
+            message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
+          });
+          await supabaseAdmin.rpc("enqueue_email", {
+            queue_name: "transactional_emails",
+            payload: {
+              run_id: crypto.randomUUID(), message_id: messageId,
+              to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
+              sender_domain: "notify.musicdibs.com",
+              subject: email.subject, html: email.html, text: email.text,
+              purpose: "transactional", label: "plan_change",
+              queued_at: new Date().toISOString(),
+            },
+          });
+          logStep("Plan change email enqueued", { email: user.email });
+        } catch (emailErr) {
+          console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing plan change email:", emailErr);
+        }
+
+        return new Response(JSON.stringify({
+          switched: true,
+          plan: newPlanName,
+          message: `Upgrade a ${newPlanName}. Se han añadido ${plan.credits} créditos.`,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      // DOWNGRADE: no charge, keep current credits
+      logStep("Downgrading subscription", { from: currentPlanId, to: planId });
+      await stripe.subscriptions.update(currentSub.id, {
+        items: [{ id: currentSub.items.data[0].id, price: plan.priceId }],
+        proration_behavior: "none",
+        cancel_at_period_end: false,
+      });
+
+      await supabaseAdmin.from("profiles").update({
+        subscription_plan: newPlanName,
+      }).eq("user_id", user.id);
+
+      await supabaseAdmin.from("credit_transactions").insert({
+        user_id: user.id,
+        amount: 0,
+        type: "plan_change",
+        description: `Downgrade a ${newPlanName}: los créditos actuales se mantienen hasta fin de periodo`,
+      });
+
+      logStep("Downgrade completed", { newPlan: newPlanName });
+
+      // Send plan change email
+      try {
+        const displayName = user.user_metadata?.display_name || user.email!.split("@")[0];
+        const oldPlanName = currentPlanId === "annual" ? "Anual" : "Mensual";
+        const email = planChangeEmail({
+          name: displayName, oldPlan: oldPlanName, newPlan: newPlanName,
+          isUpgrade: false, creditsAdded: 0, creditsKept: currentCredits,
+        });
+        const messageId = crypto.randomUUID();
+        await supabaseAdmin.from("email_send_log").insert({
+          message_id: messageId, template_name: "plan_change", recipient_email: user.email!, status: "pending",
+        });
+        await supabaseAdmin.rpc("enqueue_email", {
+          queue_name: "transactional_emails",
+          payload: {
+            run_id: crypto.randomUUID(), message_id: messageId,
+            to: user.email!, from: "MusicDibs <noreply@notify.musicdibs.com>",
+            sender_domain: "notify.musicdibs.com",
+            subject: email.subject, html: email.html, text: email.text,
+            purpose: "transactional", label: "plan_change",
+            queued_at: new Date().toISOString(),
+          },
+        });
+        logStep("Downgrade email enqueued", { email: user.email });
+      } catch (emailErr) {
+        console.error("[CREATE-CREDIT-CHECKOUT] Error enqueuing downgrade email:", emailErr);
+      }
+
+      return new Response(JSON.stringify({
+        switched: true,
+        plan: newPlanName,
+        message: `Cambio a ${newPlanName}. Tus créditos actuales se mantienen hasta fin de periodo.`,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     // Build line items for new checkout

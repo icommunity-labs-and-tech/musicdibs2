@@ -17,6 +17,26 @@ const PRICE_TO_PLAN: Record<string, string> = {
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
 };
 
+const ACTIVE_SUB_STATUSES = new Set(["active", "trialing", "past_due", "unpaid"]);
+
+const toIsoDate = (value: unknown): string | null => {
+  if (!value) return null;
+  if (typeof value === "number") return new Date(value * 1000).toISOString();
+  if (typeof value === "string") {
+    const parsed = value.includes("T") ? new Date(value) : new Date(Number(value) * 1000 || value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+  }
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "object" && value !== null && "toISOString" in value) {
+    try {
+      return (value as { toISOString: () => string }).toISOString();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -35,20 +55,20 @@ serve(async (req) => {
     const supabaseAuth = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
+      { global: { headers: { Authorization: authHeader } } },
     );
 
     const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
+
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Service role client for DB writes
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
+      { auth: { persistSession: false } },
     );
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2026-02-25.clover" });
@@ -57,7 +77,7 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No Stripe customer found, setting Free plan");
       await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
-      return new Response(JSON.stringify({ subscribed: false, plan: "Free" }), {
+      return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -65,7 +85,6 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Backfill stripe_customer_id si no lo tiene guardado aún
     await supabaseClient
       .from("profiles")
       .update({ stripe_customer_id: customerId })
@@ -74,48 +93,44 @@ serve(async (req) => {
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 10,
     });
 
-    if (subscriptions.data.length === 0) {
-      logStep("No active subscription, setting Free plan");
+    const subscription = subscriptions.data.find((sub) => ACTIVE_SUB_STATUSES.has(sub.status));
+
+    if (!subscription) {
+      logStep("No active-like subscription, setting Free plan");
       await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
-      return new Response(JSON.stringify({ subscribed: false, plan: "Free" }), {
+      return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const subscription = subscriptions.data[0];
     const priceId = subscription.items.data[0]?.price?.id;
     const plan = priceId ? (PRICE_TO_PLAN[priceId] || "Monthly") : "Monthly";
-    const periodEnd = subscription.current_period_end;
-    let subscriptionEnd: string | null = null;
-    if (typeof periodEnd === "number") {
-      subscriptionEnd = new Date(periodEnd * 1000).toISOString();
-    } else if (typeof periodEnd === "string") {
-      // Clover API may return ISO string directly
-      subscriptionEnd = periodEnd.includes("T") ? periodEnd : new Date(periodEnd).toISOString();
-    } else if (periodEnd && typeof periodEnd === "object" && "toISOString" in periodEnd) {
-      subscriptionEnd = (periodEnd as Date).toISOString();
-    }
-    logStep("Period end raw value", { periodEnd, type: typeof periodEnd });
-
-    // Detect if the subscription is set to cancel at period end
     const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
 
-    logStep("Active subscription found", { plan, priceId, subscriptionEnd, cancelAtPeriodEnd });
+    const periodEndRaw = (subscription as any).current_period_end ?? (subscription as any).cancel_at ?? (subscription as any).ended_at;
+    const subscriptionEnd = toIsoDate(periodEndRaw);
 
-    // If cancelled at period end, set plan to Free so the UI reflects cancellation
-    if (cancelAtPeriodEnd) {
-      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
-    } else {
-      await supabaseClient.from("profiles").update({ subscription_plan: plan }).eq("user_id", user.id);
-    }
+    logStep("Subscription resolved", {
+      status: subscription.status,
+      plan,
+      priceId,
+      cancelAtPeriodEnd,
+      periodEndRaw,
+      subscriptionEnd,
+    });
+
+    await supabaseClient
+      .from("profiles")
+      .update({ subscription_plan: plan })
+      .eq("user_id", user.id);
 
     return new Response(JSON.stringify({
-      subscribed: !cancelAtPeriodEnd,
-      plan: cancelAtPeriodEnd ? "Free" : plan,
+      subscribed: true,
+      plan,
       subscription_end: subscriptionEnd,
       cancel_at_period_end: cancelAtPeriodEnd,
     }), {

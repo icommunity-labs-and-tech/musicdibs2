@@ -24,20 +24,31 @@ export default function BillingPage() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.functions.invoke('check-subscription').then(({ data }) => {
-      setPlan(data?.plan ?? 'Free');
-      setCancelAtPeriodEnd(data?.cancel_at_period_end ?? false);
-      setSubscriptionEnd(data?.subscription_end ?? null);
-    }).catch(() => {
-      supabase
+    let mounted = true;
+
+    const loadBillingState = async () => {
+      // Source of truth in UI: profile in DB
+      const { data: profile } = await supabase
         .from('profiles')
         .select('subscription_plan')
         .eq('user_id', user.id)
-        .single()
-        .then(({ data }) => {
-          setPlan(data?.subscription_plan ?? 'Free');
-        });
-    });
+        .single();
+
+      if (mounted) {
+        setPlan(profile?.subscription_plan ?? 'Free');
+      }
+
+      // Sync from backend provider and persist latest state into DB
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error || !mounted) return;
+
+      setPlan(data?.plan ?? profile?.subscription_plan ?? 'Free');
+      setCancelAtPeriodEnd(data?.cancel_at_period_end ?? false);
+      setSubscriptionEnd(data?.subscription_end ?? null);
+    };
+
+    loadBillingState();
+    return () => { mounted = false; };
   }, [user]);
 
   // Listen for realtime changes
