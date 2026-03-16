@@ -90,11 +90,16 @@ serve(async (req) => {
     const priceId = subscription.items.data[0]?.price?.id;
     const plan = priceId ? (PRICE_TO_PLAN[priceId] || "Monthly") : "Monthly";
     const periodEnd = subscription.current_period_end;
-    const subscriptionEnd = typeof periodEnd === "number"
-      ? new Date(periodEnd * 1000).toISOString()
-      : typeof periodEnd === "string"
-        ? periodEnd
-        : null;
+    let subscriptionEnd: string | null = null;
+    if (typeof periodEnd === "number") {
+      subscriptionEnd = new Date(periodEnd * 1000).toISOString();
+    } else if (typeof periodEnd === "string") {
+      // Clover API may return ISO string directly
+      subscriptionEnd = periodEnd.includes("T") ? periodEnd : new Date(periodEnd).toISOString();
+    } else if (periodEnd && typeof periodEnd === "object" && "toISOString" in periodEnd) {
+      subscriptionEnd = (periodEnd as Date).toISOString();
+    }
+    logStep("Period end raw value", { periodEnd, type: typeof periodEnd });
 
     // Detect if the subscription is set to cancel at period end
     const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
