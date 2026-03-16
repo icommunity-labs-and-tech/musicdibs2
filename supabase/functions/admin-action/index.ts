@@ -106,11 +106,19 @@ serve(async (req) => {
         worksCountMap[w.user_id] = (worksCountMap[w.user_id] || 0) + 1;
       });
 
-      // 1 call for all emails
-      const emailsMap = await getAllEmailsMap();
+      // 1 call for all auth users (emails + metadata)
+      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const emailsMap: Record<string, string> = {};
+      const metaNameMap: Record<string, string> = {};
+      (authUsers || []).forEach((u: any) => {
+        if (u.email) emailsMap[u.id] = u.email;
+        const metaName = u.user_metadata?.display_name || u.user_metadata?.full_name || "";
+        if (metaName) metaNameMap[u.id] = metaName;
+      });
 
       let result = (profiles || []).map((p: any) => ({
         ...p,
+        display_name: p.display_name || metaNameMap[p.user_id] || "",
         role: rolesMap[p.user_id] || "user",
         works_count: worksCountMap[p.user_id] || 0,
         email: emailsMap[p.user_id] || "",
