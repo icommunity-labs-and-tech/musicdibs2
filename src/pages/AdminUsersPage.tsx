@@ -115,36 +115,46 @@ export default function AdminUsersPage() {
 
       <div className="rounded-lg border border-border/40 overflow-hidden">
         <Table>
-          <TableHeader>
+           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead>Email</TableHead>
+              <TableHead>Usuario</TableHead>
+              <TableHead>Teléfono</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Créditos</TableHead>
               <TableHead>KYC</TableHead>
               <TableHead>Obras</TableHead>
               <TableHead>Alta</TableHead>
+              <TableHead>Últ. actividad</TableHead>
+              <TableHead>Stripe</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
             ) : users.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
             ) : users.map(u => (
               <TableRow key={u.user_id}>
                 <TableCell>
                   <div>
-                    <p className="font-medium text-sm">{u.email}</p>
-                    <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                    <p className="font-medium text-sm">{u.display_name || '—'}</p>
+                    <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                 </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{u.phone || '—'}</TableCell>
                 <TableCell><Badge variant="outline">{u.subscription_plan}</Badge></TableCell>
                 <TableCell className="font-mono">{u.available_credits}</TableCell>
                 <TableCell>{kycBadge(u.kyc_status)}</TableCell>
                 <TableCell>{u.works_count}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{new Date(u.updated_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {u.stripe_customer_id
+                    ? <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">Vinculado</Badge>
+                    : <span className="text-xs text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell>
                   {u.is_blocked
                     ? <Badge className="bg-destructive/20 text-destructive">Bloqueado</Badge>
