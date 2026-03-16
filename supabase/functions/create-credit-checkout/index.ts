@@ -86,7 +86,14 @@ serve(async (req) => {
 
         // If user is trying to subscribe to the same plan, block it
         if (currentPlanId === planId) {
-          throw new Error("Ya estás suscrito a este plan.");
+          return new Response(JSON.stringify({
+            already_subscribed: true,
+            plan: planId,
+            message: "Ya estás suscrito a este plan.",
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          });
         }
 
         const currentRank = currentPlanId === "annual" ? 2 : 1;

@@ -139,6 +139,13 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
 
+      // If already on this plan
+      if (data?.already_subscribed) {
+        toast.info(data.message || 'Ya estás suscrito a este plan.');
+        setLoading(null);
+        return;
+      }
+
       // If plan was switched server-side (upgrade/downgrade)
       if (data?.switched) {
         toast.success(data.message || 'Plan cambiado correctamente');
