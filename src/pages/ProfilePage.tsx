@@ -93,6 +93,12 @@ export default function ProfilePage() {
       return;
     }
 
+    // Sync display_name and phone to profiles table
+    await supabase.from('profiles').update({
+      display_name: displayName.trim(),
+      phone: phone.trim() || null,
+    }).eq('user_id', user!.id);
+
     // If email changed, request email change (sends confirmation to new email)
     if (emailChanged) {
       const { error: emailError } = await supabase.auth.updateUser({
