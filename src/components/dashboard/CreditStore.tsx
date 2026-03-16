@@ -149,10 +149,21 @@ export function CreditStore({ compact }: { compact?: boolean }) {
         return;
       }
 
-      // If plan was switched server-side (upgrade/downgrade)
+      // If renewal cancellation was requested (annual/monthly -> individual)
+      if (data?.cancelled_to_individual) {
+        toast.success(data.message || 'Renovación cancelada correctamente');
+        if (data?.plan) {
+          setCurrentPlanId(PROFILE_PLAN_TO_ID[data.plan] ?? currentPlanId);
+        }
+        setLoading(null);
+        return;
+      }
+
+      // If plan was switched/reactivated server-side
       if (data?.switched) {
         toast.success(data.message || 'Plan cambiado correctamente');
-        setCurrentPlanId(planId);
+        const resolvedPlanId = data?.plan ? (PROFILE_PLAN_TO_ID[data.plan] ?? planId) : planId;
+        setCurrentPlanId(resolvedPlanId);
         setLoading(null);
         return;
       }
