@@ -25,6 +25,7 @@ export default function AdminUsersPage() {
   const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
   const [creditAmount, setCreditAmount] = useState('');
   const [creditReason, setCreditReason] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
   const load = async () => {
     setLoading(true);
