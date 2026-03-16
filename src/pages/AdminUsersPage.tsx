@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
             ) : users.length === 0 ? (
               <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
             ) : users.map(u => (
-              <TableRow key={u.user_id}>
+              <TableRow key={u.user_id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedUser(u)}>
                 <TableCell>
                   <div>
                     <p className="font-medium text-sm">{u.display_name || '—'}</p>
