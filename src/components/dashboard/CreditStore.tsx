@@ -54,6 +54,9 @@ const PROFILE_PLAN_TO_ID: Record<string, string> = {
 
 function getButtonConfig(planId: string, currentPlanId: string | null) {
   if (planId === 'individual') {
+    if (currentPlanId && currentPlanId !== '') {
+      return { label: 'Cancelar renovación', variant: 'outline' as const, icon: null, disabled: false };
+    }
     return { label: 'Comprar', variant: 'outline' as const, icon: null, disabled: false };
   }
 
