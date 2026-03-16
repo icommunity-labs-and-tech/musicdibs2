@@ -232,6 +232,7 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <UserDetailSheet user={selectedUser} open={!!selectedUser} onOpenChange={open => !open && setSelectedUser(null)} />
     </div>
   );
 }
