@@ -12,6 +12,7 @@ import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
 import { Users, MoreHorizontal, Search, ChevronLeft, ChevronRight, Shield, Download } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import UserDetailSheet from '@/components/admin/UserDetailSheet';
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
