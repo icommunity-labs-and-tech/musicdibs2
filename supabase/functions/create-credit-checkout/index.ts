@@ -89,7 +89,7 @@ serve(async (req) => {
     }
 
     const planNameMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
-    const currentPlanName = currentPlanId ? (planNameMap[currentPlanId] || currentPlanId) : null;
+    const currentPlanName = currentPlanId ? (planNameMap[currentPlanId] || currentPlanId) : "Free";
     const newPlanName = planNameMap[planId] || planId;
 
     // Individual from an active subscription means "cancel renewal" (annual/monthly -> individual)
