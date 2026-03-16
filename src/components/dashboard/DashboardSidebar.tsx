@@ -44,7 +44,7 @@ const mainItems = [
   { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
   { title: 'Verificar identidad', url: '/dashboard/verify-identity', icon: User },
   { title: 'Promocionar obra', url: '/dashboard/promote', icon: Megaphone },
-  { title: 'Créditos', url: '/dashboard/credits', icon: ShoppingBag },
+  { title: 'Planes y créditos', url: '/dashboard/credits', icon: ShoppingBag },
 ];
 
 const toolsItems = [
