@@ -139,15 +139,22 @@ export default function AdminUsersPage() {
               <TableRow key={u.user_id}>
                 <TableCell>
                   <div>
-                    <p className="font-medium text-sm">{u.email}</p>
-                    <p className="text-xs text-muted-foreground">{u.display_name}</p>
+                    <p className="font-medium text-sm">{u.display_name || '—'}</p>
+                    <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                 </TableCell>
+                <TableCell className="text-xs text-muted-foreground">{u.phone || '—'}</TableCell>
                 <TableCell><Badge variant="outline">{u.subscription_plan}</Badge></TableCell>
                 <TableCell className="font-mono">{u.available_credits}</TableCell>
                 <TableCell>{kycBadge(u.kyc_status)}</TableCell>
                 <TableCell>{u.works_count}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="text-xs text-muted-foreground">{new Date(u.updated_at).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {u.stripe_customer_id
+                    ? <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">Vinculado</Badge>
+                    : <span className="text-xs text-muted-foreground">—</span>}
+                </TableCell>
                 <TableCell>
                   {u.is_blocked
                     ? <Badge className="bg-destructive/20 text-destructive">Bloqueado</Badge>
