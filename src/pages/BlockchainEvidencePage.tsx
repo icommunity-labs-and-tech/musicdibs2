@@ -10,6 +10,7 @@ import {
   Check,
   RefreshCw,
   FileText,
+  Download,
   Clock,
   CheckCircle2,
   XCircle,
@@ -149,6 +150,33 @@ export default function BlockchainEvidencePage() {
   const truncateHash = (hash: string) =>
     hash.length > 16 ? `${hash.slice(0, 8)}...${hash.slice(-8)}` : hash;
 
+  const exportToCsv = () => {
+    if (works.length === 0) return;
+    const headers = ['Título','Tipo','Estado','Fecha de registro','Fecha de certificación','Red blockchain','Hash TX','Evidence ID','URL verificación','Distribuido'];
+    const rows = works.map(w => [
+      `"${(w.title || '').replace(/"/g, '""')}"`,
+      w.type || '',
+      w.status || '',
+      w.created_at ? new Date(w.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '',
+      w.certified_at ? new Date(w.certified_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '',
+      w.blockchain_network || '',
+      w.blockchain_hash || '',
+      w.ibs_evidence_id || '',
+      w.checker_url || '',
+      w.distributed_at ? new Date(w.distributed_at).toLocaleDateString('es-ES') : '',
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `musicdibs-mis-obras-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const certified = works.filter((w) => w.status === 'registered');
   const processing = works.filter((w) => w.status === 'processing');
   const failed = works.filter((w) => w.status === 'failed');
@@ -163,10 +191,22 @@ export default function BlockchainEvidencePage() {
             Historial de registros
           </h2>
         </div>
-        <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToCsv}
+            disabled={loading || works.length === 0}
+            title="Exportar mis obras a CSV"
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Exportar CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => loadWorks(page)} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
