@@ -71,6 +71,28 @@ export function DashboardSidebar() {
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [kycStatus, setKycStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('profiles')
+      .select('kyc_status')
+      .eq('user_id', user.id)
+      .single()
+      .then(({ data }) => setKycStatus(data?.kyc_status || 'unverified'));
+
+    const channel = supabase
+      .channel('sidebar-kyc')
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'profiles',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload: any) => {
+        if (payload.new?.kyc_status) setKycStatus(payload.new.kyc_status);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const isActive = (path: string) =>
     path === '/dashboard'
