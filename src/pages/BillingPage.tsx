@@ -92,16 +92,20 @@ export default function BillingPage() {
             <div>
               <p className="font-semibold">{planLabel}</p>
               <p className="text-sm text-muted-foreground">
-                {plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
+                {cancelAtPeriodEnd
+                  ? `Cancelada — acceso hasta ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'fin del período'}`
+                  : plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
               </p>
             </div>
             <Badge
-              className={plan === 'Free'
-                ? 'bg-muted text-muted-foreground border-border'
-                : 'bg-primary/10 text-primary border-primary/20'}
+              className={cancelAtPeriodEnd
+                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                : plan === 'Free'
+                  ? 'bg-muted text-muted-foreground border-border'
+                  : 'bg-primary/10 text-primary border-primary/20'}
               variant="outline"
             >
-              {plan === 'Free' ? 'Free' : 'Activo'}
+              {cancelAtPeriodEnd ? 'Cancelada' : plan === 'Free' ? 'Free' : 'Activo'}
             </Badge>
           </div>
           <div className="flex gap-3">
