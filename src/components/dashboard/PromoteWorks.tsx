@@ -59,7 +59,7 @@ export function PromoteWorks() {
         ) : (
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full" variant="hero" size="sm">Solicitar post</Button>
+            <Button className="w-full" variant="hero" size="sm">Solicitar promo</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
