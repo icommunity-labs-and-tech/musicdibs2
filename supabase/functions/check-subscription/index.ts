@@ -96,15 +96,23 @@ serve(async (req) => {
         ? periodEnd
         : null;
 
-    logStep("Active subscription found", { plan, priceId, subscriptionEnd });
+    // Detect if the subscription is set to cancel at period end
+    const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
 
-    // Sync plan to profiles table
-    await supabaseClient.from("profiles").update({ subscription_plan: plan }).eq("user_id", user.id);
+    logStep("Active subscription found", { plan, priceId, subscriptionEnd, cancelAtPeriodEnd });
+
+    // If cancelled at period end, set plan to Free so the UI reflects cancellation
+    if (cancelAtPeriodEnd) {
+      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
+    } else {
+      await supabaseClient.from("profiles").update({ subscription_plan: plan }).eq("user_id", user.id);
+    }
 
     return new Response(JSON.stringify({
-      subscribed: true,
-      plan,
+      subscribed: !cancelAtPeriodEnd,
+      plan: cancelAtPeriodEnd ? "Free" : plan,
       subscription_end: subscriptionEnd,
+      cancel_at_period_end: cancelAtPeriodEnd,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -19,21 +19,16 @@ export default function BillingPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
-    // Sync with Stripe first, then read from profiles
-    supabase.functions.invoke('check-subscription').then(() => {
-      supabase
-        .from('profiles')
-        .select('subscription_plan')
-        .eq('user_id', user.id)
-        .single()
-        .then(({ data }) => {
-          setPlan(data?.subscription_plan ?? 'Free');
-        });
+    supabase.functions.invoke('check-subscription').then(({ data }) => {
+      setPlan(data?.plan ?? 'Free');
+      setCancelAtPeriodEnd(data?.cancel_at_period_end ?? false);
+      setSubscriptionEnd(data?.subscription_end ?? null);
     }).catch(() => {
-      // Fallback: just read from profiles
       supabase
         .from('profiles')
         .select('subscription_plan')
@@ -97,16 +92,20 @@ export default function BillingPage() {
             <div>
               <p className="font-semibold">{planLabel}</p>
               <p className="text-sm text-muted-foreground">
-                {plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
+                {cancelAtPeriodEnd
+                  ? `Cancelada — acceso hasta ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'fin del período'}`
+                  : plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
               </p>
             </div>
             <Badge
-              className={plan === 'Free'
-                ? 'bg-muted text-muted-foreground border-border'
-                : 'bg-primary/10 text-primary border-primary/20'}
+              className={cancelAtPeriodEnd
+                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                : plan === 'Free'
+                  ? 'bg-muted text-muted-foreground border-border'
+                  : 'bg-primary/10 text-primary border-primary/20'}
               variant="outline"
             >
-              {plan === 'Free' ? 'Free' : 'Activo'}
+              {cancelAtPeriodEnd ? 'Cancelada' : plan === 'Free' ? 'Free' : 'Activo'}
             </Badge>
           </div>
           <div className="flex gap-3">
