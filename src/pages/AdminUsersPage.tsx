@@ -162,7 +162,7 @@ export default function AdminUsersPage() {
                     ? <Badge className="bg-destructive/20 text-destructive">Bloqueado</Badge>
                     : <Badge className="bg-green-500/20 text-green-400">Activo</Badge>}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={e => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
