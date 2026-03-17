@@ -114,6 +114,14 @@ export async function registerWork(data: WorkRegistration): Promise<{
   if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
   if (spendResult?.error) throw new Error(spendResult.error);
 
+  // Compute SHA-256 hash of the ORIGINAL file before upload
+  const fileBuffer = await data.file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
+  const fileHash = Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  console.log('[registerWork] Pre-upload file hash:', fileHash);
+
   // Upload file to storage
   const filePath = `${user.id}/${Date.now()}_${data.file.name}`;
   const { error: uploadError } = await supabase.storage
@@ -122,7 +130,7 @@ export async function registerWork(data: WorkRegistration): Promise<{
 
   if (uploadError) throw new Error(`Error subiendo archivo: ${uploadError.message}`);
 
-  // Insert work record
+  // Insert work record with pre-computed hash
   const { data: work, error } = await supabase.from('works').insert({
     user_id: user.id,
     title: data.title,
@@ -130,6 +138,7 @@ export async function registerWork(data: WorkRegistration): Promise<{
     author: data.author,
     description: data.description,
     file_path: filePath,
+    file_hash: fileHash,
     status: 'processing',
   }).select().single();
 
