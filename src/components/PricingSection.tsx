@@ -41,9 +41,37 @@ function formatPrice(amount: number, lang: string): string {
 
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const lang = i18n.resolvedLanguage || i18n.language;
   const links = getFooterLinks(lang);
+
+  const handleCheckout = useCallback(async (planId: 'annual' | 'monthly' | 'individual') => {
+    if (!user) {
+      navigate('/login', { state: { returnTo: '/#pricing-section' } });
+      return;
+    }
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { planId },
+      });
+      if (error) throw error;
+      if (data?.already_subscribed) {
+        toast.info(data.message || 'Ya estás suscrito a este plan.');
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error al iniciar el pago');
+    } finally {
+      setLoadingPlan(null);
+    }
+  }, [user, navigate]);
 
   const ctaBuy = useABTest({
     id: 'pricing_cta_buy',
