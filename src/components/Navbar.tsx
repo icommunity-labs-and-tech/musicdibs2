@@ -181,11 +181,6 @@ export const Navbar = () => {
                   </li>
                   <li className="border-t border-gray-100 my-1" />
                   <li>
-                    <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100 font-medium">
-                      {t('nav.distribution')}
-                    </a>
-                  </li>
-                  <li>
                     <a href={links.market} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
                       {t('nav.market')}
                     </a>
@@ -243,7 +238,7 @@ export const Navbar = () => {
             {mobileServicesOpen && (
               <div className="pl-4 space-y-2 mt-1">
                 <Link to="/login" onClick={() => setMobileOpen(false)} className={`block ${navTextMuted} py-1 transition-colors font-medium`}>{t('nav.login')}</Link>
-                <a href={links.distribution.info} target="_blank" rel="noopener noreferrer" className={`block ${navTextMuted} py-1 transition-colors font-medium`}>{t('nav.distribution')}</a>
+                
                 <a href={links.market} target="_blank" rel="noopener noreferrer" className={`block ${navTextMuted} py-1 transition-colors`}>{t('nav.market')}</a>
                 <Link to="/verify" onClick={() => setMobileOpen(false)} className={`block ${navTextMuted} py-1 transition-colors`}>{t('nav.verifier')}</Link>
               </div>
