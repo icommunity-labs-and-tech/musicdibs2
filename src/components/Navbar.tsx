@@ -181,11 +181,6 @@ export const Navbar = () => {
                   </li>
                   <li className="border-t border-gray-100 my-1" />
                   <li>
-                    <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100 font-medium">
-                      {t('nav.distribution')}
-                    </a>
-                  </li>
-                  <li>
                     <a href={links.market} target="_blank" rel="noopener noreferrer" className="block px-4 py-2 hover:bg-gray-100">
                       {t('nav.market')}
                     </a>
