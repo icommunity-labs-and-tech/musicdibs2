@@ -20,7 +20,17 @@ serve(async (req) => {
   try {
     const contentType = req.headers.get("content-type") || "";
 
-    let fileHash: string;
+    let fileHash: string | null = null;
+    let fileHashSha512Base64: string | null = null;
+
+    const bytesToBase64 = (bytes: Uint8Array) => {
+      let binary = "";
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+      }
+      return btoa(binary);
+    };
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -31,37 +41,61 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
       const buffer = await file.arrayBuffer();
-      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
-      fileHash = Array.from(new Uint8Array(hashBuffer))
+
+      const sha256Buffer = await crypto.subtle.digest("SHA-256", buffer);
+      fileHash = Array.from(new Uint8Array(sha256Buffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
+
+      const sha512Buffer = await crypto.subtle.digest("SHA-512", buffer);
+      fileHashSha512Base64 = bytesToBase64(new Uint8Array(sha512Buffer));
     } else {
-      // JSON body with pre-computed hash
+      // JSON body with pre-computed hashes
       const body = await req.json();
-      if (!body.fileHash) {
-        return new Response(JSON.stringify({ error: "fileHash is required" }), {
+      fileHash = body.fileHash ?? null;
+      fileHashSha512Base64 = body.fileHashSha512Base64 ?? null;
+
+      if (!fileHash && !fileHashSha512Base64) {
+        return new Response(JSON.stringify({ error: "fileHash or fileHashSha512Base64 is required" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      fileHash = body.fileHash;
     }
 
-    console.log(`[VERIFY] Looking up hash: ${fileHash}`);
+    console.log(`[VERIFY] Looking up hashes`, { fileHash, fileHashSha512Base64 });
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Search by file_hash
-    const { data: works, error } = await supabaseAdmin
-      .from("works")
-      .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
-      .eq("file_hash", fileHash)
-      .eq("status", "registered")
-      .limit(1);
+    let works: any[] | null = null;
+    let error: any = null;
+
+    if (fileHash) {
+      const bySha256 = await supabaseAdmin
+        .from("works")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .eq("file_hash", fileHash)
+        .eq("status", "registered")
+        .limit(1);
+      works = bySha256.data;
+      error = bySha256.error;
+    }
+
+    if ((!works || works.length === 0) && !error && fileHashSha512Base64) {
+      const byIbsChecksum = await supabaseAdmin
+        .from("works")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .eq("ibs_payload_checksum", fileHashSha512Base64)
+        .eq("status", "registered")
+        .limit(1);
+      works = byIbsChecksum.data;
+      error = byIbsChecksum.error;
+    }
 
     if (error) {
       console.error("[VERIFY] DB error:", error);
