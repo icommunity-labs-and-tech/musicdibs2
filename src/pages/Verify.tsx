@@ -102,7 +102,7 @@ const Verify = () => {
                   <CheckCircle2 className="w-6 h-6 text-green-400" />
                   <span className="text-white/90 font-medium truncate max-w-xs">{file.name}</span>
                   <button
-                    onClick={(e) => { e.stopPropagation(); setFile(null); setResult("idle"); }}
+                    onClick={(e) => { e.stopPropagation(); setFile(null); setResult(null); }}
                     className="text-white/40 hover:text-white/80 transition-colors ml-2"
                   >
                     <XCircle className="w-5 h-5" />
