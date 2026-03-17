@@ -1,9 +1,34 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
 import { legalTranslations } from './i18nLegal';
 import { faqTranslations } from './i18nFaq';
 
-const savedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') || 'es' : 'es';
+// Spanish-speaking country codes (ISO 3166-1 alpha-2 mapped via navigator.language)
+const SPANISH_LANG_TAGS = [
+  'es', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR', 'es-CU', 'es-DO',
+  'es-EC', 'es-SV', 'es-GQ', 'es-GT', 'es-HN', 'es-MX', 'es-NI', 'es-PA',
+  'es-PY', 'es-PE', 'es-PR', 'es-ES', 'es-UY', 'es-VE', 'es-419',
+];
+
+/** Map browser language tag to one of our supported languages */
+const mapBrowserLang = (detected: string | undefined): string => {
+  if (!detected) return 'es';
+  const tag = detected.trim();
+
+  // Any Spanish variant → es
+  if (tag === 'es' || SPANISH_LANG_TAGS.some(s => tag.toLowerCase().startsWith(s.toLowerCase()))) return 'es';
+  // Portuguese variants → pt-BR
+  if (tag.toLowerCase().startsWith('pt')) return 'pt-BR';
+  // Exact supported matches
+  const base = tag.split('-')[0].toLowerCase();
+  const supported = ['en', 'fr', 'it', 'de'];
+  if (supported.includes(base)) return base;
+  // Default fallback
+  return 'es';
+};
+
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') : null;
 
 const resources = {
   es: {
@@ -1396,13 +1421,25 @@ langs.forEach((lang) => {
   }
 });
 
+// If user manually chose a language, use it; otherwise auto-detect from browser
+const detectedLang = savedLang || mapBrowserLang(
+  typeof navigator !== 'undefined' ? navigator.language : undefined
+);
+
 i18n
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: savedLang,
-    fallbackLng: 'en',
+    lng: detectedLang,
+    fallbackLng: 'es',
+    supportedLngs: ['es', 'en', 'pt-BR', 'fr', 'it', 'de'],
     interpolation: { escapeValue: false },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'lang',
+      caches: ['localStorage'],
+    },
   });
 
 export default i18n;
