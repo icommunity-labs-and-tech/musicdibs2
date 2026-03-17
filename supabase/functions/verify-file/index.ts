@@ -119,7 +119,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[VERIFY] No work found for hash: ${fileHash}`);
+    console.log(`[VERIFY] No work found`, { fileHash, fileHashSha512Base64 });
     return new Response(
       JSON.stringify({ found: false }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
