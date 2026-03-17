@@ -118,7 +118,17 @@ serve(async (req) => {
 
     const fileBuffer = await fileData.arrayBuffer();
     const fileSizeMB = fileBuffer.byteLength / (1024 * 1024);
-    const fileName = work.file_path.split("/").pop() || "file";
+    
+    // Use original filename (strip timestamp prefix added during upload)
+    const rawFileName = work.file_path.split("/").pop() || "file";
+    const fileName = rawFileName.replace(/^\d+_/, "");
+
+    // Compute SHA-256 hash of the file for verification
+    const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
+    const fileHash = Array.from(new Uint8Array(hashBuffer))
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    console.log(`[IBS] File hash for work ${workId}: ${fileHash}`);
 
     const ibsHeaders = {
       "Authorization": `Bearer ${IBS_API_KEY}`,
