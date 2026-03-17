@@ -272,6 +272,9 @@ serve(async (req) => {
         const checkerNetwork = toCheckerNetworkSlug(network);
         const checkerUrl = evidence.certification?.links?.checker ||
           (certHash ? `https://checker.icommunitylabs.com/check/${checkerNetwork}/${certHash}` : null);
+        const integrityEntry = Array.isArray(evidence.payload?.integrity) ? evidence.payload.integrity[0] : null;
+        const ibsPayloadChecksum = typeof integrityEntry?.checksum === "string" ? integrityEntry.checksum : null;
+        const ibsPayloadAlgorithm = typeof integrityEntry?.algorithm === "string" ? integrityEntry.algorithm : null;
 
         const { data: work } = await supabaseAdmin
           .from("works")
@@ -280,17 +283,22 @@ serve(async (req) => {
           .single();
 
         if (work && work.status === "processing") {
+          const updates: Record<string, unknown> = {
+            status: "registered",
+            blockchain_hash: certHash,
+            blockchain_network: network,
+            checker_url: checkerUrl,
+            certificate_url: checkerUrl,
+            certified_at: evidence.certification?.timestamp || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          if (ibsPayloadChecksum) updates.ibs_payload_checksum = ibsPayloadChecksum;
+          if (ibsPayloadAlgorithm) updates.ibs_payload_algorithm = ibsPayloadAlgorithm;
+
           await supabaseAdmin
             .from("works")
-            .update({
-              status: "registered",
-              blockchain_hash: certHash,
-              blockchain_network: network,
-              checker_url: checkerUrl,
-              certificate_url: checkerUrl,
-              certified_at: evidence.certification?.timestamp || new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
+            .update(updates)
             .eq("id", work.id);
         }
       }
