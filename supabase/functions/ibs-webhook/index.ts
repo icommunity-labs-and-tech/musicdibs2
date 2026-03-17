@@ -66,6 +66,9 @@ serve(async (req) => {
       const network = data.network || "polygon";
       const checkerNetwork = toCheckerNetworkSlug(network);
       const signedPdfUrl = event === "evidence.signed_pdf.certified" ? data.signed_pdf_url : undefined;
+      const integrityEntry = Array.isArray(data.payload?.integrity) ? data.payload.integrity[0] : null;
+      const ibsPayloadChecksum = typeof integrityEntry?.checksum === "string" ? integrityEntry.checksum : null;
+      const ibsPayloadAlgorithm = typeof integrityEntry?.algorithm === "string" ? integrityEntry.algorithm : null;
 
       let checkerUrl: string | undefined;
       if (data.payload?.certification?.links?.checker) {
@@ -81,17 +84,22 @@ serve(async (req) => {
         .single();
 
       if (work) {
+        const updates: Record<string, unknown> = {
+          status: "registered",
+          blockchain_hash: certHash,
+          blockchain_network: network,
+          checker_url: checkerUrl,
+          certificate_url: signedPdfUrl || checkerUrl,
+          certified_at: certTimestamp || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        if (ibsPayloadChecksum) updates.ibs_payload_checksum = ibsPayloadChecksum;
+        if (ibsPayloadAlgorithm) updates.ibs_payload_algorithm = ibsPayloadAlgorithm;
+
         await supabaseAdmin
           .from("works")
-          .update({
-            status: "registered",
-            blockchain_hash: certHash,
-            blockchain_network: network,
-            checker_url: checkerUrl,
-            certificate_url: signedPdfUrl || checkerUrl,
-            certified_at: certTimestamp || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
+          .update(updates)
           .eq("id", work.id);
         console.log(`[IBS-WEBHOOK-EVIDENCE] Work ${work.id} certified. Hash: ${certHash}`);
 

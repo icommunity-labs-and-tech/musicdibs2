@@ -4,6 +4,15 @@ import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/b
 
 const IBS_API_URL = "https://api.icommunitylabs.com/v2";
 
+const bytesToBase64 = (bytes: Uint8Array) => {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -123,18 +132,24 @@ serve(async (req) => {
     const rawFileName = work.file_path.split("/").pop() || "file";
     const fileName = rawFileName.replace(/^\d+_/, "");
 
-    // Use pre-computed hash from client if available, otherwise compute from downloaded file
+    // Use pre-computed SHA-256 hash from client if available, otherwise compute from downloaded file
     let fileHash: string;
     if (work.file_hash) {
       fileHash = work.file_hash;
-      console.log(`[IBS] Using pre-computed hash for work ${workId}: ${fileHash}`);
+      console.log(`[IBS] Using pre-computed SHA-256 for work ${workId}: ${fileHash}`);
     } else {
       const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
       fileHash = Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-      console.log(`[IBS] Computed hash for work ${workId}: ${fileHash}`);
+      console.log(`[IBS] Computed SHA-256 for work ${workId}: ${fileHash}`);
     }
+
+    // Compute SHA-512 base64 checksum to align with iBS checker integrity payload
+    const sha512Buffer = await crypto.subtle.digest("SHA-512", fileBuffer);
+    const ibsPayloadChecksum = bytesToBase64(new Uint8Array(sha512Buffer));
+    const ibsPayloadAlgorithm = "SHA-512";
+    console.log(`[IBS] Computed ${ibsPayloadAlgorithm} checksum for work ${workId}`);
 
     const ibsHeaders = {
       "Authorization": `Bearer ${IBS_API_KEY}`,
@@ -259,13 +274,15 @@ serve(async (req) => {
       evidenceLink = completeResult.link;
     }
 
-    // Update work with iBS evidence info and file hash — status stays 'processing' until webhook confirms
+    // Update work with iBS evidence info and checksums — status stays 'processing' until webhook confirms
     await supabaseAdmin
       .from("works")
       .update({
         ibs_evidence_id: evidenceId,
         ibs_signature_id: signatureId,
         file_hash: fileHash,
+        ibs_payload_checksum: ibsPayloadChecksum,
+        ibs_payload_algorithm: ibsPayloadAlgorithm,
         updated_at: new Date().toISOString(),
       })
       .eq("id", workId);
