@@ -66,6 +66,9 @@ serve(async (req) => {
       const network = data.network || "polygon";
       const checkerNetwork = toCheckerNetworkSlug(network);
       const signedPdfUrl = event === "evidence.signed_pdf.certified" ? data.signed_pdf_url : undefined;
+      const integrityEntry = Array.isArray(data.payload?.integrity) ? data.payload.integrity[0] : null;
+      const ibsPayloadChecksum = typeof integrityEntry?.checksum === "string" ? integrityEntry.checksum : null;
+      const ibsPayloadAlgorithm = typeof integrityEntry?.algorithm === "string" ? integrityEntry.algorithm : null;
 
       let checkerUrl: string | undefined;
       if (data.payload?.certification?.links?.checker) {
