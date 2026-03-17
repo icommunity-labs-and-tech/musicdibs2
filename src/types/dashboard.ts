@@ -53,6 +53,8 @@ export interface VerificationResult {
   title?: string;
   registeredAt?: string;
   certificateUrl?: string;
+  blockchainHash?: string;
+  blockchainNetwork?: string;
 }
 
 export interface RecentRegistration {
