@@ -607,6 +607,8 @@ export type Database = {
           file_hash: string | null
           file_path: string | null
           ibs_evidence_id: string | null
+          ibs_payload_algorithm: string | null
+          ibs_payload_checksum: string | null
           ibs_signature_id: string | null
           id: string
           status: string
@@ -629,6 +631,8 @@ export type Database = {
           file_hash?: string | null
           file_path?: string | null
           ibs_evidence_id?: string | null
+          ibs_payload_algorithm?: string | null
+          ibs_payload_checksum?: string | null
           ibs_signature_id?: string | null
           id?: string
           status?: string
@@ -651,6 +655,8 @@ export type Database = {
           file_hash?: string | null
           file_path?: string | null
           ibs_evidence_id?: string | null
+          ibs_payload_algorithm?: string | null
+          ibs_payload_checksum?: string | null
           ibs_signature_id?: string | null
           id?: string
           status?: string
