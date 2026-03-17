@@ -9,6 +9,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const toCheckerNetworkSlug = (network?: string) => {
+  const normalized = (network || "polygon").toLowerCase();
+  if (normalized === "fantom_opera_mainnet" || normalized === "fantom" || normalized === "opera") {
+    return "opera";
+  }
+  return normalized;
+};
+
 /**
  * Manages iCommunity signatures (identities) for users.
  * 
@@ -261,8 +269,9 @@ serve(async (req) => {
       if (evidence.status === "certified" || evidence.certification?.hash) {
         const certHash = evidence.certification?.hash;
         const network = evidence.certification?.network || "polygon";
+        const checkerNetwork = toCheckerNetworkSlug(network);
         const checkerUrl = evidence.certification?.links?.checker ||
-          (certHash ? `https://checker.icommunitylabs.com/check/${network}/${certHash}` : null);
+          (certHash ? `https://checker.icommunitylabs.com/check/${checkerNetwork}/${certHash}` : null);
 
         const { data: work } = await supabaseAdmin
           .from("works")

@@ -8,6 +8,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const toCheckerNetworkSlug = (network?: string) => {
+  const normalized = (network || "polygon").toLowerCase();
+  if (normalized === "fantom_opera_mainnet" || normalized === "fantom" || normalized === "opera") {
+    return "opera";
+  }
+  return normalized;
+};
+
 /**
  * Webhook for iCommunity Evidence events only:
  *   - evidence.certified
@@ -56,13 +64,14 @@ serve(async (req) => {
       const certHash = data.certification_hash;
       const certTimestamp = data.certification_timestamp;
       const network = data.network || "polygon";
+      const checkerNetwork = toCheckerNetworkSlug(network);
       const signedPdfUrl = event === "evidence.signed_pdf.certified" ? data.signed_pdf_url : undefined;
 
       let checkerUrl: string | undefined;
       if (data.payload?.certification?.links?.checker) {
         checkerUrl = data.payload.certification.links.checker;
-      } else if (certHash && network) {
-        checkerUrl = `https://checker.icommunitylabs.com/check/${network}/${certHash}`;
+      } else if (certHash) {
+        checkerUrl = `https://checker.icommunitylabs.com/check/${checkerNetwork}/${certHash}`;
       }
 
       const { data: work } = await supabaseAdmin
