@@ -2,21 +2,23 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
-import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
+import { verifyFile } from "@/services/dashboardApi";
+import type { VerificationResult } from "@/types/dashboard";
 
 const Verify = () => {
   const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [result, setResult] = useState<"idle" | "verified" | "not_found">("idle");
+  const [result, setResult] = useState<VerificationResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (f: File) => {
     setFile(f);
-    setResult("idle");
+    setResult(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -25,14 +27,17 @@ const Verify = () => {
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (!file) return;
     setVerifying(true);
-    // Simulated verification — in production this would call the backend
-    setTimeout(() => {
-      setVerifying(false);
-      setResult("not_found");
-    }, 2000);
+    setResult(null);
+    try {
+      const res = await verifyFile(file);
+      setResult(res);
+    } catch {
+      setResult({ found: false });
+    }
+    setVerifying(false);
   };
 
   return (
