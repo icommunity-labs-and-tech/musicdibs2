@@ -132,18 +132,24 @@ serve(async (req) => {
     const rawFileName = work.file_path.split("/").pop() || "file";
     const fileName = rawFileName.replace(/^\d+_/, "");
 
-    // Use pre-computed hash from client if available, otherwise compute from downloaded file
+    // Use pre-computed SHA-256 hash from client if available, otherwise compute from downloaded file
     let fileHash: string;
     if (work.file_hash) {
       fileHash = work.file_hash;
-      console.log(`[IBS] Using pre-computed hash for work ${workId}: ${fileHash}`);
+      console.log(`[IBS] Using pre-computed SHA-256 for work ${workId}: ${fileHash}`);
     } else {
       const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
       fileHash = Array.from(new Uint8Array(hashBuffer))
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
-      console.log(`[IBS] Computed hash for work ${workId}: ${fileHash}`);
+      console.log(`[IBS] Computed SHA-256 for work ${workId}: ${fileHash}`);
     }
+
+    // Compute SHA-512 base64 checksum to align with iBS checker integrity payload
+    const sha512Buffer = await crypto.subtle.digest("SHA-512", fileBuffer);
+    const ibsPayloadChecksum = bytesToBase64(new Uint8Array(sha512Buffer));
+    const ibsPayloadAlgorithm = "SHA-512";
+    console.log(`[IBS] Computed ${ibsPayloadAlgorithm} checksum for work ${workId}`);
 
     const ibsHeaders = {
       "Authorization": `Bearer ${IBS_API_KEY}`,
