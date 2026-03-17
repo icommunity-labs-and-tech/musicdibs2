@@ -191,30 +191,25 @@ export async function pollEvidenceStatus(evidenceId: string): Promise<any> {
 // ── Verify File ────────────────────────────────────────────
 
 export async function verifyFile(file: File): Promise<VerificationResult> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  // Compute SHA-256 hash of the file in the browser
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const fileHash = Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 
-  const searchName = file.name.replace(/\.[^.]+$/, '');
-  const { data: works } = await supabase
-    .from('works')
-    .select('*')
-    .eq('user_id', user.id)
-    .ilike('title', `%${searchName}%`)
-    .eq('status', 'registered')
-    .limit(1);
+  console.log('[verifyFile] Computed hash:', fileHash);
 
-  if (works && works.length > 0) {
-    const w = works[0];
-    return {
-      found: true,
-      registrationId: w.id,
-      title: w.title,
-      registeredAt: w.created_at,
-      certificateUrl: w.certificate_url || undefined,
-    };
+  const { data, error } = await supabase.functions.invoke('verify-file', {
+    body: { fileHash },
+  });
+
+  if (error) {
+    console.error('[verifyFile] Edge function error:', error);
+    return { found: false };
   }
 
-  return { found: false };
+  return data as VerificationResult;
 }
 
 // ── Recent Registrations ───────────────────────────────────
