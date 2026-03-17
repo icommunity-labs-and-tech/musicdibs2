@@ -200,17 +200,29 @@ export async function pollEvidenceStatus(evidenceId: string): Promise<any> {
 // ── Verify File ────────────────────────────────────────────
 
 export async function verifyFile(file: File): Promise<VerificationResult> {
-  // Compute SHA-256 hash of the file in the browser
   const buffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  const fileHash = Array.from(new Uint8Array(hashBuffer))
+
+  const sha256Buffer = await crypto.subtle.digest('SHA-256', buffer);
+  const fileHash = Array.from(new Uint8Array(sha256Buffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 
-  console.log('[verifyFile] Computed hash:', fileHash);
+  const bytesToBase64 = (bytes: Uint8Array) => {
+    let binary = '';
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  };
+
+  const sha512Buffer = await crypto.subtle.digest('SHA-512', buffer);
+  const fileHashSha512Base64 = bytesToBase64(new Uint8Array(sha512Buffer));
+
+  console.log('[verifyFile] Computed hashes:', { fileHash, fileHashSha512Base64 });
 
   const { data, error } = await supabase.functions.invoke('verify-file', {
-    body: { fileHash },
+    body: { fileHash, fileHashSha512Base64 },
   });
 
   if (error) {
