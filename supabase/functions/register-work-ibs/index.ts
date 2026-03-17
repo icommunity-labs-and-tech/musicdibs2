@@ -78,7 +78,7 @@ serve(async (req) => {
     // Verify the work belongs to the user and is in 'processing' state
     const { data: work, error: workError } = await supabaseAdmin
       .from("works")
-      .select("id, user_id, title, status, file_path")
+      .select("id, user_id, title, status, file_path, file_hash")
       .eq("id", workId)
       .single();
 
