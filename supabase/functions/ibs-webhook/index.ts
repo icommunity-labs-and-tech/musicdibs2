@@ -64,13 +64,14 @@ serve(async (req) => {
       const certHash = data.certification_hash;
       const certTimestamp = data.certification_timestamp;
       const network = data.network || "polygon";
+      const checkerNetwork = toCheckerNetworkSlug(network);
       const signedPdfUrl = event === "evidence.signed_pdf.certified" ? data.signed_pdf_url : undefined;
 
       let checkerUrl: string | undefined;
       if (data.payload?.certification?.links?.checker) {
         checkerUrl = data.payload.certification.links.checker;
-      } else if (certHash && network) {
-        checkerUrl = `https://checker.icommunitylabs.com/check/${network}/${certHash}`;
+      } else if (certHash) {
+        checkerUrl = `https://checker.icommunitylabs.com/check/${checkerNetwork}/${certHash}`;
       }
 
       const { data: work } = await supabaseAdmin

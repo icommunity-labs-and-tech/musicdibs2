@@ -269,8 +269,9 @@ serve(async (req) => {
       if (evidence.status === "certified" || evidence.certification?.hash) {
         const certHash = evidence.certification?.hash;
         const network = evidence.certification?.network || "polygon";
+        const checkerNetwork = toCheckerNetworkSlug(network);
         const checkerUrl = evidence.certification?.links?.checker ||
-          (certHash ? `https://checker.icommunitylabs.com/check/${network}/${certHash}` : null);
+          (certHash ? `https://checker.icommunitylabs.com/check/${checkerNetwork}/${certHash}` : null);
 
         const { data: work } = await supabaseAdmin
           .from("works")
