@@ -274,13 +274,15 @@ serve(async (req) => {
       evidenceLink = completeResult.link;
     }
 
-    // Update work with iBS evidence info and file hash — status stays 'processing' until webhook confirms
+    // Update work with iBS evidence info and checksums — status stays 'processing' until webhook confirms
     await supabaseAdmin
       .from("works")
       .update({
         ibs_evidence_id: evidenceId,
         ibs_signature_id: signatureId,
         file_hash: fileHash,
+        ibs_payload_checksum: ibsPayloadChecksum,
+        ibs_payload_algorithm: ibsPayloadAlgorithm,
         updated_at: new Date().toISOString(),
       })
       .eq("id", workId);
