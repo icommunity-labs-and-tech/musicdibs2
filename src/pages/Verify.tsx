@@ -136,18 +136,29 @@ const Verify = () => {
             </Button>
 
             {/* Result */}
-            {result === "verified" && (
+            {result && result.found && (
               <div className="mt-6 p-5 bg-green-500/10 border border-green-400/30 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2">
                 <CheckCircle2 className="w-6 h-6 text-green-400 mt-0.5 shrink-0" />
-                <div>
+                <div className="space-y-2">
                   <p className="text-green-300 font-semibold">Obra verificada</p>
-                  <p className="text-green-200/70 text-sm mt-1">
-                    Esta obra se encuentra registrada en Musicdibs con un certificado válido en blockchain.
+                  <p className="text-green-200/70 text-sm">
+                    <span className="font-medium text-green-200">{result.title}</span> — registrada el{' '}
+                    {new Date(result.registeredAt!).toLocaleDateString('es-ES')}
                   </p>
+                  {result.certificateUrl && (
+                    <a
+                      href={result.certificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Ver certificado blockchain
+                    </a>
+                  )}
                 </div>
               </div>
             )}
-            {result === "not_found" && (
+            {result && !result.found && (
               <div className="mt-6 p-5 bg-amber-500/10 border border-amber-400/30 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2">
                 <AlertCircle className="w-6 h-6 text-amber-400 mt-0.5 shrink-0" />
                 <div>
