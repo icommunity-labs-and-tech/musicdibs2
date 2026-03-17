@@ -84,17 +84,22 @@ serve(async (req) => {
         .single();
 
       if (work) {
+        const updates: Record<string, unknown> = {
+          status: "registered",
+          blockchain_hash: certHash,
+          blockchain_network: network,
+          checker_url: checkerUrl,
+          certificate_url: signedPdfUrl || checkerUrl,
+          certified_at: certTimestamp || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        if (ibsPayloadChecksum) updates.ibs_payload_checksum = ibsPayloadChecksum;
+        if (ibsPayloadAlgorithm) updates.ibs_payload_algorithm = ibsPayloadAlgorithm;
+
         await supabaseAdmin
           .from("works")
-          .update({
-            status: "registered",
-            blockchain_hash: certHash,
-            blockchain_network: network,
-            checker_url: checkerUrl,
-            certificate_url: signedPdfUrl || checkerUrl,
-            certified_at: certTimestamp || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
+          .update(updates)
           .eq("id", work.id);
         console.log(`[IBS-WEBHOOK-EVIDENCE] Work ${work.id} certified. Hash: ${certHash}`);
 
