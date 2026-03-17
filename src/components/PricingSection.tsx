@@ -190,8 +190,10 @@ export const PricingSection = () => {
           <Button 
             variant="outline" 
             className="bg-transparent border-2 border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white px-8 py-3 rounded-full font-semibold"
-            onClick={() => window.open('https://musicdibs.com/register/?prod=31363', '_blank')}
+            disabled={loadingPlan !== null}
+            onClick={() => handleCheckout('individual')}
           >
+            {loadingPlan === 'individual' ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {t("pricing.indivButton")}
           </Button>
           
