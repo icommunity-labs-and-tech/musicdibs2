@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 /**
- * Verifies a file by computing its SHA-256 hash and searching the works table.
- * Accepts multipart/form-data with a "file" field.
- * Does NOT require authentication — anyone can verify.
+ * Verifies a file by searching registered works with:
+ *   1) SHA-256 hex hash (internal hash), and fallback
+ *   2) SHA-512 base64 checksum (iBS checker integrity checksum).
  */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
