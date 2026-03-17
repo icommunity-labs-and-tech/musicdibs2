@@ -123,12 +123,18 @@ serve(async (req) => {
     const rawFileName = work.file_path.split("/").pop() || "file";
     const fileName = rawFileName.replace(/^\d+_/, "");
 
-    // Compute SHA-256 hash of the file for verification
-    const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
-    const fileHash = Array.from(new Uint8Array(hashBuffer))
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-    console.log(`[IBS] File hash for work ${workId}: ${fileHash}`);
+    // Use pre-computed hash from client if available, otherwise compute from downloaded file
+    let fileHash: string;
+    if (work.file_hash) {
+      fileHash = work.file_hash;
+      console.log(`[IBS] Using pre-computed hash for work ${workId}: ${fileHash}`);
+    } else {
+      const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
+      fileHash = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      console.log(`[IBS] Computed hash for work ${workId}: ${fileHash}`);
+    }
 
     const ibsHeaders = {
       "Authorization": `Bearer ${IBS_API_KEY}`,
