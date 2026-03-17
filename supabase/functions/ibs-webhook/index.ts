@@ -8,6 +8,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const toCheckerNetworkSlug = (network?: string) => {
+  const normalized = (network || "polygon").toLowerCase();
+  if (normalized === "fantom_opera_mainnet" || normalized === "fantom" || normalized === "opera") {
+    return "opera";
+  }
+  return normalized;
+};
+
 /**
  * Webhook for iCommunity Evidence events only:
  *   - evidence.certified

@@ -33,6 +33,10 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
     setGenerating(true)
     try {
       const network = work.blockchain_network || 'Polygon'
+      const checkerNetwork = ['fantom_opera_mainnet', 'fantom', 'opera'].includes(network.toLowerCase())
+        ? 'opera'
+        : network.toLowerCase()
+
       const certData: CertificateData = {
         title:       work.title,
         filename:    work.original_filename || `${work.title}.mp3`,
@@ -52,7 +56,7 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
         fingerprint: work.blockchain_hash,
         algorithm:   'base64 SHA-512',
         checkerUrl:  work.checker_url ||
-          `https://checker.icommunitylabs.com/check/${network.toLowerCase()}/${work.blockchain_hash}`,
+          `https://checker.icommunitylabs.com/check/${checkerNetwork}/${work.blockchain_hash}`,
         ibsUrl:      `https://app.icommunitylabs.com/evidences/${work.ibs_evidence_id}`,
         evidenceId:  work.ibs_evidence_id,
       }
