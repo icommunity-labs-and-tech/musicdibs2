@@ -1,11 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ComparisonTable } from "@/components/ComparisonTable";
 import { useABTest, trackABClick } from "@/hooks/useABTest";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 // Base prices in EUR
 const BASE_PRICES = {
@@ -37,9 +41,37 @@ function formatPrice(amount: number, lang: string): string {
 
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const lang = i18n.resolvedLanguage || i18n.language;
   const links = getFooterLinks(lang);
+
+  const handleCheckout = useCallback(async (planId: 'annual' | 'monthly' | 'individual') => {
+    if (!user) {
+      navigate('/login', { state: { returnTo: '/#pricing-section' } });
+      return;
+    }
+    setLoadingPlan(planId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { planId },
+      });
+      if (error) throw error;
+      if (data?.already_subscribed) {
+        toast.info(data.message || 'Ya estás suscrito a este plan.');
+        return;
+      }
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error al iniciar el pago');
+    } finally {
+      setLoadingPlan(null);
+    }
+  }, [user, navigate]);
 
   const ctaBuy = useABTest({
     id: 'pricing_cta_buy',
@@ -134,11 +166,13 @@ export const PricingSection = () => {
                 className={`w-full bg-white hover:bg-white/90 font-semibold py-3 rounded-full ${
                   isAnnual ? 'text-pink-600' : 'text-teal-600'
                 } ${ctaBuy.className}`}
+                disabled={loadingPlan !== null}
                 onClick={() => {
                   trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
-                  window.open(isAnnual ? 'https://musicdibs.com/register/?prod=5157' : 'https://musicdibs.com/register/?prod=44940', '_blank');
+                  handleCheckout(isAnnual ? 'annual' : 'monthly');
                 }}
               >
+                {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                 {ctaBuy.text}
               </Button>
             </CardContent>
@@ -156,8 +190,10 @@ export const PricingSection = () => {
           <Button 
             variant="outline" 
             className="bg-transparent border-2 border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white px-8 py-3 rounded-full font-semibold"
-            onClick={() => window.open('https://musicdibs.com/register/?prod=31363', '_blank')}
+            disabled={loadingPlan !== null}
+            onClick={() => handleCheckout('individual')}
           >
+            {loadingPlan === 'individual' ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {t("pricing.indivButton")}
           </Button>
           
