@@ -166,11 +166,13 @@ export const PricingSection = () => {
                 className={`w-full bg-white hover:bg-white/90 font-semibold py-3 rounded-full ${
                   isAnnual ? 'text-pink-600' : 'text-teal-600'
                 } ${ctaBuy.className}`}
+                disabled={loadingPlan !== null}
                 onClick={() => {
                   trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
-                  window.open(isAnnual ? 'https://musicdibs.com/register/?prod=5157' : 'https://musicdibs.com/register/?prod=44940', '_blank');
+                  handleCheckout(isAnnual ? 'annual' : 'monthly');
                 }}
               >
+                {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                 {ctaBuy.text}
               </Button>
             </CardContent>
