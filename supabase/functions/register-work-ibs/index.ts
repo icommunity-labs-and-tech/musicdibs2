@@ -4,6 +4,15 @@ import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/b
 
 const IBS_API_URL = "https://api.icommunitylabs.com/v2";
 
+const bytesToBase64 = (bytes: Uint8Array) => {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return btoa(binary);
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
