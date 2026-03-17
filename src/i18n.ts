@@ -1421,13 +1421,25 @@ langs.forEach((lang) => {
   }
 });
 
+// If user manually chose a language, use it; otherwise auto-detect from browser
+const detectedLang = savedLang || mapBrowserLang(
+  typeof navigator !== 'undefined' ? navigator.language : undefined
+);
+
 i18n
+  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources,
-    lng: savedLang,
-    fallbackLng: 'en',
+    lng: detectedLang,
+    fallbackLng: 'es',
+    supportedLngs: ['es', 'en', 'pt-BR', 'fr', 'it', 'de'],
     interpolation: { escapeValue: false },
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'lang',
+      caches: ['localStorage'],
+    },
   });
 
 export default i18n;
