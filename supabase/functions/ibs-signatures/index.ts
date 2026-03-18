@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { kycInProcessEmail } from "../_shared/transactional-email.ts";
 
 const IBS_API_URL = "https://api.icommunitylabs.com/v2";
 
@@ -115,6 +116,43 @@ serve(async (req) => {
         .update({ kyc_status: "pending", ibs_signature_id: result.signature_id, updated_at: new Date().toISOString() })
         .eq("user_id", user.id);
       console.log(`[IBS-SIGNATURES] KYC set to pending for user ${user.id}`);
+
+      // Send "en proceso" email
+      try {
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("display_name")
+          .eq("user_id", user.id)
+          .single();
+        const userName = profile?.display_name || user.email?.split("@")[0] || "Usuario";
+        const emailData = kycInProcessEmail({ name: userName });
+        const messageId = crypto.randomUUID();
+        await supabaseAdmin.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: "kyc_in_process",
+          recipient_email: user.email!,
+          status: "pending",
+        });
+        await supabaseAdmin.rpc("enqueue_email", {
+          queue_name: "transactional_emails",
+          payload: {
+            run_id: crypto.randomUUID(),
+            message_id: messageId,
+            to: user.email,
+            from: "MusicDibs <noreply@notify.musicdibs.com>",
+            sender_domain: "notify.musicdibs.com",
+            subject: emailData.subject,
+            html: emailData.html,
+            text: emailData.text,
+            purpose: "transactional",
+            label: "kyc_in_process",
+            queued_at: new Date().toISOString(),
+          },
+        });
+        console.log(`[IBS-SIGNATURES] Enqueued kyc_in_process email for ${user.email}`);
+      } catch (emailErr) {
+        console.warn("[IBS-SIGNATURES] Failed to send KYC in-process email:", emailErr);
+      }
 
       return new Response(JSON.stringify({
         signatureId: result.signature_id,
