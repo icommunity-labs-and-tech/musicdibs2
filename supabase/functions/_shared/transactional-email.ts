@@ -174,6 +174,71 @@ export function workCertifiedEmail(data: {
 
 // ─── 4. Payment Failure Notification ────────────────────────────────────────
 
+// ─── 4. KYC Verification In Process ─────────────────────────────────────────
+
+export function kycInProcessEmail(data: { name: string }) {
+  const safeName = escapeHtml(data.name);
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, hemos recibido tu solicitud de verificación de identidad.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.12));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Estado", "🔄 En proceso")}
+      ${infoRow("Tiempo estimado", "Hasta 48 horas")}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">Te notificaremos por email en cuanto el resultado esté disponible. No es necesario que hagas nada más.</p>
+    ${cta("https://musicdibs.com/dashboard", "Ir a mi panel →")}`;
+
+  return {
+    subject: "🔄 Verificación de identidad en proceso — MusicDibs",
+    html: wrap("🔄", "Verificación en proceso", body),
+    text: `Hola ${data.name}, hemos recibido tu solicitud de verificación de identidad. Te notificaremos cuando el resultado esté disponible. Panel: https://musicdibs.com/dashboard`,
+  };
+}
+
+// ─── 5. KYC Verification Success ────────────────────────────────────────────
+
+export function kycVerifiedEmail(data: { name: string }) {
+  const safeName = escapeHtml(data.name);
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, tu identidad ha sido verificada correctamente.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Estado", "✅ Verificada")}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">Ya puedes registrar tus obras sin restricciones. ¡Protege tu propiedad intelectual hoy!</p>
+    ${cta("https://musicdibs.com/dashboard/register", "Registrar una obra →")}`;
+
+  return {
+    subject: "✅ Identidad verificada — MusicDibs",
+    html: wrap("✅", "Identidad verificada", body),
+    text: `Hola ${data.name}, tu identidad ha sido verificada correctamente. Ya puedes registrar obras: https://musicdibs.com/dashboard/register`,
+  };
+}
+
+// ─── 6. KYC Verification Failed ─────────────────────────────────────────────
+
+export function kycFailedEmail(data: { name: string; reason?: string }) {
+  const safeName = escapeHtml(data.name);
+  const safeReason = data.reason ? escapeHtml(data.reason) : "No se pudo completar la verificación de identidad.";
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, lamentamos informarte de que la verificación de identidad no se ha completado correctamente.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(185,28,28,0.12));border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Estado", "❌ No superada")}
+      ${infoRow("Motivo", safeReason)}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">No te preocupes, puedes repetir el proceso de verificación en cualquier momento desde tu panel de control.</p>
+    ${cta("https://musicdibs.com/dashboard/identity", "Reintentar verificación →")}`;
+
+  return {
+    subject: "❌ Verificación de identidad no superada — MusicDibs",
+    html: wrap("❌", "Verificación no superada", body),
+    text: `Hola ${data.name}, la verificación de identidad no se completó. Motivo: ${data.reason || "Error en la verificación"}. Puedes reintentar: https://musicdibs.com/dashboard/identity`,
+  };
+}
+
+// ─── 7. Payment Failure Notification ────────────────────────────────────────
+
 export function paymentFailedEmail(data: {
   name: string;
   description: string;

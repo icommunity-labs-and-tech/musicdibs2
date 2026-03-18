@@ -1,11 +1,44 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { kycFailedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+async function enqueueKycEmail(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  email: string,
+  emailData: { subject: string; html: string; text: string },
+  label: string,
+) {
+  const messageId = crypto.randomUUID();
+  await supabaseAdmin.from("email_send_log").insert({
+    message_id: messageId,
+    template_name: label,
+    recipient_email: email,
+    status: "pending",
+  });
+  await supabaseAdmin.rpc("enqueue_email", {
+    queue_name: "transactional_emails",
+    payload: {
+      run_id: crypto.randomUUID(),
+      message_id: messageId,
+      to: email,
+      from: "MusicDibs <noreply@notify.musicdibs.com>",
+      sender_domain: "notify.musicdibs.com",
+      subject: emailData.subject,
+      html: emailData.html,
+      text: emailData.text,
+      purpose: "transactional",
+      label,
+      queued_at: new Date().toISOString(),
+    },
+  });
+  console.log(`[IBS-WEBHOOK-SIG-KO] Enqueued ${label} email to ${email}, messageId: ${messageId}`);
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -41,6 +74,31 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    // Helper to get user info from signature
+    async function getUserFromSignature(signatureId: string) {
+      const { data: sig } = await supabaseAdmin
+        .from("ibs_signatures")
+        .select("user_id")
+        .eq("ibs_signature_id", signatureId)
+        .single();
+      if (!sig?.user_id) return null;
+
+      const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(sig.user_id);
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", sig.user_id)
+        .single();
+
+      return {
+        userId: sig.user_id,
+        email: user?.email,
+        name: profile?.display_name || user?.email?.split("@")[0] || "Usuario",
+      };
+    }
+
+    const failureReason = data.reason || data.failure_reason || data.error || data.message || undefined;
+
     if (event === "signature.failed") {
       const signatureId = data.signature_id;
       await supabaseAdmin
@@ -50,17 +108,19 @@ serve(async (req) => {
       console.log(`[IBS-WEBHOOK-SIG-KO] Signature ${signatureId} failed`);
 
       // Reset kyc_status to unverified
-      const { data: sigFailed } = await supabaseAdmin
-        .from("ibs_signatures")
-        .select("user_id")
-        .eq("ibs_signature_id", signatureId)
-        .single();
-      if (sigFailed?.user_id) {
+      const userInfo = await getUserFromSignature(signatureId);
+      if (userInfo) {
         await supabaseAdmin
           .from("profiles")
           .update({ kyc_status: "unverified", ibs_signature_id: null, updated_at: new Date().toISOString() })
-          .eq("user_id", sigFailed.user_id);
-        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${sigFailed.user_id}`);
+          .eq("user_id", userInfo.userId);
+        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${userInfo.userId}`);
+
+        // Send failure email
+        if (userInfo.email) {
+          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason });
+          await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
+        }
       }
 
     } else if (event === "identity.verification.failed") {
@@ -72,17 +132,19 @@ serve(async (req) => {
       console.log(`[IBS-WEBHOOK-SIG-KO] Identity verification failed for ${signatureId}`);
 
       // Reset kyc_status to unverified
-      const { data: sigVerFailed } = await supabaseAdmin
-        .from("ibs_signatures")
-        .select("user_id")
-        .eq("ibs_signature_id", signatureId)
-        .single();
-      if (sigVerFailed?.user_id) {
+      const userInfo = await getUserFromSignature(signatureId);
+      if (userInfo) {
         await supabaseAdmin
           .from("profiles")
           .update({ kyc_status: "unverified", ibs_signature_id: null, updated_at: new Date().toISOString() })
-          .eq("user_id", sigVerFailed.user_id);
-        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${sigVerFailed.user_id}`);
+          .eq("user_id", userInfo.userId);
+        console.log(`[IBS-WEBHOOK-SIG-KO] KYC reset to unverified for user ${userInfo.userId}`);
+
+        // Send failure email
+        if (userInfo.email) {
+          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason });
+          await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
+        }
       }
 
     } else {
