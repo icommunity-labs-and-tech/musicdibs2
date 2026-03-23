@@ -449,7 +449,7 @@ export function FirstHitFlow() {
               {/* Prompt */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Describe tu canción
+                  Describe tu canción y/o pega tu letra y describe el estilo
                   <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Textarea
