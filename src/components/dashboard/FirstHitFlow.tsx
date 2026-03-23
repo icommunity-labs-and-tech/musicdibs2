@@ -438,7 +438,7 @@ export function FirstHitFlow() {
           <StepHeader
             number={1} icon={Sparkles} iconColor="text-violet-400"
             label="Crea tu canción con IA"
-            sublabel="¿Ya tienes tu tema listo?"
+            sublabel="¿Aún no tienes canciones? Inspírate creando tu primera canción con IA"
             isActive={activeStep === 1}
             isDone={doneSteps.has(1)}
             onClick={() => !doneSteps.has(1) && setActiveStep(1)}
