@@ -6,6 +6,7 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
+import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function DashboardHome() {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [hasWorks, setHasWorks] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) return;
