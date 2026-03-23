@@ -73,7 +73,11 @@ function StepHeader({
         {isDone && !isActive
           ? <CheckCircle2 className="h-7 w-7 text-emerald-500" />
           : (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+              isActive
+                ? 'bg-gradient-to-r from-violet-600 to-blue-600 text-white'
+                : 'bg-muted text-muted-foreground'
+            }`}>
               {number}
             </span>
           )
@@ -82,14 +86,19 @@ function StepHeader({
 
       {/* Texto */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <Icon className={`h-4 w-4 ${iconColor}`} />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {sublabel}
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className={`text-xs font-bold uppercase tracking-wider ${
+            isActive ? 'text-primary' : 'text-muted-foreground'
+          }`}>
+            Paso {number}
           </span>
+          <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
         </div>
         <p className="text-sm font-semibold">
           {label}
+        </p>
+        <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+          {sublabel}
         </p>
       </div>
 
