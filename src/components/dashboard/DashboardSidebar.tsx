@@ -39,6 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const mainItems = [
+  { title: 'Lanza tu primer hit 🚀', url: '/dashboard/launch', icon: Rocket, highlight: true },
   { title: 'Panel de control', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Registrar obra', url: '/dashboard/register', icon: Upload },
   { title: 'Historial de registros', url: '/dashboard/blockchain', icon: Shield },
