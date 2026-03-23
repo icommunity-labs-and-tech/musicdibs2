@@ -73,7 +73,11 @@ function StepHeader({
         {isDone && !isActive
           ? <CheckCircle2 className="h-7 w-7 text-emerald-500" />
           : (
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+            <span className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+              isActive
+                ? 'bg-gradient-to-r from-violet-600 to-blue-600 text-white'
+                : 'bg-muted text-muted-foreground'
+            }`}>
               {number}
             </span>
           )
@@ -82,14 +86,19 @@ function StepHeader({
 
       {/* Texto */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <Icon className={`h-4 w-4 ${iconColor}`} />
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            {sublabel}
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <span className={`text-xs font-bold uppercase tracking-wider ${
+            isActive ? 'text-primary' : 'text-muted-foreground'
+          }`}>
+            Paso {number}
           </span>
+          <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
         </div>
         <p className="text-sm font-semibold">
           {label}
+        </p>
+        <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+          {sublabel}
         </p>
       </div>
 
@@ -437,8 +446,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={1} icon={Sparkles} iconColor="text-violet-400"
-            label="Crea tu canción con IA"
-            sublabel="¿Aún no tienes canciones? Inspírate creando tu primera canción con IA"
+            label="Crea tu canción"
+            sublabel="¿Aún no tienes canciones? Pierde el miedo y crea tu primer tema con nuestra IA."
             isActive={activeStep === 1}
             isDone={doneSteps.has(1)}
             onClick={() => !doneSteps.has(1) && setActiveStep(1)}
@@ -584,8 +593,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={2} icon={Shield} iconColor="text-blue-400"
-            label="Protege tu autoría en blockchain"
-            sublabel="Registra en blockchain"
+            label="Registra tu canción"
+            sublabel="¿Ya tienes una canción? ¡Regístrala para que no te la plagien!"
             isActive={activeStep === 2}
             isDone={doneSteps.has(1) || doneSteps.has(2)}
             onClick={() => !doneSteps.has(2) && setActiveStep(2)}
@@ -840,8 +849,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={3} icon={Megaphone} iconColor="text-pink-400"
-            label="¡Que se entere el mundo!"
-            sublabel="+100.000 seguidores te esperan"
+            label="Promociona tu canción"
+            sublabel="¡Que se entere el mundo! Comparte con +100k seguidores (Instagram & TikTok) de nuestras redes sociales."
             isActive={activeStep === 3}
             isDone={doneSteps.has(2) || doneSteps.has(3)}
             onClick={() => !doneSteps.has(3) && setActiveStep(3)}
