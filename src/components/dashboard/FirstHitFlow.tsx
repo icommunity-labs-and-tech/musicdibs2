@@ -593,8 +593,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={2} icon={Shield} iconColor="text-blue-400"
-            label="Protege tu autoría en blockchain"
-            sublabel="Registra en blockchain"
+            label="Registra tu canción"
+            sublabel="¿Ya tienes una canción? ¡Regístrala para que no te la plagien!"
             isActive={activeStep === 2}
             isDone={doneSteps.has(1) || doneSteps.has(2)}
             onClick={() => !doneSteps.has(2) && setActiveStep(2)}
