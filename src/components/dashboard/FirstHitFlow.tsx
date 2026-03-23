@@ -97,7 +97,7 @@ function StepHeader({
         <p className="text-sm font-semibold">
           {label}
         </p>
-        <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+        <p className="text-sm text-muted-foreground leading-snug mt-0.5">
           {sublabel}
         </p>
       </div>
