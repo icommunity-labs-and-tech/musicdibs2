@@ -19,6 +19,7 @@ import {
   Users,
   BarChart3,
   Settings2,
+  Rocket,
 } from 'lucide-react';
 import {
   Sidebar,
