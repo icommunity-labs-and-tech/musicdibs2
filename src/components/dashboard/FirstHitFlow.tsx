@@ -849,8 +849,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={3} icon={Megaphone} iconColor="text-pink-400"
-            label="¡Que se entere el mundo!"
-            sublabel="+100.000 seguidores te esperan"
+            label="Promociona tu canción"
+            sublabel="¡Que se entere el mundo! Comparte con +100k seguidores (Instagram & TikTok) de nuestras redes sociales."
             isActive={activeStep === 3}
             isDone={doneSteps.has(2) || doneSteps.has(3)}
             onClick={() => !doneSteps.has(3) && setActiveStep(3)}
