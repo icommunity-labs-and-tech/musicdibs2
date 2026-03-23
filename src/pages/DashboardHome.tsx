@@ -6,6 +6,7 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
+import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function DashboardHome() {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [hasWorks, setHasWorks] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -34,6 +36,29 @@ export default function DashboardHome() {
     const interval = setInterval(check, 60_000);
     return () => clearInterval(interval);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('works')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => {
+        setHasWorks((count ?? 0) > 0);
+      });
+  }, [user]);
+
+  if (hasWorks === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (hasWorks === false) {
+    return <FirstHitFlow />;
+  }
 
   return (
     <div className="space-y-6 max-w-[1400px]">

@@ -38,6 +38,7 @@ import BillingPage from "./pages/BillingPage";
 import SupportPage from "./pages/SupportPage";
 import BlockchainEvidencePage from "./pages/BlockchainEvidencePage";
 import IdentityVerificationPage from "./pages/IdentityVerificationPage";
+import LaunchPage from "./pages/LaunchPage";
 import AIStudio from "./pages/AIStudio";
 import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardHome />} />
+              <Route path="launch" element={<LaunchPage />} />
               <Route path="register" element={<RegisterPage />} />
               <Route path="verify" element={<VerifyPage />} />
               <Route path="promote" element={<PromotePage />} />

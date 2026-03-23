@@ -19,6 +19,7 @@ import {
   Users,
   BarChart3,
   Settings2,
+  Rocket,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -38,6 +39,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
 const mainItems = [
+  { title: 'Lanza tu primer hit 🚀', url: '/dashboard/launch', icon: Rocket, highlight: true },
   { title: 'Panel de control', url: '/dashboard', icon: LayoutDashboard },
   { title: 'Registrar obra', url: '/dashboard/register', icon: Upload },
   { title: 'Historial de registros', url: '/dashboard/blockchain', icon: Shield },
@@ -117,16 +119,33 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {mainItems
                 .filter(item => !(item.url === '/dashboard/verify-identity' && kycStatus === 'verified'))
-                .map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end={item.url === '/dashboard'} className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                .map((item) => {
+                  const isHighlight = !!(item as any).highlight;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                        <NavLink
+                          to={item.url}
+                          end={item.url === '/dashboard'}
+                          className={`hover:bg-muted/50 ${isHighlight ? 'text-violet-500 font-bold' : ''}`}
+                          activeClassName="bg-primary/10 text-primary font-medium"
+                        >
+                          <item.icon className={`mr-2 h-4 w-4 ${isHighlight ? 'text-violet-500' : ''}`} />
+                          {!collapsed && (
+                            <span className="flex items-center gap-2 flex-1">
+                              {item.title}
+                              {isHighlight && !isActive(item.url) && (
+                                <span className="ml-auto rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-500 leading-none">
+                                  NEW
+                                </span>
+                              )}
+                            </span>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
