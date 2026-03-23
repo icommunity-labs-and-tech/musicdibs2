@@ -37,6 +37,29 @@ export default function DashboardHome() {
     return () => clearInterval(interval);
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('works')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => {
+        setHasWorks((count ?? 0) > 0);
+      });
+  }, [user]);
+
+  if (hasWorks === null) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (hasWorks === false) {
+    return <FirstHitFlow />;
+  }
+
   return (
     <div className="space-y-6 max-w-[1400px]">
       <PaymentAlertBanner />
