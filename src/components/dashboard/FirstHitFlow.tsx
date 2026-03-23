@@ -438,7 +438,7 @@ export function FirstHitFlow() {
           <StepHeader
             number={1} icon={Sparkles} iconColor="text-violet-400"
             label="Crea tu canción con IA"
-            sublabel="¿Ya tienes tu tema listo?"
+            sublabel="¿Aún no tienes canciones? Inspírate creando tu primera canción con IA"
             isActive={activeStep === 1}
             isDone={doneSteps.has(1)}
             onClick={() => !doneSteps.has(1) && setActiveStep(1)}
@@ -449,7 +449,7 @@ export function FirstHitFlow() {
               {/* Prompt */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Describe tu canción
+                  Describe tu canción y/o pega tu letra y describe el estilo
                   <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Textarea
