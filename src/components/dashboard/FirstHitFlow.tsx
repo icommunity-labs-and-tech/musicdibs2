@@ -26,16 +26,12 @@ import {
   registerWork, listIbsSignatures, createIbsSignature,
   syncIbsSignatures, submitPromotionRequest,
 } from '@/services/dashboardApi'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { IbsSignature } from '@/types/dashboard'
-
-// ── Tipos de obra ──────────────────────────────────────────────────
-const WORK_TYPES = [
-  { value: 'audio',    label: 'Audio' },
-  { value: 'video',    label: 'Vídeo' },
-  { value: 'image',    label: 'Imagen' },
-  { value: 'document', label: 'Documento' },
-  { value: 'other',    label: 'Otro' },
-]
+import {
+  CREATOR_ROLES, WORK_TYPES as WIZARD_WORK_TYPES, type Creator,
+} from '@/components/dashboard/register/types'
 
 // ── Géneros musicales ──────────────────────────────────────────────
 const GENRES = [
