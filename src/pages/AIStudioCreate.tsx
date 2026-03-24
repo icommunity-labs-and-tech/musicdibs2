@@ -516,6 +516,7 @@ const AIStudioCreate = () => {
     : []
 
 
+  return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
@@ -529,138 +530,443 @@ const AIStudioCreate = () => {
           {/* Creation Panel */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Crear Música</h1>
-              <p className="text-muted-foreground">Describe la música que quieres generar</p>
+              <h1 className="text-3xl font-bold mb-2">AI MusicDibs Studio</h1>
+              <p className="text-muted-foreground">Crea música e inspírate con IA</p>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Tu Prompt</CardTitle>
-                <CardDescription>Sé específico: instrumentos, tempo, estilo...</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Textarea
-                    placeholder="Ej: A smooth jazz piano melody with soft drums, perfect for a late night café ambiance..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
+            <Tabs defaultValue="music" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="music" className="gap-2">
+                  <Music className="h-4 w-4" />
+                  Crear Música
+                </TabsTrigger>
+                <TabsTrigger value="lyrics" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Compositor de Letras
+                </TabsTrigger>
+              </TabsList>
 
-                {/* Genre Selection */}
-                <div className="space-y-2">
-                  <Label>Género (opcional)</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {GENRES.map(genre => (
-                      <Badge
-                        key={genre}
-                        variant={selectedGenre === genre ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-primary/80"
-                        onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
-                      >
-                        {genre}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+              {/* ── Tab: Música (contenido existente) ── */}
+              <TabsContent value="music" className="space-y-6 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Tu Prompt</CardTitle>
+                    <CardDescription>Sé específico: instrumentos, tempo, estilo...</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                      <Textarea
+                        placeholder="Ej: A smooth jazz piano melody with soft drums, perfect for a late night café ambiance..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
 
-                {/* Mood Selection */}
-                <div className="space-y-2">
-                  <Label>Mood (opcional)</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {MOODS.map(mood => (
-                      <Badge
-                        key={mood}
-                        variant={selectedMood === mood ? "default" : "outline"}
-                        className="cursor-pointer hover:bg-primary/80"
-                        onClick={() => setSelectedMood(selectedMood === mood ? null : mood)}
-                      >
-                        {mood}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                    {/* Genre Selection */}
+                    <div className="space-y-2">
+                      <Label>Género (opcional)</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {GENRES.map(genre => (
+                          <Badge
+                            key={genre}
+                            variant={selectedGenre === genre ? "default" : "outline"}
+                            className="cursor-pointer hover:bg-primary/80"
+                            onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
+                          >
+                            {genre}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Duration Slider */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label>Duración</Label>
-                    <span className="text-sm font-medium">{duration}s</span>
-                  </div>
-                  <Slider
-                    value={[duration]}
-                    onValueChange={([v]) => setDuration(v)}
-                    min={5}
-                    max={180}
-                    step={5}
-                  />
-                  <p className="text-xs text-muted-foreground">5 segundos - 3 minutos</p>
-                </div>
+                    {/* Mood Selection */}
+                    <div className="space-y-2">
+                      <Label>Mood (opcional)</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {MOODS.map(mood => (
+                          <Badge
+                            key={mood}
+                            variant={selectedMood === mood ? "default" : "outline"}
+                            className="cursor-pointer hover:bg-primary/80"
+                            onClick={() => setSelectedMood(selectedMood === mood ? null : mood)}
+                          >
+                            {mood}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Creativity Slider */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <Label>Fidelidad al Prompt</Label>
-                    <span className="text-sm font-medium">{creativity}/10</span>
-                  </div>
-                  <Slider
-                    value={[creativity]}
-                    onValueChange={([v]) => setCreativity(v)}
-                    min={1}
-                    max={10}
-                    step={1}
-                  />
-                  <p className="text-xs text-muted-foreground">Bajo = más creativo, Alto = más fiel al prompt</p>
-                </div>
+                    {/* Duration Slider */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label>Duración</Label>
+                        <span className="text-sm font-medium">{duration}s</span>
+                      </div>
+                      <Slider
+                        value={[duration]}
+                        onValueChange={([v]) => setDuration(v)}
+                        min={5}
+                        max={180}
+                        step={5}
+                      />
+                      <p className="text-xs text-muted-foreground">5 segundos - 3 minutos</p>
+                    </div>
 
-                {!hasEnough(FEATURE_COSTS.generate_audio) ? (
-                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_audio} créditos para generar música.`} />
-                ) : (
-                <Button 
-                  onClick={handleGenerate} 
-                  disabled={isGenerating || !prompt.trim()}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      Generar Música (1 crédito)
-                    </>
-                  )}
-                </Button>
-                )}
+                    {/* Creativity Slider */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label>Fidelidad al Prompt</Label>
+                        <span className="text-sm font-medium">{creativity}/10</span>
+                      </div>
+                      <Slider
+                        value={[creativity]}
+                        onValueChange={([v]) => setCreativity(v)}
+                        min={1}
+                        max={10}
+                        step={1}
+                      />
+                      <p className="text-xs text-muted-foreground">Bajo = más creativo, Alto = más fiel al prompt</p>
+                    </div>
 
-                {generationError && (
-                  <Alert variant="destructive" className="mt-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error al generar</AlertTitle>
-                    <AlertDescription className="mt-2 space-y-2">
-                      <p>{generationError.message}</p>
-                      {generationError.details && (
-                        <p className="text-xs opacity-80">{generationError.details}</p>
+                    {!hasEnough(FEATURE_COSTS.generate_audio) ? (
+                      <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_audio} créditos para generar música.`} />
+                    ) : (
+                    <Button 
+                      onClick={handleGenerate} 
+                      disabled={isGenerating || !prompt.trim()}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generando...
+                        </>
+                      ) : (
+                        <>
+                          <Wand2 className="w-4 h-4 mr-2" />
+                          Generar Música (1 crédito)
+                        </>
                       )}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setGenerationError(null)}
-                        className="mt-2"
+                    </Button>
+                    )}
+
+                    {generationError && (
+                      <Alert variant="destructive" className="mt-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Error al generar</AlertTitle>
+                        <AlertDescription className="mt-2 space-y-2">
+                          <p>{generationError.message}</p>
+                          {generationError.details && (
+                            <p className="text-xs opacity-80">{generationError.details}</p>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setGenerationError(null)}
+                            className="mt-2"
+                          >
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                            Reintentar
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* ── Tab: Compositor de Letras (nuevo) ── */}
+              <TabsContent value="lyrics" className="space-y-6 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Describe tu canción
+                    </CardTitle>
+                    <CardDescription>
+                      Cuanto más detallado seas, mejor será el resultado
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    {/* Descripción libre */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">¿De qué va tu canción?</Label>
+                      <Textarea
+                        value={lyricsDesc}
+                        onChange={e => setLyricsDesc(e.target.value)}
+                        rows={3}
+                        className="resize-none"
+                        maxLength={400}
+                        placeholder="Describe la historia, el sentimiento, la situación..."
+                      />
+                      <p className="text-xs text-muted-foreground text-right">
+                        {lyricsDesc.length}/400
+                      </p>
+                    </div>
+
+                    {/* Tema central — chips */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">Tema central</Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {THEMES.map(t => (
+                          <Badge
+                            key={t}
+                            variant={lyricsTheme === t ? "default" : "outline"}
+                            className="cursor-pointer text-xs"
+                            onClick={() => setLyricsTheme(lyricsTheme === t ? "" : t)}
+                          >
+                            {t}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Género + Mood en fila */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Género musical</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(GENRES as readonly string[]).slice(0, 8).map(g => (
+                            <Badge
+                              key={g}
+                              variant={lyricsGenre === g ? "default" : "outline"}
+                              className="cursor-pointer text-xs"
+                              onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}
+                            >
+                              {g}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Mood / Tono</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(MOODS as readonly string[]).slice(0, 8).map(m => (
+                            <Badge
+                              key={m}
+                              variant={lyricsMood === m ? "default" : "outline"}
+                              className="cursor-pointer text-xs"
+                              onClick={() => setLyricsMood(lyricsMood === m ? "" : m)}
+                            >
+                              {m}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Referencias de artistas */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">
+                        Estilo de artistas de referencia
+                        <span className="text-muted-foreground ml-1 font-normal">
+                          (selecciona hasta 3)
+                        </span>
+                      </Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {ARTIST_REFS.map(a => (
+                          <Badge
+                            key={a}
+                            variant={lyricsArtistRefs.includes(a) ? "default" : "outline"}
+                            className={cn(
+                              "cursor-pointer text-xs transition-colors",
+                              lyricsArtistRefs.length >= 3 &&
+                              !lyricsArtistRefs.includes(a) &&
+                              "opacity-40 cursor-not-allowed"
+                            )}
+                            onClick={() => {
+                              if (lyricsArtistRefs.length >= 3 &&
+                                  !lyricsArtistRefs.includes(a)) return
+                              toggleArtistRef(a)
+                            }}
+                          >
+                            {a}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Estructura + Esquema de rima */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Estructura</Label>
+                        <Select value={lyricsStructure} onValueChange={setLyricsStructure}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {STRUCTURES.map(s => (
+                              <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Esquema de rima</Label>
+                        <Select value={lyricsRhyme} onValueChange={setLyricsRhyme}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {RHYME_SCHEMES.map(r => (
+                              <SelectItem key={r.value} value={r.value}>
+                                {r.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Idioma + Punto de vista */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Idioma</Label>
+                        <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LYRIC_LANGUAGES.map(l => (
+                              <SelectItem key={l} value={l}>{l}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-sm">Punto de vista</Label>
+                        <Select value={lyricsPov} onValueChange={setLyricsPov}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {POVS.map(p => (
+                              <SelectItem key={p} value={p}>{p}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Estilo lírico — chips */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">Estilo de escritura</Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {LYRIC_STYLES.map(s => (
+                          <Badge
+                            key={s}
+                            variant={lyricsStyle === s ? "default" : "outline"}
+                            className="cursor-pointer text-xs"
+                            onClick={() => setLyricsStyle(lyricsStyle === s ? "" : s)}
+                          >
+                            {s}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {lyricsError && (
+                      <p className="text-xs text-destructive flex items-center gap-1.5">
+                        <AlertCircle className="h-3.5 w-3.5" />{lyricsError}
+                      </p>
+                    )}
+
+                    <Button
+                      onClick={() => handleGenerateLyrics()}
+                      disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {isGeneratingLyrics
+                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Componiendo letra...</>
+                        : <><FileText className="w-4 h-4 mr-2" />Generar letra (gratis)</>
+                      }
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      La generación de letras no consume créditos
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* ── Resultado: letra generada ────────────────── */}
+                {generatedLyrics && (
+                  <Card className="border-primary/20">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Music2 className="h-4 w-4 text-primary" />
+                          Tu letra
+                        </CardTitle>
+                        <div className="flex items-center gap-1.5">
+                          <Button variant="outline" size="sm" onClick={copyLyrics}
+                            className="h-8 text-xs gap-1.5">
+                            {copiedLyrics
+                              ? <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />Copiado</>
+                              : <><Copy className="h-3.5 w-3.5" />Copiar</>
+                            }
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={sendLyricsToAudio}
+                            className="h-8 text-xs gap-1.5">
+                            <Wand2 className="h-3.5 w-3.5" />
+                            Crear música
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="rounded-xl bg-muted/40 p-4 font-mono text-sm leading-relaxed whitespace-pre-wrap max-h-[500px] overflow-y-auto">
+                        {generatedLyrics}
+                      </div>
+
+                      {lyricsSections.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground">
+                            Regenerar una sección específica:
+                          </Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {lyricsSections.map(section => (
+                              <Button
+                                key={section}
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs gap-1.5"
+                                disabled={isGeneratingLyrics}
+                                onClick={() => handleGenerateLyrics(section)}
+                              >
+                                {isGeneratingLyrics && regenSection === section
+                                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                                  : <RotateCcw className="h-3 w-3" />
+                                }
+                                {section}
+                              </Button>
+                            ))}
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Solo regenera esa sección manteniendo el resto intacto
+                          </p>
+                        </div>
+                      )}
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs text-muted-foreground gap-1.5"
+                        onClick={() => handleGenerateLyrics()}
+                        disabled={isGeneratingLyrics}
                       >
-                        <RefreshCw className="w-3 h-3 mr-1" />
-                        Reintentar
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        Regenerar letra completa
                       </Button>
-                    </AlertDescription>
-                  </Alert>
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Results Panel */}
