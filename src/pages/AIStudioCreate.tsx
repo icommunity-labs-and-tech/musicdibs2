@@ -445,7 +445,77 @@ const AIStudioCreate = () => {
     });
   };
 
-  return (
+  // ── Funciones del compositor de letras ───────────────────────
+  const toggleArtistRef = (artist: string) => {
+    setLyricsArtistRefs(prev =>
+      prev.includes(artist)
+        ? prev.filter(a => a !== artist)
+        : [...prev, artist]
+    )
+  }
+
+  const handleGenerateLyrics = async (regenerateSec?: string) => {
+    if (!lyricsDesc.trim() && !lyricsTheme) {
+      toast({ title: "Describe tu canción", description: "Añade una descripción o elige un tema.", variant: "destructive" })
+      return
+    }
+    setIsGeneratingLyrics(true)
+    setLyricsError(null)
+    if (regenerateSec) setRegenSection(regenerateSec)
+    try {
+      const { data, error } = await supabase.functions.invoke("lyrics-generator", {
+        body: {
+          description:       lyricsDesc,
+          genre:             lyricsGenre,
+          mood:              lyricsMood,
+          style:             lyricsStyle,
+          language:          lyricsLanguage,
+          rhymeScheme:       lyricsRhyme,
+          structure:         lyricsStructure,
+          artistRefs:        lyricsArtistRefs,
+          pov:               lyricsPov,
+          theme:             lyricsTheme,
+          regenerateSection: regenerateSec || undefined,
+          existingLyrics:    regenerateSec ? generatedLyrics : undefined,
+        },
+      })
+      if (error || data?.error) throw new Error(data?.error || error?.message)
+      setGeneratedLyrics(data.lyrics)
+      if (regenerateSec) {
+        toast({ title: `Sección regenerada`, description: `[${regenerateSec}] actualizado.` })
+      } else {
+        toast({ title: "¡Letra generada!", description: "Revisa el resultado en el panel." })
+      }
+    } catch (err: any) {
+      setLyricsError(err.message || "Error al generar la letra")
+    }
+    setIsGeneratingLyrics(false)
+    setRegenSection("")
+  }
+
+  const copyLyrics = async () => {
+    await navigator.clipboard.writeText(generatedLyrics)
+    setCopiedLyrics(true)
+    setTimeout(() => setCopiedLyrics(false), 2000)
+  }
+
+  const sendLyricsToAudio = () => {
+    const audioPrompt = [
+      lyricsGenre && `Género: ${lyricsGenre}`,
+      lyricsMood && `Mood: ${lyricsMood}`,
+      lyricsDesc && lyricsDesc.slice(0, 150),
+    ].filter(Boolean).join(". ")
+    setPrompt(audioPrompt)
+    if (lyricsGenre) setSelectedGenre(lyricsGenre)
+    if (lyricsMood)  setSelectedMood(lyricsMood)
+    toast({ title: "¡Parámetros copiados al generador de música!", description: "Ve a la pestaña Música para generar el audio." })
+  }
+
+  const lyricsSections = generatedLyrics
+    ? [...generatedLyrics.matchAll(/\[([^\]]+)\]/g)].map(m => m[1])
+    : []
+
+
     <div className="min-h-screen bg-background">
       <Navbar />
       
