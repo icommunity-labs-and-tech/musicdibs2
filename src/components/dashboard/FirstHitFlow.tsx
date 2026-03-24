@@ -708,7 +708,7 @@ export function FirstHitFlow() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {WORK_TYPES.map(t => (
+                          {WIZARD_WORK_TYPES.map(t => (
                             <SelectItem key={t.value} value={t.value}>
                               {t.label}
                             </SelectItem>
