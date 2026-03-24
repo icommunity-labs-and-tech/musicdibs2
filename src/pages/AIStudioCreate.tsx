@@ -550,8 +550,8 @@ const AIStudioCreate = () => {
               <TabsContent value="music" className="space-y-6 mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">Tu Prompt</CardTitle>
-                    <CardDescription>Sé específico: instrumentos, tempo, estilo...</CardDescription>
+                    <CardTitle className="text-lg">Describe tu canción</CardTitle>
+                    <CardDescription>Cuanto más detallado seas, mejor será el resultado: instrumentos, tempo, estilo... También puedes añadir tu letra propia o generarla con el compositor de letras.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="space-y-2">
