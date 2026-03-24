@@ -786,6 +786,110 @@ export function FirstHitFlow() {
                       rows={2} className="text-sm resize-none" />
                   </div>
 
+                  {/* ── Creadores ────────────────────────────────────── */}
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-xs font-semibold">
+                      Creadores de la obra
+                    </Label>
+
+                    <div className="space-y-3">
+                      {creators.map((c, idx) => (
+                        <Card key={c.id} className="border-border/40">
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Creador {idx + 1}
+                              </p>
+                              {creators.length > 1 && (
+                                <Button variant="ghost" size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                  onClick={() => removeCreator(c.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">
+                                  Nombre completo
+                                  <span className="text-destructive ml-1">*</span>
+                                </Label>
+                                <Input value={c.name}
+                                  onChange={e => updateCreator(c.id, { name: e.target.value })}
+                                  placeholder="Nombre del creador"
+                                  className="h-9 text-sm" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">
+                                  Email
+                                  <span className="text-muted-foreground ml-1">(opcional)</span>
+                                </Label>
+                                <Input value={c.email}
+                                  onChange={e => updateCreator(c.id, { email: e.target.value })}
+                                  placeholder="email@ejemplo.com"
+                                  className="h-9 text-sm" type="email" />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">
+                                Roles
+                                <span className="text-destructive ml-1">*</span>
+                              </Label>
+                              <div className="flex flex-wrap gap-1.5">
+                                {CREATOR_ROLES.map(r => (
+                                  <Badge key={r.value}
+                                    variant={c.roles.includes(r.value) ? 'default' : 'outline'}
+                                    className={cn(
+                                      'cursor-pointer text-xs transition-colors',
+                                      c.roles.includes(r.value) && 'bg-primary hover:bg-primary/90'
+                                    )}
+                                    onClick={() => toggleCreatorRole(c.id, r.value)}>
+                                    {r.label}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label className="text-xs">
+                                % de derechos
+                                <span className="text-muted-foreground ml-1">(opcional)</span>
+                              </Label>
+                              <Input type="number" min={0} max={100}
+                                value={c.percentage ?? ''}
+                                onChange={e => updateCreator(c.id, {
+                                  percentage: e.target.value ? Number(e.target.value) : null
+                                })}
+                                placeholder="Ej: 50"
+                                className="h-9 text-sm w-28" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Añadir creador + total % */}
+                    <div className="flex items-center justify-between">
+                      <Button type="button" variant="outline" size="sm" onClick={addCreator}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Añadir creador
+                      </Button>
+                      {usesPercentages && (
+                        <p className={cn('text-sm font-medium',
+                          totalPct === 100 ? 'text-emerald-600' : 'text-amber-600')}>
+                          Total derechos: {totalPct}%
+                        </p>
+                      )}
+                    </div>
+
+                    {usesPercentages && totalPct !== 100 && (
+                      <p className="text-xs text-destructive">
+                        Los porcentajes deben sumar 100%.
+                      </p>
+                    )}
+                  </div>
+
                   {/* Archivo */}
                   <div className="space-y-1.5">
                     <Label className="text-xs">Archivo de la obra</Label>
