@@ -48,6 +48,8 @@ export const WORK_TYPES = [
   { value: 'instrumental', label: 'Instrumental' },
   { value: 'document', label: 'Letra' },
   { value: 'demo', label: 'Demo' },
+  { value: 'videoclip', label: 'Videoclip' },
+  { value: 'cover_art', label: 'Portada de disco' },
   { value: 'other', label: 'Otro' },
 ] as const;
 
