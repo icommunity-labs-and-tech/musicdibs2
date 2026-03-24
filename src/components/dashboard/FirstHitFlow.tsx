@@ -335,6 +335,7 @@ export function FirstHitFlow() {
         author: regAuthor, description: regDesc,
         file: uploadFile, ownershipDeclaration: ownership,
         signatureId: selectedSig,
+        creators,
       })
       if (res.ibsError || res.status === 'failed') {
         setRegError(res.ibsError || 'Error en el registro')
