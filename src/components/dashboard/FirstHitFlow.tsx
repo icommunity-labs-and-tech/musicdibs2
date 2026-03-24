@@ -222,6 +222,15 @@ export function FirstHitFlow() {
   const [creatingSig, setCreatingSig] = useState(false)
   const [kycUrl,      setKycUrl]      = useState<string | null>(null)
 
+  // Creadores
+  const [creators, setCreators] = useState<Creator[]>([{
+    id: crypto.randomUUID(),
+    name: '',
+    email: '',
+    roles: [],
+    percentage: null,
+  }])
+
   // Pre-rellenar título desde la IA
   useEffect(() => {
     if (audioTitle && !regTitle) setRegTitle(audioTitle)
@@ -230,9 +239,49 @@ export function FirstHitFlow() {
   useEffect(() => {
     if (user) {
       supabase.from('profiles').select('display_name').eq('user_id', user.id).single()
-        .then(({ data }) => { if (data?.display_name) setRegAuthor(data.display_name) })
+        .then(({ data }) => {
+          if (data?.display_name) {
+            setRegAuthor(data.display_name)
+            setCreators(prev => prev.map((c, i) =>
+              i === 0 ? { ...c, name: data.display_name! } : c
+            ))
+          }
+        })
     }
   }, [user])
+
+  const updateCreator = (id: string, patch: Partial<Creator>) => {
+    setCreators(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
+  }
+
+  const toggleCreatorRole = (id: string, role: string) => {
+    const c = creators.find(x => x.id === id)
+    if (!c) return
+    const roles = c.roles.includes(role)
+      ? c.roles.filter(r => r !== role)
+      : [...c.roles, role]
+    updateCreator(id, { roles })
+  }
+
+  const addCreator = () => {
+    setCreators(prev => [...prev, {
+      id: crypto.randomUUID(),
+      name: '', email: '', roles: [], percentage: null,
+    }])
+  }
+
+  const removeCreator = (id: string) => {
+    if (creators.length <= 1) return
+    setCreators(prev => prev.filter(c => c.id !== id))
+  }
+
+  const usesPercentages = creators.some(c => c.percentage !== null && c.percentage > 0)
+  const totalPct = creators.reduce((sum, c) => sum + (c.percentage ?? 0), 0)
+  const pctValid = !usesPercentages || totalPct === 100
+
+  const creatorsValid = creators.length >= 1 &&
+    creators.every(c => c.name.trim() && c.roles.length > 0) &&
+    pctValid
 
   const loadSigs = async () => {
     setLoadingSigs(true)
