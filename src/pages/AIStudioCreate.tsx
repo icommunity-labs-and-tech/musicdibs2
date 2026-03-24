@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +19,8 @@ import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
-  AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square
+  AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
+  FileText, Copy, RotateCcw, Music2, CheckCircle2
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -30,6 +32,45 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+
+const LYRIC_STYLES = [
+  "Narrativa", "Abstracta", "Descriptiva",
+  "Reivindicativa", "Introspectiva", "Poética",
+];
+
+const LYRIC_LANGUAGES = [
+  "Español", "Inglés", "Spanglish",
+  "Portugués", "Francés",
+];
+
+const RHYME_SCHEMES = [
+  { value: "ABAB", label: "ABAB — Alterna" },
+  { value: "AABB", label: "AABB — Pareados" },
+  { value: "ABCB", label: "ABCB — Balada" },
+  { value: "libre", label: "Libre — Sin rima" },
+];
+
+const STRUCTURES = [
+  { value: "V+C+V+C+P+C",  label: "Verso · Coro · Verso · Coro · Puente · Coro" },
+  { value: "V+C+V+C",      label: "Verso · Coro · Verso · Coro" },
+  { value: "V+V+C+V+C",   label: "Verso · Verso · Coro · Verso · Coro" },
+  { value: "V+C+P+C",      label: "Verso · Coro · Puente · Coro" },
+];
+
+const ARTIST_REFS = [
+  "Bad Bunny", "Rosalía", "C. Tangana", "J Balvin",
+  "Bizarrap", "Shakira", "Residente", "Anuel AA",
+  "Eminem", "Drake", "Kendrick Lamar", "Taylor Swift",
+  "The Weeknd", "Beyoncé", "Radiohead", "Arctic Monkeys",
+];
+
+const THEMES = [
+  "Amor", "Desamor", "Superación", "Fiesta",
+  "Calle", "Familia", "Libertad", "Nostalgia",
+  "Éxito", "Identidad",
+];
+
+const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
 const AIStudioCreate = () => {
   const { toast } = useToast();
