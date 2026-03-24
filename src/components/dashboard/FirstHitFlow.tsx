@@ -940,7 +940,8 @@ export function FirstHitFlow() {
                     disabled={
                       registering || !ownership ||
                       (!regFile && !audioUrl) ||
-                      !regType || !selectedSig || !regTitle
+                      !regType || !selectedSig || !regTitle ||
+                      !creatorsValid
                     }>
                     {registering
                       ? <><Loader2 className="h-4 w-4 animate-spin" />Registrando en blockchain…</>
