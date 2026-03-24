@@ -99,7 +99,23 @@ const AIStudioCreate = () => {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Available genres from results
+  // ── Estado del compositor de letras ──────────────────────────
+  const [lyricsDesc,       setLyricsDesc]       = useState("")
+  const [lyricsGenre,      setLyricsGenre]      = useState("")
+  const [lyricsMood,       setLyricsMood]       = useState("")
+  const [lyricsStyle,      setLyricsStyle]      = useState("")
+  const [lyricsLanguage,   setLyricsLanguage]   = useState("Español")
+  const [lyricsRhyme,      setLyricsRhyme]      = useState("ABAB")
+  const [lyricsStructure,  setLyricsStructure]  = useState("V+C+V+C+P+C")
+  const [lyricsArtistRefs, setLyricsArtistRefs] = useState<string[]>([])
+  const [lyricsPov,        setLyricsPov]        = useState("Primera persona")
+  const [lyricsTheme,      setLyricsTheme]      = useState("")
+  const [generatedLyrics,  setGeneratedLyrics]  = useState("")
+  const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false)
+  const [lyricsError,      setLyricsError]      = useState<string | null>(null)
+  const [regenSection,     setRegenSection]     = useState("")
+  const [copiedLyrics,     setCopiedLyrics]     = useState(false)
+
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
     results.forEach(r => { if (r.genre) genres.add(r.genre); });
