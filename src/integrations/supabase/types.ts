@@ -134,6 +134,51 @@ export type Database = {
         }
         Relationships: []
       }
+      auphonic_productions: {
+        Row: {
+          auphonic_uuid: string
+          created_at: string
+          credits_used: number | null
+          duration_secs: number | null
+          error_detail: string | null
+          id: string
+          input_url: string | null
+          mode: string
+          output_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auphonic_uuid: string
+          created_at?: string
+          credits_used?: number | null
+          duration_secs?: number | null
+          error_detail?: string | null
+          id?: string
+          input_url?: string | null
+          mode: string
+          output_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auphonic_uuid?: string
+          created_at?: string
+          credits_used?: number | null
+          duration_secs?: number | null
+          error_detail?: string | null
+          id?: string
+          input_url?: string | null
+          mode?: string
+          output_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author: string | null

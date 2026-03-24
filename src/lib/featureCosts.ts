@@ -8,6 +8,7 @@ export const FEATURE_COSTS = {
   promote_work: 2,
   generate_audio: 2,
   edit_audio: 2,
+  enhance_audio: 1,
   inspiration: 0,
   generate_video: 6,
 } as const;
