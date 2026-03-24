@@ -361,13 +361,13 @@ export function FirstHitFlow() {
           {/* Mensaje */}
           <div className="space-y-3">
             <h2 className="text-2xl font-bold tracking-tight">
-              ¡Tu canción está en camino! 🎉
+              ¡Felicidades! ¡Lo has conseguido! 🎵🚀
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Está protegida en blockchain y en{' '}
-              <strong>2–3 días</strong> tu música estará frente a más de{' '}
-              <strong>100.000 seguidores reales</strong>{' '}
-              en Instagram y TikTok.
+              Tu canción está protegida y lista para sonar.
+              <br /><br />
+              En <strong>2–3 días</strong> tu canción aterrizará frente a{' '}
+              <strong>+100.000 fans</strong> que están a punto de descubrirte. 😎
             </p>
           </div>
 
