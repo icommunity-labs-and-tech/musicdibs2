@@ -9,12 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Upload, Music, RefreshCw, Palette, Clock, Scissors
+  Upload, Music, RefreshCw, Palette, Clock, Scissors,
+  Sparkles, Zap, Volume2, Wind, Mic2, CheckCircle2, AlertTriangle
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -22,6 +24,54 @@ import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStud
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+
+const ENHANCE_MODES = [
+  {
+    id:          "professional",
+    icon:        Sparkles,
+    iconColor:   "text-violet-500",
+    bg:          "bg-violet-500/10",
+    border:      "border-violet-500/30",
+    label:       "Sonar profesional",
+    description: "Todo en uno: equilibra volumen, claridad y loudness óptimo.",
+  },
+  {
+    id:          "spotify",
+    icon:        Volume2,
+    iconColor:   "text-green-500",
+    bg:          "bg-green-500/10",
+    border:      "border-green-500/30",
+    label:       "Listo para Spotify",
+    description: "Ajusta el volumen al estándar -14 LUFS de plataformas de streaming.",
+  },
+  {
+    id:          "denoise",
+    icon:        Wind,
+    iconColor:   "text-blue-500",
+    bg:          "bg-blue-500/10",
+    border:      "border-blue-500/30",
+    label:       "Limpiar ruido de fondo",
+    description: "Elimina ruido ambiental y zumbidos de grabaciones caseras.",
+  },
+  {
+    id:          "clarity",
+    icon:        Zap,
+    iconColor:   "text-amber-500",
+    bg:          "bg-amber-500/10",
+    border:      "border-amber-500/30",
+    label:       "Más brillo y claridad",
+    description: "Mejora la presencia y definición con EQ inteligente.",
+  },
+  {
+    id:          "reverb",
+    icon:        Mic2,
+    iconColor:   "text-rose-500",
+    bg:          "bg-rose-500/10",
+    border:      "border-rose-500/30",
+    label:       "Quitar eco de habitación",
+    description: "Reduce la reverberación en grabaciones con eco.",
+  },
+] as const;
 
 const AIStudioEdit = () => {
   const { toast } = useToast();
@@ -49,10 +99,22 @@ const AIStudioEdit = () => {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
 
+  // Auphonic enhance states
+  const [enhanceMode, setEnhanceMode] = useState("professional");
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [enhanceProductionUuid, setEnhanceProductionUuid] = useState<string | null>(null);
+  const [enhanceStatus, setEnhanceStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
+  const [enhanceOutputUrl, setEnhanceOutputUrl] = useState<string | null>(null);
+  const [enhanceError, setEnhanceError] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     if (user) loadHistory();
     else setIsLoadingHistory(false);
   }, [user]);
+
+  // Cleanup polling on unmount
+  useEffect(() => () => stopPolling(), []);
 
   const loadHistory = async () => {
     try {
@@ -142,7 +204,6 @@ const AIStudioEdit = () => {
 
     setIsProcessing(true);
     try {
-      // Spend credits before processing
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
         body: { feature: 'edit_audio', description: `Edición AI: ${variationType}` },
       });
@@ -156,7 +217,7 @@ const AIStudioEdit = () => {
         body: { 
           prompt,
           duration,
-          cfgScale: variationType === 'similar' ? 5 : 7, // More creative for similar variations
+          cfgScale: variationType === 'similar' ? 5 : 7,
         }
       });
 
@@ -233,6 +294,107 @@ const AIStudioEdit = () => {
     link.href = audioUrl;
     link.download = `musicdibs-${name}.mp3`;
     link.click();
+  };
+
+  // ── Auphonic helpers ──────────────────────────────────────
+  const uploadFileForAuphonic = async (file: File): Promise<string> => {
+    const path = `auphonic/${user!.id}/${Date.now()}_${file.name}`;
+    const { error } = await supabase.storage
+      .from("works-files")
+      .upload(path, file, { upsert: true });
+    if (error) throw new Error(`Upload error: ${error.message}`);
+    const { data } = supabase.storage.from("works-files").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
+
+  const handleEnhance = async () => {
+    const sourceSelected = uploadedFile || uploadedAudioUrl || selectedSource;
+    if (!sourceSelected) {
+      toast({ title: "Selecciona un audio",
+              description: "Sube un archivo o elige una generación previa.",
+              variant: "destructive" });
+      return;
+    }
+    if (!hasEnough(FEATURE_COSTS.enhance_audio)) {
+      toast({ title: "Sin créditos",
+              description: "Necesitas 1 crédito para mejorar el audio.",
+              variant: "destructive" });
+      return;
+    }
+
+    setIsEnhancing(true);
+    setEnhanceStatus("processing");
+    setEnhanceError(null);
+    setEnhanceOutputUrl(null);
+    stopPolling();
+
+    try {
+      const { data: spend, error: spendErr } = await supabase.functions.invoke(
+        "spend-credits",
+        { body: { feature: "enhance_audio", description: `Auphonic: ${enhanceMode}` } }
+      );
+      if (spendErr || spend?.error) throw new Error(spend?.error || "Error al gastar créditos");
+
+      let audioUrl = uploadedAudioUrl || selectedSource?.audioUrl || "";
+      if (uploadedFile) {
+        audioUrl = await uploadFileForAuphonic(uploadedFile);
+      }
+
+      const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
+        body: {
+          action:   "process",
+          mode:     enhanceMode,
+          audioUrl,
+          filename: uploadedFile?.name || "audio",
+        },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+
+      const uuid = data.productionUuid;
+      setEnhanceProductionUuid(uuid);
+
+      pollingRef.current = setInterval(async () => {
+        try {
+          const { data: st } = await supabase.functions.invoke("auphonic-enhance", {
+            body: { action: "status", productionUuid: uuid },
+          });
+          if (st?.done) {
+            stopPolling();
+            setEnhanceStatus("done");
+            setEnhanceOutputUrl(st.outputUrl);
+            setIsEnhancing(false);
+            toast({ title: "¡Audio mejorado!",
+                    description: "Tu track está listo para descargar." });
+          } else if (st?.errored) {
+            stopPolling();
+            setEnhanceStatus("error");
+            setEnhanceError("Auphonic no pudo procesar el audio. Intenta con otro archivo.");
+            setIsEnhancing(false);
+          }
+        } catch { /* continuar polling */ }
+      }, 8000);
+
+      setTimeout(() => {
+        if (pollingRef.current) {
+          stopPolling();
+          setIsEnhancing(false);
+          setEnhanceStatus("error");
+          setEnhanceError("Tiempo de espera agotado. El procesamiento tardó demasiado.");
+        }
+      }, 300_000);
+
+    } catch (err: any) {
+      setEnhanceStatus("error");
+      setEnhanceError(err.message || "Error al procesar el audio");
+      setIsEnhancing(false);
+    }
   };
 
   const sourceSelected = selectedSource || uploadedFile;
@@ -349,6 +511,150 @@ const AIStudioEdit = () => {
 
           {/* Edit Options */}
           <div className="space-y-6">
+            {/* ── Mejora con Auphonic ─────────────────────────────── */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-violet-500" />
+                  Mejora tu canción con IA
+                </CardTitle>
+                <CardDescription>
+                  Procesado profesional en la nube · 1 crédito por track
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                <div className="space-y-2">
+                  {ENHANCE_MODES.map(m => {
+                    const Icon = m.icon;
+                    const selected = enhanceMode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => setEnhanceMode(m.id)}
+                        className={`
+                          flex items-center gap-3 rounded-xl border p-3 text-left
+                          transition-all duration-150 w-full
+                          ${selected
+                            ? `${m.border} ${m.bg}`
+                            : "border-border/40 hover:border-border hover:bg-muted/30"
+                          }
+                        `}
+                      >
+                        <div className={`rounded-lg p-2 ${m.bg}`}>
+                          <Icon className={`w-4 h-4 ${m.iconColor}`} />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium leading-tight">
+                            {m.label}
+                          </p>
+                          <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+                            {m.description}
+                          </p>
+                        </div>
+
+                        {selected && (
+                          <CheckCircle2 className={`w-4 h-4 shrink-0 ${m.iconColor}`} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {enhanceStatus === "processing" && (
+                  <div className="flex items-center gap-3 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-violet-500 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        Procesando con Auphonic…
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Suele tardar 1–3 minutos. No cierres la página.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {enhanceStatus === "done" && enhanceOutputUrl && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-500">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <p className="text-sm font-semibold">¡Audio mejorado y listo!</p>
+                    </div>
+                    <a
+                      href={enhanceOutputUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="flex items-center justify-center gap-2 w-full
+                                 rounded-lg bg-emerald-600 hover:bg-emerald-700
+                                 text-white text-sm font-semibold py-2.5
+                                 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Descargar track mejorado
+                    </a>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full text-xs"
+                      onClick={() => {
+                        setEnhanceStatus("idle");
+                        setEnhanceOutputUrl(null);
+                        setEnhanceProductionUuid(null);
+                      }}
+                    >
+                      Procesar de nuevo →
+                    </Button>
+                  </div>
+                )}
+
+                {enhanceStatus === "error" && (
+                  <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <p>{enhanceError || "Error al procesar el audio."}</p>
+                  </div>
+                )}
+
+                {enhanceStatus !== "done" && (
+                  !hasEnough(FEATURE_COSTS.enhance_audio) ? (
+                    <NoCreditsAlert message="Necesitas 1 crédito para mejorar el audio." />
+                  ) : (
+                    <Button
+                      onClick={handleEnhance}
+                      disabled={isEnhancing || enhanceStatus === "processing" || !sourceSelected}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {isEnhancing || enhanceStatus === "processing"
+                        ? <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Procesando…
+                          </>
+                        : <>
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Mejorar audio (1 crédito)
+                          </>
+                      }
+                    </Button>
+                  )
+                )}
+
+                <p className="text-[11px] text-center text-muted-foreground">
+                  Procesado por Auphonic · Algoritmos de audio profesionales
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="relative">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground">
+                o usa IA generativa para variaciones
+              </span>
+            </div>
+
+            {/* Existing edit type card */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Tipo de Edición</CardTitle>
