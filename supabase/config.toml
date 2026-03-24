@@ -45,3 +45,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.translate-blog-posts]
     verify_jwt = false
+  [functions.lyrics-generator]
+    verify_jwt = false
