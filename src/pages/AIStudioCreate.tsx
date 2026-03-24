@@ -763,7 +763,7 @@ const AIStudioCreate = () => {
                       <Label className="text-sm">
                         Estilo de artistas de referencia
                         <span className="text-muted-foreground ml-1 font-normal">
-                          (selecciona hasta 3)
+                          (También puedes escribir uno propio en el campo de texto de "Describe tu canción")
                         </span>
                       </Label>
                       <div className="flex flex-wrap gap-1.5">
