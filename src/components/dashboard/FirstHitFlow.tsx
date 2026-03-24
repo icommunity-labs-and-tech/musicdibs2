@@ -389,7 +389,7 @@ export function FirstHitFlow() {
             <Button
               variant="hero"
               className="w-full"
-              onClick={() => navigate('/dashboard/blockchain')}
+              onClick={() => window.open('https://dist.musicdibs.com/', '_blank', 'noopener')}
             >
               Distribuir en +220 plataformas
               <ArrowRight className="ml-2 h-4 w-4" />
