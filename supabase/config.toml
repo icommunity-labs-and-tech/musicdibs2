@@ -47,3 +47,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.lyrics-generator]
     verify_jwt = false
+  [functions.auphonic-enhance]
+    verify_jwt = false
