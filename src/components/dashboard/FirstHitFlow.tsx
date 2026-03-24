@@ -16,7 +16,7 @@ import {
   Loader2, CheckCircle2, Play, Pause,
   Music2, FileUp, AlertTriangle, Rocket,
   ArrowRight, Key, RefreshCw, Link as LinkIcon,
-  Share2,
+  Share2, Plus, Trash2,
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
