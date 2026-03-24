@@ -16,7 +16,7 @@ import {
   Loader2, CheckCircle2, Play, Pause,
   Music2, FileUp, AlertTriangle, Rocket,
   ArrowRight, Key, RefreshCw, Link as LinkIcon,
-  Share2,
+  Share2, Plus, Trash2,
 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
@@ -26,16 +26,12 @@ import {
   registerWork, listIbsSignatures, createIbsSignature,
   syncIbsSignatures, submitPromotionRequest,
 } from '@/services/dashboardApi'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import type { IbsSignature } from '@/types/dashboard'
-
-// ── Tipos de obra ──────────────────────────────────────────────────
-const WORK_TYPES = [
-  { value: 'audio',    label: 'Audio' },
-  { value: 'video',    label: 'Vídeo' },
-  { value: 'image',    label: 'Imagen' },
-  { value: 'document', label: 'Documento' },
-  { value: 'other',    label: 'Otro' },
-]
+import {
+  CREATOR_ROLES, WORK_TYPES as WIZARD_WORK_TYPES, type Creator,
+} from '@/components/dashboard/register/types'
 
 // ── Géneros musicales ──────────────────────────────────────────────
 const GENRES = [
@@ -226,6 +222,15 @@ export function FirstHitFlow() {
   const [creatingSig, setCreatingSig] = useState(false)
   const [kycUrl,      setKycUrl]      = useState<string | null>(null)
 
+  // Creadores
+  const [creators, setCreators] = useState<Creator[]>([{
+    id: crypto.randomUUID(),
+    name: '',
+    email: '',
+    roles: [],
+    percentage: null,
+  }])
+
   // Pre-rellenar título desde la IA
   useEffect(() => {
     if (audioTitle && !regTitle) setRegTitle(audioTitle)
@@ -234,9 +239,49 @@ export function FirstHitFlow() {
   useEffect(() => {
     if (user) {
       supabase.from('profiles').select('display_name').eq('user_id', user.id).single()
-        .then(({ data }) => { if (data?.display_name) setRegAuthor(data.display_name) })
+        .then(({ data }) => {
+          if (data?.display_name) {
+            setRegAuthor(data.display_name)
+            setCreators(prev => prev.map((c, i) =>
+              i === 0 ? { ...c, name: data.display_name! } : c
+            ))
+          }
+        })
     }
   }, [user])
+
+  const updateCreator = (id: string, patch: Partial<Creator>) => {
+    setCreators(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c))
+  }
+
+  const toggleCreatorRole = (id: string, role: string) => {
+    const c = creators.find(x => x.id === id)
+    if (!c) return
+    const roles = c.roles.includes(role)
+      ? c.roles.filter(r => r !== role)
+      : [...c.roles, role]
+    updateCreator(id, { roles })
+  }
+
+  const addCreator = () => {
+    setCreators(prev => [...prev, {
+      id: crypto.randomUUID(),
+      name: '', email: '', roles: [], percentage: null,
+    }])
+  }
+
+  const removeCreator = (id: string) => {
+    if (creators.length <= 1) return
+    setCreators(prev => prev.filter(c => c.id !== id))
+  }
+
+  const usesPercentages = creators.some(c => c.percentage !== null && c.percentage > 0)
+  const totalPct = creators.reduce((sum, c) => sum + (c.percentage ?? 0), 0)
+  const pctValid = !usesPercentages || totalPct === 100
+
+  const creatorsValid = creators.length >= 1 &&
+    creators.every(c => c.name.trim() && c.roles.length > 0) &&
+    pctValid
 
   const loadSigs = async () => {
     setLoadingSigs(true)
@@ -290,6 +335,7 @@ export function FirstHitFlow() {
         author: regAuthor, description: regDesc,
         file: uploadFile, ownershipDeclaration: ownership,
         signatureId: selectedSig,
+        creators,
       })
       if (res.ibsError || res.status === 'failed') {
         setRegError(res.ibsError || 'Error en el registro')
@@ -712,7 +758,7 @@ export function FirstHitFlow() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {WORK_TYPES.map(t => (
+                          {WIZARD_WORK_TYPES.map(t => (
                             <SelectItem key={t.value} value={t.value}>
                               {t.label}
                             </SelectItem>
@@ -738,6 +784,110 @@ export function FirstHitFlow() {
                     <Textarea value={regDesc}
                       onChange={e => setRegDesc(e.target.value)}
                       rows={2} className="text-sm resize-none" />
+                  </div>
+
+                  {/* ── Creadores ────────────────────────────────────── */}
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-xs font-semibold">
+                      Creadores de la obra
+                    </Label>
+
+                    <div className="space-y-3">
+                      {creators.map((c, idx) => (
+                        <Card key={c.id} className="border-border/40">
+                          <CardContent className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Creador {idx + 1}
+                              </p>
+                              {creators.length > 1 && (
+                                <Button variant="ghost" size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                  onClick={() => removeCreator(c.id)}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">
+                                  Nombre completo
+                                  <span className="text-destructive ml-1">*</span>
+                                </Label>
+                                <Input value={c.name}
+                                  onChange={e => updateCreator(c.id, { name: e.target.value })}
+                                  placeholder="Nombre del creador"
+                                  className="h-9 text-sm" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">
+                                  Email
+                                  <span className="text-muted-foreground ml-1">(opcional)</span>
+                                </Label>
+                                <Input value={c.email}
+                                  onChange={e => updateCreator(c.id, { email: e.target.value })}
+                                  placeholder="email@ejemplo.com"
+                                  className="h-9 text-sm" type="email" />
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-xs">
+                                Roles
+                                <span className="text-destructive ml-1">*</span>
+                              </Label>
+                              <div className="flex flex-wrap gap-1.5">
+                                {CREATOR_ROLES.map(r => (
+                                  <Badge key={r.value}
+                                    variant={c.roles.includes(r.value) ? 'default' : 'outline'}
+                                    className={cn(
+                                      'cursor-pointer text-xs transition-colors',
+                                      c.roles.includes(r.value) && 'bg-primary hover:bg-primary/90'
+                                    )}
+                                    onClick={() => toggleCreatorRole(c.id, r.value)}>
+                                    {r.label}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label className="text-xs">
+                                % de derechos
+                                <span className="text-muted-foreground ml-1">(opcional)</span>
+                              </Label>
+                              <Input type="number" min={0} max={100}
+                                value={c.percentage ?? ''}
+                                onChange={e => updateCreator(c.id, {
+                                  percentage: e.target.value ? Number(e.target.value) : null
+                                })}
+                                placeholder="Ej: 50"
+                                className="h-9 text-sm w-28" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Añadir creador + total % */}
+                    <div className="flex items-center justify-between">
+                      <Button type="button" variant="outline" size="sm" onClick={addCreator}>
+                        <Plus className="h-3.5 w-3.5 mr-1" /> Añadir creador
+                      </Button>
+                      {usesPercentages && (
+                        <p className={cn('text-sm font-medium',
+                          totalPct === 100 ? 'text-emerald-600' : 'text-amber-600')}>
+                          Total derechos: {totalPct}%
+                        </p>
+                      )}
+                    </div>
+
+                    {usesPercentages && totalPct !== 100 && (
+                      <p className="text-xs text-destructive">
+                        Los porcentajes deben sumar 100%.
+                      </p>
+                    )}
                   </div>
 
                   {/* Archivo */}
@@ -790,7 +940,8 @@ export function FirstHitFlow() {
                     disabled={
                       registering || !ownership ||
                       (!regFile && !audioUrl) ||
-                      !regType || !selectedSig || !regTitle
+                      !regType || !selectedSig || !regTitle ||
+                      !creatorsValid
                     }>
                     {registering
                       ? <><Loader2 className="h-4 w-4 animate-spin" />Registrando en blockchain…</>

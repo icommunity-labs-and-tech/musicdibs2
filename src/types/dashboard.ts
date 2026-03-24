@@ -34,6 +34,7 @@ export interface WorkRegistration {
   file: File;
   ownershipDeclaration: boolean;
   signatureId: string;
+  creators?: import('@/components/dashboard/register/types').Creator[];
 }
 
 export interface IbsSignature {
