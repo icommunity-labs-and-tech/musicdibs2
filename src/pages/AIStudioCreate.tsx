@@ -1052,6 +1052,7 @@ const AIStudioCreate = () => {
                   </>
                 )}
               </div>
+              )}
             </div>
 
             {/* Bulk Actions Bar */}
