@@ -497,6 +497,7 @@ const AIStudioCreate = () => {
       })
       if (error || data?.error) throw new Error(data?.error || error?.message)
       setGeneratedLyrics(data.lyrics)
+      loadLyricsHistory()
       if (regenerateSec) {
         toast({ title: `Sección regenerada`, description: `[${regenerateSec}] actualizado.` })
       } else {
