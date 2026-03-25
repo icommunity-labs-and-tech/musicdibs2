@@ -20,7 +20,7 @@ import {
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
-  FileText, Copy, RotateCcw, Music2, CheckCircle2
+  FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
