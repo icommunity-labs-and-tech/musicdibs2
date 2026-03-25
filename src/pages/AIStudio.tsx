@@ -50,6 +50,16 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_video' as const,
       color: "from-rose-500 to-red-500"
+    },
+    {
+      title: "Portadas con IA",
+      description: "Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.",
+      icon: Image,
+      href: "/ai-studio/covers",
+      available: true,
+      costsCredits: true,
+      featureKey: 'generate_cover' as const,
+      color: "from-emerald-500 to-teal-500"
     }
   ];
 
