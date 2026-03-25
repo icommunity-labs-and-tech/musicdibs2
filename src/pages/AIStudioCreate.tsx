@@ -1055,6 +1055,88 @@ const AIStudioCreate = () => {
               )}
             </div>
 
+            {activeTab === "lyrics" ? (
+              /* ── Historial de letras ── */
+              lyricsLoading ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Cargando...
+                </div>
+              ) : lyricsHistory.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-16 gap-3">
+                    <FileText className="h-10 w-10 text-muted-foreground" />
+                    <p className="text-muted-foreground text-sm text-center">
+                      Tus letras generadas aparecerán aquí
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                  {lyricsHistory.map((item) => (
+                    <Card key={item.id} className="border-border/40">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {item.theme || item.description || "Sin título"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {item.genre && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                  {item.genre}
+                                </Badge>
+                              )}
+                              {item.mood && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                  {item.mood}
+                                </Badge>
+                              )}
+                              <span className="text-[11px] text-muted-foreground">
+                                {new Date(item.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              variant="ghost" size="icon" className="h-7 w-7"
+                              onClick={() => copyLyricsFromHistory(item.id, item.lyrics)}
+                              title="Copiar letra"
+                            >
+                              {copiedId === item.id
+                                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                                : <Copy className="h-3.5 w-3.5" />
+                              }
+                            </Button>
+                            <Button
+                              variant="ghost" size="icon" className="h-7 w-7"
+                              onClick={() => downloadLyrics(item.lyrics, item.theme || item.description || "letra")}
+                              title="Descargar .txt"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed text-muted-foreground line-clamp-4 whitespace-pre-wrap">
+                          {item.lyrics}
+                        </div>
+                        <details className="group">
+                          <summary className="text-xs text-primary cursor-pointer hover:underline list-none flex items-center gap-1">
+                            <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+                            Ver letra completa
+                          </summary>
+                          <div className="mt-2 rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+                            {item.lyrics}
+                          </div>
+                        </details>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )
+            ) : (
+              /* ── Panel de resultados de audio ── */
+              <>
             {/* Bulk Actions Bar */}
             {bulkMode && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
