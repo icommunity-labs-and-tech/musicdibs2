@@ -20,7 +20,7 @@ import {
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
-  FileText, Copy, RotateCcw, Music2, CheckCircle2
+  FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -72,6 +72,16 @@ const THEMES = [
 
 const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
+interface LyricsGeneration {
+  id: string
+  lyrics: string
+  description: string | null
+  theme: string | null
+  genre: string | null
+  mood: string | null
+  created_at: string
+}
+
 const AIStudioCreate = () => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -115,6 +125,12 @@ const AIStudioCreate = () => {
   const [lyricsError,      setLyricsError]      = useState<string | null>(null)
   const [regenSection,     setRegenSection]     = useState("")
   const [copiedLyrics,     setCopiedLyrics]     = useState(false)
+
+  // ── Lyrics history state ──
+  const [activeTab,      setActiveTab]      = useState<"music"|"lyrics">("music")
+  const [lyricsHistory,  setLyricsHistory]  = useState<LyricsGeneration[]>([])
+  const [lyricsLoading,  setLyricsLoading]  = useState(false)
+  const [copiedId,       setCopiedId]       = useState<string | null>(null)
 
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
@@ -481,6 +497,7 @@ const AIStudioCreate = () => {
       })
       if (error || data?.error) throw new Error(data?.error || error?.message)
       setGeneratedLyrics(data.lyrics)
+      loadLyricsHistory()
       if (regenerateSec) {
         toast({ title: `Sección regenerada`, description: `[${regenerateSec}] actualizado.` })
       } else {
@@ -515,6 +532,42 @@ const AIStudioCreate = () => {
     ? [...generatedLyrics.matchAll(/\[([^\]]+)\]/g)].map(m => m[1])
     : []
 
+  // ── Lyrics history helpers ──
+  const loadLyricsHistory = async () => {
+    if (!user) return
+    setLyricsLoading(true)
+    const { data } = await supabase
+      .from("lyrics_generations" as any)
+      .select("id, lyrics, description, theme, genre, mood, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10)
+    if (data) setLyricsHistory(data as any)
+    setLyricsLoading(false)
+  }
+
+  useEffect(() => {
+    if (activeTab === "lyrics") loadLyricsHistory()
+  }, [activeTab, user])
+
+  const downloadLyrics = (lyrics: string, title: string) => {
+    const blob = new Blob([lyrics], { type: "text/plain;charset=utf-8" })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement("a")
+    a.href     = url
+    a.download = `letra-${(title || "musicdibs").replace(/\s+/g, "-").toLowerCase()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const copyLyricsFromHistory = async (id: string, lyrics: string) => {
+    await navigator.clipboard.writeText(lyrics)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -534,7 +587,7 @@ const AIStudioCreate = () => {
               <p className="text-muted-foreground">Crea música e inspírate con IA</p>
             </div>
 
-            <Tabs defaultValue="music" className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "music"|"lyrics")} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="music" className="gap-2">
                   <Music className="h-4 w-4" />
@@ -972,7 +1025,15 @@ const AIStudioCreate = () => {
           {/* Results Panel */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Resultados</h2>
+              <h2 className="text-xl font-semibold">
+                {activeTab === "lyrics" ? "Mis letras" : "Resultados"}
+              </h2>
+              {activeTab === "lyrics" && lyricsHistory.length > 0 ? (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Últimas {lyricsHistory.length}
+                </span>
+              ) : activeTab === "music" && (
               <div className="flex items-center gap-2">
                 {results.length > 0 && (
                   <>
@@ -991,8 +1052,91 @@ const AIStudioCreate = () => {
                   </>
                 )}
               </div>
+              )}
             </div>
 
+            {activeTab === "lyrics" ? (
+              /* ── Historial de letras ── */
+              lyricsLoading ? (
+                <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Cargando...
+                </div>
+              ) : lyricsHistory.length === 0 ? (
+                <Card className="border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-16 gap-3">
+                    <FileText className="h-10 w-10 text-muted-foreground" />
+                    <p className="text-muted-foreground text-sm text-center">
+                      Tus letras generadas aparecerán aquí
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                  {lyricsHistory.map((item) => (
+                    <Card key={item.id} className="border-border/40">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {item.theme || item.description || "Sin título"}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {item.genre && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                  {item.genre}
+                                </Badge>
+                              )}
+                              {item.mood && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                  {item.mood}
+                                </Badge>
+                              )}
+                              <span className="text-[11px] text-muted-foreground">
+                                {new Date(item.created_at).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              variant="ghost" size="icon" className="h-7 w-7"
+                              onClick={() => copyLyricsFromHistory(item.id, item.lyrics)}
+                              title="Copiar letra"
+                            >
+                              {copiedId === item.id
+                                ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                                : <Copy className="h-3.5 w-3.5" />
+                              }
+                            </Button>
+                            <Button
+                              variant="ghost" size="icon" className="h-7 w-7"
+                              onClick={() => downloadLyrics(item.lyrics, item.theme || item.description || "letra")}
+                              title="Descargar .txt"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed text-muted-foreground line-clamp-4 whitespace-pre-wrap">
+                          {item.lyrics}
+                        </div>
+                        <details className="group">
+                          <summary className="text-xs text-primary cursor-pointer hover:underline list-none flex items-center gap-1">
+                            <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+                            Ver letra completa
+                          </summary>
+                          <div className="mt-2 rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
+                            {item.lyrics}
+                          </div>
+                        </details>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )
+            ) : (
+              /* ── Panel de resultados de audio ── */
+              <>
             {/* Bulk Actions Bar */}
             {bulkMode && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
@@ -1236,6 +1380,8 @@ const AIStudioCreate = () => {
                   </Card>
                 ))}
               </div>
+            )}
+              </>
             )}
           </div>
         </div>

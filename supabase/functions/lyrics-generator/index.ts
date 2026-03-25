@@ -143,6 +143,30 @@ No añadas explicaciones, comentarios ni introducciones.`
 
     console.log(`[LYRICS] Generated for user ${user.id}, ${lyrics.length} chars`)
 
+    // Guardar en BBDD
+    try {
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      )
+      await supabaseAdmin.from("lyrics_generations").insert({
+        user_id:      user.id,
+        description,
+        theme,
+        genre,
+        mood,
+        style,
+        language,
+        rhyme_scheme: rhymeScheme,
+        structure,
+        artist_refs:  artistRefs,
+        pov,
+        lyrics,
+      })
+    } catch (e) {
+      console.error("[LYRICS] Error saving to DB:", e)
+    }
+
     return new Response(
       JSON.stringify({ lyrics }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
