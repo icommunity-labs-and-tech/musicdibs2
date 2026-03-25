@@ -525,6 +525,11 @@ const AIStudioCreate = () => {
     ? [...generatedLyrics.matchAll(/\[([^\]]+)\]/g)].map(m => m[1])
     : []
 
+  // ── Lyrics history state ──
+  const [activeTab,      setActiveTab]      = useState<"music"|"lyrics">("music")
+  const [lyricsHistory,  setLyricsHistory]  = useState<LyricsGeneration[]>([])
+  const [lyricsLoading,  setLyricsLoading]  = useState(false)
+  const [copiedId,       setCopiedId]       = useState<string | null>(null)
 
   return (
     <div className="min-h-screen bg-background">
