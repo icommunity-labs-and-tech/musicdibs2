@@ -14,6 +14,7 @@ const FEATURE_COSTS: Record<string, number> = {
   generate_audio: 2,
   edit_audio: 2,
   enhance_audio: 1,
+  generate_cover: 2,
   inspiration: 0,
   generate_video: 6,
 };

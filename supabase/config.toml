@@ -49,3 +49,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.auphonic-enhance]
     verify_jwt = false
+  [functions.generate-cover]
+    verify_jwt = false
