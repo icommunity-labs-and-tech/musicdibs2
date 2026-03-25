@@ -457,6 +457,57 @@ export type Database = {
           },
         ]
       }
+      lyrics_generations: {
+        Row: {
+          artist_refs: string[] | null
+          created_at: string
+          description: string | null
+          genre: string | null
+          id: string
+          language: string | null
+          lyrics: string
+          mood: string | null
+          pov: string | null
+          rhyme_scheme: string | null
+          structure: string | null
+          style: string | null
+          theme: string | null
+          user_id: string
+        }
+        Insert: {
+          artist_refs?: string[] | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          language?: string | null
+          lyrics: string
+          mood?: string | null
+          pov?: string | null
+          rhyme_scheme?: string | null
+          structure?: string | null
+          style?: string | null
+          theme?: string | null
+          user_id: string
+        }
+        Update: {
+          artist_refs?: string[] | null
+          created_at?: string
+          description?: string | null
+          genre?: string | null
+          id?: string
+          language?: string | null
+          lyrics?: string
+          mood?: string | null
+          pov?: string | null
+          rhyme_scheme?: string | null
+          structure?: string | null
+          style?: string | null
+          theme?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           available_credits: number
