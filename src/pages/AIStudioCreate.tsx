@@ -87,7 +87,6 @@ const AIStudioCreate = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { hasEnough } = useCredits();
-  const { hasEnough } = useCredits();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [prompt, setPrompt] = useState("");
