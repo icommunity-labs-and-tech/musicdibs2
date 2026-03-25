@@ -1025,7 +1025,15 @@ const AIStudioCreate = () => {
           {/* Results Panel */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Resultados</h2>
+              <h2 className="text-xl font-semibold">
+                {activeTab === "lyrics" ? "Mis letras" : "Resultados"}
+              </h2>
+              {activeTab === "lyrics" && lyricsHistory.length > 0 ? (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Últimas {lyricsHistory.length}
+                </span>
+              ) : activeTab === "music" && (
               <div className="flex items-center gap-2">
                 {results.length > 0 && (
                   <>
