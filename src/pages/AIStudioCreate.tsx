@@ -587,7 +587,7 @@ const AIStudioCreate = () => {
               <p className="text-muted-foreground">Crea música e inspírate con IA</p>
             </div>
 
-            <Tabs defaultValue="music" className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "music"|"lyrics")} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="music" className="gap-2">
                   <Music className="h-4 w-4" />
