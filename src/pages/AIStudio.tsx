@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins } from "lucide-react";
+import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins, Image } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
@@ -50,6 +50,16 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_video' as const,
       color: "from-rose-500 to-red-500"
+    },
+    {
+      title: "Portadas con IA",
+      description: "Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.",
+      icon: Image,
+      href: "/ai-studio/covers",
+      available: true,
+      costsCredits: true,
+      featureKey: 'generate_cover' as const,
+      color: "from-emerald-500 to-teal-500"
     }
   ];
 
@@ -79,7 +89,7 @@ const AIStudio = () => {
         </div>
 
         {/* Modules Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-16">
           {modules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = module.costsCredits && !hasEnough(cost);

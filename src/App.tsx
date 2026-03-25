@@ -44,6 +44,7 @@ import AIStudioCreate from "./pages/AIStudioCreate";
 import AIStudioEdit from "./pages/AIStudioEdit";
 import AIStudioInspire from "./pages/AIStudioInspire";
 import AIStudioVideo from "./pages/AIStudioVideo";
+import AIStudioCovers from "./pages/AIStudioCovers";
 import { AdminGuard } from "./components/AdminGuard";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminCreditsPage from "./pages/AdminCreditsPage";
@@ -108,6 +109,7 @@ const App = () => (
             <Route path="/ai-studio/edit" element={<AIStudioEdit />} />
             <Route path="/ai-studio/inspire" element={<AIStudioInspire />} />
             <Route path="/ai-studio/video" element={<AIStudioVideo />} />
+            <Route path="/ai-studio/covers" element={<AIStudioCovers />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
