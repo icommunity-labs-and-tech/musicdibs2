@@ -531,8 +531,43 @@ const AIStudioCreate = () => {
     ? [...generatedLyrics.matchAll(/\[([^\]]+)\]/g)].map(m => m[1])
     : []
 
+  // ── Lyrics history helpers ──
+  const loadLyricsHistory = async () => {
+    if (!user) return
+    setLyricsLoading(true)
+    const { data } = await supabase
+      .from("lyrics_generations" as any)
+      .select("id, lyrics, description, theme, genre, mood, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10)
+    if (data) setLyricsHistory(data as any)
+    setLyricsLoading(false)
+  }
 
-  return (
+  useEffect(() => {
+    if (activeTab === "lyrics") loadLyricsHistory()
+  }, [activeTab, user])
+
+  const downloadLyrics = (lyrics: string, title: string) => {
+    const blob = new Blob([lyrics], { type: "text/plain;charset=utf-8" })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement("a")
+    a.href     = url
+    a.download = `letra-${(title || "musicdibs").replace(/\s+/g, "-").toLowerCase()}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const copyLyricsFromHistory = async (id: string, lyrics: string) => {
+    await navigator.clipboard.writeText(lyrics)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+
     <div className="min-h-screen bg-background">
       <Navbar />
       
