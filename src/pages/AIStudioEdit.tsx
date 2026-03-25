@@ -298,7 +298,14 @@ const AIStudioEdit = () => {
 
   // ── Auphonic helpers ──────────────────────────────────────
   const uploadFileForAuphonic = async (file: File): Promise<string> => {
-    const path = `auphonic/${user!.id}/${Date.now()}_${file.name}`;
+    // Limpiar el nombre: solo letras, números, guiones y puntos
+    const safeName = file.name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")   // quitar tildes
+      .replace(/[^a-zA-Z0-9._-]/g, "_")  // reemplazar especiales por _
+      .replace(/_+/g, "_")               // colapsar múltiples _
+      .toLowerCase();
+    const path = `auphonic/${user!.id}/${Date.now()}_${safeName}`;
     const { error } = await supabase.storage
       .from("works-files")
       .upload(path, file, { upsert: true });
