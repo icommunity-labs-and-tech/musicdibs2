@@ -1381,6 +1381,8 @@ const AIStudioCreate = () => {
                 ))}
               </div>
             )}
+              </>
+            )}
           </div>
         </div>
       </main>
