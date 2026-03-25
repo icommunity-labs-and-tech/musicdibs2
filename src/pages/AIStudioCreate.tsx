@@ -126,6 +126,12 @@ const AIStudioCreate = () => {
   const [regenSection,     setRegenSection]     = useState("")
   const [copiedLyrics,     setCopiedLyrics]     = useState(false)
 
+  // ── Lyrics history state ──
+  const [activeTab,      setActiveTab]      = useState<"music"|"lyrics">("music")
+  const [lyricsHistory,  setLyricsHistory]  = useState<LyricsGeneration[]>([])
+  const [lyricsLoading,  setLyricsLoading]  = useState(false)
+  const [copiedId,       setCopiedId]       = useState<string | null>(null)
+
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
     results.forEach(r => { if (r.genre) genres.add(r.genre); });
