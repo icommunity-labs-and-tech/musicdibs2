@@ -72,10 +72,21 @@ const THEMES = [
 
 const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
+interface LyricsGeneration {
+  id: string
+  lyrics: string
+  description: string | null
+  theme: string | null
+  genre: string | null
+  mood: string | null
+  created_at: string
+}
+
 const AIStudioCreate = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { hasEnough } = useCredits();
   const { hasEnough } = useCredits();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
