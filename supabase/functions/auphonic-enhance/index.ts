@@ -162,6 +162,43 @@ serve(async (req) => {
           .eq("user_id", user.id)
       }
 
+      // Re-upload resultado a Supabase Storage para URL pública estable
+      if (done && outputUrl) {
+        try {
+          const audioRes = await fetch(outputUrl, {
+            headers: { "Authorization": `Bearer ${AUPHONIC_API_KEY}` }
+          })
+          if (audioRes.ok) {
+            const audioBuffer = await audioRes.arrayBuffer()
+            const fileName = `auphonic-result/${user.id}/${productionUuid}.mp3`
+
+            const { error: uploadError } = await supabaseAdmin
+              .storage
+              .from("auphonic-temp")
+              .upload(fileName, audioBuffer, {
+                contentType: "audio/mpeg",
+                upsert: true,
+              })
+
+            if (!uploadError) {
+              const { data: publicData } = supabaseAdmin
+                .storage
+                .from("auphonic-temp")
+                .getPublicUrl(fileName)
+
+              outputUrl = publicData.publicUrl
+
+              await supabaseAdmin
+                .from("auphonic_productions")
+                .update({ output_url: outputUrl })
+                .eq("auphonic_uuid", productionUuid)
+            }
+          }
+        } catch (e) {
+          console.error("[AUPHONIC] Error re-uploading result:", e)
+        }
+      }
+
       return new Response(JSON.stringify({
         status:    prod.status_string,
         done,
