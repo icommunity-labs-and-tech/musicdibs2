@@ -307,10 +307,10 @@ const AIStudioEdit = () => {
       .toLowerCase();
     const path = `auphonic/${user!.id}/${Date.now()}_${safeName}`;
     const { error } = await supabase.storage
-      .from("works-files")
+      .from("auphonic-temp")
       .upload(path, file, { upsert: true });
     if (error) throw new Error(`Upload error: ${error.message}`);
-    const { data } = supabase.storage.from("works-files").getPublicUrl(path);
+    const { data } = supabase.storage.from("auphonic-temp").getPublicUrl(path);
     return data.publicUrl;
   };
 
