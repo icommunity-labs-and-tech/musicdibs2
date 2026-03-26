@@ -79,7 +79,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, lyrics, genre, mood, duration } = await req.json();
+    const { prompt, lyrics, genre, mood, duration, mode } = await req.json();
 
     if (!prompt && !lyrics) {
       return new Response(JSON.stringify({ error: 'Prompt or lyrics required' }), {
