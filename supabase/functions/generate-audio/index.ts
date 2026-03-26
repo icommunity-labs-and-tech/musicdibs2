@@ -6,13 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const MUREKA_API_URL = 'https://api.mureka.ai/v1/song/generate';
+const POLL_URL = 'https://api.mureka.ai/v1/song/query/';
+const MAX_POLLS = 60;
+const POLL_INTERVAL_MS = 5000;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // JWT authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -38,12 +42,12 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    // ── Rate limiting: máx 3 generaciones por usuario en 60 segundos ──
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // Rate limiting: máx 3 generaciones por usuario en 60 segundos
     const AUDIO_LIMIT = 3;
     const WINDOW_SECS = 60;
     const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
@@ -56,113 +60,142 @@ serve(async (req) => {
       .gte('called_at', windowStart);
 
     if ((recentCalls ?? 0) >= AUDIO_LIMIT) {
-      console.warn(`[GENERATE-AUDIO] Rate limit exceeded for user ${userId}`);
       return new Response(
         JSON.stringify({
           error: 'rate_limit_exceeded',
           message: `Máximo ${AUDIO_LIMIT} generaciones por minuto. Espera unos segundos e inténtalo de nuevo.`,
           retryAfter: WINDOW_SECS,
         }),
-        {
-          status: 429,
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json',
-            'Retry-After': String(WINDOW_SECS),
-          },
-        }
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(WINDOW_SECS) } }
       );
     }
 
-    // Registrar esta llamada
-    await supabaseAdmin
-      .from('ai_rate_limits')
-      .insert({ user_id: userId, function_name: 'generate-audio' });
-    // ── Fin rate limiting ──
+    await supabaseAdmin.from('ai_rate_limits').insert({ user_id: userId, function_name: 'generate-audio' });
 
-    const STABILITY_API_KEY = Deno.env.get('STABILITY_API_KEY');
-    
-    if (!STABILITY_API_KEY) {
-      console.error('[GENERATE-AUDIO] Missing STABILITY_API_KEY');
-      return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const MUREKA_API_KEY = Deno.env.get('MUREKA_API_KEY');
+    if (!MUREKA_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    const { prompt, duration, cfgScale = 7 } = await req.json();
+    const { prompt, lyrics, genre, mood, duration } = await req.json();
 
-    if (!prompt) {
-      return new Response(
-        JSON.stringify({ error: 'Prompt is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!prompt && !lyrics) {
+      return new Response(JSON.stringify({ error: 'Prompt or lyrics required' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
-    const clampedDuration = Math.max(5, Math.min(180, duration || 30));
+    // Construir el prompt enriquecido para Mureka
+    const parts: string[] = [];
+    if (genre) parts.push(genre);
+    if (mood) parts.push(mood);
+    if (prompt) parts.push(prompt);
+    const stylePrompt = parts.join(', ');
 
-    console.log(`[GENERATE-AUDIO] Generating: "${prompt.substring(0, 50)}..." | ${clampedDuration}s | cfg: ${cfgScale}`);
+    console.log(`[GENERATE-AUDIO] Mureka generate: "${stylePrompt.substring(0, 80)}" | lyrics: ${lyrics ? 'yes' : 'no'}`);
 
-    const STABILITY_API_URL = 'https://api.stability.ai/v2beta/audio/stable-audio-2/text-to-audio';
+    // Llamada inicial a Mureka — genera la tarea
+    const body: Record<string, unknown> = {
+      prompt: stylePrompt,
+      model: 'auto',
+    };
+    if (lyrics) body.lyrics = lyrics;
 
-    const formData = new FormData();
-    formData.append('prompt', prompt);
-    formData.append('duration', String(clampedDuration));
-    formData.append('cfg_scale', String(cfgScale));
-    formData.append('steps', '50');
-    formData.append('output_format', 'mp3');
-
-    const response = await fetch(STABILITY_API_URL, {
+    const initRes = await fetch(MUREKA_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${STABILITY_API_KEY}`,
-        'Accept': 'application/json',
+        'Authorization': `Bearer ${MUREKA_API_KEY}`,
+        'Content-Type': 'application/json',
       },
-      body: formData,
+      body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[GENERATE-AUDIO] Stability API error: ${response.status} - ${errorText}`);
-      
-      if (response.status === 402 || errorText.toLowerCase().includes('credits')) {
-        return new Response(
-          JSON.stringify({ 
-            error: 'insufficient_credits',
-            message: 'Sin créditos disponibles en Stability AI',
-            details: 'Tu cuenta de Stability AI no tiene créditos suficientes. Por favor, recarga créditos en platform.stability.ai para continuar generando audio.'
-          }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
+    if (!initRes.ok) {
+      const errText = await initRes.text();
+      console.error(`[GENERATE-AUDIO] Mureka init error: ${initRes.status} - ${errText}`);
       return new Response(
-        JSON.stringify({ error: `Generation failed: ${response.status}`, details: errorText }),
-        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: `Generation failed: ${initRes.status}`, details: errText }),
+        { status: initRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const payload = await response.json();
+    const initData = await initRes.json();
+    const taskId = initData?.id || initData?.task_id;
 
-    if (!payload?.audio) {
-      console.error('[GENERATE-AUDIO] Invalid response payload:', payload);
+    if (!taskId) {
+      console.error('[GENERATE-AUDIO] No task ID from Mureka:', initData);
       return new Response(
-        JSON.stringify({ error: 'Generation failed: invalid audio response' }),
+        JSON.stringify({ error: 'No task ID returned from Mureka' }),
         { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[GENERATE-AUDIO] Success! Received base64 audio (${payload.audio.length} chars)`);
+    console.log(`[GENERATE-AUDIO] Mureka task created: ${taskId}`);
+
+    // Polling hasta obtener el audio
+    for (let i = 0; i < MAX_POLLS; i++) {
+      await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+
+      const pollRes = await fetch(`${POLL_URL}${taskId}`, {
+        headers: { 'Authorization': `Bearer ${MUREKA_API_KEY}` },
+      });
+
+      if (!pollRes.ok) {
+        console.warn(`[GENERATE-AUDIO] Poll ${i + 1} failed: ${pollRes.status}`);
+        continue;
+      }
+
+      const pollData = await pollRes.json();
+      const status = pollData?.status;
+
+      console.log(`[GENERATE-AUDIO] Poll ${i + 1}: status=${status}`);
+
+      if (status === 'succeeded' || status === 'completed') {
+        // Mureka devuelve array de canciones — coger la primera
+        const songs = pollData?.songs || pollData?.choices || [];
+        const audioUrl = songs[0]?.url || songs[0]?.audio_url || pollData?.url;
+
+        if (!audioUrl) {
+          console.error('[GENERATE-AUDIO] No audio URL in response:', pollData);
+          return new Response(
+            JSON.stringify({ error: 'No audio URL in Mureka response' }),
+            { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        console.log(`[GENERATE-AUDIO] Success! Audio URL: ${audioUrl}`);
+
+        // Descargar el audio y convertir a base64 para compatibilidad con el frontend
+        const audioRes = await fetch(audioUrl);
+        const audioBuffer = await audioRes.arrayBuffer();
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+
+        return new Response(
+          JSON.stringify({
+            audio: base64Audio,
+            audio_url: audioUrl,
+            format: 'audio/mpeg',
+            duration: duration || 30,
+            provider: 'mureka',
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (status === 'failed' || status === 'error') {
+        console.error('[GENERATE-AUDIO] Mureka task failed:', pollData);
+        return new Response(
+          JSON.stringify({ error: 'Mureka generation failed', details: pollData?.error || 'Unknown error' }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     return new Response(
-      JSON.stringify({ 
-        audio: payload.audio,
-        format: 'audio/mpeg',
-        duration: clampedDuration,
-        seed: payload.seed ?? null,
-        finish_reason: payload.finish_reason ?? null,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Generation timeout — Mureka tardó demasiado' }),
+      { status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
