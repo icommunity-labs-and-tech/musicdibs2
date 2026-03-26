@@ -227,13 +227,13 @@ const AIStudioCreate = () => {
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
-      const fullPrompt = buildFullPrompt();
-      
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: { 
-          prompt: fullPrompt, 
+          prompt: prompt.trim(), 
           duration, 
-          cfgScale: creativity 
+          genre: selectedGenre || undefined,
+          mood: selectedMood || undefined,
+          lyrics: generatedLyrics || undefined,
         }
       });
 
