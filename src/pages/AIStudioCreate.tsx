@@ -227,13 +227,13 @@ const AIStudioCreate = () => {
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
-      const fullPrompt = buildFullPrompt();
-      
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: { 
-          prompt: fullPrompt, 
+          prompt: prompt.trim(), 
           duration, 
-          cfgScale: creativity 
+          genre: selectedGenre || undefined,
+          mood: selectedMood || undefined,
+          lyrics: generatedLyrics || undefined,
         }
       });
 
@@ -274,7 +274,7 @@ const AIStudioCreate = () => {
           .from('ai_generations')
           .insert({
             user_id: user.id,
-            prompt: fullPrompt,
+            prompt: prompt.trim(),
             duration: data.duration,
             genre: selectedGenre,
             mood: selectedMood,
@@ -288,7 +288,7 @@ const AIStudioCreate = () => {
         const newResult: GenerationResult = {
           id: savedGen.id,
           audioUrl,
-          prompt: fullPrompt,
+          prompt: prompt.trim(),
           duration: data.duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
