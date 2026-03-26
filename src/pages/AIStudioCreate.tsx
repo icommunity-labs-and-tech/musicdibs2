@@ -274,7 +274,7 @@ const AIStudioCreate = () => {
           .from('ai_generations')
           .insert({
             user_id: user.id,
-            prompt: fullPrompt,
+            prompt: prompt.trim(),
             duration: data.duration,
             genre: selectedGenre,
             mood: selectedMood,
@@ -288,7 +288,7 @@ const AIStudioCreate = () => {
         const newResult: GenerationResult = {
           id: savedGen.id,
           audioUrl,
-          prompt: fullPrompt,
+          prompt: prompt.trim(),
           duration: data.duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
