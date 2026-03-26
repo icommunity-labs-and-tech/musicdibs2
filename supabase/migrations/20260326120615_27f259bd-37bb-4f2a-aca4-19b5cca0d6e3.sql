@@ -1,0 +1,1 @@
+SELECT pgmq.delete('transactional_emails', 1);
