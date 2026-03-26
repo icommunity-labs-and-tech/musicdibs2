@@ -78,7 +78,7 @@ const AIStudio = () => {
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Powered by Stable Audio 2.5</span>
+            <span className="text-sm font-medium">Powered by ElevenLabs AI</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             AI MusicDibs Studio

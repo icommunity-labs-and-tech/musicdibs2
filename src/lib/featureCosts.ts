@@ -7,6 +7,7 @@ export const FEATURE_COSTS = {
   register_work: 1,
   promote_work: 2,
   generate_audio: 2,
+  generate_audio_song: 3,
   edit_audio: 2,
   enhance_audio: 1,
   generate_cover: 2,
