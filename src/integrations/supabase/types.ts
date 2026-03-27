@@ -508,6 +508,129 @@ export type Database = {
         }
         Relationships: []
       }
+      managed_artists: {
+        Row: {
+          artist_country: string | null
+          artist_email: string | null
+          artist_name: string
+          artist_phone: string | null
+          artist_user_id: string | null
+          contract_reference: string | null
+          contract_signed_at: string | null
+          created_at: string
+          id: string
+          manager_user_id: string
+          notes: string | null
+          representation_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          artist_country?: string | null
+          artist_email?: string | null
+          artist_name: string
+          artist_phone?: string | null
+          artist_user_id?: string | null
+          contract_reference?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          id?: string
+          manager_user_id: string
+          notes?: string | null
+          representation_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          artist_country?: string | null
+          artist_email?: string | null
+          artist_name?: string
+          artist_phone?: string | null
+          artist_user_id?: string | null
+          contract_reference?: string | null
+          contract_signed_at?: string | null
+          created_at?: string
+          id?: string
+          manager_user_id?: string
+          notes?: string | null
+          representation_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      managed_works: {
+        Row: {
+          authorized_by: string
+          created_at: string
+          id: string
+          managed_artist_id: string
+          manager_user_id: string
+          work_id: string
+        }
+        Insert: {
+          authorized_by?: string
+          created_at?: string
+          id?: string
+          managed_artist_id: string
+          manager_user_id: string
+          work_id: string
+        }
+        Update: {
+          authorized_by?: string
+          created_at?: string
+          id?: string
+          managed_artist_id?: string
+          manager_user_id?: string
+          work_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "managed_works_managed_artist_id_fkey"
+            columns: ["managed_artist_id"]
+            isOneToOne: false
+            referencedRelation: "managed_artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "managed_works_work_id_fkey"
+            columns: ["work_id"]
+            isOneToOne: false
+            referencedRelation: "works"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      manager_contracts: {
+        Row: {
+          created_at: string
+          id: string
+          manager_user_id: string
+          max_artists: number | null
+          plan_name: string
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          manager_user_id: string
+          max_artists?: number | null
+          plan_name?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          manager_user_id?: string
+          max_artists?: number | null
+          plan_name?: string
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           available_credits: number
@@ -806,7 +929,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "manager"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -934,7 +1057,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "manager"],
     },
   },
 } as const

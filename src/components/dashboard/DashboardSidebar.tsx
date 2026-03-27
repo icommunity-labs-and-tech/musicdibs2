@@ -20,6 +20,9 @@ import {
   BarChart3,
   Settings2,
   Rocket,
+  Briefcase,
+  FileText,
+  ClipboardList,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -67,11 +70,18 @@ const adminItems = [
   { title: 'Sistema', url: '/dashboard/admin/system', icon: Settings2 },
 ];
 
+const managerItems = [
+  { title: 'Panel Manager', url: '/dashboard/manager', icon: Briefcase },
+  { title: 'Mis Artistas', url: '/dashboard/manager/artists', icon: Users },
+  { title: 'Registrar Obra', url: '/dashboard/manager/register', icon: Upload },
+  { title: 'Obras Registradas', url: '/dashboard/manager/works', icon: ClipboardList },
+];
+
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
   const location = useLocation();
-  const { user, signOut, isAdmin } = useAuth();
+  const { user, signOut, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
 
@@ -119,8 +129,14 @@ export function DashboardSidebar() {
             <SidebarMenu>
               {mainItems
                 .filter(item => !(item.url === '/dashboard/verify-identity' && kycStatus === 'verified'))
+                .filter(item => {
+                  if (!isManager) return true;
+                  // Hide these items for managers
+                  const hiddenForManager = ['/dashboard/launch', '/dashboard/promote'];
+                  return !hiddenForManager.includes(item.url);
+                })
                 .map((item) => {
-                  const isHighlight = !!(item as any).highlight;
+                  const isHighlight = !!(item as any).highlight && !isManager;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={isActive(item.url)}>
@@ -150,6 +166,7 @@ export function DashboardSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {!isManager && (
         <SidebarGroup>
           <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -167,6 +184,27 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        )}
+
+        {isManager && (
+        <SidebarGroup>
+          <SidebarGroupLabel>Manager</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {managerItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                      <item.icon className="mr-2 h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>Cuenta</SidebarGroupLabel>

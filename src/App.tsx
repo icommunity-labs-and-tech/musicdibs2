@@ -46,11 +46,18 @@ import AIStudioInspire from "./pages/AIStudioInspire";
 import AIStudioVideo from "./pages/AIStudioVideo";
 import AIStudioCovers from "./pages/AIStudioCovers";
 import { AdminGuard } from "./components/AdminGuard";
+import { ManagerGuard } from "./components/ManagerGuard";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminCreditsPage from "./pages/AdminCreditsPage";
 import AdminWorksPage from "./pages/AdminWorksPage";
 import AdminMetricsPage from "./pages/AdminMetricsPage";
 import AdminSystemPage from "./pages/AdminSystemPage";
+import ManagerDashboard from "./pages/ManagerDashboard";
+import ManagerArtists from "./pages/ManagerArtists";
+import ManagerArtistNew from "./pages/ManagerArtistNew";
+import ManagerArtistDetail from "./pages/ManagerArtistDetail";
+import ManagerWorks from "./pages/ManagerWorks";
+import ManagerRegisterWork from "./pages/ManagerRegisterWork";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -103,6 +110,12 @@ const App = () => (
               <Route path="admin/works" element={<AdminGuard><AdminWorksPage /></AdminGuard>} />
               <Route path="admin/metrics" element={<AdminGuard><AdminMetricsPage /></AdminGuard>} />
               <Route path="admin/system" element={<AdminGuard><AdminSystemPage /></AdminGuard>} />
+              <Route path="manager" element={<ManagerGuard><ManagerDashboard /></ManagerGuard>} />
+              <Route path="manager/artists" element={<ManagerGuard><ManagerArtists /></ManagerGuard>} />
+              <Route path="manager/artists/new" element={<ManagerGuard><ManagerArtistNew /></ManagerGuard>} />
+              <Route path="manager/artists/:artistId" element={<ManagerGuard><ManagerArtistDetail /></ManagerGuard>} />
+              <Route path="manager/works" element={<ManagerGuard><ManagerWorks /></ManagerGuard>} />
+              <Route path="manager/register" element={<ManagerGuard><ManagerRegisterWork /></ManagerGuard>} />
             </Route>
             <Route path="/ai-studio" element={<AIStudio />} />
             <Route path="/ai-studio/create" element={<AIStudioCreate />} />
