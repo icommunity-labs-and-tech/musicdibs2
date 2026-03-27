@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, Upload } from 'lucide-react';
+import { AlertTriangle, Upload, Search, Link2, Unlink } from 'lucide-react';
 
 const WORK_TYPES = [
   { value: 'song', label: 'Canción' },
