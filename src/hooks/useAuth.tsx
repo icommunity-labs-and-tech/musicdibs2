@@ -7,6 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isManager: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -19,12 +20,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isManager, setIsManager] = useState(false);
 
   const initializeUser = useCallback(async (currentSession: Session | null) => {
     if (!currentSession?.user) {
       setSession(null);
       setUser(null);
       setIsAdmin(false);
+      setIsManager(false);
       setLoading(false);
       return;
     }
@@ -32,15 +35,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(currentSession);
     setUser(currentSession.user);
 
-    // Check admin role
-    const { data: roleData } = await supabase
+    // Check roles
+    const { data: roles } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', currentSession.user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+      .eq('user_id', currentSession.user.id);
 
-    setIsAdmin(roleData?.role === 'admin');
+    const roleSet = new Set((roles || []).map((r: any) => r.role));
+    setIsAdmin(roleSet.has('admin'));
+    setIsManager(roleSet.has('manager'));
     setLoading(false);
   }, []);
 
@@ -80,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, isManager, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
