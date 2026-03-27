@@ -57,7 +57,53 @@ export default function ManagerRegisterWork() {
 
   const selectedArtistData = artists.find((a: any) => a.id === selectedArtist);
 
-  const handleSubmit = async () => {
+  // Reset link state when artist changes
+  useEffect(() => {
+    setLinkEmail('');
+    setLinkResult(null);
+    setLinkError('');
+  }, [selectedArtist]);
+
+  const handleSearchUser = async () => {
+    if (!linkEmail.trim()) return;
+    setLinkSearching(true);
+    setLinkResult(null);
+    setLinkError('');
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-user-by-email', {
+        body: { email: linkEmail.trim() },
+      });
+      if (error) throw error;
+      if (data?.found) {
+        setLinkResult(data);
+      } else {
+        setLinkError('No se encontró ninguna cuenta con ese email.');
+      }
+    } catch (err: any) {
+      setLinkError(err.message || 'Error buscando usuario');
+    } finally {
+      setLinkSearching(false);
+    }
+  };
+
+  const handleLinkAccount = async () => {
+    if (!linkResult?.user_id || !selectedArtist) return;
+    const { error } = await supabase
+      .from('managed_artists')
+      .update({ artist_user_id: linkResult.user_id } as any)
+      .eq('id', selectedArtist);
+    if (error) {
+      toast.error('Error vinculando cuenta: ' + error.message);
+      return;
+    }
+    toast.success('Cuenta vinculada correctamente');
+    // Update local state
+    setArtists((prev) =>
+      prev.map((a) => (a.id === selectedArtist ? { ...a, artist_user_id: linkResult.user_id } : a))
+    );
+    setLinkResult(null);
+    setLinkEmail('');
+  };
     if (!title.trim()) { toast.error('El título es obligatorio'); return; }
     if (!selectedArtist) { toast.error('Selecciona un artista'); return; }
     if (!user) return;
