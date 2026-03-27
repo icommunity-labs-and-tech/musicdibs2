@@ -58,6 +58,7 @@ import ManagerArtistNew from "./pages/ManagerArtistNew";
 import ManagerArtistDetail from "./pages/ManagerArtistDetail";
 import ManagerWorks from "./pages/ManagerWorks";
 import ManagerRegisterWork from "./pages/ManagerRegisterWork";
+import ManagerLanding from "./pages/ManagerLanding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +92,7 @@ const App = () => (
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
             <Route path="/admin/ab-tests" element={<AdminABTests />} />
+            <Route path="/manager" element={<ManagerLanding />} />
             <Route path="/login" element={<UserLogin />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
