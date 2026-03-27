@@ -123,9 +123,9 @@ export default function ManagerRegisterWork() {
           </div>
 
           {selectedArtistData && (
-            <Alert className="border-yellow-500/50 bg-yellow-500/10">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              <AlertDescription className="text-yellow-200">
+            <Alert className="border-amber-500/50 bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-muted-foreground">
                 Estás registrando esta obra en nombre de <strong>{selectedArtistData.artist_name}</strong> como su representante autorizado.
               </AlertDescription>
             </Alert>
