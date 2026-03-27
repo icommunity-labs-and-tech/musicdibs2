@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Pencil, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Pencil, Save, Upload, Search, Link2, Unlink, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -27,6 +27,12 @@ export default function ManagerArtistDetail() {
   const [editForm, setEditForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Link account state
+  const [linkEmail, setLinkEmail] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const [linking, setLinking] = useState(false);
 
   useEffect(() => {
     if (!user || !artistId) return;
@@ -57,6 +63,46 @@ export default function ManagerArtistDetail() {
     setArtist({ ...artist, ...editForm });
     setEditing(false);
     toast.success('Datos actualizados');
+  };
+
+  const handleSearchUser = async () => {
+    if (!linkEmail.trim()) return;
+    setSearching(true);
+    setSearchResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-user-by-email', {
+        body: { email: linkEmail.trim() },
+      });
+      if (error) throw error;
+      setSearchResult(data);
+    } catch (err: any) {
+      toast.error('Error buscando usuario: ' + (err.message || 'Error desconocido'));
+    }
+    setSearching(false);
+  };
+
+  const handleLinkUser = async (userId: string) => {
+    setLinking(true);
+    const { error } = await supabase.from('managed_artists').update({
+      artist_user_id: userId,
+    } as any).eq('id', artistId!);
+    setLinking(false);
+    if (error) { toast.error('Error al vincular: ' + error.message); return; }
+    setArtist({ ...artist, artist_user_id: userId });
+    setSearchResult(null);
+    setLinkEmail('');
+    toast.success('Cuenta vinculada correctamente');
+  };
+
+  const handleUnlinkUser = async () => {
+    setLinking(true);
+    const { error } = await supabase.from('managed_artists').update({
+      artist_user_id: null,
+    } as any).eq('id', artistId!);
+    setLinking(false);
+    if (error) { toast.error('Error al desvincular: ' + error.message); return; }
+    setArtist({ ...artist, artist_user_id: null });
+    toast.success('Cuenta desvinculada');
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
@@ -105,6 +151,71 @@ export default function ManagerArtistDetail() {
               <div><p className="text-xs text-muted-foreground">Representación</p><Badge>{REP_LABELS[artist.representation_type] || artist.representation_type}</Badge></div>
               {artist.notes && <div className="col-span-full"><p className="text-xs text-muted-foreground">Notas</p><p className="text-sm">{artist.notes}</p></div>}
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Link account section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Link2 className="h-4 w-4" />
+            Cuenta de MusicDibs vinculada
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {artist.artist_user_id ? (
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <div>
+                  <p className="text-sm font-medium">Cuenta vinculada</p>
+                  <p className="text-xs text-muted-foreground font-mono">{artist.artist_user_id}</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleUnlinkUser} disabled={linking}>
+                <Unlink className="h-4 w-4 mr-1" /> Desvincular
+              </Button>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Vincula este artista con su cuenta de MusicDibs para que las obras se registren directamente a su nombre.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Buscar por email del artista..."
+                  type="email"
+                  value={linkEmail}
+                  onChange={(e) => setLinkEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+                />
+                <Button onClick={handleSearchUser} disabled={searching || !linkEmail.trim()}>
+                  <Search className="h-4 w-4 mr-1" /> {searching ? 'Buscando...' : 'Buscar'}
+                </Button>
+              </div>
+
+              {searchResult && (
+                <div className="mt-2">
+                  {searchResult.found ? (
+                    <div className="flex items-center justify-between p-3 rounded-lg border border-primary/30 bg-primary/5">
+                      <div>
+                        <p className="text-sm font-medium">{searchResult.display_name}</p>
+                        <p className="text-xs text-muted-foreground">{searchResult.email} · Plan {searchResult.subscription_plan}</p>
+                      </div>
+                      <Button size="sm" onClick={() => handleLinkUser(searchResult.user_id)} disabled={linking}>
+                        <Link2 className="h-4 w-4 mr-1" /> {linking ? 'Vinculando...' : 'Vincular'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <p className="text-sm text-muted-foreground">No se encontró ninguna cuenta con ese email.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
