@@ -192,12 +192,43 @@ export default function ManagerRegisterWork() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                <Alert className="border-blue-500/50 bg-blue-500/10">
-                  <AlertDescription className="text-muted-foreground flex items-center gap-2">
-                    <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
-                    Sin cuenta vinculada — la obra se registrará bajo tu cuenta de manager.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-3">
+                  <Alert className="border-blue-500/50 bg-blue-500/10">
+                    <AlertDescription className="text-muted-foreground flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
+                      Sin cuenta vinculada — la obra se registrará bajo tu cuenta de manager.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="border border-border rounded-lg p-4 space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Link2 className="h-4 w-4" />
+                      Vincular cuenta de MusicDibs
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Email del artista en MusicDibs"
+                        value={linkEmail}
+                        onChange={(e) => setLinkEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+                      />
+                      <Button type="button" variant="outline" size="sm" onClick={handleSearchUser} disabled={linkSearching || !linkEmail.trim()}>
+                        <Search className="h-4 w-4 mr-1" /> {linkSearching ? 'Buscando...' : 'Buscar'}
+                      </Button>
+                    </div>
+                    {linkError && <p className="text-sm text-destructive">{linkError}</p>}
+                    {linkResult && (
+                      <div className="flex items-center justify-between bg-muted/50 rounded-md p-3">
+                        <div>
+                          <p className="text-sm font-medium">{linkResult.display_name}</p>
+                          <p className="text-xs text-muted-foreground">{linkResult.email} · {linkResult.subscription_plan}</p>
+                        </div>
+                        <Button type="button" size="sm" onClick={handleLinkAccount}>
+                          <Link2 className="h-4 w-4 mr-1" /> Vincular
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </>
           )}
