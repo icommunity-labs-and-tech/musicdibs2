@@ -104,6 +104,8 @@ export default function ManagerRegisterWork() {
     setLinkResult(null);
     setLinkEmail('');
   };
+
+  const handleSubmit = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio'); return; }
     if (!selectedArtist) { toast.error('Selecciona un artista'); return; }
     if (!user) return;
