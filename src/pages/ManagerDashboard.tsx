@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Users, FileText, Share2, CalendarCheck, Eye, Upload } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Users, FileText, Share2, CalendarCheck, Eye, Upload, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 
 const REP_LABELS: Record<string, string> = {
   full: 'Completa',
@@ -21,6 +23,20 @@ const REP_VARIANTS: Record<string, 'default' | 'secondary' | 'outline'> = {
   registration: 'secondary',
   distribution: 'outline',
 };
+
+const STATUS_LABELS: Record<string, string> = {
+  processing: 'Procesando',
+  registered: 'Registrada',
+  distributed: 'Distribuida',
+  failed: 'Fallida',
+};
+
+const PIE_COLORS = [
+  'hsl(var(--primary))',
+  'hsl(var(--accent))',
+  'hsl(var(--secondary))',
+  'hsl(var(--muted))',
+];
 
 export default function ManagerDashboard() {
   const { user } = useAuth();
@@ -48,7 +64,48 @@ export default function ManagerDashboard() {
 
   const totalDistributed = works.filter((w: any) => w.works?.status === 'distributed').length;
 
-  // Build artist summary with work counts
+  // Monthly works data (last 6 months)
+  const monthlyData = useMemo(() => {
+    const months: { month: string; count: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = subMonths(new Date(), i);
+      const key = format(startOfMonth(d), 'yyyy-MM');
+      const label = format(d, 'MMM yy', { locale: es });
+      const count = works.filter((w: any) => {
+        const created = w.works?.created_at;
+        return created && format(new Date(created), 'yyyy-MM') === key;
+      }).length;
+      months.push({ month: label, count });
+    }
+    return months;
+  }, [works]);
+
+  // Status distribution
+  const statusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    works.forEach((w: any) => {
+      const s = w.works?.status || 'processing';
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name: STATUS_LABELS[name] || name,
+      value,
+    }));
+  }, [works]);
+
+  // Works per artist
+  const artistWorksData = useMemo(() => {
+    const map: Record<string, number> = {};
+    works.forEach((w: any) => {
+      const name = w.managed_artists?.artist_name || 'Sin artista';
+      map[name] = (map[name] || 0) + 1;
+    });
+    return Object.entries(map)
+      .map(([artist, count]) => ({ artist: artist.length > 12 ? artist.slice(0, 12) + '…' : artist, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+  }, [works]);
+
   const artistSummary = artists.map((a: any) => {
     const artistWorks = works.filter((w: any) => w.managed_artist_id === a.id);
     const lastWork = artistWorks.sort((x: any, y: any) => new Date(y.works?.created_at || 0).getTime() - new Date(x.works?.created_at || 0).getTime())[0];
@@ -59,12 +116,21 @@ export default function ManagerDashboard() {
     return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
   }
 
+  const monthlyChartConfig = { count: { label: 'Obras', color: 'hsl(var(--primary))' } };
+  const artistChartConfig = { count: { label: 'Obras', color: 'hsl(var(--accent))' } };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Panel Manager</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Panel Manager</h1>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <TrendingUp className="h-4 w-4" />
+          <span>Últimos 6 meses</span>
+        </div>
+      </div>
 
       {/* Metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Artistas activos</CardTitle>
@@ -92,17 +158,97 @@ export default function ManagerDashboard() {
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <p className="text-xl font-bold">
               {contract?.valid_until ? format(new Date(contract.valid_until), 'dd MMM yyyy', { locale: es }) : '—'}
             </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base">Obras registradas por mes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {works.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Sin datos aún</p>
+            ) : (
+              <ChartContainer config={monthlyChartConfig} className="h-[220px] w-full">
+                <AreaChart data={monthlyData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="fillCount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area type="monotone" dataKey="count" stroke="hsl(var(--primary))" fill="url(#fillCount)" strokeWidth={2} />
+                </AreaChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Estado de obras</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {statusData.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">Sin datos aún</p>
+            ) : (
+              <ChartContainer config={{}} className="h-[220px] w-full">
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={4}>
+                    {statusData.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+            )}
+            <div className="flex flex-wrap gap-2 mt-2 justify-center">
+              {statusData.map((s, i) => (
+                <div key={s.name} className="flex items-center gap-1 text-xs">
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
+                  <span className="text-muted-foreground">{s.name} ({s.value})</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Works per artist */}
+      {artistWorksData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Obras por artista</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={artistChartConfig} className="h-[200px] w-full">
+              <BarChart data={artistWorksData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" />
+                <XAxis dataKey="artist" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} className="fill-muted-foreground" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="count" fill="hsl(var(--accent))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Artists table */}
       <Card>
         <CardHeader>
-          <CardTitle>Resumen de artistas</CardTitle>
+          <CardTitle className="text-base">Resumen de artistas</CardTitle>
         </CardHeader>
         <CardContent>
           {artistSummary.length === 0 ? (
