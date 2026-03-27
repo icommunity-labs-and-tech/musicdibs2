@@ -601,6 +601,54 @@ export type Database = {
           },
         ]
       }
+      manager_contact_requests: {
+        Row: {
+          company_name: string | null
+          country: string | null
+          created_at: string
+          email: string
+          estimated_artists: string
+          estimated_works: string | null
+          full_name: string
+          id: string
+          message: string | null
+          needs_ai_studio: boolean | null
+          needs_distribution: boolean | null
+          phone: string | null
+          status: string
+        }
+        Insert: {
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          email: string
+          estimated_artists: string
+          estimated_works?: string | null
+          full_name: string
+          id?: string
+          message?: string | null
+          needs_ai_studio?: boolean | null
+          needs_distribution?: boolean | null
+          phone?: string | null
+          status?: string
+        }
+        Update: {
+          company_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string
+          estimated_artists?: string
+          estimated_works?: string | null
+          full_name?: string
+          id?: string
+          message?: string | null
+          needs_ai_studio?: boolean | null
+          needs_distribution?: boolean | null
+          phone?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       manager_contracts: {
         Row: {
           created_at: string
