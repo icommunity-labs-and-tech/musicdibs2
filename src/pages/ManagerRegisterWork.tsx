@@ -37,6 +37,12 @@ export default function ManagerRegisterWork() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Link account state
+  const [linkEmail, setLinkEmail] = useState('');
+  const [linkSearching, setLinkSearching] = useState(false);
+  const [linkResult, setLinkResult] = useState<any>(null);
+  const [linkError, setLinkError] = useState('');
+
   useEffect(() => {
     if (!user) return;
     supabase.from('managed_artists').select('id, artist_name, artist_user_id').eq('manager_user_id', user.id).eq('status', 'active').order('artist_name')
