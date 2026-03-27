@@ -132,7 +132,7 @@ export function DashboardSidebar() {
                 .filter(item => {
                   if (!isManager) return true;
                   // Hide these items for managers
-                  const hiddenForManager = ['/dashboard/launch', '/dashboard/promote'];
+                  const hiddenForManager = ['/dashboard/launch'];
                   return !hiddenForManager.includes(item.url);
                 })
                 .map((item) => {
