@@ -7,6 +7,7 @@ import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { PricingSection } from "@/components/PricingSection";
 import { RoyaltiesCalculator } from "@/components/RoyaltiesCalculator";
 import { TutorialSection } from "@/components/TutorialSection";
+import { ManagerBannerSection } from "@/components/ManagerBannerSection";
 import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
 
@@ -76,6 +77,7 @@ const Index = () => {
       <TestimonialsSection />
       <RoyaltiesCalculator />
       <PricingSection />
+      <ManagerBannerSection />
       <TutorialSection />
       <Footer />
     </div>
