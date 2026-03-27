@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, Upload } from 'lucide-react';
+import { AlertTriangle, Upload, Search, Link2, Unlink } from 'lucide-react';
 
 const WORK_TYPES = [
   { value: 'song', label: 'Canción' },
@@ -37,6 +37,12 @@ export default function ManagerRegisterWork() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Link account state
+  const [linkEmail, setLinkEmail] = useState('');
+  const [linkSearching, setLinkSearching] = useState(false);
+  const [linkResult, setLinkResult] = useState<any>(null);
+  const [linkError, setLinkError] = useState('');
+
   useEffect(() => {
     if (!user) return;
     supabase.from('managed_artists').select('id, artist_name, artist_user_id').eq('manager_user_id', user.id).eq('status', 'active').order('artist_name')
@@ -50,6 +56,54 @@ export default function ManagerRegisterWork() {
   }, [selectedArtist, artists]);
 
   const selectedArtistData = artists.find((a: any) => a.id === selectedArtist);
+
+  // Reset link state when artist changes
+  useEffect(() => {
+    setLinkEmail('');
+    setLinkResult(null);
+    setLinkError('');
+  }, [selectedArtist]);
+
+  const handleSearchUser = async () => {
+    if (!linkEmail.trim()) return;
+    setLinkSearching(true);
+    setLinkResult(null);
+    setLinkError('');
+    try {
+      const { data, error } = await supabase.functions.invoke('lookup-user-by-email', {
+        body: { email: linkEmail.trim() },
+      });
+      if (error) throw error;
+      if (data?.found) {
+        setLinkResult(data);
+      } else {
+        setLinkError('No se encontró ninguna cuenta con ese email.');
+      }
+    } catch (err: any) {
+      setLinkError(err.message || 'Error buscando usuario');
+    } finally {
+      setLinkSearching(false);
+    }
+  };
+
+  const handleLinkAccount = async () => {
+    if (!linkResult?.user_id || !selectedArtist) return;
+    const { error } = await supabase
+      .from('managed_artists')
+      .update({ artist_user_id: linkResult.user_id } as any)
+      .eq('id', selectedArtist);
+    if (error) {
+      toast.error('Error vinculando cuenta: ' + error.message);
+      return;
+    }
+    toast.success('Cuenta vinculada correctamente');
+    // Update local state
+    setArtists((prev) =>
+      prev.map((a) => (a.id === selectedArtist ? { ...a, artist_user_id: linkResult.user_id } : a))
+    );
+    setLinkResult(null);
+    setLinkEmail('');
+  };
 
   const handleSubmit = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio'); return; }
@@ -138,12 +192,43 @@ export default function ManagerRegisterWork() {
                   </AlertDescription>
                 </Alert>
               ) : (
-                <Alert className="border-blue-500/50 bg-blue-500/10">
-                  <AlertDescription className="text-muted-foreground flex items-center gap-2">
-                    <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
-                    Sin cuenta vinculada — la obra se registrará bajo tu cuenta de manager.
-                  </AlertDescription>
-                </Alert>
+                <div className="space-y-3">
+                  <Alert className="border-blue-500/50 bg-blue-500/10">
+                    <AlertDescription className="text-muted-foreground flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
+                      Sin cuenta vinculada — la obra se registrará bajo tu cuenta de manager.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="border border-border rounded-lg p-4 space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Link2 className="h-4 w-4" />
+                      Vincular cuenta de MusicDibs
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Email del artista en MusicDibs"
+                        value={linkEmail}
+                        onChange={(e) => setLinkEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchUser()}
+                      />
+                      <Button type="button" variant="outline" size="sm" onClick={handleSearchUser} disabled={linkSearching || !linkEmail.trim()}>
+                        <Search className="h-4 w-4 mr-1" /> {linkSearching ? 'Buscando...' : 'Buscar'}
+                      </Button>
+                    </div>
+                    {linkError && <p className="text-sm text-destructive">{linkError}</p>}
+                    {linkResult && (
+                      <div className="flex items-center justify-between bg-muted/50 rounded-md p-3">
+                        <div>
+                          <p className="text-sm font-medium">{linkResult.display_name}</p>
+                          <p className="text-xs text-muted-foreground">{linkResult.email} · {linkResult.subscription_plan}</p>
+                        </div>
+                        <Button type="button" size="sm" onClick={handleLinkAccount}>
+                          <Link2 className="h-4 w-4 mr-1" /> Vincular
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </>
           )}
