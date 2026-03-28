@@ -873,14 +873,14 @@ const AIStudioCreate = () => {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary"
+                          className="h-7 text-xs gap-1 hover:text-amber-400 text-amber-400 hover:bg-amber-400/10"
                           disabled={isImprovingLyrics || !lyricsDesc.trim()}
                           onClick={handleImproveLyricsDesc}
                           title="Optimiza tu descripción para obtener mejores resultados"
                         >
                           {isImprovingLyrics
-                            ? <><Loader2 className="h-3 w-3 animate-spin" />Mejorando...</>
-                            : <><Sparkles className="h-3 w-3" />Mejorar con IA</>
+                            ? <><Loader2 className="h-3 w-3 animate-spin text-amber-400" />Mejorando...</>
+                            : <><Sparkles className="h-3 w-3 text-amber-400" />Mejorar con IA</>
                           }
                         </Button>
                       </div>
