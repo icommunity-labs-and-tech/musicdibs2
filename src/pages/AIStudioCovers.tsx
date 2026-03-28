@@ -288,22 +288,22 @@ const AIStudioCovers = () => {
                         alignItems: 'center',
                         gap: '6px',
                         fontSize: '14px',
-                        fontWeight: 500,
-                        color: '#9ca3af',
+                        fontWeight: 600,
+                        color: '#4b5563',
                         background: 'transparent',
                         border: '1px solid transparent',
                         borderRadius: '8px',
-                        padding: '5px 14px',
+                        padding: '6px 14px',
                         cursor: 'pointer',
                         opacity: (isImprovingDesc || !description.trim()) ? 0.4 : 1,
                         transition: 'border-color 0.15s, color 0.15s, background 0.15s',
                       }}
                       onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.color = 'hsl(var(--primary))'; e.currentTarget.style.background = 'hsl(var(--primary) / 0.08)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'transparent'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                     >
                       {isImprovingDesc
-                        ? <><Loader2 style={{ width: 15, height: 15, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando…</>
-                        : <><Sparkles style={{ width: 15, height: 15, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                        ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando…</>
+                        : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                       }
                     </button>
                   </div>
