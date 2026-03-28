@@ -293,6 +293,12 @@ export default function ManagerLanding() {
             <p className="text-muted-foreground">Sin compromiso. Te respondemos en menos de 24 horas.</p>
           </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
           {sent ? (
             <Card className="bg-card/60 border-primary/30">
               <CardContent className="py-12 text-center space-y-4">
