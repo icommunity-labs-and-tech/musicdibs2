@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { RegistrationWizard } from '@/components/dashboard/register/RegistrationWizard';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
+import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function RegisterPage() {
+  const { isManager } = useAuth();
+  if (isManager) return <Navigate to="/dashboard/manager/register" replace />;
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
 
   return (
