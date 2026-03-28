@@ -102,23 +102,62 @@ serve(async (req) => {
 
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
 
-    const response = await fetch('https://api.elevenlabs.io/v1/music', {
-      method: 'POST',
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        prompt: enrichedPrompt,
-        duration_seconds: duration || 60,
-      }),
-    });
+    // Helper to call ElevenLabs Music API
+    const callElevenLabs = async (promptText: string) => {
+      return fetch('https://api.elevenlabs.io/v1/music', {
+        method: 'POST',
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: promptText,
+          duration_seconds: duration || 60,
+        }),
+      });
+    };
 
-    if (!response.ok) {
+    let response = await callElevenLabs(enrichedPrompt);
+
+    // If prompt was rejected (bad_prompt), retry with the suggested prompt
+    if (!response.ok && response.status === 400) {
+      const errText = await response.text();
+      console.warn(`[GENERATE-AUDIO] Prompt rejected (400): ${errText.substring(0, 200)}`);
+
+      try {
+        const errJson = JSON.parse(errText);
+        const detail = errJson?.detail || errJson;
+        const suggestion = detail?.data?.prompt_suggestion;
+
+        if (detail?.status === 'bad_prompt' && suggestion) {
+          console.log(`[GENERATE-AUDIO] Retrying with suggested prompt: "${suggestion.substring(0, 100)}"`);
+          response = await callElevenLabs(suggestion);
+
+          if (!response.ok) {
+            const retryErr = await response.text();
+            console.error(`[GENERATE-AUDIO] Retry also failed: ${response.status} - ${retryErr}`);
+            return new Response(
+              JSON.stringify({ error: `Generation failed on retry: ${response.status}`, details: retryErr }),
+              { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          // Retry succeeded — fall through to success handling below
+        } else {
+          return new Response(
+            JSON.stringify({ error: `Generation failed: 400`, details: errText }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      } catch {
+        return new Response(
+          JSON.stringify({ error: `Generation failed: 400`, details: errText }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } else if (!response.ok) {
       const errText = await response.text();
       console.error(`[GENERATE-AUDIO] ElevenLabs error: ${response.status} - ${errText}`);
 
-      // Check for insufficient credits
       if (response.status === 401 || response.status === 403) {
         return new Response(
           JSON.stringify({ error: 'insufficient_credits', message: 'Créditos de ElevenLabs insuficientes', details: errText }),
