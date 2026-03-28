@@ -641,26 +641,32 @@ const AIStudioVideo = () => {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm">Describe la escena</Label>
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
-                      disabled={isImprovingPrompt || !prompt.trim()}
                       onClick={handleImprovePrompt}
+                      disabled={isImprovingPrompt || !prompt.trim()}
+                      title="Optimiza tu descripción para obtener mejores resultados"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        color: 'hsl(var(--primary))',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '2px 8px',
+                        cursor: 'pointer',
+                        opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
+                        pointerEvents: (isImprovingPrompt || !prompt.trim()) ? 'none' as const : 'auto' as const,
+                      }}
                     >
-                      {isImprovingPrompt ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Mejorando…
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3" />
-                          Mejorar con IA
-                        </>
-                      )}
-                    </Button>
+                      {isImprovingPrompt
+                        ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando…</>
+                        : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
+                      }
+                    </button>
                   </div>
                   <Textarea
                     placeholder="Ej: A person walking through neon-lit streets at night, cinematic slow motion, rain reflections on the ground..."
