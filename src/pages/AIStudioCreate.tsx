@@ -22,7 +22,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, Import, RotateCw
+  Mic, Headphones, Import, RotateCw, Sparkles
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -148,6 +148,9 @@ const AIStudioCreate = () => {
   const [lyricsHistory, setLyricsHistory] = useState<LyricsGeneration[]>([]);
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // ── Improve prompt state ──
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
 
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
@@ -408,6 +411,32 @@ const AIStudioCreate = () => {
     setGenerationError(null);
   };
 
+  // ── Improve prompt with AI ──
+  const handleImprovePrompt = async () => {
+    if (!prompt.trim()) return;
+    setIsImprovingPrompt(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: {
+          prompt: prompt.trim(),
+          genre: selectedGenre || undefined,
+          mood: selectedMood || undefined,
+          mode,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.improved) {
+        setPrompt(data.improved.slice(0, 400));
+        toast({ title: "Prompt mejorado", description: "La descripción ha sido enriquecida con IA" });
+      }
+    } catch (e: any) {
+      toast({ title: "Error al mejorar", description: e.message, variant: "destructive" });
+    } finally {
+      setIsImprovingPrompt(false);
+    }
+  };
+
   // ── Lyrics composer functions ──
   const toggleArtistRef = (artist: string) => {
     setLyricsArtistRefs(prev => prev.includes(artist) ? prev.filter(a => a !== artist) : [...prev, artist]);
@@ -645,7 +674,28 @@ const AIStudioCreate = () => {
 
                       {/* Main textarea */}
                       <div className="space-y-1.5">
-                        <Label>Describe tu canción</Label>
+                        <div className="flex items-center justify-between">
+                          <Label>Describe tu canción</Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleImprovePrompt}
+                            disabled={!prompt.trim() || isImprovingPrompt}
+                            className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                          >
+                            {isImprovingPrompt ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Mejorando...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Mejorar con IA
+                              </>
+                            )}
+                          </Button>
+                        </div>
                         <Textarea
                           placeholder="Una canción de pop romántico sobre el primer amor..."
                           value={prompt}
