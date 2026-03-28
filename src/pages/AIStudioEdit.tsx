@@ -422,8 +422,8 @@ const AIStudioEdit = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Source Selection */}
-          <div className="space-y-6">
+          {/* Source Selection - Col 1, spans 2 rows */}
+          <div className="space-y-6 lg:row-span-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Fuente de Audio</CardTitle>
