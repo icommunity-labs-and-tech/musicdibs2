@@ -125,21 +125,40 @@ export default function ManagerLanding() {
       <Navbar />
 
       {/* HERO */}
-      <section className="relative pt-32 pb-20 px-4">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <Badge variant="secondary" className="text-sm px-4 py-1.5">
+      <section className="relative pt-32 pb-28 px-4 overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/8 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-40 right-0 w-72 h-72 rounded-full bg-primary/3 blur-2xl pointer-events-none" />
+
+        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
+          <Badge variant="secondary" className="text-sm px-4 py-1.5 animate-fade-in">
             Para managers y agencias
           </Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
             Gestiona la propiedad intelectual de{' '}
-            <span className="text-primary">toda tu cartera</span>
+            <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              toda tu cartera
+            </span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             La plataforma para managers, productores y agencias musicales. Registra y distribuye las obras de todos tus artistas desde un solo panel.
           </p>
-          <Button size="lg" onClick={scrollToForm} className="gap-2">
-            Solicitar presupuesto <ArrowDown className="h-4 w-4" />
-          </Button>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+            <Button size="lg" onClick={scrollToForm} className="gap-2 text-base px-8 h-12 shadow-lg shadow-primary/20">
+              Solicitar presupuesto <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Trust indicators */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Sin compromiso</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Presupuesto en 24h</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Registro en blockchain</span>
+          </div>
         </div>
       </section>
 
