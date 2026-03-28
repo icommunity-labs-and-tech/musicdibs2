@@ -710,21 +710,24 @@ const AIStudioCreate = () => {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              fontSize: '12px',
+                              gap: '5px',
+                              fontSize: '13px',
                               fontWeight: 400,
                               color: '#9ca3af',
                               background: 'transparent',
-                              border: 'none',
+                              border: '1px solid transparent',
                               borderRadius: '6px',
-                              padding: '2px 8px',
+                              padding: '3px 10px',
                               cursor: 'pointer',
                               opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
+                              transition: 'border-color 0.15s, color 0.15s',
                             }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'hsl(var(--primary))'; (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--primary))'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'; }}
                           >
                             {isImprovingPrompt
-                              ? <><Loader2 style={{ width: 12, height: 12, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                              : <><Sparkles style={{ width: 12, height: 12, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                              ? <><Loader2 style={{ width: 13, height: 13, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                              : <><Sparkles style={{ width: 13, height: 13, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                             }
                           </button>
                         </div>
@@ -883,21 +886,24 @@ const AIStudioCreate = () => {
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            fontSize: '12px',
+                            gap: '5px',
+                            fontSize: '13px',
                             fontWeight: 400,
                             color: '#9ca3af',
                             background: 'transparent',
-                            border: 'none',
+                            border: '1px solid transparent',
                             borderRadius: '6px',
-                            padding: '2px 8px',
+                            padding: '3px 10px',
                             cursor: 'pointer',
                             opacity: (isImprovingLyrics || !lyricsDesc.trim()) ? 0.4 : 1,
+                            transition: 'border-color 0.15s, color 0.15s',
                           }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'hsl(var(--primary))'; (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--primary))'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'; }}
                         >
                           {isImprovingLyrics
-                            ? <><Loader2 style={{ width: 12, height: 12, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                            : <><Sparkles style={{ width: 12, height: 12, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                            ? <><Loader2 style={{ width: 13, height: 13, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                            : <><Sparkles style={{ width: 13, height: 13, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                           }
                         </button>
                       </div>
