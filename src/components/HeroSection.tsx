@@ -73,7 +73,7 @@ export const HeroSection = () => {
         {/* Subtitle */}
         <ScrollReveal delay={400}>
           <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            {t("hero.subtitle_prefix")} {" "}
+            Crea, registra, promociona y distribuye tu música con validez legal y en un SOLO click {" "}
             <span className="font-semibold text-white">{t("hero.subtitle_strong")}</span>{" "}
             <a 
               href="/legal-validity"
