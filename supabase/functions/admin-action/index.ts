@@ -96,8 +96,11 @@ serve(async (req) => {
 
       // 1 query for all roles
       const { data: roles } = await admin.from("user_roles").select("user_id, role").in("user_id", userIds);
-      const rolesMap: Record<string, string> = {};
-      (roles || []).forEach((r: any) => { rolesMap[r.user_id] = r.role; });
+      const rolesMap: Record<string, string[]> = {};
+      (roles || []).forEach((r: any) => {
+        if (!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
+        rolesMap[r.user_id].push(r.role);
+      });
 
       // 1 query for all works counts
       const { data: worksCounts } = await admin.from("works").select("user_id").in("user_id", userIds);
@@ -119,7 +122,7 @@ serve(async (req) => {
       let result = (profiles || []).map((p: any) => ({
         ...p,
         display_name: p.display_name || metaNameMap[p.user_id] || "",
-        role: rolesMap[p.user_id] || "user",
+        roles: rolesMap[p.user_id] || ["user"],
         works_count: worksCountMap[p.user_id] || 0,
         email: emailsMap[p.user_id] || "",
       }));
@@ -231,6 +234,27 @@ serve(async (req) => {
         target_user_id: user_id,
         target_email: targetAuth?.user?.email || "",
         details: { is_admin },
+      });
+
+      return json({ success: true });
+    }
+
+    if (action === "set_manager_role") {
+      const { user_id, is_manager } = payload;
+      if (!user_id) return json({ error: "user_id required" }, 400);
+
+      if (is_manager) {
+        await admin.from("user_roles").upsert({ user_id, role: "manager" }, { onConflict: "user_id,role" });
+      } else {
+        await admin.from("user_roles").delete().eq("user_id", user_id).eq("role", "manager");
+      }
+
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      await audit({
+        action: is_manager ? "grant_manager" : "revoke_manager",
+        target_user_id: user_id,
+        target_email: targetAuth?.user?.email || "",
+        details: { is_manager },
       });
 
       return json({ success: true });
