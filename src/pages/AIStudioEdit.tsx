@@ -795,7 +795,7 @@ const AIStudioEdit = () => {
           </div>
 
           {/* Result */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             <h2 className="text-xl font-semibold">Resultado</h2>
             {isProcessing ? (
               <Card>
