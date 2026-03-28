@@ -243,7 +243,7 @@ export default function ManagerLanding() {
                   <h4 className="font-semibold text-lg">{s.title}</h4>
                   <p className="text-muted-foreground text-sm mt-1">{s.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
