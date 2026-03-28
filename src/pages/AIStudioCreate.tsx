@@ -151,6 +151,8 @@ const AIStudioCreate = () => {
 
   // ── Improve prompt state ──
   const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+  const [isImprovingLyrics, setIsImprovingLyrics] = useState(false);
+  const [improvedLyricsDesc, setImprovedLyricsDesc] = useState(false);
 
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
@@ -434,6 +436,30 @@ const AIStudioCreate = () => {
       toast({ title: "Error al mejorar", description: e.message, variant: "destructive" });
     } finally {
       setIsImprovingPrompt(false);
+    }
+  };
+
+  const handleImproveLyricsDesc = async () => {
+    if (!lyricsDesc.trim()) return;
+    setIsImprovingLyrics(true);
+    setImprovedLyricsDesc(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: {
+          prompt: lyricsDesc,
+          genre: lyricsGenre || '',
+          mood: lyricsMood || '',
+          mode: 'lyrics',
+        },
+      });
+      if (error || !data?.improved) throw new Error(error?.message || 'No response');
+      setLyricsDesc(data.improved.slice(0, 400));
+      setImprovedLyricsDesc(true);
+      toast({ title: '✨ Descripción mejorada', description: 'Puedes editarla antes de generar la letra' });
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo mejorar la descripción', variant: 'destructive' });
+    } finally {
+      setIsImprovingLyrics(false);
     }
   };
 
@@ -841,8 +867,29 @@ const AIStudioCreate = () => {
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="space-y-1.5">
-                      <Label className="text-sm">¿De qué va tu canción?</Label>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-sm">¿De qué va tu canción?</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary"
+                          disabled={isImprovingLyrics || !lyricsDesc.trim()}
+                          onClick={handleImproveLyricsDesc}
+                          title="Optimiza tu descripción para obtener mejores resultados"
+                        >
+                          {isImprovingLyrics
+                            ? <><Loader2 className="h-3 w-3 animate-spin" />Mejorando...</>
+                            : <><Sparkles className="h-3 w-3" />Mejorar con IA</>
+                          }
+                        </Button>
+                      </div>
                       <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={400} placeholder="Describe la historia, el sentimiento, la situación..." />
+                      {improvedLyricsDesc && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ✨ Descripción optimizada por IA — puedes editarla antes de generar
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/400</p>
                     </div>
 
