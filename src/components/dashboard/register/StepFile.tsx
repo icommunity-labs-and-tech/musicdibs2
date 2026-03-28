@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState } from 'react';
-import { Upload, X, FileUp, Music } from 'lucide-react';
+import { Upload, X, FileUp, Music, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { WizardData } from './types';
@@ -21,33 +21,56 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const handleFile = useCallback(
-    (f: File) => onUpdate({ file: f, aiAudioUrl: null }),
-    [onUpdate]
+  const handleFiles = useCallback(
+    (newFiles: FileList | File[]) => {
+      const filesArray = Array.from(newFiles);
+      if (filesArray.length === 0) return;
+      // Set the first file as primary, add all to files array
+      const primary = data.file || filesArray[0];
+      const merged = [...data.files, ...filesArray];
+      // Deduplicate by name+size
+      const unique = merged.filter((f, i, arr) =>
+        arr.findIndex(x => x.name === f.name && x.size === f.size) === i
+      );
+      onUpdate({
+        file: primary,
+        files: unique,
+        aiAudioUrl: null,
+      });
+    },
+    [onUpdate, data.file, data.files]
+  );
+
+  const removeFile = useCallback(
+    (index: number) => {
+      const newFiles = data.files.filter((_, i) => i !== index);
+      const newPrimary = newFiles.length > 0 ? newFiles[0] : null;
+      onUpdate({ file: newPrimary, files: newFiles });
+    },
+    [onUpdate, data.files]
   );
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      const f = e.dataTransfer.files[0];
-      if (f) handleFile(f);
+      handleFiles(e.dataTransfer.files);
     },
-    [handleFile]
+    [handleFiles]
   );
 
-  const hasFile = data.file || data.aiAudioUrl;
+  const hasFile = data.files.length > 0 || data.aiAudioUrl;
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Subir archivo</h2>
+        <h2 className="text-lg font-semibold">Subir archivo(s)</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Se generará una huella digital del archivo para certificar su autoría.
+          Se generará una huella digital de cada archivo para certificar su autoría. Puedes adjuntar varios archivos.
         </p>
       </div>
 
-      {data.aiAudioUrl && !data.file ? (
+      {data.aiAudioUrl && data.files.length === 0 ? (
         <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <Music className="h-5 w-5 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
@@ -58,22 +81,34 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
             Cambiar
           </Button>
         </div>
-      ) : data.file ? (
-        <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <FileUp className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{data.file.name}</p>
-            <p className="text-xs text-muted-foreground">{formatSize(data.file.size)}</p>
-          </div>
+      ) : data.files.length > 0 ? (
+        <div className="space-y-2">
+          {data.files.map((f, idx) => (
+            <div key={`${f.name}-${f.size}`} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <FileUp className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{f.name}</p>
+                <p className="text-xs text-muted-foreground">{formatSize(f.size)}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => removeFile(idx)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            onClick={() => onUpdate({ file: null })}
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => inputRef.current?.click()}
           >
-            <X className="h-4 w-4" />
+            <Plus className="h-4 w-4 mr-1" /> Añadir más archivos
           </Button>
         </div>
       ) : (
@@ -91,15 +126,15 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
             <Upload className="h-6 w-6 text-primary" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium">Arrastra tu archivo aquí</p>
-            <p className="text-xs text-muted-foreground mt-1">o haz clic para seleccionar</p>
+            <p className="text-sm font-medium">Arrastra tus archivos aquí</p>
+            <p className="text-xs text-muted-foreground mt-1">o haz clic para seleccionar (puedes elegir varios)</p>
           </div>
         </div>
       )}
 
-      <input ref={inputRef} type="file" className="hidden" onChange={(e) => {
-        const f = e.target.files?.[0];
-        if (f) handleFile(f);
+      <input ref={inputRef} type="file" multiple className="hidden" onChange={(e) => {
+        if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files);
+        e.target.value = '';
       }} />
 
       <div className="flex items-center gap-3">
