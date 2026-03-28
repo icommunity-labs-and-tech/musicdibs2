@@ -32,6 +32,7 @@ export interface WorkRegistration {
   author: string;
   description: string;
   file: File;
+  files?: File[];
   ownershipDeclaration: boolean;
   signatureId: string;
   creators?: import('@/components/dashboard/register/types').Creator[];

@@ -63,7 +63,7 @@ serve(async (req) => {
     }
 
     const userId = user.id;
-    const { workId, signatureId } = await req.json();
+    const { workId, signatureId, additionalFilePaths } = await req.json();
 
     if (!workId || typeof workId !== "string") {
       return new Response(JSON.stringify({ error: "workId is required" }), {
@@ -99,10 +99,20 @@ serve(async (req) => {
     }
 
     if (work.user_id !== userId) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Check if caller is a manager for this work
+      const { data: managedWork } = await supabaseAdmin
+        .from("managed_works")
+        .select("id")
+        .eq("work_id", workId)
+        .eq("manager_user_id", userId)
+        .maybeSingle();
+
+      if (!managedWork) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (work.status !== "processing") {
@@ -156,19 +166,39 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
+    // Encode primary file
+    const fileBase64 = base64Encode(new Uint8Array(fileBuffer));
+
+    // Build files array for iBS (primary + additional)
+    const ibsFiles = [{ name: fileName, file: fileBase64 }];
+
+    // Download and encode additional files if provided
+    const extraPaths: string[] = Array.isArray(additionalFilePaths) ? additionalFilePaths : [];
+    for (const extraPath of extraPaths) {
+      const { data: extraData, error: extraErr } = await supabaseAdmin.storage
+        .from("works-files")
+        .download(extraPath);
+      if (extraErr || !extraData) {
+        console.warn(`[IBS] Could not download additional file ${extraPath}:`, extraErr);
+        continue;
+      }
+      const extraBuffer = await extraData.arrayBuffer();
+      const extraBase64 = base64Encode(new Uint8Array(extraBuffer));
+      const extraName = extraPath.split("/").pop()?.replace(/^\d+_/, "") || "file";
+      ibsFiles.push({ name: extraName, file: extraBase64 });
+    }
+
     let evidenceId: string;
     let evidenceLink: string | undefined;
 
     if (fileSizeMB <= 20) {
       // ── Inline upload (≤20MB) ──────────────────────────────
-      console.log(`[IBS] Inline upload for work ${workId} (${fileSizeMB.toFixed(1)}MB)`);
-
-      const fileBase64 = base64Encode(new Uint8Array(fileBuffer));
+      console.log(`[IBS] Inline upload for work ${workId} (${fileSizeMB.toFixed(1)}MB), ${ibsFiles.length} file(s)`);
 
       const ibsBody = {
         payload: {
           title: work.title,
-          files: [{ name: fileName, file: fileBase64 }],
+          files: ibsFiles,
         },
         signatures: [{ id: signatureId }],
       };

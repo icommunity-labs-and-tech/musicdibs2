@@ -16,6 +16,7 @@ export interface WizardData {
 
   // Step: File
   file: File | null;
+  files: File[];
   aiAudioUrl: string | null;
 
   // Step: Title / Version
@@ -69,6 +70,7 @@ export const initialWizardData: WizardData = {
   parentWorkId: null,
   parentWorkTitle: null,
   file: null,
+  files: [],
   aiAudioUrl: null,
   title: '',
   workType: '',
