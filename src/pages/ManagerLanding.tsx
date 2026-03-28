@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SEO } from '@/components/SEO';
@@ -132,33 +133,55 @@ export default function ManagerLanding() {
         <div className="absolute top-40 right-0 w-72 h-72 rounded-full bg-primary/3 blur-2xl pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-          <Badge variant="secondary" className="text-sm px-4 py-1.5 animate-fade-in">
-            Para managers y agencias
-          </Badge>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <Badge variant="secondary" className="text-sm px-4 py-1.5">
+              Para managers y agencias
+            </Badge>
+          </motion.div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight"
+          >
             Gestiona la propiedad intelectual de{' '}
             <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               toda tu cartera
             </span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          >
             La plataforma para managers, productores y agencias musicales. Registra y distribuye las obras de todos tus artistas desde un solo panel.
-          </p>
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.45 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2"
+          >
             <Button size="lg" onClick={scrollToForm} className="gap-2 text-base px-8 h-12 shadow-lg shadow-primary/20">
               Solicitar presupuesto <ArrowDown className="h-4 w-4" />
             </Button>
-          </div>
+          </motion.div>
 
           {/* Trust indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-muted-foreground">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-4 text-sm text-muted-foreground"
+          >
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Sin compromiso</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Presupuesto en 24h</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> Registro en blockchain</span>
-          </div>
+          </motion.div>
         </div>
       </section>
 
