@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
 
 const STATUS_LABELS: Record<string, string> = { processing: 'Procesando', registered: 'Registrada', certified: 'Registrada', failed: 'Fallida' };
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = { processing: 'secondary', registered: 'default', certified: 'default', failed: 'destructive' };
