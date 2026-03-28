@@ -652,19 +652,18 @@ const AIStudioVideo = () => {
                         gap: '4px',
                         fontSize: '12px',
                         fontWeight: 400,
-                        color: 'hsl(var(--primary))',
+                        color: '#9ca3af',
                         background: 'transparent',
                         border: 'none',
                         borderRadius: '6px',
                         padding: '2px 8px',
                         cursor: 'pointer',
                         opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
-                        pointerEvents: (isImprovingPrompt || !prompt.trim()) ? 'none' as const : 'auto' as const,
                       }}
                     >
                       {isImprovingPrompt
-                        ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando…</>
-                        : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
+                        ? <><Loader2 style={{ width: 12, height: 12, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando…</>
+                        : <><Sparkles style={{ width: 12, height: 12, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                       }
                     </button>
                   </div>
