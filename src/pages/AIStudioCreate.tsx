@@ -707,16 +707,16 @@ const AIStudioCreate = () => {
                             size="sm"
                             onClick={handleImprovePrompt}
                             disabled={!prompt.trim() || isImprovingPrompt}
-                            className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                            className="h-7 text-xs gap-1 hover:text-amber-400 text-amber-400 hover:bg-amber-400/10"
                           >
                             {isImprovingPrompt ? (
                               <>
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
                                 Mejorando...
                               </>
                             ) : (
                               <>
-                                <Sparkles className="h-3.5 w-3.5" />
+                                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
                                 Mejorar con IA
                               </>
                             )}
