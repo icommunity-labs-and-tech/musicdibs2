@@ -51,3 +51,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.generate-cover]
     verify_jwt = false
+  [functions.improve-prompt]
+    verify_jwt = false

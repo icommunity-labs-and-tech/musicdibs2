@@ -149,6 +149,9 @@ const AIStudioCreate = () => {
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // ── Improve prompt state ──
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
