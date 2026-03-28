@@ -7,8 +7,9 @@ import type { DashboardSummary } from '@/types/dashboard';
 
 export default function RegisterPage() {
   const { isManager } = useAuth();
-  if (isManager) return <Navigate to="/dashboard/manager/register" replace />;
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+
+  if (isManager) return <Navigate to="/dashboard/manager/register" replace />;
 
   return (
     <div className="space-y-4 max-w-4xl">
