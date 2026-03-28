@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function DashboardHome() {
-  const { user, isManager, loading } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -47,11 +47,6 @@ export default function DashboardHome() {
         setHasWorks((count ?? 0) > 0);
       });
   }, [user]);
-
-  // Redirect managers to their dashboard
-  if (!loading && isManager) {
-    return <Navigate to="/dashboard/manager" replace />;
-  }
 
   if (hasWorks === null) {
     return (
