@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Download, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
+import { CertificateButton } from '@/components/dashboard/CertificateButton';
+import { DistributeButton } from '@/components/dashboard/DistributeButton';
 
 const STATUS_LABELS: Record<string, string> = { processing: 'Procesando', registered: 'Registrada', certified: 'Registrada', failed: 'Fallida' };
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = { processing: 'secondary', registered: 'default', certified: 'default', failed: 'destructive' };
@@ -19,7 +21,7 @@ export default function ManagerWorks() {
   useEffect(() => {
     if (!user) return;
     supabase.from('managed_works')
-      .select('*, managed_artists(artist_name, artist_email), works(title, status, created_at, blockchain_hash, certificate_url)')
+      .select('*, managed_artists(artist_name, artist_email), works(id, title, status, created_at, blockchain_hash, blockchain_network, certificate_url, checker_url, ibs_evidence_id, certified_at, type, description, distributed_at, distribution_clicks)')
       .eq('manager_user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => { setWorks(data || []); setLoading(false); });
@@ -85,11 +87,38 @@ export default function ManagerWorks() {
                       </TableCell>
                       <TableCell className="font-mono text-xs max-w-[120px] truncate">{w.works?.blockchain_hash || '—'}</TableCell>
                       <TableCell>
-                        {w.works?.certificate_url && (
-                          <Button size="sm" variant="ghost" asChild>
-                            <a href={w.works.certificate_url} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-1" /> Certificado</a>
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {w.works?.status === 'registered' && w.works?.blockchain_hash && w.works?.ibs_evidence_id && (
+                            <CertificateButton
+                              work={{
+                                id: w.works.id,
+                                title: w.works.title,
+                                type: w.works.type || 'Audio',
+                                blockchain_hash: w.works.blockchain_hash,
+                                blockchain_network: w.works.blockchain_network || 'Polygon',
+                                checker_url: w.works.checker_url || undefined,
+                                ibs_evidence_id: w.works.ibs_evidence_id,
+                                certified_at: w.works.certified_at || undefined,
+                                created_at: w.works.created_at,
+                              }}
+                              authorName={w.managed_artists?.artist_name || 'Autor'}
+                            />
+                          )}
+                          {w.works?.status === 'registered' && (
+                            <DistributeButton
+                              workId={w.works.id}
+                              distributedAt={w.works.distributed_at || null}
+                              currentClicks={w.works.distribution_clicks || 0}
+                              onDistributed={() => {
+                                supabase.from('managed_works')
+                                  .select('*, managed_artists(artist_name, artist_email), works(id, title, status, created_at, blockchain_hash, blockchain_network, certificate_url, checker_url, ibs_evidence_id, certified_at, type, description, distributed_at, distribution_clicks)')
+                                  .eq('manager_user_id', user!.id)
+                                  .order('created_at', { ascending: false })
+                                  .then(({ data }) => { setWorks(data || []); });
+                              }}
+                            />
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
