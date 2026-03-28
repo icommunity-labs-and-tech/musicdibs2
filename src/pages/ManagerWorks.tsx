@@ -66,17 +66,46 @@ export default function ManagerWorks() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Obras Registradas</h1>
-        {works.length > 0 && (
-          <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 mr-2" /> Exportar CSV</Button>
-        )}
+        <div className="flex items-center gap-2">
+          {works.length > 0 && (
+            <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 mr-2" /> Exportar CSV</Button>
+          )}
+        </div>
       </div>
+
+      {works.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {STATUS_FILTERS.map((f) => (
+            <Button
+              key={f.value}
+              variant={statusFilter === f.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setStatusFilter(f.value)}
+              className="text-xs"
+            >
+              {f.label}
+              {f.value !== 'all' && (
+                <span className="ml-1.5 opacity-70">
+                  {works.filter((w) => {
+                    const s = w.works?.status;
+                    if (f.value === 'registered') return s === 'registered' || s === 'certified';
+                    return s === f.value;
+                  }).length}
+                </span>
+              )}
+            </Button>
+          ))}
+        </div>
+      )}
 
       <Card>
         <CardContent className="pt-6">
-          {works.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">No hay obras registradas aún.</p>
+          {filteredWorks.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              {works.length === 0 ? 'No hay obras registradas aún.' : 'No hay obras con este estado.'}
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
