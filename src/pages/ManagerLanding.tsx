@@ -144,19 +144,19 @@ export default function ManagerLanding() {
       </section>
 
       {/* VALOR */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 bg-muted/20">
         <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
           {[
             { icon: FolderOpen, title: 'Cartera centralizada', desc: 'Gestiona todos tus artistas desde un único panel con visibilidad total de sus obras y registros.' },
             { icon: PenLine, title: 'Registro delegado', desc: 'Registra obras en blockchain en nombre de tus artistas como representante autorizado. Sin necesidad de que ellos accedan a la plataforma.' },
             { icon: BarChart3, title: 'Informes y exportación', desc: 'Exporta el historial completo de obras por artista en CSV. Control total para tu gestión.' },
           ].map((v) => (
-            <Card key={v.title} className="bg-card/50 border-border/40">
+            <Card key={v.title} className="bg-card border-border/50">
               <CardContent className="pt-8 pb-6 px-6 text-center space-y-4">
-                <div className="mx-auto h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="mx-auto h-14 w-14 rounded-xl bg-primary/20 flex items-center justify-center">
                   <v.icon className="h-7 w-7 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold">{v.title}</h3>
+                <h3 className="text-xl font-semibold text-foreground">{v.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">{v.desc}</p>
               </CardContent>
             </Card>
