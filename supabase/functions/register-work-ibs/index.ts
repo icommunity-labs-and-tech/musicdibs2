@@ -99,10 +99,20 @@ serve(async (req) => {
     }
 
     if (work.user_id !== userId) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      // Check if caller is a manager for this work
+      const { data: managedWork } = await supabaseAdmin
+        .from("managed_works")
+        .select("id")
+        .eq("work_id", workId)
+        .eq("manager_user_id", userId)
+        .maybeSingle();
+
+      if (!managedWork) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     if (work.status !== "processing") {
