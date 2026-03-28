@@ -19,18 +19,6 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isSignup) {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Cuenta creada", description: "Tu cuenta ha sido creada. Contacta al administrador para asignar el rol admin." });
-        setIsSignup(false);
-      }
-      setLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
@@ -104,11 +92,8 @@ const AdminLogin = () => {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (isSignup ? "Registrando..." : "Entrando...") : (isSignup ? "Registrarse" : "Entrar")}
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
-            <button type="button" onClick={() => setIsSignup(!isSignup)} className="w-full text-sm text-white/40 hover:text-white/60 transition">
-              {isSignup ? "¿Ya tienes cuenta? Inicia sesión" : "¿No tienes cuenta? Regístrate"}
-            </button>
           </form>
         </div>
       </div>
