@@ -384,6 +384,7 @@ export default function ManagerLanding() {
               </Button>
             </form>
           )}
+          </motion.div>
         </div>
       </section>
 
