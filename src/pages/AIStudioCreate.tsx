@@ -710,24 +710,24 @@ const AIStudioCreate = () => {
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '5px',
-                              fontSize: '13px',
-                              fontWeight: 400,
+                              gap: '6px',
+                              fontSize: '14px',
+                              fontWeight: 500,
                               color: '#9ca3af',
                               background: 'transparent',
                               border: '1px solid transparent',
-                              borderRadius: '6px',
-                              padding: '3px 10px',
+                              borderRadius: '8px',
+                              padding: '5px 14px',
                               cursor: 'pointer',
                               opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
-                              transition: 'border-color 0.15s, color 0.15s',
+                              transition: 'border-color 0.15s, color 0.15s, background 0.15s',
                             }}
-                            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'hsl(var(--primary))'; (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--primary))'; }}
-                            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'; }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.color = 'hsl(var(--primary))'; e.currentTarget.style.background = 'hsl(var(--primary) / 0.08)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'transparent'; }}
                           >
                             {isImprovingPrompt
-                              ? <><Loader2 style={{ width: 13, height: 13, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                              : <><Sparkles style={{ width: 13, height: 13, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                              ? <><Loader2 style={{ width: 15, height: 15, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                              : <><Sparkles style={{ width: 15, height: 15, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                             }
                           </button>
                         </div>
@@ -886,24 +886,24 @@ const AIStudioCreate = () => {
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '5px',
-                            fontSize: '13px',
-                            fontWeight: 400,
+                            gap: '6px',
+                            fontSize: '14px',
+                            fontWeight: 500,
                             color: '#9ca3af',
                             background: 'transparent',
                             border: '1px solid transparent',
-                            borderRadius: '6px',
-                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            padding: '5px 14px',
                             cursor: 'pointer',
                             opacity: (isImprovingLyrics || !lyricsDesc.trim()) ? 0.4 : 1,
-                            transition: 'border-color 0.15s, color 0.15s',
+                            transition: 'border-color 0.15s, color 0.15s, background 0.15s',
                           }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'hsl(var(--primary))'; (e.currentTarget as HTMLButtonElement).style.color = 'hsl(var(--primary))'; }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#9ca3af'; }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.color = 'hsl(var(--primary))'; e.currentTarget.style.background = 'hsl(var(--primary) / 0.08)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#9ca3af'; e.currentTarget.style.background = 'transparent'; }}
                         >
                           {isImprovingLyrics
-                            ? <><Loader2 style={{ width: 13, height: 13, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                            : <><Sparkles style={{ width: 13, height: 13, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                            ? <><Loader2 style={{ width: 15, height: 15, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                            : <><Sparkles style={{ width: 15, height: 15, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
                           }
                         </button>
                       </div>
