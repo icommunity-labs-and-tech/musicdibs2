@@ -21,7 +21,7 @@ export default function ManagerWorks() {
   useEffect(() => {
     if (!user) return;
     supabase.from('managed_works')
-      .select('*, managed_artists(artist_name, artist_email), works(title, status, created_at, blockchain_hash, certificate_url)')
+      .select('*, managed_artists(artist_name, artist_email), works(id, title, status, created_at, blockchain_hash, blockchain_network, certificate_url, checker_url, ibs_evidence_id, certified_at, type, description, distributed_at, distribution_clicks)')
       .eq('manager_user_id', user.id)
       .order('created_at', { ascending: false })
       .then(({ data }) => { setWorks(data || []); setLoading(false); });
