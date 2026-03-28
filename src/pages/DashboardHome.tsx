@@ -48,6 +48,11 @@ export default function DashboardHome() {
       });
   }, [user]);
 
+  // Redirect managers to their dashboard
+  if (!loading && isManager) {
+    return <Navigate to="/dashboard/manager" replace />;
+  }
+
   if (hasWorks === null) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
