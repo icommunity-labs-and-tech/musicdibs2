@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function DashboardHome() {
-  const { user } = useAuth();
+  const { user, isManager, loading } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
