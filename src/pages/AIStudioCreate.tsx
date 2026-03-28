@@ -702,25 +702,32 @@ const AIStudioCreate = () => {
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
                           <Label>Describe tu canción</Label>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                          <button
+                            type="button"
                             onClick={handleImprovePrompt}
-                            disabled={!prompt.trim() || isImprovingPrompt}
-                            className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
+                            disabled={isImproving || !prompt.trim()}
+                            title="Optimiza tu descripción para obtener mejores resultados"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '12px',
+                              fontWeight: 400,
+                              color: 'hsl(var(--primary))',
+                              background: 'transparent',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '2px 8px',
+                              cursor: 'pointer',
+                              opacity: (isImproving || !prompt.trim()) ? 0.4 : 1,
+                              pointerEvents: (isImproving || !prompt.trim()) ? 'none' as const : 'auto' as const,
+                            }}
                           >
-                            {isImprovingPrompt ? (
-                              <>
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                Mejorando...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-3.5 w-3.5" />
-                                Mejorar con IA
-                              </>
-                            )}
-                          </Button>
+                            {isImproving
+                              ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                              : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
+                            }
+                          </button>
                         </div>
                         <Textarea
                           placeholder="Una canción de pop romántico sobre el primer amor..."
@@ -869,20 +876,32 @@ const AIStudioCreate = () => {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between mb-1">
                         <Label className="text-sm">¿De qué va tu canción?</Label>
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
-                          disabled={isImprovingLyrics || !lyricsDesc.trim()}
                           onClick={handleImproveLyricsDesc}
+                          disabled={isImprovingLyrics || !lyricsDesc.trim()}
                           title="Optimiza tu descripción para obtener mejores resultados"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            color: 'hsl(var(--primary))',
+                            background: 'transparent',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '2px 8px',
+                            cursor: 'pointer',
+                            opacity: (isImprovingLyrics || !lyricsDesc.trim()) ? 0.4 : 1,
+                            pointerEvents: (isImprovingLyrics || !lyricsDesc.trim()) ? 'none' as const : 'auto' as const,
+                          }}
                         >
                           {isImprovingLyrics
-                            ? <><Loader2 className="h-3 w-3 animate-spin" />Mejorando...</>
-                            : <><Sparkles className="h-3 w-3" />Mejorar con IA</>
+                            ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando...</>
+                            : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
                           }
-                        </Button>
+                        </button>
                       </div>
                       <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={400} placeholder="Describe la historia, el sentimiento, la situación..." />
                       {improvedLyricsDesc && (
