@@ -84,13 +84,20 @@ serve(async (req) => {
     }
 
     // Build enriched prompt for ElevenLabs Music API
+    // IMPORTANT: Do NOT include raw lyrics in the prompt — they often trigger
+    // ElevenLabs content-policy filters. Only send a clean musical description.
     const parts: string[] = [];
     if (genre) parts.push(genre);
     if (mood) parts.push(mood);
     if (mode === 'song') parts.push('song with vocals');
     if (mode === 'instrumental') parts.push('instrumental');
-    parts.push(prompt);
-    if (lyrics) parts.push(`Lyrics: ${lyrics.slice(0, 500)}`);
+    // Sanitise the user prompt: strip any quoted song titles or artist names
+    // that could be flagged as copyright references.
+    const cleanPrompt = prompt
+      .replace(/["«»""]/g, '')          // remove quotation marks
+      .replace(/\b(estilo|style)\s+(de|of)\s+.{1,60}/gi, '') // strip "estilo de <artist>"
+      .trim();
+    if (cleanPrompt) parts.push(cleanPrompt);
     const enrichedPrompt = parts.join('. ');
 
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
