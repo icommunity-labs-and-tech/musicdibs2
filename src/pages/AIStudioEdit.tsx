@@ -422,8 +422,8 @@ const AIStudioEdit = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Source Selection */}
-          <div className="space-y-6">
+          {/* Source Selection - Col 1, spans 2 rows */}
+          <div className="space-y-6 lg:row-span-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Fuente de Audio</CardTitle>
@@ -516,7 +516,7 @@ const AIStudioEdit = () => {
             </Card>
           </div>
 
-          {/* Edit Options */}
+          {/* Mejora con Auphonic - Col 2 */}
           <div className="space-y-6">
             {/* ── Mejora con Auphonic ─────────────────────────────── */}
             <Card>
@@ -654,14 +654,10 @@ const AIStudioEdit = () => {
               </CardContent>
             </Card>
 
-            <div className="relative">
-              <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground">
-                o usa IA generativa para variaciones
-              </span>
-            </div>
+          </div>
 
-            {/* Existing edit type card */}
+          {/* Tipo de Edición - Col 3 */}
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Tipo de Edición</CardTitle>
@@ -799,7 +795,7 @@ const AIStudioEdit = () => {
           </div>
 
           {/* Result */}
-          <div className="space-y-6">
+          <div className="lg:col-span-2 space-y-6">
             <h2 className="text-xl font-semibold">Resultado</h2>
             {isProcessing ? (
               <Card>
