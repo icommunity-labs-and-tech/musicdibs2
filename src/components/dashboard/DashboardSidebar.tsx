@@ -21,7 +21,6 @@ import {
   Settings2,
   Rocket,
   Briefcase,
-  FileText,
   ClipboardList,
 } from 'lucide-react';
 import {
@@ -41,23 +40,27 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const mainItems = [
-  { title: 'Lanza tu primer hit 🚀', url: '/dashboard/launch', icon: Rocket, highlight: true },
-  { title: 'Panel de control', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Registrar obra', url: '/dashboard/register', icon: Upload },
-  { title: 'Historial de registros', url: '/dashboard/blockchain', icon: Shield },
-  { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
-  { title: 'Verificar identidad', url: '/dashboard/verify-identity', icon: User },
-  { title: 'Promocionar obra', url: '/dashboard/promote', icon: Megaphone },
-  { title: 'Planes y créditos', url: '/dashboard/credits', icon: ShoppingBag },
+const managerItems = [
+  { title: 'Panel Manager', url: '/dashboard/manager', icon: Briefcase },
+  { title: 'Mis Artistas', url: '/dashboard/manager/artists', icon: Users },
+  { title: 'Registrar Obra', url: '/dashboard/manager/register', icon: Upload },
+  { title: 'Obras Registradas', url: '/dashboard/manager/works', icon: ClipboardList },
 ];
 
-const toolsItems = [
+const mainItems = [
+  { title: 'Lanza tu primer hit 🚀', url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
+  { title: 'Panel de control', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Registrar obra', url: '/dashboard/register', icon: Upload, hideForManager: true },
+  { title: 'Historial de registros', url: '/dashboard/blockchain', icon: Shield },
+  { title: 'Verificar registro', url: '/dashboard/verify', icon: Search },
+  { title: 'Verificar identidad', url: '/dashboard/verify-identity', icon: User, kycOnly: true },
+  { title: 'Promocionar obra', url: '/dashboard/promote', icon: Megaphone },
   { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
 ];
 
 const accountItems = [
   { title: 'Perfil', url: '/dashboard/profile', icon: User },
+  { title: 'Planes y créditos', url: '/dashboard/credits', icon: ShoppingBag },
   { title: 'Facturación', url: '/dashboard/billing', icon: CreditCard },
   { title: 'Soporte', url: '/dashboard/support', icon: LifeBuoy },
 ];
@@ -68,13 +71,6 @@ const adminItems = [
   { title: 'Obras', url: '/dashboard/admin/works', icon: Music },
   { title: 'Métricas', url: '/dashboard/admin/metrics', icon: BarChart3 },
   { title: 'Sistema', url: '/dashboard/admin/system', icon: Settings2 },
-];
-
-const managerItems = [
-  { title: 'Panel Manager', url: '/dashboard/manager', icon: Briefcase },
-  { title: 'Mis Artistas', url: '/dashboard/manager/artists', icon: Users },
-  { title: 'Registrar Obra', url: '/dashboard/manager/register', icon: Upload },
-  { title: 'Obras Registradas', url: '/dashboard/manager/works', icon: ClipboardList },
 ];
 
 export function DashboardSidebar() {
@@ -111,6 +107,41 @@ export function DashboardSidebar() {
       ? location.pathname === '/dashboard'
       : location.pathname.startsWith(path);
 
+  const filteredMainItems = mainItems.filter(item => {
+    if ((item as any).kycOnly && kycStatus === 'verified') return false;
+    if ((item as any).launchOnly && isManager) return false;
+    if ((item as any).hideForManager && isManager) return false;
+    return true;
+  });
+
+  const renderMenuItem = (item: typeof mainItems[0]) => {
+    const isHighlight = !!(item as any).highlight && !isManager;
+    return (
+      <SidebarMenuItem key={item.title}>
+        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+          <NavLink
+            to={item.url}
+            end={item.url === '/dashboard'}
+            className={`hover:bg-muted/50 ${isHighlight ? 'text-violet-500 font-bold' : ''}`}
+            activeClassName="bg-primary/10 text-primary font-medium"
+          >
+            <item.icon className={`mr-2 h-4 w-4 ${isHighlight ? 'text-violet-500' : ''}`} />
+            {!collapsed && (
+              <span className="flex items-center gap-2 flex-1">
+                {item.title}
+                {isHighlight && !isActive(item.url) && (
+                  <span className="ml-auto rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-500 leading-none">
+                    NEW
+                  </span>
+                )}
+              </span>
+            )}
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="p-4">
@@ -123,86 +154,34 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {isManager && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Manager</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {managerItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && <span>{item.title}</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems
-                .filter(item => !(item.url === '/dashboard/verify-identity' && kycStatus === 'verified'))
-                .filter(item => {
-                  if (!isManager) return true;
-                  // Hide these items for managers
-                  const hiddenForManager = ['/dashboard/launch', '/dashboard/register'];
-                  return !hiddenForManager.includes(item.url);
-                })
-                .map((item) => {
-                  const isHighlight = !!(item as any).highlight && !isManager;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                        <NavLink
-                          to={item.url}
-                          end={item.url === '/dashboard'}
-                          className={`hover:bg-muted/50 ${isHighlight ? 'text-violet-500 font-bold' : ''}`}
-                          activeClassName="bg-primary/10 text-primary font-medium"
-                        >
-                          <item.icon className={`mr-2 h-4 w-4 ${isHighlight ? 'text-violet-500' : ''}`} />
-                          {!collapsed && (
-                            <span className="flex items-center gap-2 flex-1">
-                              {item.title}
-                              {isHighlight && !isActive(item.url) && (
-                                <span className="ml-auto rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-500 leading-none">
-                                  NEW
-                                </span>
-                              )}
-                            </span>
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
+              {filteredMainItems.map(renderMenuItem)}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Herramientas</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {toolsItems.map((item) => (
-                <SidebarMenuItem key={item.title} data-tour="ai-studio">
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isManager && (
-        <SidebarGroup>
-          <SidebarGroupLabel>Manager</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {managerItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        )}
 
         <SidebarGroup>
           <SidebarGroupLabel>Cuenta</SidebarGroupLabel>
@@ -221,6 +200,7 @@ export function DashboardSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
         {isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Administración</SidebarGroupLabel>
