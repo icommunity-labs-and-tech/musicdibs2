@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,16 +10,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, Upload, Search, Link2, Unlink } from 'lucide-react';
+import { AlertTriangle, Upload, Search, Link2, X, FileUp, Plus } from 'lucide-react';
+import { SignatureSelector } from '@/components/dashboard/register/SignatureSelector';
 
 const WORK_TYPES = [
-  { value: 'song', label: 'Canción' },
-  { value: 'album', label: 'Álbum' },
-  { value: 'lyrics', label: 'Letra' },
-  { value: 'composition', label: 'Composición' },
-  { value: 'document', label: 'Documento' },
+  { value: 'audio', label: 'Canción' },
+  { value: 'instrumental', label: 'Instrumental' },
+  { value: 'document', label: 'Letra' },
+  { value: 'demo', label: 'Demo' },
+  { value: 'videoclip', label: 'Videoclip' },
+  { value: 'cover_art', label: 'Portada de disco' },
   { value: 'other', label: 'Otro' },
 ];
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function ManagerRegisterWork() {
   const { user } = useAuth();
@@ -31,9 +39,10 @@ export default function ManagerRegisterWork() {
   const [selectedArtist, setSelectedArtist] = useState(preselectedArtist || '');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [workType, setWorkType] = useState('song');
+  const [workType, setWorkType] = useState('audio');
   const [author, setAuthor] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [signatureId, setSignatureId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -63,6 +72,19 @@ export default function ManagerRegisterWork() {
     setLinkResult(null);
     setLinkError('');
   }, [selectedArtist]);
+
+  const handleAddFiles = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+    const arr = Array.from(newFiles);
+    setFiles(prev => {
+      const merged = [...prev, ...arr];
+      return merged.filter((f, i, a) => a.findIndex(x => x.name === f.name && x.size === f.size) === i);
+    });
+  };
+
+  const removeFile = (idx: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== idx));
+  };
 
   const handleSearchUser = async () => {
     if (!linkEmail.trim()) return;
@@ -97,7 +119,6 @@ export default function ManagerRegisterWork() {
       return;
     }
     toast.success('Cuenta vinculada correctamente');
-    // Update local state
     setArtists((prev) =>
       prev.map((a) => (a.id === selectedArtist ? { ...a, artist_user_id: linkResult.user_id } : a))
     );
@@ -108,6 +129,8 @@ export default function ManagerRegisterWork() {
   const handleSubmit = async () => {
     if (!title.trim()) { toast.error('El título es obligatorio'); return; }
     if (!selectedArtist) { toast.error('Selecciona un artista'); return; }
+    if (!signatureId) { toast.error('Selecciona una firma digital'); return; }
+    if (files.length === 0) { toast.error('Adjunta al menos un archivo'); return; }
     if (!user) return;
 
     setSubmitting(true);
@@ -116,15 +139,28 @@ export default function ManagerRegisterWork() {
       // Determine user_id: use artist's account if linked, otherwise manager's
       const workUserId = selectedArtistData?.artist_user_id || user.id;
 
-      let filePath: string | null = null;
+      // Spend credits
+      const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
+        body: { feature: 'register_work', description: `Registro manager: ${title}` },
+      });
+      if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
+      if (spendResult?.error) throw new Error(spendResult.error);
 
-      // Upload file if provided
-      if (file) {
-        const ext = file.name.split('.').pop();
-        const path = `${workUserId}/${Date.now()}.${ext}`;
-        const { error: uploadErr } = await supabase.storage.from('works-files').upload(path, file);
+      // Compute SHA-256 hash of primary file
+      const primaryBuffer = await files[0].arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', primaryBuffer);
+      const fileHash = Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      // Upload all files
+      const filePaths: string[] = [];
+      for (const f of files) {
+        const ext = f.name.split('.').pop();
+        const path = `${workUserId}/${Date.now()}_${f.name}`;
+        const { error: uploadErr } = await supabase.storage.from('works-files').upload(path, f);
         if (uploadErr) { toast.error('Error subiendo archivo: ' + uploadErr.message); setSubmitting(false); return; }
-        filePath = path;
+        filePaths.push(path);
       }
 
       // Insert work
@@ -134,7 +170,8 @@ export default function ManagerRegisterWork() {
         description: description.trim() || null,
         type: workType,
         author: author.trim() || null,
-        file_path: filePath,
+        file_path: filePaths[0],
+        file_hash: fileHash,
         status: 'processing',
       }).select('id').single();
 
@@ -148,7 +185,21 @@ export default function ManagerRegisterWork() {
         authorized_by: 'contract',
       } as any);
 
-      toast.success('Obra registrada correctamente');
+      // Call iBS to generate blockchain evidence
+      const { data: ibsResult, error: ibsError } = await supabase.functions.invoke('register-work-ibs', {
+        body: { workId: work.id, signatureId, additionalFilePaths: filePaths.slice(1) },
+      });
+
+      if (ibsError) {
+        console.error('[ManagerRegister] iBS call error:', ibsError);
+        toast.warning('Obra registrada, pero la certificación blockchain puede tardar.');
+      } else if (ibsResult?.success === false) {
+        toast.warning('Obra registrada. Certificación en proceso.');
+      } else {
+        toast.success('Obra registrada y enviada a certificación blockchain');
+      }
+
+      window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
       navigate('/dashboard/manager/works');
     } catch (err: any) {
       toast.error('Error inesperado: ' + err.message);
@@ -259,10 +310,43 @@ export default function ManagerRegisterWork() {
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción de la obra..." rows={3} />
           </div>
 
-          <div>
-            <Label>Archivo (opcional)</Label>
-            <Input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          {/* Multi-file upload */}
+          <div className="space-y-2">
+            <Label>Archivos *</Label>
+            {files.length > 0 ? (
+              <div className="space-y-2">
+                {files.map((f, idx) => (
+                  <div key={`${f.name}-${f.size}`} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card p-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <FileUp className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{f.name}</p>
+                      <p className="text-xs text-muted-foreground">{formatSize(f.size)}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => removeFile(idx)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => document.getElementById('manager-file-input')?.click()}>
+                  <Plus className="h-4 w-4 mr-1" /> Añadir más archivos
+                </Button>
+              </div>
+            ) : (
+              <div
+                className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 p-8 cursor-pointer transition-colors"
+                onClick={() => document.getElementById('manager-file-input')?.click()}
+              >
+                <Upload className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Haz clic para seleccionar archivos</p>
+              </div>
+            )}
+            <input id="manager-file-input" type="file" multiple className="hidden" onChange={(e) => { handleAddFiles(e.target.files); e.target.value = ''; }} />
           </div>
+
+          {/* Signature selector */}
+          <SignatureSelector value={signatureId} onChange={setSignatureId} />
 
           <div className="flex gap-3 pt-2">
             <Button onClick={handleSubmit} disabled={submitting} className="w-full sm:w-auto">
