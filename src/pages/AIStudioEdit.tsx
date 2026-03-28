@@ -654,14 +654,10 @@ const AIStudioEdit = () => {
               </CardContent>
             </Card>
 
-            <div className="relative">
-              <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground">
-                o usa IA generativa para variaciones
-              </span>
-            </div>
+          </div>
 
-            {/* Existing edit type card */}
+          {/* Tipo de Edición - Col 3 */}
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Tipo de Edición</CardTitle>
