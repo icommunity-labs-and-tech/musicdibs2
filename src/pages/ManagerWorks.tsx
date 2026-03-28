@@ -13,10 +13,18 @@ import { DistributeButton } from '@/components/dashboard/DistributeButton';
 const STATUS_LABELS: Record<string, string> = { processing: 'Procesando', registered: 'Registrada', certified: 'Registrada', failed: 'Fallida' };
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = { processing: 'secondary', registered: 'default', certified: 'default', failed: 'destructive' };
 
+const STATUS_FILTERS = [
+  { value: 'all', label: 'Todas' },
+  { value: 'processing', label: 'Procesando' },
+  { value: 'registered', label: 'Registrada' },
+  { value: 'failed', label: 'Fallida' },
+];
+
 export default function ManagerWorks() {
   const { user } = useAuth();
   const [works, setWorks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     if (!user) return;
