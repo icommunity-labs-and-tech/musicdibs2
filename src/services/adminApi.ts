@@ -15,6 +15,7 @@ export const adminApi = {
   setKyc: (user_id: string, status: string) => adminAction('set_kyc', { user_id, status }),
   toggleBlock: (user_id: string, blocked: boolean) => adminAction('toggle_block', { user_id, blocked }),
   setAdminRole: (user_id: string, is_admin: boolean) => adminAction('set_admin_role', { user_id, is_admin }),
+  setManagerRole: (user_id: string, is_manager: boolean) => adminAction('set_manager_role', { user_id, is_manager }),
   getAllWorks: (offset = 0, status_filter = '', search = '') => adminAction('get_all_works', { offset, status_filter, search }),
   getMetrics: () => adminAction('get_metrics'),
   getAllTransactions: (offset = 0, type_filter = '', date_from = '', date_to = '') => adminAction('get_all_transactions', { offset, type_filter, date_from, date_to }),

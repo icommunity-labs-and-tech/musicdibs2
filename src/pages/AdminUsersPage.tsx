@@ -81,6 +81,15 @@ export default function AdminUsersPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const handleToggleManager = async (userId: string, isManager: boolean) => {
+    if (!confirm(isManager ? '¿Dar rol de manager a este usuario?' : '¿Quitar rol de manager a este usuario?')) return;
+    try {
+      await adminApi.setManagerRole(userId, isManager);
+      toast.success(isManager ? 'Manager asignado' : 'Manager revocado');
+      load();
+    } catch (e: any) { toast.error(e.message); }
+  };
+
   const kycBadge = (status: string) => {
     const map: Record<string, string> = { verified: 'bg-green-500/20 text-green-400', pending: 'bg-yellow-500/20 text-yellow-400', unverified: 'bg-muted text-muted-foreground', rejected: 'bg-destructive/20 text-destructive' };
     return <Badge className={map[status] || map.unverified}>{status}</Badge>;
@@ -123,6 +132,7 @@ export default function AdminUsersPage() {
               <TableHead>Teléfono</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Créditos</TableHead>
+              <TableHead>Rol</TableHead>
               <TableHead>KYC</TableHead>
               <TableHead>Obras</TableHead>
               <TableHead>Alta</TableHead>
@@ -134,9 +144,9 @@ export default function AdminUsersPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
             ) : users.length === 0 ? (
-              <TableRow><TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
+              <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Sin resultados</TableCell></TableRow>
             ) : users.map(u => (
               <TableRow key={u.user_id} className="cursor-pointer hover:bg-muted/40" onClick={() => setSelectedUser(u)}>
                 <TableCell>
@@ -148,6 +158,17 @@ export default function AdminUsersPage() {
                 <TableCell className="text-xs text-muted-foreground">{u.phone || '—'}</TableCell>
                 <TableCell><Badge variant="outline">{u.subscription_plan}</Badge></TableCell>
                 <TableCell className="font-mono">{u.available_credits}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1 flex-wrap">
+                    {(u.roles || ['user']).map((r: string) => (
+                      <Badge key={r} className={
+                        r === 'admin' ? 'bg-pink-500/20 text-pink-400 border-pink-500/30' :
+                        r === 'manager' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                        'bg-muted text-muted-foreground'
+                      }>{r}</Badge>
+                    ))}
+                  </div>
+                </TableCell>
                 <TableCell>{kycBadge(u.kyc_status)}</TableCell>
                 <TableCell>{u.works_count}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</TableCell>
@@ -181,10 +202,15 @@ export default function AdminUsersPage() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => handleToggleAdmin(u.user_id, u.role !== 'admin')}
-                        disabled={u.user_id === user?.id && u.role === 'admin'}
+                        onClick={() => handleToggleAdmin(u.user_id, !(u.roles || []).includes('admin'))}
+                        disabled={u.user_id === user?.id && (u.roles || []).includes('admin')}
                       >
-                        {u.role === 'admin' ? 'Quitar admin' : 'Dar admin'}
+                        {(u.roles || []).includes('admin') ? 'Quitar admin' : 'Dar admin'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleToggleManager(u.user_id, !(u.roles || []).includes('manager'))}
+                      >
+                        {(u.roles || []).includes('manager') ? 'Quitar manager' : 'Dar manager'}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
