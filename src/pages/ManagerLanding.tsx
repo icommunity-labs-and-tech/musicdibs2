@@ -192,16 +192,24 @@ export default function ManagerLanding() {
             { icon: FolderOpen, title: 'Cartera centralizada', desc: 'Gestiona todos tus artistas desde un único panel con visibilidad total de sus obras y registros.' },
             { icon: PenLine, title: 'Registro delegado', desc: 'Registra obras en blockchain en nombre de tus artistas como representante autorizado. Sin necesidad de que ellos accedan a la plataforma.' },
             { icon: BarChart3, title: 'Informes y exportación', desc: 'Exporta el historial completo de obras por artista en CSV. Control total para tu gestión.' },
-          ].map((v) => (
-            <Card key={v.title} className="bg-card border-border/50">
-              <CardContent className="pt-8 pb-6 px-6 text-center space-y-4">
-                <div className="mx-auto h-14 w-14 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <v.icon className="h-7 w-7 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground">{v.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{v.desc}</p>
-              </CardContent>
-            </Card>
+          ].map((v, i) => (
+            <motion.div
+              key={v.title}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.5, delay: i * 0.15 }}
+            >
+              <Card className="bg-card border-border/50 h-full">
+                <CardContent className="pt-8 pb-6 px-6 text-center space-y-4">
+                  <div className="mx-auto h-14 w-14 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <v.icon className="h-7 w-7 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">{v.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{v.desc}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -209,10 +217,25 @@ export default function ManagerLanding() {
       {/* CÓMO FUNCIONA */}
       <section className="py-20 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto space-y-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-center">Cómo funciona</h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold text-center"
+          >
+            Cómo funciona
+          </motion.h2>
           <div className="grid sm:grid-cols-2 gap-8">
-            {steps.map((s) => (
-              <div key={s.n} className="flex gap-4">
+            {steps.map((s, i) => (
+              <motion.div
+                key={s.n}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -20 : 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="flex gap-4"
+              >
                 <div className="shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                   {s.n}
                 </div>
