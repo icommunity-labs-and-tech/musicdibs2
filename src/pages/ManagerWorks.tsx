@@ -35,9 +35,17 @@ export default function ManagerWorks() {
       .then(({ data }) => { setWorks(data || []); setLoading(false); });
   }, [user]);
 
+  const filteredWorks = statusFilter === 'all'
+    ? works
+    : works.filter((w) => {
+        const s = w.works?.status;
+        if (statusFilter === 'registered') return s === 'registered' || s === 'certified';
+        return s === statusFilter;
+      });
+
   const exportCsv = () => {
     const rows = [['Artista', 'Título', 'Fecha', 'Estado', 'Hash Blockchain']];
-    works.forEach((w: any) => {
+    filteredWorks.forEach((w: any) => {
       rows.push([
         w.managed_artists?.artist_name || '',
         w.works?.title || '',
