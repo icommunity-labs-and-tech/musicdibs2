@@ -114,30 +114,36 @@ export async function registerWork(data: WorkRegistration): Promise<{
   if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
   if (spendResult?.error) throw new Error(spendResult.error);
 
-  // Compute SHA-256 hash of the ORIGINAL file before upload
-  const fileBuffer = await data.file.arrayBuffer();
+  // Gather all files (primary + additional)
+  const allFiles = data.files && data.files.length > 0 ? data.files : [data.file];
+
+  // Compute SHA-256 hash of the primary file before upload
+  const fileBuffer = await allFiles[0].arrayBuffer();
   const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
   const fileHash = Array.from(new Uint8Array(hashBuffer))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
   console.log('[registerWork] Pre-upload file hash:', fileHash);
 
-  // Upload file to storage
-  const filePath = `${user.id}/${Date.now()}_${data.file.name}`;
-  const { error: uploadError } = await supabase.storage
-    .from('works-files')
-    .upload(filePath, data.file);
+  // Upload all files to storage
+  const filePaths: string[] = [];
+  for (const f of allFiles) {
+    const filePath = `${user.id}/${Date.now()}_${f.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from('works-files')
+      .upload(filePath, f);
+    if (uploadError) throw new Error(`Error subiendo archivo: ${uploadError.message}`);
+    filePaths.push(filePath);
+  }
 
-  if (uploadError) throw new Error(`Error subiendo archivo: ${uploadError.message}`);
-
-  // Insert work record with pre-computed hash
+  // Insert work record with pre-computed hash (primary file path)
   const { data: work, error } = await supabase.from('works').insert({
     user_id: user.id,
     title: data.title,
     type: data.type,
     author: data.author,
     description: data.description,
-    file_path: filePath,
+    file_path: filePaths[0],
     file_hash: fileHash,
     status: 'processing',
   }).select().single();
@@ -146,7 +152,7 @@ export async function registerWork(data: WorkRegistration): Promise<{
 
   // Call real iBS registration
   const { data: ibsResult, error: ibsError } = await supabase.functions.invoke('register-work-ibs', {
-    body: { workId: work.id, signatureId: data.signatureId },
+    body: { workId: work.id, signatureId: data.signatureId, additionalFilePaths: filePaths.slice(1) },
   });
 
   if (ibsError) {
