@@ -156,6 +156,9 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
+    // Encode primary file
+    const fileBase64 = base64Encode(new Uint8Array(fileBuffer));
+
     // Build files array for iBS (primary + additional)
     const ibsFiles = [{ name: fileName, file: fileBase64 }];
 
