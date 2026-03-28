@@ -120,7 +120,7 @@ export default function ManagerWorks() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {works.map((w: any) => (
+                  {filteredWorks.map((w: any) => (
                     <TableRow key={w.id}>
                       <TableCell className="font-medium">{w.managed_artists?.artist_name || '—'}</TableCell>
                       <TableCell>{w.works?.title || '—'}</TableCell>
