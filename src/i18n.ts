@@ -64,7 +64,7 @@ const resources = {
       hero: {
         title: 'Tu obra,',
         highlight: 'solo tuya',
-        subtitle_prefix: 'Registra, promociona y distribuye tu música con',
+        subtitle_prefix: 'Crea, registra, promociona y distribuye tu música con',
         subtitle_strong: 'validez legal en TODO el mundo',
         legal_more: '+info',
         cta_start: 'Empezar Ya',
