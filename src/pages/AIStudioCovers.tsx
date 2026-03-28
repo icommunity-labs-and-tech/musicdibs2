@@ -278,26 +278,32 @@ const AIStudioCovers = () => {
                       Descripción adicional{" "}
                       <span className="text-muted-foreground font-normal">(opcional)</span>
                     </Label>
-                    <Button
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
-                      disabled={isImprovingDesc || !description.trim()}
                       onClick={handleImproveDescription}
+                      disabled={isImprovingDesc || !description.trim()}
+                      title="Optimiza tu descripción para obtener mejores resultados"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        color: 'hsl(var(--primary))',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '2px 8px',
+                        cursor: 'pointer',
+                        opacity: (isImprovingDesc || !description.trim()) ? 0.4 : 1,
+                        pointerEvents: (isImprovingDesc || !description.trim()) ? 'none' as const : 'auto' as const,
+                      }}
                     >
-                      {isImprovingDesc ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Mejorando…
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3" />
-                          Mejorar con IA
-                        </>
-                      )}
-                    </Button>
+                      {isImprovingDesc
+                        ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando…</>
+                        : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
+                      }
+                    </button>
                   </div>
                   <Textarea
                     value={description}
