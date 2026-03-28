@@ -516,7 +516,7 @@ const AIStudioEdit = () => {
             </Card>
           </div>
 
-          {/* Edit Options */}
+          {/* Mejora con Auphonic - Col 2 */}
           <div className="space-y-6">
             {/* ── Mejora con Auphonic ─────────────────────────────── */}
             <Card>
