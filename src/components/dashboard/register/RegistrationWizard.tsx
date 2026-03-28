@@ -87,6 +87,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
 
   const handleSubmit = async () => {
     let uploadFile = data.file;
+    let uploadFiles = data.files.length > 0 ? [...data.files] : [];
     if (!uploadFile && data.aiAudioUrl) {
       setLoading(true);
       uploadFile = await convertAudioUrlToFile(data.aiAudioUrl);
@@ -95,8 +96,9 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
         setLoading(false);
         return;
       }
+      uploadFiles = [uploadFile];
     }
-    if (!uploadFile || !data.signatureId) return;
+    if ((!uploadFile && uploadFiles.length === 0) || !data.signatureId) return;
 
     setLoading(true);
     try {
@@ -115,7 +117,8 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
         type: effectiveType as any,
         author: data.creators.map((c) => c.name).join(', '),
         description: data.description,
-        file: uploadFile,
+        file: uploadFiles[0] || uploadFile!,
+        files: uploadFiles.length > 0 ? uploadFiles : undefined,
         ownershipDeclaration: true,
         signatureId: data.signatureId,
       });
