@@ -252,25 +252,46 @@ export default function ManagerLanding() {
       {/* FAQ */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto space-y-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-center">Preguntas frecuentes</h2>
-          <Accordion type="single" collapsible className="w-full">
-            {faqItems.map((f, i) => (
-              <AccordionItem key={i} value={`faq-${i}`}>
-                <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl md:text-4xl font-bold text-center"
+          >
+            Preguntas frecuentes
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
+            <Accordion type="single" collapsible className="w-full">
+              {faqItems.map((f, i) => (
+                <AccordionItem key={i} value={`faq-${i}`}>
+                  <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </div>
       </section>
 
       {/* FORMULARIO */}
       <section id="contacto-manager" className="py-20 px-4 bg-muted/30">
         <div className="max-w-2xl mx-auto space-y-8">
-          <div className="text-center space-y-2">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center space-y-2"
+          >
             <h2 className="text-3xl md:text-4xl font-bold">Solicita tu presupuesto personalizado</h2>
             <p className="text-muted-foreground">Sin compromiso. Te respondemos en menos de 24 horas.</p>
-          </div>
+          </motion.div>
 
           {sent ? (
             <Card className="bg-card/60 border-primary/30">
