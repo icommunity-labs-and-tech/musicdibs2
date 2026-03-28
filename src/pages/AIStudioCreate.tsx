@@ -705,7 +705,7 @@ const AIStudioCreate = () => {
                           <button
                             type="button"
                             onClick={handleImprovePrompt}
-                            disabled={isImproving || !prompt.trim()}
+                            disabled={isImprovingPrompt || !prompt.trim()}
                             title="Optimiza tu descripción para obtener mejores resultados"
                             style={{
                               display: 'inline-flex',
@@ -719,11 +719,11 @@ const AIStudioCreate = () => {
                               borderRadius: '6px',
                               padding: '2px 8px',
                               cursor: 'pointer',
-                              opacity: (isImproving || !prompt.trim()) ? 0.4 : 1,
-                              pointerEvents: (isImproving || !prompt.trim()) ? 'none' as const : 'auto' as const,
+                              opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
+                              pointerEvents: (isImprovingPrompt || !prompt.trim()) ? 'none' as const : 'auto' as const,
                             }}
                           >
-                            {isImproving
+                            {isImprovingPrompt
                               ? <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} />Mejorando...</>
                               : <><Sparkles style={{ width: 12, height: 12 }} />Mejorar con IA</>
                             }
