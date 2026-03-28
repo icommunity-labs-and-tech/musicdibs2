@@ -65,6 +65,26 @@ const AIStudioCovers = () => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [imageUrl,     setImageUrl]     = useState<string | null>(null)
   const [genError,     setGenError]     = useState<string | null>(null)
+  const [isImprovingDesc, setIsImprovingDesc] = useState(false)
+
+  const handleImproveDescription = async () => {
+    if (!description.trim()) return
+    setIsImprovingDesc(true)
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-prompt", {
+        body: { prompt: description, genre: "", mood: "", mode: "instrumental" },
+      })
+      if (error || data?.error) throw new Error(data?.error || error?.message)
+      if (data?.improved) {
+        setDescription(data.improved.slice(0, 300))
+        toast.success("✨ Descripción mejorada")
+      }
+    } catch {
+      toast.error("No se pudo mejorar la descripción")
+    } finally {
+      setIsImprovingDesc(false)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!trackTitle.trim() && !description.trim()) {
@@ -253,10 +273,32 @@ const AIStudioCovers = () => {
 
                 {/* Descripción libre */}
                 <div className="space-y-1.5">
-                  <Label className="text-sm">
-                    Descripción adicional{" "}
-                    <span className="text-muted-foreground font-normal">(opcional)</span>
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">
+                      Descripción adicional{" "}
+                      <span className="text-muted-foreground font-normal">(opcional)</span>
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
+                      disabled={isImprovingDesc || !description.trim()}
+                      onClick={handleImproveDescription}
+                    >
+                      {isImprovingDesc ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Mejorando…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3" />
+                          Mejorar con IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}

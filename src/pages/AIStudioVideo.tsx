@@ -78,6 +78,26 @@ const AIStudioVideo = () => {
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
   const [aspectRatio, setAspectRatio] = useState("1280:720");
+  const [isImprovingPrompt, setIsImprovingPrompt] = useState(false);
+
+  const handleImprovePrompt = async () => {
+    if (!prompt.trim()) return;
+    setIsImprovingPrompt(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-prompt", {
+        body: { prompt, genre: "", mood: "", mode: "instrumental" },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      if (data?.improved) {
+        setPrompt(data.improved);
+        toast({ title: "✨ Prompt mejorado", description: "Puedes editarlo antes de generar el vídeo" });
+      }
+    } catch {
+      toast({ title: "Error", description: "No se pudo mejorar el prompt", variant: "destructive" });
+    } finally {
+      setIsImprovingPrompt(false);
+    }
+  };
   const [duration, setDuration] = useState(5);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageName, setUploadedImageName] = useState<string>("");
@@ -618,13 +638,38 @@ const AIStudioVideo = () => {
                 <CardDescription>Describe el contenido y estilo del videoclip</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Textarea
-                  placeholder="Ej: A person walking through neon-lit streets at night, cinematic slow motion, rain reflections on the ground..."
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  rows={4}
-                  className="resize-none"
-                />
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Describe la escena</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1 text-muted-foreground hover:text-primary hover:bg-muted/50"
+                      disabled={isImprovingPrompt || !prompt.trim()}
+                      onClick={handleImprovePrompt}
+                    >
+                      {isImprovingPrompt ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Mejorando…
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3" />
+                          Mejorar con IA
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Textarea
+                    placeholder="Ej: A person walking through neon-lit streets at night, cinematic slow motion, rain reflections on the ground..."
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
 
                 {/* Style Selection */}
                 <div className="space-y-2">
