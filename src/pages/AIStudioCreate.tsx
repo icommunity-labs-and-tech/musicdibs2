@@ -160,6 +160,18 @@ const AIStudioCreate = () => {
   const [playingVoice, setPlayingVoice] = useState<string>('');
   const [audioRef] = useState<Record<string, HTMLAudioElement>>({});
 
+  // ── Voice cloning state ──
+  const [voiceClones, setVoiceClones] = useState<any[]>([]);
+  const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
+  const [selectedCloneId, setSelectedCloneId] = useState<string>('');
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [cloningName, setCloningName] = useState('');
+  const [cloningFile, setCloningFile] = useState<File | null>(null);
+  const [cloningDuration, setCloningDuration] = useState<number | null>(null);
+  const [cloningNoise, setCloningNoise] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const cloneFileRef = useRef<HTMLInputElement>(null);
+
   // ── Artist profile state ──
   const [artistProfiles, setArtistProfiles] = useState<any[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<string>('');
@@ -215,6 +227,16 @@ const AIStudioCreate = () => {
       .eq('active', true)
       .order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
+
+    // Load voice clones
+    if (user) {
+      supabase.from('voice_clones')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .then(({ data }) => setVoiceClones(data || []));
+    }
 
     // Load artist profiles
     if (user) {
@@ -288,7 +310,12 @@ const AIStudioCreate = () => {
       if (spendResult?.error) throw { message: spendResult.error };
 
       const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
-      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+      const selectedClone = voiceClones.find(v => v.id === selectedCloneId);
+      const voiceTag = selectedVoiceProfile
+        ? `, ${selectedVoiceProfile.prompt_tag}`
+        : selectedClone
+          ? `, voice resembling ${selectedClone.name}, personal voice clone`
+          : '';
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
@@ -406,6 +433,53 @@ const AIStudioCreate = () => {
     link.href = result.audioUrl;
     link.download = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
     link.click();
+  };
+
+  // ── Inline voice cloning ──
+  const handleInlineClone = async () => {
+    if (!cloningFile || !cloningName.trim() || !user) return;
+    if (cloningDuration !== null && cloningDuration < 30) {
+      toast({ title: 'Audio muy corto', description: 'Necesitas al menos 30 segundos de audio.', variant: 'destructive' });
+      return;
+    }
+    setIsCloning(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const form = new FormData();
+      form.append('audio', cloningFile);
+      form.append('name', cloningName.trim());
+      form.append('remove_background_noise', String(cloningNoise));
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: form,
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        toast({ title: 'Error', description: data.error || 'No se pudo clonar la voz', variant: 'destructive' });
+        return;
+      }
+      const { data: newClones } = await supabase.from('voice_clones')
+        .select('*').eq('user_id', user.id).eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setVoiceClones(newClones || []);
+      setSelectedCloneId(data.clone_id);
+      setSelectedVoice('');
+      setShowCloneModal(false);
+      setCloningName(''); setCloningFile(null); setCloningDuration(null); setCloningNoise(false);
+      if (cloneFileRef.current) cloneFileRef.current.value = '';
+      toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar. Ya está seleccionada.` });
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo conectar con el servidor', variant: 'destructive' });
+    } finally {
+      setIsCloning(false);
+    }
   };
 
   // ── Bulk helpers ──
@@ -1004,64 +1078,245 @@ const AIStudioCreate = () => {
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Tipo de voz</Label>
                         <p className="text-xs text-muted-foreground">Solo disponible en modo "Canción con voz"</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {voiceProfiles.map((v) => (
-                            <button
-                              key={v.id}
-                              type="button"
-                              onClick={() => setSelectedVoice(selectedVoice === v.id ? '' : v.id)}
-                              disabled={mode === 'instrumental'}
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'flex-start',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
-                                border: selectedVoice === v.id
-                                  ? '2px solid hsl(var(--primary))'
-                                  : '1px solid hsl(var(--border))',
-                                background: selectedVoice === v.id
-                                  ? 'hsl(var(--primary) / 0.08)'
-                                  : 'transparent',
-                                cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
-                                opacity: mode === 'instrumental' ? 0.4 : 1,
-                                transition: 'all 0.15s',
-                                textAlign: 'left',
-                                width: '100%',
-                              }}
-                              title={v.description}
-                            >
-                              <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
-                              <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
-                              {v.sample_url && (
-                                <span
-                                  onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
-                                  title={playingVoice === v.id ? 'Detener' : 'Escuchar muestra'}
+                        {/* Tabs preset / mi voz */}
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setVoiceTab('preset')}
+                            style={{
+                              padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
+                              border: voiceTab === 'preset' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                              background: voiceTab === 'preset' ? 'hsl(var(--primary) / 0.1)' : 'transparent',
+                              color: voiceTab === 'preset' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            🎵 Voces predefinidas
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setVoiceTab('clone')}
+                            style={{
+                              padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
+                              border: voiceTab === 'clone' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                              background: voiceTab === 'clone' ? 'hsl(var(--primary) / 0.1)' : 'transparent',
+                              color: voiceTab === 'clone' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            🎤 Mi voz {voiceClones.length > 0 && `(${voiceClones.length})`}
+                          </button>
+                        </div>
+                        {/* TAB: Voces predefinidas */}
+                        {voiceTab === 'preset' && (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {voiceProfiles.map((v) => (
+                              <button
+                                key={v.id}
+                                type="button"
+                                onClick={() => { setSelectedVoice(selectedVoice === v.id ? '' : v.id); setSelectedCloneId(''); }}
+                                disabled={mode === 'instrumental'}
+                                style={{
+                                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                                  padding: '8px 12px', borderRadius: '8px',
+                                  border: selectedVoice === v.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                                  background: selectedVoice === v.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
+                                  cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
+                                  opacity: mode === 'instrumental' ? 0.4 : 1,
+                                  transition: 'all 0.15s', textAlign: 'left', width: '100%',
+                                }}
+                                title={v.description}
+                              >
+                                <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
+                                <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
+                                {v.sample_url && (
+                                  <span
+                                    onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
+                                  >
+                                    {playingVoice === v.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {/* TAB: Mi voz clonada */}
+                        {voiceTab === 'clone' && (
+                          <div className="space-y-3">
+                            {voiceClones.length === 0 ? (
+                              <div style={{ textAlign: 'center', padding: '24px 16px', border: '1px dashed hsl(var(--border))', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginBottom: '12px' }}>
+                                  🎤 Aún no tienes ninguna voz clonada
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowCloneModal(true)}
                                   style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '3px',
-                                    marginTop: '4px',
-                                    fontSize: '11px',
-                                    color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280',
-                                    cursor: 'pointer',
+                                    padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
+                                    background: 'hsl(var(--primary))', color: 'white', border: 'none', cursor: 'pointer',
                                   }}
                                 >
-                                  {playingVoice === v.id
-                                    ? <span>⏹ Detener</span>
-                                    : <span>▶ Escuchar</span>
-                                  }
-                                </span>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                        {selectedVoice && (
+                                  + Clonar mi voz ahora
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {voiceClones.map((c) => (
+                                    <button
+                                      key={c.id}
+                                      type="button"
+                                      onClick={() => { setSelectedCloneId(selectedCloneId === c.id ? '' : c.id); setSelectedVoice(''); }}
+                                      disabled={mode === 'instrumental'}
+                                      style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                                        padding: '8px 12px', borderRadius: '8px',
+                                        border: selectedCloneId === c.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                                        background: selectedCloneId === c.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
+                                        cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
+                                        opacity: mode === 'instrumental' ? 0.4 : 1,
+                                        transition: 'all 0.15s', textAlign: 'left', width: '100%',
+                                      }}
+                                    >
+                                      <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
+                                      <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{c.name}</span>
+                                      <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Voz clonada</span>
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowCloneModal(true)}
+                                  style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
+                                >
+                                  + Añadir otra voz
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                        {(selectedVoice || selectedCloneId) && (
                           <p className="text-xs text-muted-foreground">
-                            {voiceProfiles.find(v => v.id === selectedVoice)?.description}
+                            {selectedVoice
+                              ? voiceProfiles.find(v => v.id === selectedVoice)?.description
+                              : `Usando tu voz clonada: ${voiceClones.find(c => c.id === selectedCloneId)?.name}`
+                            }
                           </p>
                         )}
                       </div>
+
+                      {/* MODAL DE CLONACIÓN INLINE */}
+                      {showCloneModal && (
+                        <div style={{
+                          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 50,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
+                        }}>
+                          <div style={{
+                            background: 'hsl(var(--background))', borderRadius: '16px', padding: '32px',
+                            width: '100%', maxWidth: '480px', border: '1px solid hsl(var(--border))',
+                          }}>
+                            <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
+                              🎤 Clonar mi voz
+                            </h2>
+                            <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>
+                              Sube 1-2 minutos de tu voz cantando o hablando. Sin música de fondo.
+                            </p>
+                            <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+                              💡 <strong>Consejos:</strong> Graba en silencio · Voz clara y natural · MP3 o WAV · Mín. 30 segundos
+                            </div>
+                            <div style={{ marginBottom: '16px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
+                                Nombre de tu voz *
+                              </label>
+                              <input
+                                type="text"
+                                value={cloningName}
+                                onChange={e => setCloningName(e.target.value)}
+                                placeholder="Ej: Mi voz, Luna, Artista..."
+                                maxLength={50}
+                                style={{
+                                  width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px',
+                                  border: '1px solid hsl(var(--border))', background: 'hsl(var(--background))',
+                                  color: 'hsl(var(--foreground))', boxSizing: 'border-box',
+                                }}
+                              />
+                            </div>
+                            <div style={{ marginBottom: '16px' }}>
+                              <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
+                                Audio de tu voz *
+                              </label>
+                              <input
+                                ref={cloneFileRef}
+                                type="file"
+                                accept="audio/mp3,audio/mpeg,audio/wav,audio/x-wav,audio/m4a,audio/mp4,.mp3,.wav,.m4a"
+                                onChange={e => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  setCloningFile(file);
+                                  const audio = new Audio(URL.createObjectURL(file));
+                                  audio.onloadedmetadata = () => setCloningDuration(Math.round(audio.duration));
+                                }}
+                                style={{ width: '100%', fontSize: '13px', color: 'hsl(var(--foreground))' }}
+                              />
+                              {cloningDuration !== null && (
+                                <p style={{
+                                  marginTop: '6px', fontSize: '12px',
+                                  color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e'
+                                }}>
+                                  {cloningDuration < 30
+                                    ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
+                                    : cloningDuration < 60
+                                      ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
+                                      : `✓ Duración óptima (${cloningDuration}s)`
+                                  }
+                                </p>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
+                              <input
+                                type="checkbox"
+                                id="clone-noise"
+                                checked={cloningNoise}
+                                onChange={e => setCloningNoise(e.target.checked)}
+                              />
+                              <label htmlFor="clone-noise" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>
+                                Eliminar ruido de fondo automáticamente
+                              </label>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button
+                                type="button"
+                                onClick={handleInlineClone}
+                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && cloningDuration < 30)}
+                                style={{
+                                  flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
+                                  background: 'hsl(var(--primary))', color: 'white', border: 'none',
+                                  cursor: (!cloningFile || !cloningName.trim() || isCloning) ? 'not-allowed' : 'pointer',
+                                  opacity: (!cloningFile || !cloningName.trim() || isCloning) ? 0.6 : 1,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                }}
+                              >
+                                {isCloning
+                                  ? <><Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />Clonando... (30-60s)</>
+                                  : '🎤 Clonar mi voz'
+                                }
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setShowCloneModal(false); setCloningName(''); setCloningFile(null); setCloningDuration(null); if (cloneFileRef.current) cloneFileRef.current.value = ''; }}
+                                style={{
+                                  padding: '10px 20px', borderRadius: '8px', fontSize: '14px',
+                                  background: 'transparent', color: 'hsl(var(--muted-foreground))',
+                                  border: '1px solid hsl(var(--border))', cursor: 'pointer',
+                                }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Duration options */}
                       <div className="space-y-2">
