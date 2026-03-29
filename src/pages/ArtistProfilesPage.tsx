@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy } from "lucide-react";
+import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -48,6 +48,7 @@ const ArtistProfilesPage = () => {
   const [formDuration, setFormDuration] = useState(60);
   const [formNotes, setFormNotes] = useState("");
   const [formDefault, setFormDefault] = useState(false);
+  const [generatingNotes, setGeneratingNotes] = useState(false);
 
   // Audio preview
   const [playingVoice, setPlayingVoice] = useState("");
@@ -170,6 +171,42 @@ const ArtistProfilesPage = () => {
     audio.onended = () => setPlayingVoice('');
   };
 
+  const handleGenerateNotes = async () => {
+    const voiceLabel = voiceProfiles.find(v => v.id === formVoice)?.label || '';
+    const context = [
+      formName && `Artista: ${formName}`,
+      voiceLabel && `Voz: ${voiceLabel}`,
+      formGenre && `Género: ${formGenre}`,
+      formMood && `Mood: ${formMood}`,
+    ].filter(Boolean).join(', ');
+
+    if (!context) {
+      toast({ title: "Añade al menos un dato", description: "Selecciona nombre, voz, género o mood para generar notas.", variant: "destructive" });
+      return;
+    }
+
+    setGeneratingNotes(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: {
+          prompt: `Genera unas notas de estilo breves (3-4 frases) para un perfil de artista musical con estas características: ${context}. ${formNotes ? `Notas existentes para expandir: ${formNotes}` : ''} Describe temática habitual, referencias musicales, idioma, atmósfera y elementos distintivos. Responde solo con las notas, sin encabezados.`,
+          genre: formGenre,
+          mood: formMood,
+          mode: 'song',
+        },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setFormNotes(data.improved);
+        toast({ title: "✨ Notas generadas" });
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "No se pudieron generar las notas", variant: "destructive" });
+    } finally {
+      setGeneratingNotes(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -283,7 +320,20 @@ const ArtistProfilesPage = () => {
 
             {/* Style notes */}
             <div className="space-y-1.5">
-              <Label>Notas de estilo</Label>
+              <div className="flex items-center justify-between">
+                <Label>Notas de estilo</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGenerateNotes}
+                  disabled={generatingNotes}
+                  className="gap-1.5 text-xs h-7 text-primary hover:text-primary"
+                >
+                  {generatingNotes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {generatingNotes ? 'Generando...' : 'Generar con IA'}
+                </Button>
+              </div>
               <Textarea
                 value={formNotes}
                 onChange={e => setFormNotes(e.target.value)}
