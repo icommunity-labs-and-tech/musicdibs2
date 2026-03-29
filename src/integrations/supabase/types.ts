@@ -868,6 +868,7 @@ export type Database = {
           id: string
           label: string
           prompt_tag: string
+          sample_url: string | null
           sort_order: number
         }
         Insert: {
@@ -878,6 +879,7 @@ export type Database = {
           id?: string
           label: string
           prompt_tag: string
+          sample_url?: string | null
           sort_order?: number
         }
         Update: {
@@ -888,6 +890,7 @@ export type Database = {
           id?: string
           label?: string
           prompt_tag?: string
+          sample_url?: string | null
           sort_order?: number
         }
         Relationships: []
