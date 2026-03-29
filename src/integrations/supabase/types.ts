@@ -787,6 +787,56 @@ export type Database = {
         }
         Relationships: []
       }
+      user_artist_profiles: {
+        Row: {
+          created_at: string
+          default_duration: number | null
+          genre: string | null
+          id: string
+          is_default: boolean | null
+          mood: string | null
+          name: string
+          style_notes: string | null
+          updated_at: string
+          user_id: string
+          voice_profile_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          default_duration?: number | null
+          genre?: string | null
+          id?: string
+          is_default?: boolean | null
+          mood?: string | null
+          name: string
+          style_notes?: string | null
+          updated_at?: string
+          user_id: string
+          voice_profile_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          default_duration?: number | null
+          genre?: string | null
+          id?: string
+          is_default?: boolean | null
+          mood?: string | null
+          name?: string
+          style_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          voice_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_artist_profiles_voice_profile_id_fkey"
+            columns: ["voice_profile_id"]
+            isOneToOne: false
+            referencedRelation: "voice_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
