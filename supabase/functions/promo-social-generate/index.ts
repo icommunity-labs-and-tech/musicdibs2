@@ -35,14 +35,14 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
 
 function buildImagePrompt(work: any, aiGen: any): string {
   const parts = [
-    `Professional music promotion artwork for "${work.title}" by ${work.author || 'artist'}.`,
+    `Generate a promotional image for the song "${work.title}" by ${work.author || 'artist'}.`,
   ];
   if (aiGen?.genre) parts.push(`Genre: ${aiGen.genre}.`);
   if (aiGen?.mood) parts.push(`Mood: ${aiGen.mood}.`);
   if (work.type) parts.push(`Type: ${work.type}.`);
   if (work.description) parts.push(`Context: ${work.description.slice(0, 100)}.`);
   if (aiGen?.prompt) parts.push(`Original AI concept: ${aiGen.prompt.slice(0, 120)}.`);
-  parts.push('Dark purple and violet gradient background with gold accents. Modern minimalist design. Square format 1080x1080. High quality, professional.');
+  parts.push('Create a striking square 1080x1080 promotional artwork with a dark purple and violet gradient background, gold accents, and modern minimalist design. Include the song title as text overlay. High quality, professional music promotion image.');
   return parts.join(' ');
 }
 
