@@ -48,6 +48,7 @@ const ArtistProfilesPage = () => {
   const [formDuration, setFormDuration] = useState(60);
   const [formNotes, setFormNotes] = useState("");
   const [formDefault, setFormDefault] = useState(false);
+  const [generatingNotes, setGeneratingNotes] = useState(false);
 
   // Audio preview
   const [playingVoice, setPlayingVoice] = useState("");
