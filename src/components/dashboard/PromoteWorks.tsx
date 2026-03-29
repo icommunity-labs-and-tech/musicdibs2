@@ -25,8 +25,15 @@ interface Work {
   author: string | null;
   type: string;
   status: string;
+  description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+}
+
+interface AiGenMeta {
+  prompt: string | null;
+  genre: string | null;
+  mood: string | null;
 }
 
 interface SocialPromo {
