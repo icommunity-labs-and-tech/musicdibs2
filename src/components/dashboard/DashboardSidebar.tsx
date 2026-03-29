@@ -13,6 +13,7 @@ import {
   LifeBuoy,
   Music,
   LogOut,
+  Mic,
   Sparkles,
   Shield,
   HelpCircle,
