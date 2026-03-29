@@ -81,10 +81,10 @@ export function PromoteWorks() {
     if (!user) return;
     setLoadingWorks(true);
 
-    const [worksRes, promosRes] = await Promise.all([
+    const [worksRes, promosRes, genRes] = await Promise.all([
       supabase
         .from('works')
-        .select('id, title, author, type, status, checker_url, distributed_at')
+        .select('id, title, author, type, status, description, checker_url, distributed_at')
         .eq('user_id', user.id)
         .eq('status', 'registered')
         .order('created_at', { ascending: false }),
@@ -93,9 +93,30 @@ export function PromoteWorks() {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('ai_generations')
+        .select('prompt, genre, mood')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50),
     ]);
 
-    if (worksRes.data) setWorks(worksRes.data as Work[]);
+    if (worksRes.data) {
+      setWorks(worksRes.data as Work[]);
+      // Map AI generation metadata to works by title match
+      if (genRes.data) {
+        const metaMap: Record<string, AiGenMeta> = {};
+        for (const w of worksRes.data) {
+          const match = genRes.data.find((g: any) =>
+            w.title && g.prompt?.toLowerCase().includes(w.title.toLowerCase())
+          );
+          if (match) {
+            metaMap[w.id] = { prompt: match.prompt, genre: match.genre, mood: match.mood };
+          }
+        }
+        setAiMetaMap(metaMap);
+      }
+    }
     if (promosRes.data) setPromos(promosRes.data as unknown as SocialPromo[]);
     setLoadingWorks(false);
   }, [user]);
