@@ -278,6 +278,7 @@ export function PromoteWorks() {
       )}
 
 
+      {works.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-3 py-10">
             <Music className="h-10 w-10 text-muted-foreground/40" />
