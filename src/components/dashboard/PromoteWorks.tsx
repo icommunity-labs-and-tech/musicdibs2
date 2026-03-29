@@ -420,7 +420,82 @@ export function PromoteWorks() {
                   </div>
                 </CardHeader>
 
-                {/* Generated assets */}
+                {/* Metadata preview toggle */}
+                <CardContent className="pt-0 pb-3">
+                  <button
+                    onClick={() => toggleMetaPreview(work)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Brain className="h-3 w-3" />
+                    <span>Ver metadatos que usará la IA</span>
+                    {expandedWork === work.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  </button>
+
+                  {expandedWork === work.id && (
+                    <div className="mt-3 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+                      {!workMeta[work.id] ? (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Cargando metadatos...
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-[11px] text-muted-foreground/70 mb-2">
+                            Estos datos se usarán para generar la imagen y los copies:
+                          </p>
+                          <MetaRow icon={<Music className="h-3 w-3" />} label="Título" value={work.title} />
+                          <MetaRow icon={<User2 className="h-3 w-3" />} label="Artista" value={work.author || workMeta[work.id].artistName || '—'} />
+                          <MetaRow icon={<Tag className="h-3 w-3" />} label="Tipo" value={work.type} />
+                          {work.description && (
+                            <MetaRow icon={<Tag className="h-3 w-3" />} label="Descripción" value={work.description} />
+                          )}
+                          <MetaRow
+                            icon={<Palette className="h-3 w-3" />}
+                            label="Género"
+                            value={workMeta[work.id].genre || 'No detectado'}
+                            highlight={!!workMeta[work.id].genre}
+                          />
+                          <MetaRow
+                            icon={<Sparkles className="h-3 w-3" />}
+                            label="Mood"
+                            value={workMeta[work.id].mood || 'No detectado'}
+                            highlight={!!workMeta[work.id].mood}
+                          />
+                          {workMeta[work.id].aiPrompt && (
+                            <MetaRow
+                              icon={<Brain className="h-3 w-3" />}
+                              label="Prompt IA"
+                              value={workMeta[work.id].aiPrompt!}
+                              highlight
+                            />
+                          )}
+                          {workMeta[work.id].styleNotes && (
+                            <MetaRow
+                              icon={<Palette className="h-3 w-3" />}
+                              label="Estilo artista"
+                              value={workMeta[work.id].styleNotes!}
+                              highlight
+                            />
+                          )}
+                          <MetaRow
+                            icon={<CheckCircle2 className="h-3 w-3" />}
+                            label="Certificación"
+                            value={workMeta[work.id].isCertified
+                              ? `✅ Certificado en ${workMeta[work.id].blockchainNetwork || 'blockchain'}`
+                              : 'No certificado aún'}
+                            highlight={workMeta[work.id].isCertified}
+                          />
+                          {!workMeta[work.id].genre && !workMeta[work.id].mood && !workMeta[work.id].aiPrompt && (
+                            <p className="text-[11px] text-muted-foreground/60 italic mt-1">
+                              💡 Tip: Genera tu música con AI Studio para que la IA use esos metadatos en las promos.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+
                 {hasAssets && (
                   <CardContent className="pt-0 space-y-4">
                     <div className="grid md:grid-cols-[200px_1fr] gap-4">
