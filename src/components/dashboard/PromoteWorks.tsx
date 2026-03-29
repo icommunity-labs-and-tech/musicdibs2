@@ -241,7 +241,43 @@ export function PromoteWorks() {
         <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
       )}
 
-      {works.length === 0 ? (
+      {/* Pending promos banner */}
+      {pendingPromos.length > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold">Promociones pendientes ({pendingPromos.length})</h3>
+            </div>
+            {pendingPromos.map(promo => {
+              const work = works.find(w => w.id === promo.work_id);
+              const si = STATUS_MAP[promo.status];
+              return (
+                <div key={promo.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-card px-4 py-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-sm font-medium truncate">{work?.title || 'Obra'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {promo.status === 'generating' ? 'Generando assets...' : 'Assets listos — revisa abajo'}
+                    </p>
+                  </div>
+                  {si && (
+                    <Badge variant="outline" className={`text-[11px] shrink-0 ${si.color}`}>
+                      {promo.status === 'generating' ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <si.icon className="h-3 w-3 mr-1" />
+                      )}
+                      {si.label}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
+
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center gap-3 py-10">
             <Music className="h-10 w-10 text-muted-foreground/40" />
