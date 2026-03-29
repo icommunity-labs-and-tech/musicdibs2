@@ -2,17 +2,57 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2 } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2, Download, Eye, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PLAN_LABELS: Record<string, string> = {
   Free: 'Free',
   Monthly: 'Mensual',
   Annual: 'Anual',
 };
+
+interface Invoice {
+  id: string;
+  number: string | null;
+  status: string | null;
+  amount_due: number;
+  amount_paid: number;
+  currency: string;
+  created: number;
+  period_start: number;
+  period_end: number;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+  description: string | null;
+}
+
+const STATUS_MAP: Record<string, { label: string; className: string }> = {
+  paid: { label: 'Pagada', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
+  open: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  draft: { label: 'Borrador', className: 'bg-muted text-muted-foreground border-border' },
+  void: { label: 'Anulada', className: 'bg-muted text-muted-foreground border-border' },
+  uncollectible: { label: 'Incobrable', className: 'bg-destructive/10 text-destructive border-destructive/20' },
+};
+
+function formatCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount / 100);
+}
+
+function formatDate(ts: number) {
+  return new Date(ts * 1000).toLocaleDateString('es-ES', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
 
 export default function BillingPage() {
   const navigate = useNavigate();
@@ -22,12 +62,17 @@ export default function BillingPage() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
+  // Invoice state
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   useEffect(() => {
     if (!user) return;
     let mounted = true;
 
     const loadBillingState = async () => {
-      // Source of truth in UI: profile in DB
       const { data: profile } = await supabase
         .from('profiles')
         .select('subscription_plan')
@@ -38,7 +83,6 @@ export default function BillingPage() {
         setPlan(profile?.subscription_plan ?? 'Free');
       }
 
-      // Sync from backend provider and persist latest state into DB
       const { data, error } = await supabase.functions.invoke('check-subscription');
       if (error || !mounted) return;
 
@@ -67,6 +111,51 @@ export default function BillingPage() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  // Load invoices
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+
+    const loadInvoices = async () => {
+      setInvoicesLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('list-invoices', {
+          body: { limit: 20 },
+        });
+        if (error) throw error;
+        if (mounted) {
+          setInvoices(data?.invoices ?? []);
+          setHasMore(data?.has_more ?? false);
+        }
+      } catch (err: any) {
+        console.error('Error loading invoices:', err);
+      } finally {
+        if (mounted) setInvoicesLoading(false);
+      }
+    };
+
+    loadInvoices();
+    return () => { mounted = false; };
+  }, [user]);
+
+  const loadMoreInvoices = async () => {
+    if (!invoices.length || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const lastId = invoices[invoices.length - 1].id;
+      const { data, error } = await supabase.functions.invoke('list-invoices', {
+        body: { limit: 20, starting_after: lastId },
+      });
+      if (error) throw error;
+      setInvoices((prev) => [...prev, ...(data?.invoices ?? [])]);
+      setHasMore(data?.has_more ?? false);
+    } catch (err: any) {
+      toast.error('Error al cargar más facturas');
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const handleManageSubscription = async () => {
     setLoading(true);
@@ -149,10 +238,101 @@ export default function BillingPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground text-center py-6">
-            <Receipt className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            Las facturas estarán disponibles próximamente.
-          </div>
+          {invoicesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="text-sm text-muted-foreground text-center py-6">
+              <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
+              No hay facturas todavía.
+            </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Factura</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Importe</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoices.map((inv) => {
+                    const st = STATUS_MAP[inv.status ?? ''] ?? { label: inv.status ?? '—', className: 'bg-muted text-muted-foreground border-border' };
+                    return (
+                      <TableRow key={inv.id}>
+                        <TableCell className="font-medium text-xs">
+                          {inv.number || inv.id.slice(0, 12)}
+                          {inv.description && (
+                            <span className="block text-muted-foreground font-normal truncate max-w-[180px]">
+                              {inv.description}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {formatDate(inv.created)}
+                        </TableCell>
+                        <TableCell className="text-xs font-medium whitespace-nowrap">
+                          {formatCurrency(inv.amount_paid || inv.amount_due, inv.currency)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={`text-[10px] ${st.className}`}>
+                            {st.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {inv.hosted_invoice_url && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => window.open(inv.hosted_invoice_url!, '_blank')}
+                                title="Ver factura"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            {inv.invoice_pdf && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => window.open(inv.invoice_pdf!, '_blank')}
+                                title="Descargar PDF"
+                              >
+                                <Download className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {hasMore && (
+                <div className="flex justify-center pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadMoreInvoices}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                    ) : null}
+                    Cargar más
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
