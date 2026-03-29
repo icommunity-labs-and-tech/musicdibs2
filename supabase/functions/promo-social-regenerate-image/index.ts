@@ -39,8 +39,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const FAL_API_KEY = Deno.env.get('FAL_API_KEY');
-    if (!FAL_API_KEY) {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API key' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -72,7 +72,6 @@ serve(async (req) => {
       });
     }
 
-    // Check regeneration limit
     const isFree = promo.regeneration_count < MAX_FREE_REGENERATIONS;
 
     if (!isFree) {
@@ -106,20 +105,37 @@ serve(async (req) => {
       });
     }
 
-    const { data: work } = await supabase
-      .from('works')
-      .select('title, author, type')
-      .eq('id', promo.work_id)
-      .eq('user_id', user.id)
-      .single();
+    // Fetch work + AI generation metadata
+    const [workRes, genRes] = await Promise.all([
+      supabase.from('works').select('title, author, description, type')
+        .eq('id', promo.work_id).eq('user_id', user.id).single(),
+      supabase.from('ai_generations').select('prompt, genre, mood')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+    ]);
 
+    const work = workRes.data;
     if (!work) {
       return new Response(JSON.stringify({ error: 'Work not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Mark as regenerating and increment count
+    const aiGen = genRes.data?.find((g: any) =>
+      work.title && g.prompt?.toLowerCase().includes(work.title.toLowerCase())
+    ) || null;
+
+    // Build enriched prompt
+    const parts = [
+      `Professional music promotion artwork for "${work.title}" by ${work.author || 'artist'}.`,
+    ];
+    if (aiGen?.genre) parts.push(`Genre: ${aiGen.genre}.`);
+    if (aiGen?.mood) parts.push(`Mood: ${aiGen.mood}.`);
+    if (work.type) parts.push(`Type: ${work.type}.`);
+    if (work.description) parts.push(`Context: ${work.description.slice(0, 100)}.`);
+    if (aiGen?.prompt) parts.push(`Original AI concept: ${aiGen.prompt.slice(0, 120)}.`);
+    parts.push('Dark purple and violet gradient background with gold accents. Modern minimalist design. Square format 1080x1080. High quality, professional. Unique variation.');
+
+    // Mark as regenerating
     await supabase.from('social_promotions').update({
       status: 'generating',
       regeneration_count: promo.regeneration_count + 1,
@@ -128,42 +144,36 @@ serve(async (req) => {
 
     const responseData = { promo_id, status: 'generating', regeneration_count: promo.regeneration_count + 1 };
 
-    // Background: regenerate image
+    // Background: regenerate image with Nano Banana 2
     (async () => {
       try {
-        const workType = work.type || 'obra musical';
-
-        const imageRes = await fetch('https://fal.run/fal-ai/flux/schnell', {
+        const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Key ${FAL_API_KEY}`,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: `Professional music promotion poster for "${work.title}" by ${work.author || 'artist'}. ${workType} music. Dark purple and violet gradient background with gold accents. Modern minimalist design. Text overlay space at bottom. Blockchain certified badge. MusicDibs branding. Square format 1080x1080. High quality, professional. Unique variation.`,
-            image_size: 'square_hd',
-            num_images: 1,
-            num_inference_steps: 4,
-          })
+            model: 'google/gemini-3.1-flash-image-preview',
+            messages: [{ role: 'user', content: parts.join(' ') }],
+            modalities: ['image', 'text'],
+          }),
         });
 
         let imageUrl = '';
 
-        if (imageRes.ok) {
-          const imageData = await imageRes.json();
-          const falImageUrl = imageData?.images?.[0]?.url;
+        if (res.ok) {
+          const data = await res.json();
+          const base64Image = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-          if (falImageUrl) {
-            const imgRes = await fetch(falImageUrl);
-            const imgBuffer = new Uint8Array(await imgRes.arrayBuffer());
-            const fileName = `${promo_id}_${Date.now()}.jpg`;
+          if (base64Image?.startsWith('data:image')) {
+            const base64Data = base64Image.split(',')[1];
+            const imgBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+            const fileName = `${promo_id}_${Date.now()}.png`;
 
             const { error: uploadError } = await supabase.storage
               .from('social-promo-images')
-              .upload(fileName, imgBuffer, {
-                contentType: 'image/jpeg',
-                upsert: true,
-              });
+              .upload(fileName, imgBuffer, { contentType: 'image/png', upsert: true });
 
             if (!uploadError) {
               const { data: urlData } = supabase.storage
@@ -172,6 +182,8 @@ serve(async (req) => {
               imageUrl = urlData.publicUrl;
             }
           }
+        } else {
+          console.error('[PROMO-REGEN-IMG] Nano Banana error:', res.status, await res.text());
         }
 
         await supabase.from('social_promotions').update({

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
-  ShoppingCart, CreditCard,
+  ShoppingCart, CreditCard, Info, Tag, Palette, Mic2,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -25,8 +25,15 @@ interface Work {
   author: string | null;
   type: string;
   status: string;
+  description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+}
+
+interface AiGenMeta {
+  prompt: string | null;
+  genre: string | null;
+  mood: string | null;
 }
 
 interface SocialPromo {
@@ -67,15 +74,17 @@ export function PromoteWorks() {
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
+  const [expandedMeta, setExpandedMeta] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
     setLoadingWorks(true);
 
-    const [worksRes, promosRes] = await Promise.all([
+    const [worksRes, promosRes, genRes] = await Promise.all([
       supabase
         .from('works')
-        .select('id, title, author, type, status, checker_url, distributed_at')
+        .select('id, title, author, type, status, description, checker_url, distributed_at')
         .eq('user_id', user.id)
         .eq('status', 'registered')
         .order('created_at', { ascending: false }),
@@ -84,9 +93,30 @@ export function PromoteWorks() {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('ai_generations')
+        .select('prompt, genre, mood')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50),
     ]);
 
-    if (worksRes.data) setWorks(worksRes.data as Work[]);
+    if (worksRes.data) {
+      setWorks(worksRes.data as Work[]);
+      // Map AI generation metadata to works by title match
+      if (genRes.data) {
+        const metaMap: Record<string, AiGenMeta> = {};
+        for (const w of worksRes.data) {
+          const match = genRes.data.find((g: any) =>
+            w.title && g.prompt?.toLowerCase().includes(w.title.toLowerCase())
+          );
+          if (match) {
+            metaMap[w.id] = { prompt: match.prompt, genre: match.genre, mood: match.mood };
+          }
+        }
+        setAiMetaMap(metaMap);
+      }
+    }
     if (promosRes.data) setPromos(promosRes.data as unknown as SocialPromo[]);
     setLoadingWorks(false);
   }, [user]);
@@ -246,6 +276,8 @@ export function PromoteWorks() {
             const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
             const isFree = freeRemaining > 0;
             const canLaunchNew = !isGenerating;
+            const meta = aiMetaMap[work.id];
+            const isMetaExpanded = expandedMeta === work.id;
 
             return (
               <Card key={work.id} className="border-border/40 overflow-hidden">
@@ -300,6 +332,62 @@ export function PromoteWorks() {
                     </div>
                   </div>
                 </CardHeader>
+
+                {/* Metadata preview */}
+                {(meta || work.description) && (
+                  <CardContent className="pt-0 pb-3">
+                    <button
+                      onClick={() => setExpandedMeta(isMetaExpanded ? null : work.id)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Info className="h-3 w-3" />
+                      <span>Metadatos para la promoción</span>
+                      <span className="text-[10px]">{isMetaExpanded ? '▲' : '▼'}</span>
+                    </button>
+                    {isMetaExpanded && (
+                      <div className="mt-2 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                          Datos que se usarán para generar la promo
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {meta?.genre && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              <Tag className="h-3 w-3" /> Género: {meta.genre}
+                            </Badge>
+                          )}
+                          {meta?.mood && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              <Palette className="h-3 w-3" /> Mood: {meta.mood}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-[11px] gap-1">
+                            <Mic2 className="h-3 w-3" /> Tipo: {work.type}
+                          </Badge>
+                          {work.author && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              Artista: {work.author}
+                            </Badge>
+                          )}
+                        </div>
+                        {work.description && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Descripción:</span> {work.description}
+                          </p>
+                        )}
+                        {meta?.prompt && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
+                          </p>
+                        )}
+                        {!meta && (
+                          <p className="text-[11px] text-muted-foreground/60 italic">
+                            No se encontraron metadatos de generación IA para esta obra. Se usarán los datos de registro.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                )}
 
                 {/* Generated assets */}
                 {hasAssets && (
