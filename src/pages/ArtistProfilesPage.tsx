@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -124,6 +124,26 @@ const ArtistProfilesPage = () => {
     } else {
       toast({ title: editingId ? "Perfil actualizado" : "Perfil creado" });
       resetForm();
+      loadProfiles();
+    }
+  };
+
+  const handleDuplicate = async (p: ArtistProfile) => {
+    if (!user) return;
+    const { error } = await supabase.from('user_artist_profiles').insert({
+      user_id: user.id,
+      name: `${p.name} (copia)`,
+      voice_profile_id: p.voice_profile_id,
+      genre: p.genre,
+      mood: p.mood,
+      default_duration: p.default_duration,
+      style_notes: p.style_notes,
+      is_default: false,
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Perfil duplicado", description: `"${p.name} (copia)" creado` });
       loadProfiles();
     }
   };
@@ -329,6 +349,9 @@ const ArtistProfilesPage = () => {
                 <div className="flex gap-2 shrink-0">
                   <Button size="sm" variant="outline" onClick={() => navigate(`/ai-studio/create?profile=${p.id}`)} className="gap-1.5">
                     <ExternalLink className="h-3.5 w-3.5" /> Usar
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDuplicate(p)} title="Duplicar perfil">
+                    <Copy className="h-3.5 w-3.5" />
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => startEdit(p)}>
                     <Pencil className="h-3.5 w-3.5" />
