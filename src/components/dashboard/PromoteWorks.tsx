@@ -63,10 +63,13 @@ export function PromoteWorks() {
   const [promos, setPromos] = useState<SocialPromo[]>([]);
   const [loadingWorks, setLoadingWorks] = useState(true);
   const [launching, setLaunching] = useState<string | null>(null);
-  const [polling, setPolling] = useState<string | null>(null);
+  const [pollingIds, setPollingIds] = useState<Set<string>>(new Set());
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
+
+  const addPolling = (id: string) => setPollingIds(prev => new Set(prev).add(id));
+  const removePolling = (id: string) => setPollingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -87,36 +90,46 @@ export function PromoteWorks() {
     ]);
 
     if (worksRes.data) setWorks(worksRes.data as Work[]);
-    if (promosRes.data) setPromos(promosRes.data as unknown as SocialPromo[]);
+    if (promosRes.data) {
+      const all = promosRes.data as unknown as SocialPromo[];
+      setPromos(all);
+      // Auto-resume polling for any promo still generating
+      const generating = all.filter(p => p.status === 'generating');
+      if (generating.length > 0) {
+        setPollingIds(new Set(generating.map(p => p.id)));
+      }
+    }
     setLoadingWorks(false);
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Poll for generating promos
+  // Poll for all generating promos
   useEffect(() => {
-    if (!polling) return;
+    if (pollingIds.size === 0) return;
     const interval = setInterval(async () => {
-      const { data } = await supabase
-        .from('social_promotions')
-        .select('*')
-        .eq('id', polling)
-        .single();
-      if (data) {
-        const p = data as unknown as SocialPromo;
-        setPromos(prev => prev.map(x => x.id === p.id ? p : x));
-        if (p.status !== 'generating') {
-          setPolling(null);
-          if (p.status === 'completed' || p.status === 'assets_ready') {
-            toast.success('¡Promoción generada! Revisa tus assets y tu email.');
-          } else if (p.status === 'failed') {
-            toast.error(`Error: ${p.error_detail || 'Fallo desconocido'}`);
+      for (const pid of pollingIds) {
+        const { data } = await supabase
+          .from('social_promotions')
+          .select('*')
+          .eq('id', pid)
+          .single();
+        if (data) {
+          const p = data as unknown as SocialPromo;
+          setPromos(prev => prev.map(x => x.id === p.id ? p : x));
+          if (p.status !== 'generating') {
+            removePolling(pid);
+            if (p.status === 'completed' || p.status === 'assets_ready') {
+              toast.success('¡Promoción generada! Revisa tus assets y tu email.');
+            } else if (p.status === 'failed') {
+              toast.error(`Error: ${p.error_detail || 'Fallo desconocido'}`);
+            }
           }
         }
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [polling]);
+  }, [pollingIds]);
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
@@ -146,7 +159,7 @@ export function PromoteWorks() {
         regeneration_count: 0,
       };
       setPromos(prev => [newPromo, ...prev]);
-      setPolling(data.promo_id);
+      addPolling(data.promo_id);
       toast.info('Generando promoción... esto tardará ~30 segundos.');
     } catch (err: any) {
       toast.error(err.message || 'Error al lanzar la promoción');
@@ -174,7 +187,7 @@ export function PromoteWorks() {
       if (data?.regeneration_count != null) {
         setPromos(prev => prev.map(p => p.id === promoId ? { ...p, regeneration_count: data.regeneration_count } : p));
       }
-      setPolling(promoId);
+      addPolling(promoId);
       const label = type === 'copies' ? 'copies' : 'imagen';
       toast.info(paid ? `Regenerando ${label}... (${REGEN_CREDIT_COST} créditos)` : `Regenerando ${label}... sin coste.`);
     } catch (err: any) {
@@ -193,6 +206,10 @@ export function PromoteWorks() {
 
   const getWorkPromo = (workId: string) => promos.find(p => p.work_id === workId);
   const getWorkPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
+
+  // Promos that need attention: generating or assets_ready (not yet acted upon)
+  const pendingPromos = promos.filter(p => p.status === 'generating' || p.status === 'assets_ready');
+  const pendingWorkIds = new Set(pendingPromos.map(p => p.work_id));
 
   if (loadingWorks) {
     return (
@@ -223,6 +240,43 @@ export function PromoteWorks() {
       {noCredits && (
         <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
       )}
+
+      {/* Pending promos banner */}
+      {pendingPromos.length > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-semibold">Promociones pendientes ({pendingPromos.length})</h3>
+            </div>
+            {pendingPromos.map(promo => {
+              const work = works.find(w => w.id === promo.work_id);
+              const si = STATUS_MAP[promo.status];
+              return (
+                <div key={promo.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-card px-4 py-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-sm font-medium truncate">{work?.title || 'Obra'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {promo.status === 'generating' ? 'Generando assets...' : 'Assets listos — revisa abajo'}
+                    </p>
+                  </div>
+                  {si && (
+                    <Badge variant="outline" className={`text-[11px] shrink-0 ${si.color}`}>
+                      {promo.status === 'generating' ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      ) : (
+                        <si.icon className="h-3 w-3 mr-1" />
+                      )}
+                      {si.label}
+                    </Badge>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
 
       {works.length === 0 ? (
         <Card className="border-dashed">
