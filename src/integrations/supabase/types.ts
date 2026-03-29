@@ -850,7 +850,9 @@ export type Database = {
           style_notes: string | null
           updated_at: string
           user_id: string
+          voice_clone_id: string | null
           voice_profile_id: string | null
+          voice_type: string | null
         }
         Insert: {
           created_at?: string
@@ -863,7 +865,9 @@ export type Database = {
           style_notes?: string | null
           updated_at?: string
           user_id: string
+          voice_clone_id?: string | null
           voice_profile_id?: string | null
+          voice_type?: string | null
         }
         Update: {
           created_at?: string
@@ -876,9 +880,18 @@ export type Database = {
           style_notes?: string | null
           updated_at?: string
           user_id?: string
+          voice_clone_id?: string | null
           voice_profile_id?: string | null
+          voice_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_artist_profiles_voice_clone_id_fkey"
+            columns: ["voice_clone_id"]
+            isOneToOne: false
+            referencedRelation: "voice_clones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_artist_profiles_voice_profile_id_fkey"
             columns: ["voice_profile_id"]
@@ -957,6 +970,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string | null
+        }
+        Relationships: []
+      }
+      voice_clones: {
+        Row: {
+          created_at: string
+          description: string | null
+          elevenlabs_voice_id: string
+          id: string
+          name: string
+          remove_background_noise: boolean | null
+          sample_storage_path: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          elevenlabs_voice_id: string
+          id?: string
+          name: string
+          remove_background_noise?: boolean | null
+          sample_storage_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          elevenlabs_voice_id?: string
+          id?: string
+          name?: string
+          remove_background_noise?: boolean | null
+          sample_storage_path?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
