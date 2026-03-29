@@ -39,8 +39,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const FAL_API_KEY = Deno.env.get('FAL_API_KEY');
-    if (!FAL_API_KEY) {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API key' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -108,7 +108,7 @@ serve(async (req) => {
 
     const { data: work } = await supabase
       .from('works')
-      .select('title, author, type')
+      .select('title, author, type, description, blockchain_hash, blockchain_network, certified_at')
       .eq('id', promo.work_id)
       .eq('user_id', user.id)
       .single();
@@ -119,6 +119,32 @@ serve(async (req) => {
       });
     }
 
+    // Fetch AI generation metadata if available
+    const { data: aiGen } = await supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const titleLower = work.title.toLowerCase();
+    const matchingGen = aiGen?.find((g: any) =>
+      g.prompt?.toLowerCase().includes(titleLower) ||
+      titleLower.includes(g.prompt?.toLowerCase()?.slice(0, 20) || '___')
+    ) || null;
+
+    const { data: artistProfile } = await supabase
+      .from('user_artist_profiles')
+      .select('genre, mood, style_notes')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .single();
+
+    const genre = matchingGen?.genre || artistProfile?.genre || '';
+    const mood = matchingGen?.mood || artistProfile?.mood || '';
+    const aiPrompt = matchingGen?.prompt || '';
+    const isCertified = !!work.certified_at;
+
     // Mark as regenerating and increment count
     await supabase.from('social_promotions').update({
       status: 'generating',
@@ -128,40 +154,62 @@ serve(async (req) => {
 
     const responseData = { promo_id, status: 'generating', regeneration_count: promo.regeneration_count + 1 };
 
-    // Background: regenerate image
+    // Background: regenerate image with Nano Banana 2
     (async () => {
       try {
-        const workType = work.type || 'obra musical';
+        const imagePromptParts = [
+          `Create a unique, visually stunning music promotion poster for "${work.title}"`,
+          work.author ? `by "${work.author}"` : '',
+          genre ? `Genre: ${genre}.` : '',
+          mood ? `Mood: ${mood}.` : '',
+          work.description ? `Song description: ${work.description}.` : '',
+          aiPrompt ? `Musical concept: ${aiPrompt}.` : '',
+          `Style: Modern, high-contrast, cinematic music artwork. NEW UNIQUE VARIATION.`,
+          genre?.toLowerCase().includes('reggae') || genre?.toLowerCase().includes('urban')
+            ? 'Urban aesthetic, neon lights, street vibes.'
+            : genre?.toLowerCase().includes('electr')
+            ? 'Futuristic, synth wave, digital aesthetic.'
+            : genre?.toLowerCase().includes('rock')
+            ? 'Dark, edgy, concert stage lighting.'
+            : genre?.toLowerCase().includes('indie')
+            ? 'Warm tones, vintage film grain, poetic.'
+            : 'Abstract musical waves, dark purple gradient, gold accents.',
+          `Square format 1:1. No text. Professional album cover art style.`,
+          isCertified ? 'Include a subtle golden certified seal element.' : '',
+        ].filter(Boolean).join(' ');
 
-        const imageRes = await fetch('https://fal.run/fal-ai/flux/schnell', {
+        const imageRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Key ${FAL_API_KEY}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: `Professional music promotion poster for "${work.title}" by ${work.author || 'artist'}. ${workType} music. Dark purple and violet gradient background with gold accents. Modern minimalist design. Text overlay space at bottom. Blockchain certified badge. MusicDibs branding. Square format 1080x1080. High quality, professional. Unique variation.`,
-            image_size: 'square_hd',
-            num_images: 1,
-            num_inference_steps: 4,
-          })
+            model: 'google/gemini-3.1-flash-image-preview',
+            messages: [{ role: 'user', content: imagePromptParts }],
+            modalities: ['image', 'text'],
+          }),
         });
 
         let imageUrl = '';
 
         if (imageRes.ok) {
           const imageData = await imageRes.json();
-          const falImageUrl = imageData?.images?.[0]?.url;
+          const base64Url = imageData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-          if (falImageUrl) {
-            const imgRes = await fetch(falImageUrl);
-            const imgBuffer = new Uint8Array(await imgRes.arrayBuffer());
-            const fileName = `${promo_id}_${Date.now()}.jpg`;
+          if (base64Url && base64Url.startsWith('data:image/')) {
+            const base64Data = base64Url.split(',')[1];
+            const binaryString = atob(base64Data);
+            const imgBuffer = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              imgBuffer[i] = binaryString.charCodeAt(i);
+            }
 
+            const fileName = `${promo_id}_${Date.now()}.png`;
             const { error: uploadError } = await supabase.storage
               .from('social-promo-images')
               .upload(fileName, imgBuffer, {
-                contentType: 'image/jpeg',
+                contentType: 'image/png',
                 upsert: true,
               });
 
@@ -172,6 +220,8 @@ serve(async (req) => {
               imageUrl = urlData.publicUrl;
             }
           }
+        } else {
+          console.error('[PROMO-REGEN-IMG] Image gen failed:', imageRes.status);
         }
 
         await supabase.from('social_promotions').update({
