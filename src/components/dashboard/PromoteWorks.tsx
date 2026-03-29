@@ -365,6 +365,89 @@ export function PromoteWorks() {
           Créditos disponibles: <span className="font-medium">{credits}</span>
         </p>
       )}
+
+      {/* ── History Section ── */}
+      {promos.length > 0 && (
+        <>
+          <Separator />
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <History className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Historial de promociones</h3>
+              </div>
+              <Select value={historyFilter} onValueChange={setHistoryFilter}>
+                <SelectTrigger className="w-[160px] h-8 text-xs">
+                  <Filter className="h-3 w-3 mr-1" />
+                  <SelectValue placeholder="Filtrar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="completed">Completadas</SelectItem>
+                  <SelectItem value="assets_ready">Assets listos</SelectItem>
+                  <SelectItem value="generating">Generando</SelectItem>
+                  <SelectItem value="failed">Con error</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              {promos
+                .filter(p => historyFilter === 'all' || p.status === historyFilter)
+                .map(promo => {
+                  const work = works.find(w => w.id === promo.work_id);
+                  const si = STATUS_MAP[promo.status];
+                  return (
+                    <div
+                      key={promo.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-card px-4 py-3"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="text-sm font-medium truncate">
+                          {work?.title || 'Obra eliminada'}
+                        </p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(promo.created_at).toLocaleDateString('es-ES', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {si && (
+                          <Badge variant="outline" className={`text-[11px] ${si.color}`}>
+                            {promo.status === 'generating' ? (
+                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            ) : (
+                              <si.icon className="h-3 w-3 mr-1" />
+                            )}
+                            {si.label}
+                          </Badge>
+                        )}
+                        {promo.image_url && (
+                          <a
+                            href={promo.image_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary/80"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              {promos.filter(p => historyFilter === 'all' || p.status === historyFilter).length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No hay promociones con ese estado.
+                </p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
