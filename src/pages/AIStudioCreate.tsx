@@ -481,7 +481,16 @@ const AIStudioCreate = () => {
       const { data: newClones } = await supabase.from('voice_clones')
         .select('*').eq('user_id', user.id).eq('status', 'active')
         .order('created_at', { ascending: false });
-      setVoiceClones(newClones || []);
+      const withUrls = await Promise.all((newClones || []).map(async (c: any) => {
+        if (c.sample_storage_path) {
+          const { data: urlData } = await supabase.storage
+            .from('voice-clone-samples')
+            .createSignedUrl(c.sample_storage_path, 3600);
+          return { ...c, sample_url: urlData?.signedUrl || null };
+        }
+        return { ...c, sample_url: null };
+      }));
+      setVoiceClones(withUrls);
       setSelectedCloneId(data.clone_id);
       setSelectedVoice('');
       setShowCloneModal(false);
