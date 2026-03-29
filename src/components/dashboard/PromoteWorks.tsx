@@ -107,7 +107,6 @@ export function PromoteWorks() {
         setPromos(prev => prev.map(x => x.id === p.id ? p : x));
         if (p.status !== 'generating') {
           setPolling(null);
-          refreshCredits();
           if (p.status === 'completed' || p.status === 'assets_ready') {
             toast.success('¡Promoción generada! Revisa tus assets y tu email.');
           } else if (p.status === 'failed') {
