@@ -2,8 +2,7 @@ import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 
 export default function PromotePage() {
   return (
-    <div className="max-w-xl space-y-4">
-      <h2 className="text-xl font-bold">Promocionar obras</h2>
+    <div className="max-w-3xl space-y-4">
       <PromoteWorks />
     </div>
   );
