@@ -22,6 +22,7 @@ import {
   Rocket,
   Briefcase,
   ClipboardList,
+  UserCircle,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -56,6 +57,7 @@ const mainItems = [
   { title: 'Verificar identidad', url: '/dashboard/verify-identity', icon: User, kycOnly: true },
   { title: 'Promocionar obra', url: '/dashboard/promote', icon: Megaphone },
   { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
+  { title: 'Mis Artistas', url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
 ];
 
 const accountItems = [
