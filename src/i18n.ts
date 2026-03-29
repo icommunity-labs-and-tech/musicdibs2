@@ -62,12 +62,12 @@ const resources = {
         terms: 'Términos y condiciones',
       },
       hero: {
-        title: 'Tu obra,',
-        highlight: 'solo tuya',
-        subtitle_prefix: 'Crea, registra, promociona y distribuye tu música con',
-        subtitle_strong: 'validez legal en TODO el mundo',
+        title: 'Crea. Protege. Distribuye.',
+        highlight: 'Promociona.',
+        subtitle_prefix: 'La plataforma todo-en-uno para artistas: genera tu música con IA, regístrala con validez legal y',
+        subtitle_strong: 'lánzala al mundo en minutos.',
         legal_more: '+info',
-        cta_start: 'Empezar Ya',
+        cta_start: '🚀 Crea tu primer lanzamiento',
         cta_how: 'Ver Cómo Funciona',
       },
       why: {
