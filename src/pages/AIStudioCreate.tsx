@@ -335,9 +335,14 @@ const AIStudioCreate = () => {
           ? `, voice resembling ${selectedClone.name}, personal voice clone`
           : '';
 
+      const themeTag = selectedTheme ? `, theme: ${selectedTheme}` : '';
+      const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
+      const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
+
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
-          prompt: `${prompt.trim()}${voiceTag}`,
+          prompt: enrichedPrompt,
           duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
@@ -861,6 +866,7 @@ const AIStudioCreate = () => {
                                 if (p.mood) setSelectedMood(p.mood);
                                 if (p.default_duration) setDuration(p.default_duration);
                                 if (p.style_notes) setPrompt(prev => prev || p.style_notes);
+                                if (p.theme) setSelectedTheme(p.theme);
                               }
                             }
                           }}
@@ -980,7 +986,7 @@ const AIStudioCreate = () => {
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} créd.</Badge>
                         </button>
                         <button
-                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); }}
+                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedLanguage(''); }}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
                             mode === 'instrumental'
@@ -1084,6 +1090,23 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
+                      {/* Tema central */}
+                      <div className="space-y-2">
+                        <Label>Tema central</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {THEMES.map(t => (
+                            <Badge
+                              key={t}
+                              variant={selectedTheme === t ? 'default' : 'outline'}
+                              className="cursor-pointer text-xs"
+                              onClick={() => setSelectedTheme(selectedTheme === t ? '' : t)}
+                            >
+                              {t}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
                       {/* Mood chips */}
                       <div className="space-y-2">
                         <Label>Mood</Label>
@@ -1100,6 +1123,47 @@ const AIStudioCreate = () => {
                           ))}
                         </div>
                       </div>
+
+                      {/* Artistas de referencia */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          Artistas de referencia
+                          <span className="text-xs text-muted-foreground font-normal ml-2">(También puedes escribir uno propio en el campo de texto)</span>
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                          {ARTIST_REFS.map(a => (
+                            <Badge
+                              key={a}
+                              variant={selectedArtistRefs.includes(a) ? 'default' : 'outline'}
+                              className="cursor-pointer text-xs"
+                              onClick={() => setSelectedArtistRefs(prev =>
+                                prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]
+                              )}
+                            >
+                              {a}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Idioma de la letra */}
+                      {mode === 'song' && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Idioma de la letra</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {LYRIC_LANGUAGES.map(l => (
+                              <Badge
+                                key={l}
+                                variant={selectedLanguage === l ? 'default' : 'outline'}
+                                className="cursor-pointer text-xs"
+                                onClick={() => setSelectedLanguage(selectedLanguage === l ? '' : l)}
+                              >
+                                {l}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Voice type selector */}
                       <div className="space-y-2">
