@@ -333,6 +333,62 @@ export function PromoteWorks() {
                   </div>
                 </CardHeader>
 
+                {/* Metadata preview */}
+                {(meta || work.description) && (
+                  <CardContent className="pt-0 pb-3">
+                    <button
+                      onClick={() => setExpandedMeta(isMetaExpanded ? null : work.id)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Info className="h-3 w-3" />
+                      <span>Metadatos para la promoción</span>
+                      <span className="text-[10px]">{isMetaExpanded ? '▲' : '▼'}</span>
+                    </button>
+                    {isMetaExpanded && (
+                      <div className="mt-2 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                          Datos que se usarán para generar la promo
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {meta?.genre && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              <Tag className="h-3 w-3" /> Género: {meta.genre}
+                            </Badge>
+                          )}
+                          {meta?.mood && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              <Palette className="h-3 w-3" /> Mood: {meta.mood}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-[11px] gap-1">
+                            <Mic2 className="h-3 w-3" /> Tipo: {work.type}
+                          </Badge>
+                          {work.author && (
+                            <Badge variant="outline" className="text-[11px] gap-1">
+                              Artista: {work.author}
+                            </Badge>
+                          )}
+                        </div>
+                        {work.description && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Descripción:</span> {work.description}
+                          </p>
+                        )}
+                        {meta?.prompt && (
+                          <p className="text-xs text-muted-foreground">
+                            <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
+                          </p>
+                        )}
+                        {!meta && (
+                          <p className="text-[11px] text-muted-foreground/60 italic">
+                            No se encontraron metadatos de generación IA para esta obra. Se usarán los datos de registro.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                )}
+
                 {/* Generated assets */}
                 {hasAssets && (
                   <CardContent className="pt-0 space-y-4">
