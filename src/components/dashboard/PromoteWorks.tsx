@@ -159,7 +159,7 @@ export function PromoteWorks() {
         regeneration_count: 0,
       };
       setPromos(prev => [newPromo, ...prev]);
-      setPolling(data.promo_id);
+      addPolling(data.promo_id);
       toast.info('Generando promoción... esto tardará ~30 segundos.');
     } catch (err: any) {
       toast.error(err.message || 'Error al lanzar la promoción');
@@ -187,7 +187,7 @@ export function PromoteWorks() {
       if (data?.regeneration_count != null) {
         setPromos(prev => prev.map(p => p.id === promoId ? { ...p, regeneration_count: data.regeneration_count } : p));
       }
-      setPolling(promoId);
+      addPolling(promoId);
       const label = type === 'copies' ? 'copies' : 'imagen';
       toast.info(paid ? `Regenerando ${label}... (${REGEN_CREDIT_COST} créditos)` : `Regenerando ${label}... sin coste.`);
     } catch (err: any) {
