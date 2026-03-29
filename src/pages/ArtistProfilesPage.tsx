@@ -320,7 +320,20 @@ const ArtistProfilesPage = () => {
 
             {/* Style notes */}
             <div className="space-y-1.5">
-              <Label>Notas de estilo</Label>
+              <div className="flex items-center justify-between">
+                <Label>Notas de estilo</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGenerateNotes}
+                  disabled={generatingNotes}
+                  className="gap-1.5 text-xs h-7 text-primary hover:text-primary"
+                >
+                  {generatingNotes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                  {generatingNotes ? 'Generando...' : 'Generar con IA'}
+                </Button>
+              </div>
               <Textarea
                 value={formNotes}
                 onChange={e => setFormNotes(e.target.value)}
