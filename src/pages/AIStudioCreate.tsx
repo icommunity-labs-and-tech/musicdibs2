@@ -1195,6 +1195,14 @@ const AIStudioCreate = () => {
                                       <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
                                       <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{c.name}</span>
                                       <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Voz clonada</span>
+                                      {c.sample_url && (
+                                        <span
+                                          onClick={(e) => handlePreviewVoice(e, c.id, c.sample_url)}
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === c.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
+                                        >
+                                          {playingVoice === c.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                                        </span>
+                                      )}
                                     </button>
                                   ))}
                                 </div>
