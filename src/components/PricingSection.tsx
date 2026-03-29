@@ -6,7 +6,6 @@ import { getFooterLinks } from "@/i18nLinks";
 import { Link, useNavigate } from "react-router-dom";
 import { ComparisonTable } from "@/components/ComparisonTable";
 import { supabase } from "@/integrations/supabase/client";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
