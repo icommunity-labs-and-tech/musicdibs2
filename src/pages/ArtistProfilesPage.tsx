@@ -171,7 +171,7 @@ const ArtistProfilesPage = () => {
     audio.onended = () => setPlayingVoice('');
   };
 
-  const handleGenerateNotes = async () => {
+  const handleGenerateNotes = async (regenerate = false) => {
     const voiceLabel = voiceProfiles.find(v => v.id === formVoice)?.label || '';
     const context = [
       formName && `Artista: ${formName}`,
@@ -187,9 +187,13 @@ const ArtistProfilesPage = () => {
 
     setGeneratingNotes(true);
     try {
+      const basePrompt = regenerate && formNotes
+        ? `Reescribe y mejora estas notas de estilo de un artista musical, dándoles un enfoque diferente pero manteniendo la esencia. Notas actuales: "${formNotes}". Contexto del artista: ${context}. Genera 3-4 frases nuevas con perspectiva fresca. Responde solo con las notas, sin encabezados.`
+        : `Genera unas notas de estilo breves (3-4 frases) para un perfil de artista musical con estas características: ${context}. ${formNotes ? `Notas existentes para expandir: ${formNotes}` : ''} Describe temática habitual, referencias musicales, idioma, atmósfera y elementos distintivos. Responde solo con las notas, sin encabezados.`;
+
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
         body: {
-          prompt: `Genera unas notas de estilo breves (3-4 frases) para un perfil de artista musical con estas características: ${context}. ${formNotes ? `Notas existentes para expandir: ${formNotes}` : ''} Describe temática habitual, referencias musicales, idioma, atmósfera y elementos distintivos. Responde solo con las notas, sin encabezados.`,
+          prompt: basePrompt,
           genre: formGenre,
           mood: formMood,
           mode: 'song',
