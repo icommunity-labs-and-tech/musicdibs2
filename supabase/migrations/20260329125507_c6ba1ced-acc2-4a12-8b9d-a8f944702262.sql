@@ -1,0 +1,1 @@
+ALTER TABLE public.social_promotions ADD COLUMN IF NOT EXISTS regeneration_count integer NOT NULL DEFAULT 0;
