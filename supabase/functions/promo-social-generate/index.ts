@@ -37,10 +37,10 @@ serve(async (req) => {
     );
 
     const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    const FAL_API_KEY = Deno.env.get('FAL_API_KEY');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-    if (!ANTHROPIC_API_KEY || !FAL_API_KEY || !RESEND_API_KEY) {
+    if (!ANTHROPIC_API_KEY || !LOVABLE_API_KEY || !RESEND_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API keys' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -67,10 +67,10 @@ serve(async (req) => {
       });
     }
 
-    // Obtener datos de la obra
+    // Obtener datos de la obra (completos)
     const { data: work } = await supabase
       .from('works')
-      .select('title, author, description, type, certificate_url, checker_url')
+      .select('title, author, description, type, certificate_url, checker_url, blockchain_hash, blockchain_network, certified_at, created_at')
       .eq('id', work_id)
       .eq('user_id', user.id)
       .single();
@@ -80,6 +80,55 @@ serve(async (req) => {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    // Obtener metadatos de generación IA (si la obra fue creada con AI Studio)
+    const { data: aiGen } = await supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood, duration')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    // Buscar la generación IA más relevante (por coincidencia de título/prompt)
+    const titleLower = work.title.toLowerCase();
+    const matchingGen = aiGen?.find((g: any) =>
+      g.prompt?.toLowerCase().includes(titleLower) ||
+      titleLower.includes(g.prompt?.toLowerCase()?.slice(0, 20) || '___')
+    ) || aiGen?.[0] || null;
+
+    // Obtener perfil artístico del usuario (si existe)
+    const { data: artistProfile } = await supabase
+      .from('user_artist_profiles')
+      .select('name, genre, mood, style_notes')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .single();
+
+    // ── Construir contexto enriquecido ──
+    const workType = work.type || 'audio';
+    const genre = matchingGen?.genre || artistProfile?.genre || '';
+    const mood = matchingGen?.mood || artistProfile?.mood || '';
+    const styleNotes = artistProfile?.style_notes || '';
+    const aiPrompt = matchingGen?.prompt || '';
+    const isCertified = !!work.certified_at;
+    const blockchainInfo = work.blockchain_hash
+      ? `Certificado en ${work.blockchain_network || 'blockchain'}`
+      : '';
+
+    const contextBlock = [
+      `Título: "${work.title}"`,
+      `Artista: "${work.author || profile.display_name || 'Artista'}"`,
+      `Tipo: ${workType}`,
+      work.description ? `Descripción: ${work.description}` : '',
+      genre ? `Género: ${genre}` : '',
+      mood ? `Mood/Ambiente: ${mood}` : '',
+      styleNotes ? `Estilo del artista: ${styleNotes}` : '',
+      aiPrompt ? `Prompt IA original: ${aiPrompt}` : '',
+      isCertified ? `✅ Obra certificada en blockchain (${work.blockchain_network || 'Ethereum'})` : '',
+      work.checker_url ? `URL verificación: ${work.checker_url}` : '',
+    ].filter(Boolean).join('\n');
+
+    console.log('[PROMO-SOCIAL] Context block:', contextBlock);
 
     // Descontar créditos
     await supabase.from('profiles').update({
@@ -118,9 +167,6 @@ serve(async (req) => {
     // Procesar en background
     (async () => {
       try {
-        const workType = work.type || 'obra musical';
-        const genre = work.description?.split(' ').slice(0, 3).join(' ') || '';
-
         // ── 1. Generar copies con Claude Haiku (paralelo) ──
         const copiesPromise = fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
@@ -131,45 +177,71 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001',
-            max_tokens: 800,
+            max_tokens: 1000,
             system: `Eres un experto en marketing musical y redes sociales. 
 Genera copies virales y auténticos para promocionar obras musicales.
+Adapta el tono al género y mood de la obra. Si es reggaetón, sé urbano; si es indie, sé poético; si es electrónica, sé futurista.
 Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
             messages: [{
               role: 'user',
               content: `Genera 3 copies para promocionar esta obra musical en redes sociales.
 
-Obra: "${work.title}"
-Artista: "${work.author || 'Artista'}"
-Tipo: ${workType}
-Descripción: ${work.description || 'Sin descripción'}
-${work.checker_url ? `Verificar en blockchain: ${work.checker_url}` : ''}
+${contextBlock}
 
 Genera exactamente este JSON:
 {
-  "ig_feed": "Copy para Instagram Feed (máx 150 chars, 2-3 emojis, 3-5 hashtags musicales relevantes, menciona que está certificado en blockchain)",
-  "ig_story": "Copy para Instagram Story (máx 80 chars, directo, impactante, 1-2 emojis)",
-  "tiktok": "Copy para TikTok (máx 150 chars, tono joven y viral, 3-5 hashtags trending de música)"
+  "ig_feed": "Copy para Instagram Feed (máx 180 chars, 2-3 emojis coherentes con el género, 3-5 hashtags musicales relevantes al género/mood, ${isCertified ? 'menciona certificación blockchain' : 'menciona que es nuevo lanzamiento'})",
+  "ig_story": "Copy para Instagram Story (máx 100 chars, directo, impactante, 1-2 emojis, call-to-action claro)",
+  "tiktok": "Copy para TikTok (máx 180 chars, tono joven y viral acorde al género, 3-5 hashtags trending de música y del género específico)"
 }
 
-Idioma: español. Tono: auténtico, no corporativo.`
+Idioma: español. Tono: auténtico, adaptado al género musical. NO uses lenguaje corporativo.
+${genre ? `Adapta el tono al ${genre}.` : ''}
+${mood ? `El ambiente es: ${mood}.` : ''}`
             }]
           })
         });
 
-        // ── 2. Generar imagen con fal.ai (paralelo) ──
-        const imagePromise = fetch('https://fal.run/fal-ai/flux/schnell', {
+        // ── 2. Generar imagen con Nano Banana 2 (Lovable AI gateway) ──
+        const imagePromptParts = [
+          `Create a professional, visually stunning music promotion poster for a song called "${work.title}"`,
+          work.author ? `by artist "${work.author}"` : '',
+          genre ? `Genre: ${genre}.` : '',
+          mood ? `Mood: ${mood}.` : '',
+          work.description ? `Song description: ${work.description}.` : '',
+          aiPrompt ? `Musical concept: ${aiPrompt}.` : '',
+          `Style: Modern, high-contrast, cinematic music artwork.`,
+          genre?.toLowerCase().includes('reggae') || genre?.toLowerCase().includes('urban')
+            ? 'Urban aesthetic, neon lights, street vibes, bold typography feel.'
+            : genre?.toLowerCase().includes('electr')
+            ? 'Futuristic, synth wave, laser lights, digital aesthetic.'
+            : genre?.toLowerCase().includes('rock') || genre?.toLowerCase().includes('metal')
+            ? 'Dark, edgy, electric guitar silhouette, concert stage lighting.'
+            : genre?.toLowerCase().includes('indie') || genre?.toLowerCase().includes('folk')
+            ? 'Warm tones, vintage film grain, artistic and poetic atmosphere.'
+            : genre?.toLowerCase().includes('pop')
+            ? 'Bright, colorful, energetic, modern pop aesthetic.'
+            : 'Abstract musical waves, dark purple and violet gradient, gold accents.',
+          `Square format 1:1. No text or words in the image. Professional quality. Album cover art style.`,
+          isCertified ? 'Include a subtle golden certified seal or badge element.' : '',
+        ].filter(Boolean).join(' ');
+
+        console.log('[PROMO-SOCIAL] Image prompt:', imagePromptParts);
+
+        const imagePromise = fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Key ${FAL_API_KEY}`,
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: `Professional music promotion poster for "${work.title}" by ${work.author || 'artist'}. ${workType} music. Dark purple and violet gradient background with gold accents. Modern minimalist design. Text overlay space at bottom. Blockchain certified badge. MusicDibs branding. Square format 1080x1080. High quality, professional.`,
-            image_size: 'square_hd',
-            num_images: 1,
-            num_inference_steps: 4,
-          })
+            model: 'google/gemini-3.1-flash-image-preview',
+            messages: [{
+              role: 'user',
+              content: imagePromptParts,
+            }],
+            modalities: ['image', 'text'],
+          }),
         });
 
         // Esperar ambas en paralelo
@@ -186,31 +258,42 @@ Idioma: español. Tono: auténtico, no corporativo.`
             try {
               copies = JSON.parse(text);
             } catch {
-              // Fallback copies
-              copies = {
-                ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible y certificado en blockchain. ¡Escúchalo ahora! #MusicDibs #Música #NuevaMusica`,
-                ig_story: `🔥 "${work.title}" — certificado en blockchain ✅`,
-                tiktok: `Nueva música de ${work.author || 'artista'} certificada en blockchain 🎵 "${work.title}" #MusicDibs #NuevaMusica #Blockchain`,
-              };
+              // Intentar extraer JSON de bloques de código
+              const jsonMatch = text.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                try { copies = JSON.parse(jsonMatch[0]); } catch { /* fallback below */ }
+              }
+              if (!copies.ig_feed) {
+                copies = {
+                  ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible${isCertified ? ' y certificado en blockchain' : ''}. ¡Escúchalo ahora! #MusicDibs #NuevaMusica ${genre ? `#${genre.replace(/\s+/g, '')}` : ''}`,
+                  ig_story: `🔥 "${work.title}" ${isCertified ? '— certificado en blockchain ✅' : '— nuevo lanzamiento 🎶'}`,
+                  tiktok: `Nueva música de ${work.author || 'artista'}${isCertified ? ' certificada en blockchain' : ''} 🎵 "${work.title}" #MusicDibs #NuevaMusica ${genre ? `#${genre.replace(/\s+/g, '')}` : ''}`,
+                };
+              }
             }
           }
         }
 
-        // Procesar imagen
+        // Procesar imagen de Nano Banana
         if (imageRes.ok) {
           const imageData = await imageRes.json();
-          const falImageUrl = imageData?.images?.[0]?.url;
+          const base64Url = imageData?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-          if (falImageUrl) {
-            // Descargar y subir a Storage
-            const imgRes = await fetch(falImageUrl);
-            const imgBuffer = new Uint8Array(await imgRes.arrayBuffer());
-            const fileName = `${promo.id}.jpg`;
+          if (base64Url && base64Url.startsWith('data:image/')) {
+            // Extraer base64 y subir a Storage
+            const base64Data = base64Url.split(',')[1];
+            const binaryString = atob(base64Data);
+            const imgBuffer = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              imgBuffer[i] = binaryString.charCodeAt(i);
+            }
+
+            const fileName = `${promo.id}.png`;
 
             const { error: uploadError } = await supabase.storage
               .from('social-promo-images')
               .upload(fileName, imgBuffer, {
-                contentType: 'image/jpeg',
+                contentType: 'image/png',
                 upsert: true,
               });
 
@@ -219,8 +302,14 @@ Idioma: español. Tono: auténtico, no corporativo.`
                 .from('social-promo-images')
                 .getPublicUrl(fileName);
               imageUrl = urlData.publicUrl;
+            } else {
+              console.error('[PROMO-SOCIAL] Upload error:', uploadError);
             }
+          } else {
+            console.error('[PROMO-SOCIAL] No base64 image in response');
           }
+        } else {
+          console.error('[PROMO-SOCIAL] Image generation failed:', imageRes.status, await imageRes.text());
         }
 
         // Actualizar DB con assets
@@ -253,7 +342,7 @@ Idioma: español. Tono: auténtico, no corporativo.`
         </td></tr>
         <tr><td style="padding:32px;">
           <h2 style="color:#18181b;font-size:22px;margin:0 0 16px;">🎉 ¡Tu obra ya está en redes!</h2>
-          <p style="color:#3f3f46;font-size:15px;line-height:1.6;margin:0 0 24px;">Hola ${artistName}, hemos preparado todos los assets para promocionar "${work.title}"</p>
+          <p style="color:#3f3f46;font-size:15px;line-height:1.6;margin:0 0 24px;">Hola ${artistName}, hemos preparado todos los assets para promocionar "${work.title}"${genre ? ` (${genre})` : ''}</p>
 
           ${imageUrl ? `
           <div style="text-align:center;margin:0 0 24px;">
