@@ -1,43 +1,19 @@
 import { useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NavLink } from '@/components/NavLink';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  LayoutDashboard,
-  Upload,
-  Search,
-  Megaphone,
-  ShoppingBag,
-  User,
-  CreditCard,
-  LifeBuoy,
-  Music,
-  LogOut,
-  Mic,
-  Sparkles,
-  Shield,
-  HelpCircle,
-  Users,
-  BarChart3,
-  Settings2,
-  Rocket,
-  Briefcase,
-  ClipboardList,
-  UserCircle,
+  LayoutDashboard, Upload, Search, Megaphone, ShoppingBag, User,
+  CreditCard, LifeBuoy, Music, LogOut, Mic, Sparkles, Shield,
+  HelpCircle, Users, BarChart3, Settings2, Rocket, Briefcase,
+  ClipboardList, UserCircle, ChevronDown,
 } from 'lucide-react';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  SidebarHeader,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  SidebarFooter, SidebarHeader, useSidebar,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -77,6 +53,8 @@ const adminItems = [
   { title: 'Sistema', url: '/dashboard/admin/system', icon: Settings2 },
 ];
 
+type GroupId = 'manager' | 'principal' | 'cuenta' | 'admin';
+
 export function DashboardSidebar() {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
@@ -84,6 +62,24 @@ export function DashboardSidebar() {
   const { user, signOut, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
+
+  // Determine which group is active based on current route
+  const activeGroup = useMemo<GroupId>(() => {
+    const p = location.pathname;
+    if (isManager && managerItems.some(i => p === i.url || p.startsWith(i.url + '/'))) return 'manager';
+    if (isAdmin && adminItems.some(i => p === i.url || p.startsWith(i.url + '/'))) return 'admin';
+    if (accountItems.some(i => p === i.url || p.startsWith(i.url + '/'))) return 'cuenta';
+    return 'principal';
+  }, [location.pathname, isAdmin, isManager]);
+
+  const [openGroup, setOpenGroup] = useState<GroupId>(activeGroup);
+
+  // Sync open group when route changes
+  useEffect(() => { setOpenGroup(activeGroup); }, [activeGroup]);
+
+  const toggleGroup = (id: GroupId) => {
+    setOpenGroup(prev => prev === id ? id : id); // always open clicked group (accordion)
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -118,7 +114,7 @@ export function DashboardSidebar() {
     return true;
   });
 
-  const renderMenuItem = (item: typeof mainItems[0]) => {
+  const renderMenuItem = (item: typeof mainItems[0], activeClass = 'bg-primary/10 text-primary font-medium') => {
     const isHighlight = !!(item as any).highlight && !isManager;
     return (
       <SidebarMenuItem key={item.title}>
@@ -127,7 +123,7 @@ export function DashboardSidebar() {
             to={item.url}
             end={item.url === '/dashboard'}
             className={`hover:bg-muted/50 ${isHighlight ? 'text-violet-500 font-bold' : ''}`}
-            activeClassName="bg-primary/10 text-primary font-medium"
+            activeClassName={activeClass}
           >
             <item.icon className={`mr-2 h-4 w-4 ${isHighlight ? 'text-violet-500' : ''}`} />
             {!collapsed && (
@@ -146,6 +142,28 @@ export function DashboardSidebar() {
     );
   };
 
+  const renderCollapsibleGroup = (id: GroupId, label: string, items: typeof mainItems, activeClass?: string) => (
+    <Collapsible open={openGroup === id} onOpenChange={() => toggleGroup(id)}>
+      <SidebarGroup>
+        <CollapsibleTrigger asChild>
+          <SidebarGroupLabel className="cursor-pointer select-none flex items-center justify-between pr-2 hover:text-foreground transition-colors">
+            <span>{label}</span>
+            {!collapsed && (
+              <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 ${openGroup === id ? 'rotate-0' : '-rotate-90'}`} />
+            )}
+          </SidebarGroupLabel>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map(item => renderMenuItem(item, activeClass))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </SidebarGroup>
+    </Collapsible>
+  );
+
   return (
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="p-4">
@@ -158,72 +176,13 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {isManager && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Manager</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {managerItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {isManager && renderCollapsibleGroup('manager', 'Manager', managerItems)}
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredMainItems.map(renderMenuItem)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {renderCollapsibleGroup('principal', 'Principal', filteredMainItems)}
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Cuenta</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {accountItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-primary/10 text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {renderCollapsibleGroup('cuenta', 'Cuenta', accountItems)}
 
-        {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administración</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                      <NavLink to={item.url} end className="hover:bg-muted/50" activeClassName="bg-pink-500/10 text-pink-400 font-medium">
-                        <item.icon className="mr-2 h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {isAdmin && renderCollapsibleGroup('admin', 'Administración', adminItems, 'bg-pink-500/10 text-pink-400 font-medium')}
       </SidebarContent>
 
       <SidebarFooter className="p-3">
@@ -234,9 +193,7 @@ export function DashboardSidebar() {
           variant="ghost"
           size="sm"
           className="w-full justify-start text-muted-foreground hover:text-foreground"
-          onClick={() => {
-            window.dispatchEvent(new CustomEvent('musicdibs:start-tour'));
-          }}
+          onClick={() => { window.dispatchEvent(new CustomEvent('musicdibs:start-tour')); }}
         >
           <HelpCircle className="h-4 w-4 mr-2" />
           {!collapsed && <span>Guía del panel</span>}
