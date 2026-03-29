@@ -164,6 +164,9 @@ const AIStudioCreate = () => {
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
   const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
+  const [selectedTheme, setSelectedTheme] = useState<string>('');
+  const [selectedArtistRefs, setSelectedArtistRefs] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
    const [showCloneModal, setShowCloneModal] = useState(false);
    const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
    const [editingCloneName, setEditingCloneName] = useState('');
