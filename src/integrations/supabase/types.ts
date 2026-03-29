@@ -861,37 +861,46 @@ export type Database = {
       }
       voice_profiles: {
         Row: {
-          active: boolean
-          created_at: string
+          active: boolean | null
+          created_at: string | null
           description: string | null
-          emoji: string
+          emoji: string | null
+          gender: string
           id: string
           label: string
           prompt_tag: string
+          sample_generated_at: string | null
           sample_url: string | null
-          sort_order: number
+          sort_order: number | null
+          style: string
         }
         Insert: {
-          active?: boolean
-          created_at?: string
+          active?: boolean | null
+          created_at?: string | null
           description?: string | null
-          emoji?: string
-          id?: string
+          emoji?: string | null
+          gender: string
+          id: string
           label: string
           prompt_tag: string
+          sample_generated_at?: string | null
           sample_url?: string | null
-          sort_order?: number
+          sort_order?: number | null
+          style: string
         }
         Update: {
-          active?: boolean
-          created_at?: string
+          active?: boolean | null
+          created_at?: string | null
           description?: string | null
-          emoji?: string
+          emoji?: string | null
+          gender?: string
           id?: string
           label?: string
           prompt_tag?: string
+          sample_generated_at?: string | null
           sample_url?: string | null
-          sort_order?: number
+          sort_order?: number | null
+          style?: string
         }
         Relationships: []
       }
