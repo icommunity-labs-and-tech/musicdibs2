@@ -111,7 +111,9 @@ serve(async (req) => {
     const plan = priceId ? (PRICE_TO_PLAN[priceId] || "Monthly") : "Monthly";
     const cancelAtPeriodEnd = subscription.cancel_at_period_end === true;
 
-    const periodEndRaw = (subscription as any).current_period_end ?? (subscription as any).cancel_at ?? (subscription as any).ended_at;
+    // In Clover API, current_period_end moved to subscription items level
+    const itemPeriodEnd = (subscription.items.data[0] as any)?.current_period_end;
+    const periodEndRaw = itemPeriodEnd ?? (subscription as any).current_period_end ?? (subscription as any).cancel_at ?? (subscription as any).ended_at;
     const subscriptionEnd = toIsoDate(periodEndRaw);
 
     logStep("Subscription resolved", {
