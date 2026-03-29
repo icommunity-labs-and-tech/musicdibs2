@@ -238,21 +238,31 @@ export function PromoteWorks() {
         <div className="grid gap-4">
           {works.map(work => {
             const promo = getWorkPromo(work.id);
+            const promoCount = getWorkPromoCount(work.id);
             const isGenerating = promo?.status === 'generating';
             const hasAssets = promo && (promo.status === 'assets_ready' || promo.status === 'completed' || promo.status === 'email_sent');
             const statusInfo = promo ? STATUS_MAP[promo.status] : null;
             const regenCount = promo?.regeneration_count ?? 0;
             const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
             const isFree = freeRemaining > 0;
+            const canLaunchNew = !isGenerating;
 
             return (
               <Card key={work.id} className="border-border/40 overflow-hidden">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1 min-w-0">
-                      <CardTitle className="text-base font-semibold truncate">
-                        {work.title}
-                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base font-semibold truncate">
+                          {work.title}
+                        </CardTitle>
+                        {promoCount > 0 && (
+                          <Badge variant="secondary" className="text-[10px] shrink-0 px-1.5 py-0">
+                            <Megaphone className="h-2.5 w-2.5 mr-0.5" />
+                            {promoCount}×
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {work.author && <span>{work.author}</span>}
                         <span>·</span>
@@ -270,10 +280,10 @@ export function PromoteWorks() {
                           {statusInfo.label}
                         </Badge>
                       )}
-                      {!promo && (
+                      {canLaunchNew && (
                         <Button
                           size="sm"
-                          variant="hero"
+                          variant={promoCount > 0 ? 'outline' : 'hero'}
                           disabled={noCredits || launching === work.id}
                           onClick={() => handleLaunch(work.id)}
                         >
@@ -282,20 +292,9 @@ export function PromoteWorks() {
                           ) : (
                             <>
                               <Megaphone className="h-4 w-4 mr-1" />
-                              Promocionar
+                              {promoCount > 0 ? 'Nueva promo' : 'Promocionar'}
                             </>
                           )}
-                        </Button>
-                      )}
-                      {promo?.status === 'failed' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={noCredits || launching === work.id}
-                          onClick={() => handleLaunch(work.id)}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          Reintentar
                         </Button>
                       )}
                     </div>
