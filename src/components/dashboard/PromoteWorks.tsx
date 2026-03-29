@@ -120,6 +120,55 @@ export function PromoteWorks() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Load metadata for a specific work on expand
+  const loadWorkMeta = useCallback(async (work: Work) => {
+    if (workMeta[work.id] || !user) return;
+
+    // Fetch AI generations to find matching one
+    const { data: aiGen } = await supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const titleLower = work.title.toLowerCase();
+    const matchingGen = aiGen?.find((g: any) =>
+      g.prompt?.toLowerCase().includes(titleLower) ||
+      titleLower.includes(g.prompt?.toLowerCase()?.slice(0, 20) || '___')
+    ) || null;
+
+    // Fetch artist profile
+    const { data: artistProfile } = await supabase
+      .from('user_artist_profiles')
+      .select('name, genre, mood, style_notes')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .single();
+
+    setWorkMeta(prev => ({
+      ...prev,
+      [work.id]: {
+        genre: matchingGen?.genre || artistProfile?.genre || null,
+        mood: matchingGen?.mood || artistProfile?.mood || null,
+        aiPrompt: matchingGen?.prompt || null,
+        artistName: artistProfile?.name || null,
+        styleNotes: artistProfile?.style_notes || null,
+        isCertified: !!work.certified_at,
+        blockchainNetwork: work.blockchain_network,
+      },
+    }));
+  }, [user, workMeta]);
+
+  const toggleMetaPreview = (work: Work) => {
+    if (expandedWork === work.id) {
+      setExpandedWork(null);
+    } else {
+      setExpandedWork(work.id);
+      loadWorkMeta(work);
+    }
+  };
+
   // Poll for all generating promos
   useEffect(() => {
     if (pollingIds.size === 0) return;
