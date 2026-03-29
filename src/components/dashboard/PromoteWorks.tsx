@@ -59,6 +59,7 @@ export function PromoteWorks() {
   const [polling, setPolling] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
+  const [regenerating, setRegenerating] = useState<string | null>(null);
 
   // Load works & existing promotions
   const loadData = useCallback(async () => {
@@ -145,6 +146,23 @@ export function PromoteWorks() {
       toast.error(err.message || 'Error al lanzar la promoción');
     } finally {
       setLaunching(null);
+    }
+  };
+
+  const handleRegenerateCopies = async (promoId: string) => {
+    setRegenerating(promoId);
+    try {
+      const { data, error } = await supabase.functions.invoke('promo-social-regenerate-copies', {
+        body: { promo_id: promoId },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      setPolling(promoId);
+      toast.info('Regenerando copies... sin coste de créditos.');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al regenerar copies');
+    } finally {
+      setRegenerating(null);
     }
   };
 
@@ -317,6 +335,20 @@ export function PromoteWorks() {
                             onCopy={copyToClipboard}
                           />
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs text-muted-foreground hover:text-primary"
+                          disabled={regenerating === promo.id}
+                          onClick={() => handleRegenerateCopies(promo.id)}
+                        >
+                          {regenerating === promo.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          Regenerar copies (gratis)
+                        </Button>
                       </div>
                     </div>
 
