@@ -59,6 +59,7 @@ export function PromoteWorks() {
   const [polling, setPolling] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
+  const [regenerating, setRegenerating] = useState<string | null>(null);
 
   // Load works & existing promotions
   const loadData = useCallback(async () => {
