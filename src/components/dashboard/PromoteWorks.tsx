@@ -192,6 +192,7 @@ export function PromoteWorks() {
   };
 
   const getWorkPromo = (workId: string) => promos.find(p => p.work_id === workId);
+  const getWorkPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
 
   if (loadingWorks) {
     return (
