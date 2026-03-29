@@ -157,6 +157,8 @@ const AIStudioCreate = () => {
   // ── Voice selector state ──
   const [selectedVoice, setSelectedVoice] = useState<string>('');
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
+  const [playingVoice, setPlayingVoice] = useState<string>('');
+  const [audioRef] = useState<Record<string, HTMLAudioElement>>({});
 
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
@@ -425,6 +427,28 @@ const AIStudioCreate = () => {
   const handleRegenerate = () => {
     setLastResult(null);
     setGenerationError(null);
+  };
+
+  // ── Preview voice sample ──
+  const handlePreviewVoice = (e: React.MouseEvent, voiceId: string, sampleUrl: string) => {
+    e.stopPropagation();
+    if (!sampleUrl) return;
+
+    if (audioRef[playingVoice]) {
+      audioRef[playingVoice].pause();
+      audioRef[playingVoice].currentTime = 0;
+    }
+
+    if (playingVoice === voiceId) {
+      setPlayingVoice('');
+      return;
+    }
+
+    const audio = new Audio(sampleUrl);
+    audioRef[voiceId] = audio;
+    audio.play();
+    setPlayingVoice(voiceId);
+    audio.onended = () => setPlayingVoice('');
   };
 
   // ── Improve prompt with AI ──
@@ -852,6 +876,26 @@ const AIStudioCreate = () => {
                             >
                               <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
                               <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
+                              {v.sample_url && (
+                                <span
+                                  onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
+                                  title={playingVoice === v.id ? 'Detener' : 'Escuchar muestra'}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                    marginTop: '4px',
+                                    fontSize: '11px',
+                                    color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  {playingVoice === v.id
+                                    ? <span>⏹ Detener</span>
+                                    : <span>▶ Escuchar</span>
+                                  }
+                                </span>
+                              )}
                             </button>
                           ))}
                         </div>
