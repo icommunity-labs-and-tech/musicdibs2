@@ -74,8 +74,8 @@ export const HeroSection = () => {
 
         {/* Subtitle */}
         <ScrollReveal delay={400}>
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto leading-relaxed">
-            {t("hero.subtitle_prefix")} <span className="font-semibold text-white">{t("hero.subtitle_strong")}</span>{" "}
+          <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto leading-relaxed">
+            {t("hero.subtitle_prefix")} {t("hero.subtitle_strong")}{" "}
             <a
               href="/legal-validity"
               className="text-pink-300 hover:text-pink-200 underline transition-colors text-xs md:text-sm"
