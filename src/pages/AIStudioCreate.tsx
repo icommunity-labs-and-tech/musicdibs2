@@ -435,6 +435,53 @@ const AIStudioCreate = () => {
     link.click();
   };
 
+  // ── Inline voice cloning ──
+  const handleInlineClone = async () => {
+    if (!cloningFile || !cloningName.trim() || !user) return;
+    if (cloningDuration !== null && cloningDuration < 30) {
+      toast({ title: 'Audio muy corto', description: 'Necesitas al menos 30 segundos de audio.', variant: 'destructive' });
+      return;
+    }
+    setIsCloning(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const form = new FormData();
+      form.append('audio', cloningFile);
+      form.append('name', cloningName.trim());
+      form.append('remove_background_noise', String(cloningNoise));
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: form,
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        toast({ title: 'Error', description: data.error || 'No se pudo clonar la voz', variant: 'destructive' });
+        return;
+      }
+      const { data: newClones } = await supabase.from('voice_clones')
+        .select('*').eq('user_id', user.id).eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setVoiceClones(newClones || []);
+      setSelectedCloneId(data.clone_id);
+      setSelectedVoice('');
+      setShowCloneModal(false);
+      setCloningName(''); setCloningFile(null); setCloningDuration(null); setCloningNoise(false);
+      if (cloneFileRef.current) cloneFileRef.current.value = '';
+      toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar. Ya está seleccionada.` });
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo conectar con el servidor', variant: 'destructive' });
+    } finally {
+      setIsCloning(false);
+    }
+  };
+
   // ── Bulk helpers ──
   const toggleBulkMode = () => { setBulkMode(prev => !prev); setSelectedIds(new Set()); };
   const toggleSelected = (id: string) => {
