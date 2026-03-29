@@ -228,14 +228,27 @@ const AIStudioCreate = () => {
       .order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
 
-    // Load voice clones
+    // Load voice clones (with signed sample URLs)
     if (user) {
       supabase.from('voice_clones')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
-        .then(({ data }) => setVoiceClones(data || []));
+        .then(async ({ data }) => {
+          const clones = data || [];
+          // Generate signed URLs for samples
+          const withUrls = await Promise.all(clones.map(async (c: any) => {
+            if (c.sample_storage_path) {
+              const { data: urlData } = await supabase.storage
+                .from('voice-clone-samples')
+                .createSignedUrl(c.sample_storage_path, 3600);
+              return { ...c, sample_url: urlData?.signedUrl || null };
+            }
+            return { ...c, sample_url: null };
+          }));
+          setVoiceClones(withUrls);
+        });
     }
 
     // Load artist profiles
@@ -468,7 +481,16 @@ const AIStudioCreate = () => {
       const { data: newClones } = await supabase.from('voice_clones')
         .select('*').eq('user_id', user.id).eq('status', 'active')
         .order('created_at', { ascending: false });
-      setVoiceClones(newClones || []);
+      const withUrls = await Promise.all((newClones || []).map(async (c: any) => {
+        if (c.sample_storage_path) {
+          const { data: urlData } = await supabase.storage
+            .from('voice-clone-samples')
+            .createSignedUrl(c.sample_storage_path, 3600);
+          return { ...c, sample_url: urlData?.signedUrl || null };
+        }
+        return { ...c, sample_url: null };
+      }));
+      setVoiceClones(withUrls);
       setSelectedCloneId(data.clone_id);
       setSelectedVoice('');
       setShowCloneModal(false);
@@ -1182,6 +1204,14 @@ const AIStudioCreate = () => {
                                       <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
                                       <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{c.name}</span>
                                       <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Voz clonada</span>
+                                      {c.sample_url && (
+                                        <span
+                                          onClick={(e) => handlePreviewVoice(e, c.id, c.sample_url)}
+                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === c.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
+                                        >
+                                          {playingVoice === c.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                                        </span>
+                                      )}
                                     </button>
                                   ))}
                                 </div>
