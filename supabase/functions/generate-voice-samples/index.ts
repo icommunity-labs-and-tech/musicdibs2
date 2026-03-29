@@ -59,7 +59,7 @@ serve(async (req) => {
       try {
         const prompt = SAMPLE_PROMPTS[profile.id] || `${profile.prompt_tag}, 30 seconds`;
 
-        const elRes = await fetch('https://api.elevenlabs.io/v1/music-generation', {
+        const elRes = await fetch('https://api.elevenlabs.io/v1/music', {
           method: 'POST',
           headers: {
             'xi-api-key': ELEVENLABS_API_KEY,
