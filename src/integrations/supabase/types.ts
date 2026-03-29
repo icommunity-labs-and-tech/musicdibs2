@@ -763,6 +763,54 @@ export type Database = {
         }
         Relationships: []
       }
+      social_promotions: {
+        Row: {
+          copy_ig_feed: string | null
+          copy_ig_story: string | null
+          copy_tiktok: string | null
+          created_at: string
+          credits_spent: number | null
+          email_sent_at: string | null
+          error_detail: string | null
+          id: string
+          image_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          work_id: string
+        }
+        Insert: {
+          copy_ig_feed?: string | null
+          copy_ig_story?: string | null
+          copy_tiktok?: string | null
+          created_at?: string
+          credits_spent?: number | null
+          email_sent_at?: string | null
+          error_detail?: string | null
+          id?: string
+          image_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          work_id: string
+        }
+        Update: {
+          copy_ig_feed?: string | null
+          copy_ig_story?: string | null
+          copy_tiktok?: string | null
+          created_at?: string
+          credits_spent?: number | null
+          email_sent_at?: string | null
+          error_detail?: string | null
+          id?: string
+          image_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          work_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
