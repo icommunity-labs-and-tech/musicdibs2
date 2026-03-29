@@ -74,20 +74,8 @@ serve(async (req) => {
           continue;
         }
 
-        const elData = await elRes.json();
-        let audioBuffer: Uint8Array | null = null;
-
-        if (elData?.audio) {
-          const binaryStr = atob(elData.audio);
-          audioBuffer = new Uint8Array(binaryStr.length);
-          for (let i = 0; i < binaryStr.length; i++) audioBuffer[i] = binaryStr.charCodeAt(i);
-        } else if (elData?.audio_url || elData?.url) {
-          const audioRes = await fetch(elData.audio_url || elData.url);
-          audioBuffer = new Uint8Array(await audioRes.arrayBuffer());
-        } else {
-          results.push({ id: profile.id, status: 'error', error: 'No audio in response' });
-          continue;
-        }
+        // ElevenLabs Music API returns raw binary audio
+        const audioBuffer = new Uint8Array(await elRes.arrayBuffer());
 
         const fileName = `${profile.id}.mp3`;
         const { error: uploadError } = await supabase.storage
