@@ -81,6 +81,8 @@ export function PromoteWorks() {
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [expandedWork, setExpandedWork] = useState<string | null>(null);
+  const [workMeta, setWorkMeta] = useState<Record<string, WorkMetadata>>({});
 
   const addPolling = (id: string) => setPollingIds(prev => new Set(prev).add(id));
   const removePolling = (id: string) => setPollingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
