@@ -808,3 +808,23 @@ function CopyBlock({
     </div>
   );
 }
+
+// ── Meta row sub-component ──
+function MetaRow({
+  icon, label, value, highlight,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-2 text-xs">
+      <span className={highlight ? 'text-primary' : 'text-muted-foreground'}>{icon}</span>
+      <span className="text-muted-foreground shrink-0 w-24">{label}:</span>
+      <span className={`${highlight ? 'text-foreground font-medium' : 'text-muted-foreground'} break-words`}>
+        {value}
+      </span>
+    </div>
+  );
+}
