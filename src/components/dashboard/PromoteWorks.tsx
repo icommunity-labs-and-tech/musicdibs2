@@ -55,7 +55,7 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Lo
 
 export function PromoteWorks() {
   const { user } = useAuth();
-  const { credits, hasEnough, refresh: refreshCredits } = useCredits();
+  const { credits, hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
   const navigate = useNavigate();
 
