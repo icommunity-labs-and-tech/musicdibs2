@@ -3,30 +3,12 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { useParallax } from "@/hooks/useParallax";
-import { useABTest, trackABClick } from "@/hooks/useABTest";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const { offset } = useParallax({ speed: 0.4 });
   const { offset: bgOffset } = useParallax({ speed: 0.15 });
-
-  const ctaPrimary = useABTest({
-    id: "hero_cta_primary",
-    variants: [
-      { text: t("hero.cta_start"), className: "" },
-      { text: t("hero.cta_start"), className: "" },
-      { text: t("hero.cta_start"), className: "" },
-    ],
-  });
-
-  const ctaSecondary = useABTest({
-    id: "hero_cta_secondary",
-    variants: [
-      { text: t("hero.cta_how"), className: "" },
-      { text: "Ver cómo funciona →", className: "" },
-    ],
-  });
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -91,25 +73,23 @@ export const HeroSection = () => {
             <Button
               variant="hero"
               size="xl"
-              className={`font-semibold ${ctaPrimary.className}`}
+              className="font-semibold"
               onClick={() => {
-                trackABClick("hero_cta_primary", ctaPrimary.variantIndex, ctaPrimary.text);
                 document.getElementById("pricing-section")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              {ctaPrimary.text}
+              {t("hero.cta_start")}
             </Button>
             <Button
               variant="blue"
               size="xl"
-              className={`font-semibold ${ctaSecondary.className}`}
+              className="font-semibold"
               onClick={() => {
-                trackABClick("hero_cta_secondary", ctaSecondary.variantIndex, ctaSecondary.text);
                 const tutorialSection = document.querySelector("section:nth-of-type(7)");
                 tutorialSection?.scrollIntoView({ behavior: "smooth" });
               }}
             >
-              {ctaSecondary.text}
+              {t("hero.cta_how")}
             </Button>
           </div>
         </ScrollReveal>
