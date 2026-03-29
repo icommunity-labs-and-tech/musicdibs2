@@ -322,17 +322,32 @@ const ArtistProfilesPage = () => {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label>Notas de estilo</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleGenerateNotes}
-                  disabled={generatingNotes}
-                  className="gap-1.5 text-xs h-7 text-primary hover:text-primary"
-                >
-                  {generatingNotes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                  {generatingNotes ? 'Generando...' : 'Generar con IA'}
-                </Button>
+                <div className="flex items-center gap-1">
+                  {formNotes.trim() && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleGenerateNotes(true)}
+                      disabled={generatingNotes}
+                      className="gap-1.5 text-xs h-7 text-muted-foreground hover:text-primary"
+                    >
+                      {generatingNotes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                      Regenerar
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleGenerateNotes(false)}
+                    disabled={generatingNotes}
+                    className="gap-1.5 text-xs h-7 text-primary hover:text-primary"
+                  >
+                    {generatingNotes ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    {generatingNotes ? 'Generando...' : 'Generar con IA'}
+                  </Button>
+                </div>
               </div>
               <Textarea
                 value={formNotes}
