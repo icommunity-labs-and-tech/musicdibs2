@@ -53,7 +53,6 @@ serve(async (req) => {
       });
     }
 
-    // Verify promo belongs to user
     const { data: promo } = await supabase
       .from('social_promotions')
       .select('id, work_id, status, regeneration_count')
@@ -73,7 +72,6 @@ serve(async (req) => {
       });
     }
 
-    // Check regeneration limit
     const isFree = promo.regeneration_count < MAX_FREE_REGENERATIONS;
 
     if (!isFree) {
@@ -82,7 +80,6 @@ serve(async (req) => {
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      // Charge credits for paid regen
       const { data: profile } = await supabase
         .from('profiles')
         .select('available_credits')
@@ -108,21 +105,50 @@ serve(async (req) => {
       });
     }
 
-    // Get work data
-    const { data: work } = await supabase
-      .from('works')
-      .select('title, author, description, type, checker_url')
-      .eq('id', promo.work_id)
-      .eq('user_id', user.id)
-      .single();
+    // Fetch work + AI generation metadata
+    const [workRes, genRes] = await Promise.all([
+      supabase.from('works').select('title, author, description, type, checker_url')
+        .eq('id', promo.work_id).eq('user_id', user.id).single(),
+      supabase.from('ai_generations').select('prompt, genre, mood')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+    ]);
 
+    const work = workRes.data;
     if (!work) {
       return new Response(JSON.stringify({ error: 'Work not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Mark as regenerating and increment count
+    const aiGen = genRes.data?.find((g: any) =>
+      work.title && g.prompt?.toLowerCase().includes(work.title.toLowerCase())
+    ) || null;
+
+    // Build enriched prompt
+    const lines = [
+      `Genera 3 copies NUEVOS y DIFERENTES para promocionar esta obra musical en redes sociales.`,
+      `Sé creativo, usa un enfoque distinto al anterior.`,
+      '',
+      `Obra: "${work.title}"`,
+      `Artista: "${work.author || 'Artista'}"`,
+      `Tipo: ${work.type || 'obra musical'}`,
+    ];
+    if (aiGen?.genre) lines.push(`Género: ${aiGen.genre}`);
+    if (aiGen?.mood) lines.push(`Mood: ${aiGen.mood}`);
+    if (work.description) lines.push(`Descripción: ${work.description}`);
+    if (aiGen?.prompt) lines.push(`Prompt IA original: ${aiGen.prompt.slice(0, 150)}`);
+    if (work.checker_url) lines.push(`Verificar en blockchain: ${work.checker_url}`);
+    lines.push('');
+    lines.push(`Genera exactamente este JSON:
+{
+  "ig_feed": "Copy para Instagram Feed (máx 150 chars, 2-3 emojis, 3-5 hashtags musicales relevantes, menciona que está certificado en blockchain)",
+  "ig_story": "Copy para Instagram Story (máx 80 chars, directo, impactante, 1-2 emojis)",
+  "tiktok": "Copy para TikTok (máx 150 chars, tono joven y viral, 3-5 hashtags trending de música)"
+}
+
+Idioma: español. Tono: auténtico, no corporativo.`);
+
+    // Mark as regenerating
     await supabase.from('social_promotions').update({
       status: 'generating',
       regeneration_count: promo.regeneration_count + 1,
@@ -134,8 +160,6 @@ serve(async (req) => {
     // Background: regenerate copies
     (async () => {
       try {
-        const workType = work.type || 'obra musical';
-
         const copiesRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
@@ -149,26 +173,7 @@ serve(async (req) => {
             system: `Eres un experto en marketing musical y redes sociales. 
 Genera copies virales y auténticos para promocionar obras musicales.
 Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
-            messages: [{
-              role: 'user',
-              content: `Genera 3 copies NUEVOS y DIFERENTES para promocionar esta obra musical en redes sociales.
-Sé creativo, usa un enfoque distinto al anterior.
-
-Obra: "${work.title}"
-Artista: "${work.author || 'Artista'}"
-Tipo: ${workType}
-Descripción: ${work.description || 'Sin descripción'}
-${work.checker_url ? `Verificar en blockchain: ${work.checker_url}` : ''}
-
-Genera exactamente este JSON:
-{
-  "ig_feed": "Copy para Instagram Feed (máx 150 chars, 2-3 emojis, 3-5 hashtags musicales relevantes, menciona que está certificado en blockchain)",
-  "ig_story": "Copy para Instagram Story (máx 80 chars, directo, impactante, 1-2 emojis)",
-  "tiktok": "Copy para TikTok (máx 150 chars, tono joven y viral, 3-5 hashtags trending de música)"
-}
-
-Idioma: español. Tono: auténtico, no corporativo.`
-            }]
+            messages: [{ role: 'user', content: lines.join('\n') }]
           })
         });
 
