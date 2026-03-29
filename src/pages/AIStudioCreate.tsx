@@ -164,7 +164,9 @@ const AIStudioCreate = () => {
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
   const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
-  const [showCloneModal, setShowCloneModal] = useState(false);
+   const [showCloneModal, setShowCloneModal] = useState(false);
+   const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
+   const [editingCloneName, setEditingCloneName] = useState('');
   const [cloningName, setCloningName] = useState('');
   const [cloningFile, setCloningFile] = useState<File | null>(null);
   const [cloningDuration, setCloningDuration] = useState<number | null>(null);
@@ -1200,33 +1202,80 @@ const AIStudioCreate = () => {
                                       }}
                                       onClick={() => { if (mode !== 'instrumental') { setSelectedCloneId(selectedCloneId === c.id ? '' : c.id); setSelectedVoice(''); } }}
                                     >
-                                      {/* Delete button */}
-                                      <span
-                                        title="Eliminar voz"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (confirm(`¿Eliminar "${c.name}"? No podrás usarla en nuevas canciones.`)) {
-                                            supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', c.id).then(() => {
-                                              setVoiceClones(prev => prev.filter(v => v.id !== c.id));
-                                              if (selectedCloneId === c.id) setSelectedCloneId('');
-                                              toast({ title: 'Voz eliminada' });
-                                            });
-                                          }
-                                        }}
-                                        style={{
-                                          position: 'absolute', top: '4px', right: '4px',
-                                          fontSize: '12px', color: 'hsl(var(--muted-foreground))',
-                                          cursor: 'pointer', padding: '2px 4px', borderRadius: '4px',
-                                          lineHeight: 1,
-                                        }}
-                                        onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--destructive))')}
-                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
-                                      >
-                                        🗑
-                                      </span>
+                                      {/* Action buttons */}
+                                      <div style={{ position: 'absolute', top: '4px', right: '4px', display: 'flex', gap: '2px' }}>
+                                        <span
+                                          title="Renombrar voz"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingCloneId(c.id);
+                                            setEditingCloneName(c.name);
+                                          }}
+                                          style={{
+                                            fontSize: '12px', color: 'hsl(var(--muted-foreground))',
+                                            cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', lineHeight: 1,
+                                          }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--primary))')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
+                                        >✏️</span>
+                                        <span
+                                          title="Eliminar voz"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`¿Eliminar "${c.name}"? No podrás usarla en nuevas canciones.`)) {
+                                              supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', c.id).then(() => {
+                                                setVoiceClones(prev => prev.filter(v => v.id !== c.id));
+                                                if (selectedCloneId === c.id) setSelectedCloneId('');
+                                                toast({ title: 'Voz eliminada' });
+                                              });
+                                            }
+                                          }}
+                                          style={{
+                                            fontSize: '12px', color: 'hsl(var(--muted-foreground))',
+                                            cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', lineHeight: 1,
+                                          }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--destructive))')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
+                                        >🗑</span>
+                                      </div>
                                       <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
-                                      <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{c.name}</span>
-                                      <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Voz clonada</span>
+                                      {editingCloneId === c.id ? (
+                                        <form
+                                          onSubmit={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            const trimmed = editingCloneName.trim();
+                                            if (!trimmed) return;
+                                            supabase.from('voice_clones').update({ name: trimmed }).eq('id', c.id).then(({ error }) => {
+                                              if (!error) {
+                                                setVoiceClones(prev => prev.map(v => v.id === c.id ? { ...v, name: trimmed } : v));
+                                                toast({ title: 'Voz renombrada' });
+                                              }
+                                              setEditingCloneId(null);
+                                            });
+                                          }}
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{ display: 'flex', gap: '4px', alignItems: 'center', width: '100%' }}
+                                        >
+                                          <input
+                                            autoFocus
+                                            value={editingCloneName}
+                                            onChange={(e) => setEditingCloneName(e.target.value)}
+                                            maxLength={50}
+                                            style={{
+                                              fontSize: '12px', fontWeight: 500, padding: '2px 4px',
+                                              border: '1px solid hsl(var(--border))', borderRadius: '4px',
+                                              background: 'hsl(var(--background))', color: 'hsl(var(--foreground))',
+                                              width: '100%', outline: 'none',
+                                            }}
+                                            onKeyDown={(e) => { if (e.key === 'Escape') setEditingCloneId(null); }}
+                                          />
+                                          <button type="submit" style={{ fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>✓</button>
+                                        </form>
+                                      ) : (
+                                        <span style={{ fontSize: '12px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{c.name}</span>
+                                      )}
+                                      <span style={{ fontSize: '10px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>Voz clonada</span>
                                       {c.sample_url && (
                                         <span
                                           onClick={(e) => handlePreviewVoice(e, c.id, c.sample_url)}
