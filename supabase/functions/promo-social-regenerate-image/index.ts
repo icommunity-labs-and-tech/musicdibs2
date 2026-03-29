@@ -126,14 +126,20 @@ serve(async (req) => {
 
     // Build enriched prompt
     const parts = [
-      `Professional music promotion artwork for "${work.title}" by ${work.author || 'artist'}.`,
+      `Generate a promotional image for the song "${work.title}" by ${work.author || 'artist'}.`,
     ];
     if (aiGen?.genre) parts.push(`Genre: ${aiGen.genre}.`);
     if (aiGen?.mood) parts.push(`Mood: ${aiGen.mood}.`);
     if (work.type) parts.push(`Type: ${work.type}.`);
     if (work.description) parts.push(`Context: ${work.description.slice(0, 100)}.`);
     if (aiGen?.prompt) parts.push(`Original AI concept: ${aiGen.prompt.slice(0, 120)}.`);
-    parts.push('Dark purple and violet gradient background with gold accents. Modern minimalist design. Square format 1080x1080. High quality, professional. Unique variation.');
+    parts.push('Create a striking square 1080x1080 promotional artwork with a dark purple and violet gradient background, gold accents, and modern minimalist design. Include the song title as text overlay. High quality, professional. Unique variation.');
+
+    const IMAGE_MODELS = [
+      'google/gemini-3.1-flash-image-preview',
+      'google/gemini-3-pro-image-preview',
+      'google/gemini-2.5-flash-image',
+    ];
 
     // Mark as regenerating
     await supabase.from('social_promotions').update({
@@ -144,46 +150,59 @@ serve(async (req) => {
 
     const responseData = { promo_id, status: 'generating', regeneration_count: promo.regeneration_count + 1 };
 
-    // Background: regenerate image with Nano Banana 2
+    // Background: regenerate image with model fallback
     (async () => {
       try {
-        const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-3.1-flash-image-preview',
-            messages: [{ role: 'user', content: parts.join(' ') }],
-            modalities: ['image', 'text'],
-          }),
-        });
-
         let imageUrl = '';
+        const prompt = parts.join(' ');
 
-        if (res.ok) {
-          const data = await res.json();
-          const base64Image = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        for (const model of IMAGE_MODELS) {
+          console.log(`[PROMO-REGEN-IMG] Trying model: ${model}`);
+          try {
+            const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${LOVABLE_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model,
+                messages: [{ role: 'user', content: prompt }],
+                modalities: ['image', 'text'],
+              }),
+            });
 
-          if (base64Image?.startsWith('data:image')) {
-            const base64Data = base64Image.split(',')[1];
-            const imgBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-            const fileName = `${promo_id}_${Date.now()}.png`;
-
-            const { error: uploadError } = await supabase.storage
-              .from('social-promo-images')
-              .upload(fileName, imgBuffer, { contentType: 'image/png', upsert: true });
-
-            if (!uploadError) {
-              const { data: urlData } = supabase.storage
-                .from('social-promo-images')
-                .getPublicUrl(fileName);
-              imageUrl = urlData.publicUrl;
+            if (!res.ok) {
+              console.error(`[PROMO-REGEN-IMG] Model ${model} error ${res.status}:`, await res.text());
+              continue;
             }
+
+            const data = await res.json();
+            const base64Image = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+            if (base64Image?.startsWith('data:image')) {
+              const base64Data = base64Image.split(',')[1];
+              const imgBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+              const fileName = `${promo_id}_${Date.now()}.png`;
+
+              const { error: uploadError } = await supabase.storage
+                .from('social-promo-images')
+                .upload(fileName, imgBuffer, { contentType: 'image/png', upsert: true });
+
+              if (!uploadError) {
+                const { data: urlData } = supabase.storage
+                  .from('social-promo-images')
+                  .getPublicUrl(fileName);
+                imageUrl = urlData.publicUrl;
+              }
+              console.log(`[PROMO-REGEN-IMG] Image generated with ${model}`);
+              break;
+            } else {
+              console.warn(`[PROMO-REGEN-IMG] Model ${model} returned no image`);
+            }
+          } catch (modelErr: any) {
+            console.error(`[PROMO-REGEN-IMG] Model ${model} exception:`, modelErr.message);
           }
-        } else {
-          console.error('[PROMO-REGEN-IMG] Nano Banana error:', res.status, await res.text());
         }
 
         await supabase.from('social_promotions').update({
@@ -192,7 +211,7 @@ serve(async (req) => {
           updated_at: new Date().toISOString(),
         }).eq('id', promo_id);
 
-        console.log(`[PROMO-REGEN-IMG] Image regenerated for promo ${promo_id}`);
+        console.log(`[PROMO-REGEN-IMG] Completed for promo ${promo_id}, hasImage: ${!!imageUrl}`);
       } catch (bgError: any) {
         console.error('[PROMO-REGEN-IMG] Error:', bgError);
         await supabase.from('social_promotions').update({

@@ -35,14 +35,14 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
 
 function buildImagePrompt(work: any, aiGen: any): string {
   const parts = [
-    `Professional music promotion artwork for "${work.title}" by ${work.author || 'artist'}.`,
+    `Generate a promotional image for the song "${work.title}" by ${work.author || 'artist'}.`,
   ];
   if (aiGen?.genre) parts.push(`Genre: ${aiGen.genre}.`);
   if (aiGen?.mood) parts.push(`Mood: ${aiGen.mood}.`);
   if (work.type) parts.push(`Type: ${work.type}.`);
   if (work.description) parts.push(`Context: ${work.description.slice(0, 100)}.`);
   if (aiGen?.prompt) parts.push(`Original AI concept: ${aiGen.prompt.slice(0, 120)}.`);
-  parts.push('Dark purple and violet gradient background with gold accents. Modern minimalist design. Square format 1080x1080. High quality, professional.');
+  parts.push('Create a striking square 1080x1080 promotional artwork with a dark purple and violet gradient background, gold accents, and modern minimalist design. Include the song title as text overlay. High quality, professional music promotion image.');
   return parts.join(' ');
 }
 
@@ -71,28 +71,55 @@ Idioma: español. Tono: auténtico, no corporativo.`);
   return lines.join('\n');
 }
 
+const IMAGE_MODELS = [
+  'google/gemini-3.1-flash-image-preview',
+  'google/gemini-3-pro-image-preview',
+  'google/gemini-2.5-flash-image',
+];
+
 async function generateImageWithNanoBanana(prompt: string, apiKey: string): Promise<string | null> {
-  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-3.1-flash-image-preview',
-      messages: [{ role: 'user', content: prompt }],
-      modalities: ['image', 'text'],
-    }),
-  });
+  for (const model of IMAGE_MODELS) {
+    console.log(`[PROMO] Trying image model: ${model}`);
+    try {
+      const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          modalities: ['image', 'text'],
+        }),
+      });
 
-  if (!res.ok) {
-    console.error('[PROMO] Nano Banana error:', res.status, await res.text());
-    return null;
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error(`[PROMO] Model ${model} HTTP error ${res.status}:`, errText);
+        if (res.status === 410 || res.status === 404) continue; // model deprecated, try next
+        if (res.status === 429) continue; // rate limited, try next
+        continue;
+      }
+
+      const data = await res.json();
+      console.log(`[PROMO] Model ${model} response keys:`, Object.keys(data));
+      
+      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageUrl) {
+        console.log(`[PROMO] Image generated successfully with ${model}, length: ${imageUrl.length}`);
+        return imageUrl;
+      }
+      
+      // Log the full response structure for debugging
+      const msg = data.choices?.[0]?.message;
+      console.warn(`[PROMO] Model ${model} returned no image. Content: ${JSON.stringify(msg).slice(0, 300)}`);
+    } catch (err: any) {
+      console.error(`[PROMO] Model ${model} exception:`, err.message);
+    }
   }
-
-  const data = await res.json();
-  const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  return imageUrl || null;
+  console.error('[PROMO] All image models failed');
+  return null;
 }
 
 serve(async (req) => {
