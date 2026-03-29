@@ -207,6 +207,10 @@ export function PromoteWorks() {
   const getWorkPromo = (workId: string) => promos.find(p => p.work_id === workId);
   const getWorkPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
 
+  // Promos that need attention: generating or assets_ready (not yet acted upon)
+  const pendingPromos = promos.filter(p => p.status === 'generating' || p.status === 'assets_ready');
+  const pendingWorkIds = new Set(pendingPromos.map(p => p.work_id));
+
   if (loadingWorks) {
     return (
       <div className="flex items-center justify-center py-12">
