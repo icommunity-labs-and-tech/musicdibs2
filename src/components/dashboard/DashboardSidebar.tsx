@@ -58,6 +58,7 @@ const mainItems = [
   { title: 'Promocionar obra', url: '/dashboard/promote', icon: Megaphone },
   { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
   { title: 'Mis Artistas', url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
+  { title: 'Clonación de Voz', url: '/dashboard/voice-cloning', icon: Mic, hideForManager: true },
 ];
 
 const accountItems = [
