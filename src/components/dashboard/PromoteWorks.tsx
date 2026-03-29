@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
-  ShoppingCart, CreditCard,
+  ShoppingCart, CreditCard, ChevronDown, ChevronUp, Tag, Palette, Brain, User2,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -25,8 +25,12 @@ interface Work {
   author: string | null;
   type: string;
   status: string;
+  description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+  blockchain_hash: string | null;
+  blockchain_network: string | null;
+  certified_at: string | null;
 }
 
 interface SocialPromo {
@@ -40,6 +44,16 @@ interface SocialPromo {
   created_at: string;
   error_detail: string | null;
   regeneration_count: number;
+}
+
+interface WorkMetadata {
+  genre: string | null;
+  mood: string | null;
+  aiPrompt: string | null;
+  artistName: string | null;
+  styleNotes: string | null;
+  isCertified: boolean;
+  blockchainNetwork: string | null;
 }
 
 const MAX_FREE_REGENS = 3;
@@ -67,6 +81,8 @@ export function PromoteWorks() {
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [expandedWork, setExpandedWork] = useState<string | null>(null);
+  const [workMeta, setWorkMeta] = useState<Record<string, WorkMetadata>>({});
 
   const addPolling = (id: string) => setPollingIds(prev => new Set(prev).add(id));
   const removePolling = (id: string) => setPollingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
@@ -78,7 +94,7 @@ export function PromoteWorks() {
     const [worksRes, promosRes] = await Promise.all([
       supabase
         .from('works')
-        .select('id, title, author, type, status, checker_url, distributed_at')
+        .select('id, title, author, type, status, description, checker_url, distributed_at, blockchain_hash, blockchain_network, certified_at')
         .eq('user_id', user.id)
         .eq('status', 'registered')
         .order('created_at', { ascending: false }),
@@ -103,6 +119,55 @@ export function PromoteWorks() {
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Load metadata for a specific work on expand
+  const loadWorkMeta = useCallback(async (work: Work) => {
+    if (workMeta[work.id] || !user) return;
+
+    // Fetch AI generations to find matching one
+    const { data: aiGen } = await supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    const titleLower = work.title.toLowerCase();
+    const matchingGen = aiGen?.find((g: any) =>
+      g.prompt?.toLowerCase().includes(titleLower) ||
+      titleLower.includes(g.prompt?.toLowerCase()?.slice(0, 20) || '___')
+    ) || null;
+
+    // Fetch artist profile
+    const { data: artistProfile } = await supabase
+      .from('user_artist_profiles')
+      .select('name, genre, mood, style_notes')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .single();
+
+    setWorkMeta(prev => ({
+      ...prev,
+      [work.id]: {
+        genre: matchingGen?.genre || artistProfile?.genre || null,
+        mood: matchingGen?.mood || artistProfile?.mood || null,
+        aiPrompt: matchingGen?.prompt || null,
+        artistName: artistProfile?.name || null,
+        styleNotes: artistProfile?.style_notes || null,
+        isCertified: !!work.certified_at,
+        blockchainNetwork: work.blockchain_network,
+      },
+    }));
+  }, [user, workMeta]);
+
+  const toggleMetaPreview = (work: Work) => {
+    if (expandedWork === work.id) {
+      setExpandedWork(null);
+    } else {
+      setExpandedWork(work.id);
+      loadWorkMeta(work);
+    }
+  };
 
   // Poll for all generating promos
   useEffect(() => {
@@ -355,7 +420,82 @@ export function PromoteWorks() {
                   </div>
                 </CardHeader>
 
-                {/* Generated assets */}
+                {/* Metadata preview toggle */}
+                <CardContent className="pt-0 pb-3">
+                  <button
+                    onClick={() => toggleMetaPreview(work)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <Brain className="h-3 w-3" />
+                    <span>Ver metadatos que usará la IA</span>
+                    {expandedWork === work.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  </button>
+
+                  {expandedWork === work.id && (
+                    <div className="mt-3 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+                      {!workMeta[work.id] ? (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Cargando metadatos...
+                        </div>
+                      ) : (
+                        <>
+                          <p className="text-[11px] text-muted-foreground/70 mb-2">
+                            Estos datos se usarán para generar la imagen y los copies:
+                          </p>
+                          <MetaRow icon={<Music className="h-3 w-3" />} label="Título" value={work.title} />
+                          <MetaRow icon={<User2 className="h-3 w-3" />} label="Artista" value={work.author || workMeta[work.id].artistName || '—'} />
+                          <MetaRow icon={<Tag className="h-3 w-3" />} label="Tipo" value={work.type} />
+                          {work.description && (
+                            <MetaRow icon={<Tag className="h-3 w-3" />} label="Descripción" value={work.description} />
+                          )}
+                          <MetaRow
+                            icon={<Palette className="h-3 w-3" />}
+                            label="Género"
+                            value={workMeta[work.id].genre || 'No detectado'}
+                            highlight={!!workMeta[work.id].genre}
+                          />
+                          <MetaRow
+                            icon={<Sparkles className="h-3 w-3" />}
+                            label="Mood"
+                            value={workMeta[work.id].mood || 'No detectado'}
+                            highlight={!!workMeta[work.id].mood}
+                          />
+                          {workMeta[work.id].aiPrompt && (
+                            <MetaRow
+                              icon={<Brain className="h-3 w-3" />}
+                              label="Prompt IA"
+                              value={workMeta[work.id].aiPrompt!}
+                              highlight
+                            />
+                          )}
+                          {workMeta[work.id].styleNotes && (
+                            <MetaRow
+                              icon={<Palette className="h-3 w-3" />}
+                              label="Estilo artista"
+                              value={workMeta[work.id].styleNotes!}
+                              highlight
+                            />
+                          )}
+                          <MetaRow
+                            icon={<CheckCircle2 className="h-3 w-3" />}
+                            label="Certificación"
+                            value={workMeta[work.id].isCertified
+                              ? `✅ Certificado en ${workMeta[work.id].blockchainNetwork || 'blockchain'}`
+                              : 'No certificado aún'}
+                            highlight={workMeta[work.id].isCertified}
+                          />
+                          {!workMeta[work.id].genre && !workMeta[work.id].mood && !workMeta[work.id].aiPrompt && (
+                            <p className="text-[11px] text-muted-foreground/60 italic mt-1">
+                              💡 Tip: Genera tu música con AI Studio para que la IA use esos metadatos en las promos.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+
                 {hasAssets && (
                   <CardContent className="pt-0 space-y-4">
                     <div className="grid md:grid-cols-[200px_1fr] gap-4">
@@ -665,6 +805,26 @@ function CopyBlock({
         </button>
       </div>
       <p className="text-sm leading-relaxed">{text}</p>
+    </div>
+  );
+}
+
+// ── Meta row sub-component ──
+function MetaRow({
+  icon, label, value, highlight,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-2 text-xs">
+      <span className={highlight ? 'text-primary' : 'text-muted-foreground'}>{icon}</span>
+      <span className="text-muted-foreground shrink-0 w-24">{label}:</span>
+      <span className={`${highlight ? 'text-foreground font-medium' : 'text-muted-foreground'} break-words`}>
+        {value}
+      </span>
     </div>
   );
 }
