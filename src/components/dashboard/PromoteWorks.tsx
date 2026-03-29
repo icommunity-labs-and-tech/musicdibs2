@@ -74,6 +74,8 @@ export function PromoteWorks() {
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
+  const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
+  const [expandedMeta, setExpandedMeta] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
