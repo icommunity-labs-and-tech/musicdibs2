@@ -25,8 +25,12 @@ interface Work {
   author: string | null;
   type: string;
   status: string;
+  description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+  blockchain_hash: string | null;
+  blockchain_network: string | null;
+  certified_at: string | null;
 }
 
 interface SocialPromo {
@@ -40,6 +44,16 @@ interface SocialPromo {
   created_at: string;
   error_detail: string | null;
   regeneration_count: number;
+}
+
+interface WorkMetadata {
+  genre: string | null;
+  mood: string | null;
+  aiPrompt: string | null;
+  artistName: string | null;
+  styleNotes: string | null;
+  isCertified: boolean;
+  blockchainNetwork: string | null;
 }
 
 const MAX_FREE_REGENS = 3;
