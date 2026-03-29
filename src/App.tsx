@@ -24,7 +24,7 @@ import News from "./pages/News";
 import NewsArticle from "./pages/NewsArticle";
 import AdminLogin from "./pages/AdminLogin";
 import AdminBlog from "./pages/AdminBlog";
-import AdminABTests from "./pages/AdminABTests";
+
 import UserLogin from "./pages/UserLogin";
 import ResetPassword from "./pages/ResetPassword";
 import DashboardLayout from "./pages/DashboardLayout";
@@ -92,7 +92,7 @@ const App = () => (
             <Route path="/news/:slug" element={<NewsArticle />} />
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/blog" element={<AdminBlog />} />
-            <Route path="/admin/ab-tests" element={<AdminABTests />} />
+            
             <Route path="/manager" element={<ManagerLanding />} />
             <Route path="/login" element={<UserLogin />} />
             <Route path="/reset-password" element={<ResetPassword />} />
