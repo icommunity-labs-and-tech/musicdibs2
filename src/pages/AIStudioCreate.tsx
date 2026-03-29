@@ -429,6 +429,28 @@ const AIStudioCreate = () => {
     setGenerationError(null);
   };
 
+  // ── Preview voice sample ──
+  const handlePreviewVoice = (e: React.MouseEvent, voiceId: string, sampleUrl: string) => {
+    e.stopPropagation();
+    if (!sampleUrl) return;
+
+    if (audioRef[playingVoice]) {
+      audioRef[playingVoice].pause();
+      audioRef[playingVoice].currentTime = 0;
+    }
+
+    if (playingVoice === voiceId) {
+      setPlayingVoice('');
+      return;
+    }
+
+    const audio = new Audio(sampleUrl);
+    audioRef[voiceId] = audio;
+    audio.play();
+    setPlayingVoice(voiceId);
+    audio.onended = () => setPlayingVoice('');
+  };
+
   // ── Improve prompt with AI ──
   const handleImprovePrompt = async () => {
     if (!prompt.trim()) return;
