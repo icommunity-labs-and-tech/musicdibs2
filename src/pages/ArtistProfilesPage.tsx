@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2 } from "lucide-react";
+import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, Mic } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -35,6 +35,7 @@ const ArtistProfilesPage = () => {
 
   const [profiles, setProfiles] = useState<ArtistProfile[]>([]);
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
+  const [voiceClones, setVoiceClones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -48,6 +49,9 @@ const ArtistProfilesPage = () => {
   const [formDuration, setFormDuration] = useState(60);
   const [formNotes, setFormNotes] = useState("");
   const [formDefault, setFormDefault] = useState(false);
+  const [formVoiceType, setFormVoiceType] = useState<'preset' | 'clone'>('preset');
+  const [formVoiceCloneId, setFormVoiceCloneId] = useState<string>('');
+  const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [generatingNotes, setGeneratingNotes] = useState(false);
 
   // Audio preview
@@ -69,11 +73,16 @@ const ArtistProfilesPage = () => {
     loadProfiles();
     supabase.from('voice_profiles').select('*').eq('active', true).order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
+    if (user) {
+      supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
+        .then(({ data }) => setVoiceClones(data || []));
+    }
   }, [user]);
 
   const resetForm = () => {
     setFormName(""); setFormVoice(""); setFormGenre(null); setFormMood(null);
     setFormDuration(60); setFormNotes(""); setFormDefault(false);
+    setFormVoiceType('preset'); setFormVoiceCloneId(''); setVoiceTab('preset');
     setShowForm(false); setEditingId(null);
   };
 
@@ -86,6 +95,10 @@ const ArtistProfilesPage = () => {
     setFormDuration(p.default_duration || 60);
     setFormNotes(p.style_notes || "");
     setFormDefault(p.is_default);
+    const vType = (p as any).voice_type || 'preset';
+    setFormVoiceType(vType);
+    setFormVoiceCloneId((p as any).voice_clone_id || '');
+    setVoiceTab(vType);
     setShowForm(true);
   };
 
@@ -96,7 +109,9 @@ const ArtistProfilesPage = () => {
     const payload = {
       user_id: user.id,
       name: formName.trim(),
-      voice_profile_id: formVoice || null,
+      voice_profile_id: formVoiceType === 'preset' ? (formVoice || null) : null,
+      voice_type: formVoiceType,
+      voice_clone_id: formVoiceType === 'clone' ? formVoiceCloneId : null,
       genre: formGenre,
       mood: formMood,
       default_duration: formDuration,
