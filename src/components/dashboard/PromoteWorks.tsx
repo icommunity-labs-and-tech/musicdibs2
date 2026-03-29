@@ -149,6 +149,23 @@ export function PromoteWorks() {
     }
   };
 
+  const handleRegenerateCopies = async (promoId: string) => {
+    setRegenerating(promoId);
+    try {
+      const { data, error } = await supabase.functions.invoke('promo-social-regenerate-copies', {
+        body: { promo_id: promoId },
+      });
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+      setPolling(promoId);
+      toast.info('Regenerando copies... sin coste de créditos.');
+    } catch (err: any) {
+      toast.error(err.message || 'Error al regenerar copies');
+    } finally {
+      setRegenerating(null);
+    }
+  };
+
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
