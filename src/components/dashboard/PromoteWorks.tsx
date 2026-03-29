@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
+  ShoppingCart, CreditCard,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -16,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface Work {
   id: string;
@@ -37,7 +39,11 @@ interface SocialPromo {
   copy_tiktok: string | null;
   created_at: string;
   error_detail: string | null;
+  regeneration_count: number;
 }
+
+const MAX_FREE_REGENS = 3;
+const REGEN_CREDIT_COST = 5;
 
 const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
   generating: { label: 'Generando...', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Loader2 },
@@ -49,8 +55,9 @@ const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Lo
 
 export function PromoteWorks() {
   const { user } = useAuth();
-  const { credits, hasEnough } = useCredits();
+  const { credits, hasEnough, refresh: refreshCredits } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
+  const navigate = useNavigate();
 
   const [works, setWorks] = useState<Work[]>([]);
   const [promos, setPromos] = useState<SocialPromo[]>([]);
@@ -61,7 +68,6 @@ export function PromoteWorks() {
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
 
-  // Load works & existing promotions
   const loadData = useCallback(async () => {
     if (!user) return;
     setLoadingWorks(true);
@@ -101,6 +107,7 @@ export function PromoteWorks() {
         setPromos(prev => prev.map(x => x.id === p.id ? p : x));
         if (p.status !== 'generating') {
           setPolling(null);
+          refreshCredits();
           if (p.status === 'completed' || p.status === 'assets_ready') {
             toast.success('¡Promoción generada! Revisa tus assets y tu email.');
           } else if (p.status === 'failed') {
@@ -110,7 +117,7 @@ export function PromoteWorks() {
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [polling]);
+  }, [polling, refreshCredits]);
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
@@ -127,7 +134,6 @@ export function PromoteWorks() {
         }
         return;
       }
-      // Add to promos list and start polling
       const newPromo: SocialPromo = {
         id: data.promo_id,
         work_id: workId,
@@ -138,6 +144,7 @@ export function PromoteWorks() {
         copy_tiktok: null,
         created_at: new Date().toISOString(),
         error_detail: null,
+        regeneration_count: 0,
       };
       setPromos(prev => [newPromo, ...prev]);
       setPolling(data.promo_id);
@@ -149,18 +156,30 @@ export function PromoteWorks() {
     }
   };
 
-  const handleRegenerateCopies = async (promoId: string) => {
+  const handleRegenerate = async (promoId: string, type: 'copies' | 'image', paid: boolean) => {
     setRegenerating(promoId);
+    const fnName = type === 'copies' ? 'promo-social-regenerate-copies' : 'promo-social-regenerate-image';
     try {
-      const { data, error } = await supabase.functions.invoke('promo-social-regenerate-copies', {
-        body: { promo_id: promoId },
+      const { data, error } = await supabase.functions.invoke(fnName, {
+        body: { promo_id: promoId, paid },
       });
       if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        if (data.error === 'insufficient_credits') {
+          toast.error('No tienes créditos suficientes.');
+          return;
+        }
+        throw new Error(data.error);
+      }
+      // Update local regeneration_count
+      if (data?.regeneration_count != null) {
+        setPromos(prev => prev.map(p => p.id === promoId ? { ...p, regeneration_count: data.regeneration_count } : p));
+      }
       setPolling(promoId);
-      toast.info('Regenerando copies... sin coste de créditos.');
+      const label = type === 'copies' ? 'copies' : 'imagen';
+      toast.info(paid ? `Regenerando ${label}... (${REGEN_CREDIT_COST} créditos)` : `Regenerando ${label}... sin coste.`);
     } catch (err: any) {
-      toast.error(err.message || 'Error al regenerar copies');
+      toast.error(err.message || 'Error al regenerar');
     } finally {
       setRegenerating(null);
     }
@@ -222,6 +241,9 @@ export function PromoteWorks() {
             const isGenerating = promo?.status === 'generating';
             const hasAssets = promo && (promo.status === 'assets_ready' || promo.status === 'completed' || promo.status === 'email_sent');
             const statusInfo = promo ? STATUS_MAP[promo.status] : null;
+            const regenCount = promo?.regeneration_count ?? 0;
+            const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
+            const isFree = freeRemaining > 0;
 
             return (
               <Card key={work.id} className="border-border/40 overflow-hidden">
@@ -300,6 +322,15 @@ export function PromoteWorks() {
                           >
                             <ExternalLink className="h-3 w-3" /> Abrir imagen
                           </a>
+                          <RegenButton
+                            label="imagen"
+                            isFree={isFree}
+                            freeRemaining={freeRemaining}
+                            credits={credits}
+                            isLoading={regenerating === promo.id}
+                            onRegenerate={(paid) => handleRegenerate(promo.id, 'image', paid)}
+                            onBuyCredits={() => navigate('/dashboard/credits')}
+                          />
                         </div>
                       )}
 
@@ -335,22 +366,24 @@ export function PromoteWorks() {
                             onCopy={copyToClipboard}
                           />
                         )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs text-muted-foreground hover:text-primary"
-                          disabled={regenerating === promo.id}
-                          onClick={() => handleRegenerateCopies(promo.id)}
-                        >
-                          {regenerating === promo.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                          )}
-                          Regenerar copies (gratis)
-                        </Button>
+                        <RegenButton
+                          label="copies"
+                          isFree={isFree}
+                          freeRemaining={freeRemaining}
+                          credits={credits}
+                          isLoading={regenerating === promo.id}
+                          onRegenerate={(paid) => handleRegenerate(promo.id, 'copies', paid)}
+                          onBuyCredits={() => navigate('/dashboard/credits')}
+                        />
                       </div>
                     </div>
+
+                    {/* Regen counter */}
+                    <p className="text-[11px] text-muted-foreground/70 text-center">
+                      {isFree
+                        ? `${freeRemaining} regeneración${freeRemaining !== 1 ? 'es' : ''} gratuita${freeRemaining !== 1 ? 's' : ''} restante${freeRemaining !== 1 ? 's' : ''}`
+                        : `Regeneraciones gratuitas agotadas · ${REGEN_CREDIT_COST} créditos por regeneración`}
+                    </p>
 
                     {promo.status === 'completed' && (
                       <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -481,6 +514,71 @@ export function PromoteWorks() {
         </>
       )}
     </div>
+  );
+}
+
+// ── Regen button sub-component ──
+function RegenButton({
+  label, isFree, freeRemaining, credits, isLoading, onRegenerate, onBuyCredits,
+}: {
+  label: string;
+  isFree: boolean;
+  freeRemaining: number;
+  credits: number | null;
+  isLoading: boolean;
+  onRegenerate: (paid: boolean) => void;
+  onBuyCredits: () => void;
+}) {
+  const canAffordPaid = (credits ?? 0) >= REGEN_CREDIT_COST;
+
+  if (isFree) {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-xs text-muted-foreground hover:text-primary"
+        disabled={isLoading}
+        onClick={() => onRegenerate(false)}
+      >
+        {isLoading ? (
+          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+        ) : (
+          <RefreshCw className="h-3 w-3 mr-1" />
+        )}
+        Regenerar {label} (gratis · {freeRemaining} restantes)
+      </Button>
+    );
+  }
+
+  if (canAffordPaid) {
+    return (
+      <Button
+        size="sm"
+        variant="ghost"
+        className="text-xs text-muted-foreground hover:text-primary"
+        disabled={isLoading}
+        onClick={() => onRegenerate(true)}
+      >
+        {isLoading ? (
+          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+        ) : (
+          <CreditCard className="h-3 w-3 mr-1" />
+        )}
+        Regenerar {label} ({REGEN_CREDIT_COST} créditos)
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="ghost"
+      className="text-xs text-muted-foreground hover:text-primary"
+      onClick={onBuyCredits}
+    >
+      <ShoppingCart className="h-3 w-3 mr-1" />
+      Comprar créditos para regenerar
+    </Button>
   );
 }
 
