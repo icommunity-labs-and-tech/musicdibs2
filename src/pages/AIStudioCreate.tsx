@@ -154,6 +154,10 @@ const AIStudioCreate = () => {
   const [isImprovingLyrics, setIsImprovingLyrics] = useState(false);
   const [improvedLyricsDesc, setImprovedLyricsDesc] = useState(false);
 
+  // ── Voice selector state ──
+  const [selectedVoice, setSelectedVoice] = useState<string>('');
+  const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
+
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
@@ -195,6 +199,13 @@ const AIStudioCreate = () => {
     } else {
       setIsLoading(false);
     }
+    // Load voice profiles
+    supabase
+      .from('voice_profiles')
+      .select('*')
+      .eq('active', true)
+      .order('sort_order')
+      .then(({ data }) => setVoiceProfiles(data || []));
   }, [user]);
 
   const loadHistory = async () => {
@@ -245,9 +256,12 @@ const AIStudioCreate = () => {
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
+      const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
-          prompt: prompt.trim(),
+          prompt: `${prompt.trim()}${voiceTag}`,
           duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
@@ -684,7 +698,7 @@ const AIStudioCreate = () => {
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} créd.</Badge>
                         </button>
                         <button
-                          onClick={() => setMode('instrumental')}
+                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); }}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
                             mode === 'instrumental'
@@ -803,6 +817,49 @@ const AIStudioCreate = () => {
                             </Badge>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Voice type selector */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Tipo de voz</Label>
+                        <p className="text-xs text-muted-foreground">Solo disponible en modo "Canción con voz"</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {voiceProfiles.map((v) => (
+                            <button
+                              key={v.id}
+                              type="button"
+                              onClick={() => setSelectedVoice(selectedVoice === v.id ? '' : v.id)}
+                              disabled={mode === 'instrumental'}
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'flex-start',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                border: selectedVoice === v.id
+                                  ? '2px solid hsl(var(--primary))'
+                                  : '1px solid hsl(var(--border))',
+                                background: selectedVoice === v.id
+                                  ? 'hsl(var(--primary) / 0.08)'
+                                  : 'transparent',
+                                cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
+                                opacity: mode === 'instrumental' ? 0.4 : 1,
+                                transition: 'all 0.15s',
+                                textAlign: 'left',
+                                width: '100%',
+                              }}
+                              title={v.description}
+                            >
+                              <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
+                              <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        {selectedVoice && (
+                          <p className="text-xs text-muted-foreground">
+                            {voiceProfiles.find(v => v.id === selectedVoice)?.description}
+                          </p>
+                        )}
                       </div>
 
                       {/* Duration options */}

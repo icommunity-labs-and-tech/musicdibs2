@@ -859,6 +859,39 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_profiles: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          emoji: string
+          id: string
+          label: string
+          prompt_tag: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          label: string
+          prompt_tag: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          label?: string
+          prompt_tag?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       works: {
         Row: {
           author: string | null
