@@ -171,6 +171,42 @@ const ArtistProfilesPage = () => {
     audio.onended = () => setPlayingVoice('');
   };
 
+  const handleGenerateNotes = async () => {
+    const voiceLabel = voiceProfiles.find(v => v.id === formVoice)?.label || '';
+    const context = [
+      formName && `Artista: ${formName}`,
+      voiceLabel && `Voz: ${voiceLabel}`,
+      formGenre && `Género: ${formGenre}`,
+      formMood && `Mood: ${formMood}`,
+    ].filter(Boolean).join(', ');
+
+    if (!context) {
+      toast({ title: "Añade al menos un dato", description: "Selecciona nombre, voz, género o mood para generar notas.", variant: "destructive" });
+      return;
+    }
+
+    setGeneratingNotes(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: {
+          prompt: `Genera unas notas de estilo breves (3-4 frases) para un perfil de artista musical con estas características: ${context}. ${formNotes ? `Notas existentes para expandir: ${formNotes}` : ''} Describe temática habitual, referencias musicales, idioma, atmósfera y elementos distintivos. Responde solo con las notas, sin encabezados.`,
+          genre: formGenre,
+          mood: formMood,
+          mode: 'song',
+        },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setFormNotes(data.improved);
+        toast({ title: "✨ Notas generadas" });
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "No se pudieron generar las notas", variant: "destructive" });
+    } finally {
+      setGeneratingNotes(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
