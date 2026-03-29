@@ -335,6 +335,20 @@ export function PromoteWorks() {
                             onCopy={copyToClipboard}
                           />
                         )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs text-muted-foreground hover:text-primary"
+                          disabled={regenerating === promo.id}
+                          onClick={() => handleRegenerateCopies(promo.id)}
+                        >
+                          {regenerating === promo.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          Regenerar copies (gratis)
+                        </Button>
                       </div>
                     </div>
 
