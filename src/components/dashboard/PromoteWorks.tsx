@@ -116,7 +116,7 @@ export function PromoteWorks() {
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [polling, refreshCredits]);
+  }, [polling]);
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
