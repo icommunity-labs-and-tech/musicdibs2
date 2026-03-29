@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
-  ShoppingCart, CreditCard, ChevronDown, ChevronUp, Tag, Palette, Brain, User2,
+  ShoppingCart, CreditCard,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -25,12 +25,8 @@ interface Work {
   author: string | null;
   type: string;
   status: string;
-  description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
-  blockchain_hash: string | null;
-  blockchain_network: string | null;
-  certified_at: string | null;
 }
 
 interface SocialPromo {
@@ -44,16 +40,6 @@ interface SocialPromo {
   created_at: string;
   error_detail: string | null;
   regeneration_count: number;
-}
-
-interface WorkMetadata {
-  genre: string | null;
-  mood: string | null;
-  aiPrompt: string | null;
-  artistName: string | null;
-  styleNotes: string | null;
-  isCertified: boolean;
-  blockchainNetwork: string | null;
 }
 
 const MAX_FREE_REGENS = 3;
@@ -77,15 +63,10 @@ export function PromoteWorks() {
   const [promos, setPromos] = useState<SocialPromo[]>([]);
   const [loadingWorks, setLoadingWorks] = useState(true);
   const [launching, setLaunching] = useState<string | null>(null);
-  const [pollingIds, setPollingIds] = useState<Set<string>>(new Set());
+  const [polling, setPolling] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState('');
   const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
-  const [expandedWork, setExpandedWork] = useState<string | null>(null);
-  const [workMeta, setWorkMeta] = useState<Record<string, WorkMetadata>>({});
-
-  const addPolling = (id: string) => setPollingIds(prev => new Set(prev).add(id));
-  const removePolling = (id: string) => setPollingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -94,7 +75,7 @@ export function PromoteWorks() {
     const [worksRes, promosRes] = await Promise.all([
       supabase
         .from('works')
-        .select('id, title, author, type, status, description, checker_url, distributed_at, blockchain_hash, blockchain_network, certified_at')
+        .select('id, title, author, type, status, checker_url, distributed_at')
         .eq('user_id', user.id)
         .eq('status', 'registered')
         .order('created_at', { ascending: false }),
@@ -106,95 +87,36 @@ export function PromoteWorks() {
     ]);
 
     if (worksRes.data) setWorks(worksRes.data as Work[]);
-    if (promosRes.data) {
-      const all = promosRes.data as unknown as SocialPromo[];
-      setPromos(all);
-      // Auto-resume polling for any promo still generating
-      const generating = all.filter(p => p.status === 'generating');
-      if (generating.length > 0) {
-        setPollingIds(new Set(generating.map(p => p.id)));
-      }
-    }
+    if (promosRes.data) setPromos(promosRes.data as unknown as SocialPromo[]);
     setLoadingWorks(false);
   }, [user]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Load metadata for a specific work on expand
-  const loadWorkMeta = useCallback(async (work: Work) => {
-    if (workMeta[work.id] || !user) return;
-
-    // Fetch AI generations to find matching one
-    const { data: aiGen } = await supabase
-      .from('ai_generations')
-      .select('prompt, genre, mood')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    const titleLower = work.title.toLowerCase();
-    const matchingGen = aiGen?.find((g: any) =>
-      g.prompt?.toLowerCase().includes(titleLower) ||
-      titleLower.includes(g.prompt?.toLowerCase()?.slice(0, 20) || '___')
-    ) || null;
-
-    // Fetch artist profile
-    const { data: artistProfile } = await supabase
-      .from('user_artist_profiles')
-      .select('name, genre, mood, style_notes')
-      .eq('user_id', user.id)
-      .eq('is_default', true)
-      .single();
-
-    setWorkMeta(prev => ({
-      ...prev,
-      [work.id]: {
-        genre: matchingGen?.genre || artistProfile?.genre || null,
-        mood: matchingGen?.mood || artistProfile?.mood || null,
-        aiPrompt: matchingGen?.prompt || null,
-        artistName: artistProfile?.name || null,
-        styleNotes: artistProfile?.style_notes || null,
-        isCertified: !!work.certified_at,
-        blockchainNetwork: work.blockchain_network,
-      },
-    }));
-  }, [user, workMeta]);
-
-  const toggleMetaPreview = (work: Work) => {
-    if (expandedWork === work.id) {
-      setExpandedWork(null);
-    } else {
-      setExpandedWork(work.id);
-      loadWorkMeta(work);
-    }
-  };
-
-  // Poll for all generating promos
+  // Poll for generating promos
   useEffect(() => {
-    if (pollingIds.size === 0) return;
+    if (!polling) return;
     const interval = setInterval(async () => {
-      for (const pid of pollingIds) {
-        const { data } = await supabase
-          .from('social_promotions')
-          .select('*')
-          .eq('id', pid)
-          .single();
-        if (data) {
-          const p = data as unknown as SocialPromo;
-          setPromos(prev => prev.map(x => x.id === p.id ? p : x));
-          if (p.status !== 'generating') {
-            removePolling(pid);
-            if (p.status === 'completed' || p.status === 'assets_ready') {
-              toast.success('¡Promoción generada! Revisa tus assets y tu email.');
-            } else if (p.status === 'failed') {
-              toast.error(`Error: ${p.error_detail || 'Fallo desconocido'}`);
-            }
+      const { data } = await supabase
+        .from('social_promotions')
+        .select('*')
+        .eq('id', polling)
+        .single();
+      if (data) {
+        const p = data as unknown as SocialPromo;
+        setPromos(prev => prev.map(x => x.id === p.id ? p : x));
+        if (p.status !== 'generating') {
+          setPolling(null);
+          if (p.status === 'completed' || p.status === 'assets_ready') {
+            toast.success('¡Promoción generada! Revisa tus assets y tu email.');
+          } else if (p.status === 'failed') {
+            toast.error(`Error: ${p.error_detail || 'Fallo desconocido'}`);
           }
         }
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [pollingIds]);
+  }, [polling]);
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
@@ -224,7 +146,7 @@ export function PromoteWorks() {
         regeneration_count: 0,
       };
       setPromos(prev => [newPromo, ...prev]);
-      addPolling(data.promo_id);
+      setPolling(data.promo_id);
       toast.info('Generando promoción... esto tardará ~30 segundos.');
     } catch (err: any) {
       toast.error(err.message || 'Error al lanzar la promoción');
@@ -252,7 +174,7 @@ export function PromoteWorks() {
       if (data?.regeneration_count != null) {
         setPromos(prev => prev.map(p => p.id === promoId ? { ...p, regeneration_count: data.regeneration_count } : p));
       }
-      addPolling(promoId);
+      setPolling(promoId);
       const label = type === 'copies' ? 'copies' : 'imagen';
       toast.info(paid ? `Regenerando ${label}... (${REGEN_CREDIT_COST} créditos)` : `Regenerando ${label}... sin coste.`);
     } catch (err: any) {
@@ -271,10 +193,6 @@ export function PromoteWorks() {
 
   const getWorkPromo = (workId: string) => promos.find(p => p.work_id === workId);
   const getWorkPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
-
-  // Promos that need attention: generating or assets_ready (not yet acted upon)
-  const pendingPromos = promos.filter(p => p.status === 'generating' || p.status === 'assets_ready');
-  const pendingWorkIds = new Set(pendingPromos.map(p => p.work_id));
 
   if (loadingWorks) {
     return (
@@ -305,43 +223,6 @@ export function PromoteWorks() {
       {noCredits && (
         <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
       )}
-
-      {/* Pending promos banner */}
-      {pendingPromos.length > 0 && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="py-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-semibold">Promociones pendientes ({pendingPromos.length})</h3>
-            </div>
-            {pendingPromos.map(promo => {
-              const work = works.find(w => w.id === promo.work_id);
-              const si = STATUS_MAP[promo.status];
-              return (
-                <div key={promo.id} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-card px-4 py-3">
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="text-sm font-medium truncate">{work?.title || 'Obra'}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {promo.status === 'generating' ? 'Generando assets...' : 'Assets listos — revisa abajo'}
-                    </p>
-                  </div>
-                  {si && (
-                    <Badge variant="outline" className={`text-[11px] shrink-0 ${si.color}`}>
-                      {promo.status === 'generating' ? (
-                        <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                      ) : (
-                        <si.icon className="h-3 w-3 mr-1" />
-                      )}
-                      {si.label}
-                    </Badge>
-                  )}
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-
 
       {works.length === 0 ? (
         <Card className="border-dashed">
@@ -420,82 +301,7 @@ export function PromoteWorks() {
                   </div>
                 </CardHeader>
 
-                {/* Metadata preview toggle */}
-                <CardContent className="pt-0 pb-3">
-                  <button
-                    onClick={() => toggleMetaPreview(work)}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    <Brain className="h-3 w-3" />
-                    <span>Ver metadatos que usará la IA</span>
-                    {expandedWork === work.id ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  </button>
-
-                  {expandedWork === work.id && (
-                    <div className="mt-3 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
-                      {!workMeta[work.id] ? (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Cargando metadatos...
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-[11px] text-muted-foreground/70 mb-2">
-                            Estos datos se usarán para generar la imagen y los copies:
-                          </p>
-                          <MetaRow icon={<Music className="h-3 w-3" />} label="Título" value={work.title} />
-                          <MetaRow icon={<User2 className="h-3 w-3" />} label="Artista" value={work.author || workMeta[work.id].artistName || '—'} />
-                          <MetaRow icon={<Tag className="h-3 w-3" />} label="Tipo" value={work.type} />
-                          {work.description && (
-                            <MetaRow icon={<Tag className="h-3 w-3" />} label="Descripción" value={work.description} />
-                          )}
-                          <MetaRow
-                            icon={<Palette className="h-3 w-3" />}
-                            label="Género"
-                            value={workMeta[work.id].genre || 'No detectado'}
-                            highlight={!!workMeta[work.id].genre}
-                          />
-                          <MetaRow
-                            icon={<Sparkles className="h-3 w-3" />}
-                            label="Mood"
-                            value={workMeta[work.id].mood || 'No detectado'}
-                            highlight={!!workMeta[work.id].mood}
-                          />
-                          {workMeta[work.id].aiPrompt && (
-                            <MetaRow
-                              icon={<Brain className="h-3 w-3" />}
-                              label="Prompt IA"
-                              value={workMeta[work.id].aiPrompt!}
-                              highlight
-                            />
-                          )}
-                          {workMeta[work.id].styleNotes && (
-                            <MetaRow
-                              icon={<Palette className="h-3 w-3" />}
-                              label="Estilo artista"
-                              value={workMeta[work.id].styleNotes!}
-                              highlight
-                            />
-                          )}
-                          <MetaRow
-                            icon={<CheckCircle2 className="h-3 w-3" />}
-                            label="Certificación"
-                            value={workMeta[work.id].isCertified
-                              ? `✅ Certificado en ${workMeta[work.id].blockchainNetwork || 'blockchain'}`
-                              : 'No certificado aún'}
-                            highlight={workMeta[work.id].isCertified}
-                          />
-                          {!workMeta[work.id].genre && !workMeta[work.id].mood && !workMeta[work.id].aiPrompt && (
-                            <p className="text-[11px] text-muted-foreground/60 italic mt-1">
-                              💡 Tip: Genera tu música con AI Studio para que la IA use esos metadatos en las promos.
-                            </p>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-
+                {/* Generated assets */}
                 {hasAssets && (
                   <CardContent className="pt-0 space-y-4">
                     <div className="grid md:grid-cols-[200px_1fr] gap-4">
@@ -805,26 +611,6 @@ function CopyBlock({
         </button>
       </div>
       <p className="text-sm leading-relaxed">{text}</p>
-    </div>
-  );
-}
-
-// ── Meta row sub-component ──
-function MetaRow({
-  icon, label, value, highlight,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex items-start gap-2 text-xs">
-      <span className={highlight ? 'text-primary' : 'text-muted-foreground'}>{icon}</span>
-      <span className="text-muted-foreground shrink-0 w-24">{label}:</span>
-      <span className={`${highlight ? 'text-foreground font-medium' : 'text-muted-foreground'} break-words`}>
-        {value}
-      </span>
     </div>
   );
 }

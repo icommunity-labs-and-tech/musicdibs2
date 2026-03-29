@@ -5,6 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link, useNavigate } from "react-router-dom";
 import { ComparisonTable } from "@/components/ComparisonTable";
+import { useABTest, trackABClick } from "@/hooks/useABTest";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -72,6 +73,14 @@ export const PricingSection = () => {
     }
   }, [user, navigate]);
 
+  const ctaBuy = useABTest({
+    id: 'pricing_cta_buy',
+    variants: [
+      { text: t("pricing.buyNow"), className: '' },
+      { text: '🎶 Quiero distribuir mi música', className: '' },
+      { text: 'Comenzar ahora', className: 'bg-yellow-400 text-black hover:bg-yellow-300 border-0' },
+    ],
+  });
 
   const prices = useMemo(() => ({
     annual: formatPrice(BASE_PRICES.annual, lang),
@@ -156,12 +165,15 @@ export const PricingSection = () => {
               <Button 
                 className={`w-full bg-white hover:bg-white/90 font-semibold py-3 rounded-full ${
                   isAnnual ? 'text-pink-600' : 'text-teal-600'
-                }`}
+                } ${ctaBuy.className}`}
                 disabled={loadingPlan !== null}
-                onClick={() => handleCheckout(isAnnual ? 'annual' : 'monthly')}
+                onClick={() => {
+                  trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
+                  handleCheckout(isAnnual ? 'annual' : 'monthly');
+                }}
               >
                 {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-                {t("pricing.buyNow")}
+                {ctaBuy.text}
               </Button>
             </CardContent>
           </Card>

@@ -186,9 +186,8 @@ export default function ManagerLanding() {
       </section>
 
       {/* VALOR */}
-      <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black/40 to-purple-800/15 pointer-events-none" />
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 relative z-10">
+      <section className="py-20 px-4 bg-muted/20">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
           {[
             { icon: FolderOpen, title: 'Cartera centralizada', desc: 'Gestiona todos tus artistas desde un único panel con visibilidad total de sus obras y registros.' },
             { icon: PenLine, title: 'Registro delegado', desc: 'Registra obras en blockchain en nombre de tus artistas como representante autorizado. Sin necesidad de que ellos accedan a la plataforma.' },
@@ -201,13 +200,13 @@ export default function ManagerLanding() {
               viewport={{ once: true, margin: '-50px' }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
             >
-              <Card className="bg-black/50 backdrop-blur-md border-purple-500/20 h-full">
+              <Card className="bg-card border-border/50 h-full">
                 <CardContent className="pt-8 pb-6 px-6 text-center space-y-4">
                   <div className="mx-auto h-14 w-14 rounded-xl bg-primary/20 flex items-center justify-center">
                     <v.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white">{v.title}</h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{v.desc}</p>
+                  <h3 className="text-xl font-semibold text-foreground">{v.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{v.desc}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -216,15 +215,14 @@ export default function ManagerLanding() {
       </section>
 
       {/* CÓMO FUNCIONA */}
-      <section className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-black/50 to-purple-800/20 pointer-events-none" />
-        <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-4xl mx-auto space-y-12">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-bold text-center text-white"
+            className="text-3xl md:text-4xl font-bold text-center"
           >
             Cómo funciona
           </motion.h2>
@@ -236,14 +234,14 @@ export default function ManagerLanding() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="flex gap-4 rounded-xl border border-purple-500/20 bg-black/50 backdrop-blur-md p-5"
+                className="flex gap-4"
               >
                 <div className="shrink-0 h-10 w-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
                   {s.n}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-lg text-white">{s.title}</h4>
-                  <p className="text-gray-400 text-sm mt-1">{s.desc}</p>
+                  <h4 className="font-semibold text-lg">{s.title}</h4>
+                  <p className="text-muted-foreground text-sm mt-1">{s.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -259,7 +257,7 @@ export default function ManagerLanding() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="text-3xl md:text-4xl font-bold text-center text-white"
+            className="text-3xl md:text-4xl font-bold text-center"
           >
             Preguntas frecuentes
           </motion.h2>
@@ -282,9 +280,8 @@ export default function ManagerLanding() {
       </section>
 
       {/* FORMULARIO */}
-      <section id="contacto-manager" className="py-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-black/50 to-purple-800/20 pointer-events-none" />
-        <div className="max-w-2xl mx-auto space-y-8 relative z-10">
+      <section id="contacto-manager" className="py-20 px-4 bg-muted/30">
+        <div className="max-w-2xl mx-auto space-y-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -292,8 +289,8 @@ export default function ManagerLanding() {
             transition={{ duration: 0.5 }}
             className="text-center space-y-2"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-white">Solicita tu presupuesto personalizado</h2>
-            <p className="text-gray-400">Sin compromiso. Te respondemos en menos de 24 horas.</p>
+            <h2 className="text-3xl md:text-4xl font-bold">Solicita tu presupuesto personalizado</h2>
+            <p className="text-muted-foreground">Sin compromiso. Te respondemos en menos de 24 horas.</p>
           </motion.div>
 
           <motion.div
