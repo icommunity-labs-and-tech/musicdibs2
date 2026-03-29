@@ -142,6 +142,9 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {/* Full-width Promote Works */}
+      <PromoteWorks />
+
       {/* Full-width Recent Registrations */}
       <div data-tour="recent-registrations">
         <RecentRegistrations />
