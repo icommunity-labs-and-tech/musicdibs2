@@ -256,9 +256,12 @@ const AIStudioCreate = () => {
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
+      const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
-          prompt: prompt.trim(),
+          prompt: `${prompt.trim()}${voiceTag}`,
           duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
