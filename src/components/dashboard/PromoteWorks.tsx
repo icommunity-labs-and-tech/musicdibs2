@@ -94,7 +94,7 @@ export function PromoteWorks() {
     const [worksRes, promosRes] = await Promise.all([
       supabase
         .from('works')
-        .select('id, title, author, type, status, checker_url, distributed_at')
+        .select('id, title, author, type, status, description, checker_url, distributed_at, blockchain_hash, blockchain_network, certified_at')
         .eq('user_id', user.id)
         .eq('status', 'registered')
         .order('created_at', { ascending: false }),
