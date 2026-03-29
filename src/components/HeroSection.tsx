@@ -15,8 +15,8 @@ export const HeroSection = () => {
     id: "hero_cta_primary",
     variants: [
       { text: t("hero.cta_start"), className: "" },
-      { text: "🚀 Crea tu primer lanzamiento", className: "" },
-      { text: "Ver planes y precios", className: "" },
+      { text: t("hero.cta_start"), className: "" },
+      { text: t("hero.cta_start"), className: "" },
     ],
   });
 
