@@ -276,6 +276,8 @@ export function PromoteWorks() {
             const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
             const isFree = freeRemaining > 0;
             const canLaunchNew = !isGenerating;
+            const meta = aiMetaMap[work.id];
+            const isMetaExpanded = expandedMeta === work.id;
 
             return (
               <Card key={work.id} className="border-border/40 overflow-hidden">
