@@ -59,6 +59,7 @@ import ManagerArtistDetail from "./pages/ManagerArtistDetail";
 import ManagerWorks from "./pages/ManagerWorks";
 import ManagerRegisterWork from "./pages/ManagerRegisterWork";
 import ManagerLanding from "./pages/ManagerLanding";
+import ArtistProfilesPage from "./pages/ArtistProfilesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -107,6 +108,7 @@ const App = () => (
               <Route path="support" element={<SupportPage />} />
               <Route path="blockchain" element={<BlockchainEvidencePage />} />
               <Route path="verify-identity" element={<IdentityVerificationPage />} />
+              <Route path="artist-profiles" element={<ArtistProfilesPage />} />
               <Route path="admin/users" element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
               <Route path="admin/credits" element={<AdminGuard><AdminCreditsPage /></AdminGuard>} />
               <Route path="admin/works" element={<AdminGuard><AdminWorksPage /></AdminGuard>} />

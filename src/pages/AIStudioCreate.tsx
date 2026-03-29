@@ -160,6 +160,13 @@ const AIStudioCreate = () => {
   const [playingVoice, setPlayingVoice] = useState<string>('');
   const [audioRef] = useState<Record<string, HTMLAudioElement>>({});
 
+  // ── Artist profile state ──
+  const [artistProfiles, setArtistProfiles] = useState<any[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<string>('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [showSaveProfile, setShowSaveProfile] = useState(false);
+  const [newProfileName, setNewProfileName] = useState('');
+
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
@@ -208,6 +215,28 @@ const AIStudioCreate = () => {
       .eq('active', true)
       .order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
+
+    // Load artist profiles
+    if (user) {
+      supabase
+        .from('user_artist_profiles')
+        .select('*, voice_profiles(label, emoji)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .then(({ data }) => {
+          setArtistProfiles(data || []);
+          // Auto-select default profile
+          const defaultProfile = (data || []).find((p: any) => p.is_default);
+          if (defaultProfile) {
+            setSelectedProfile(defaultProfile.id);
+            if (defaultProfile.voice_profile_id) setSelectedVoice(defaultProfile.voice_profile_id);
+            if (defaultProfile.genre) setSelectedGenre(defaultProfile.genre);
+            if (defaultProfile.mood) setSelectedMood(defaultProfile.mood);
+            if (defaultProfile.default_duration) setDuration(defaultProfile.default_duration);
+            if (defaultProfile.style_notes) setPrompt(defaultProfile.style_notes);
+          }
+        });
+    }
   }, [user]);
 
   const loadHistory = async () => {
@@ -706,6 +735,134 @@ const AIStudioCreate = () => {
                       <CardDescription>Describe tu canción y elige el estilo. Cuanto más detallado, mejor resultado.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                      {/* Artist profile selector */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">🎤 Perfil de artista</Label>
+                          <button
+                            type="button"
+                            onClick={() => navigate('/dashboard/artist-profiles')}
+                            style={{ fontSize: '11px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
+                          >
+                            Gestionar perfiles →
+                          </button>
+                        </div>
+                        <select
+                          value={selectedProfile}
+                          onChange={(e) => {
+                            const profileId = e.target.value;
+                            setSelectedProfile(profileId);
+                            if (profileId) {
+                              const p = artistProfiles.find(x => x.id === profileId);
+                              if (p) {
+                                if (p.voice_profile_id) setSelectedVoice(p.voice_profile_id);
+                                if (p.genre) setSelectedGenre(p.genre);
+                                if (p.mood) setSelectedMood(p.mood);
+                                if (p.default_duration) setDuration(p.default_duration);
+                                if (p.style_notes) setPrompt(prev => prev || p.style_notes);
+                              }
+                            }
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid hsl(var(--border))',
+                            background: 'hsl(var(--background))',
+                            color: 'hsl(var(--foreground))',
+                            fontSize: '13px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="">— Sin perfil (configuración libre) —</option>
+                          {artistProfiles.map(p => (
+                            <option key={p.id} value={p.id}>
+                              {p.voice_profiles?.emoji || '🎤'} {p.name}
+                              {p.genre ? ` · ${p.genre}` : ''}
+                              {p.voice_profiles?.label ? ` · ${p.voice_profiles.label}` : ''}
+                            </option>
+                          ))}
+                        </select>
+                        {(selectedVoice || selectedGenre || selectedMood) && !selectedProfile && (
+                          <div>
+                            {!showSaveProfile ? (
+                              <button
+                                type="button"
+                                onClick={() => setShowSaveProfile(true)}
+                                style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer' }}
+                              >
+                                + Guardar esta configuración como perfil de artista
+                              </button>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input
+                                  type="text"
+                                  placeholder="Nombre del artista (ej: Mi proyecto trap)"
+                                  value={newProfileName}
+                                  onChange={e => setNewProfileName(e.target.value)}
+                                  maxLength={50}
+                                  style={{
+                                    flex: 1,
+                                    padding: '6px 10px',
+                                    borderRadius: '6px',
+                                    border: '1px solid hsl(var(--border))',
+                                    background: 'hsl(var(--background))',
+                                    color: 'hsl(var(--foreground))',
+                                    fontSize: '12px',
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  disabled={!newProfileName.trim() || savingProfile}
+                                  onClick={async () => {
+                                    if (!newProfileName.trim() || !user) return;
+                                    setSavingProfile(true);
+                                    const { data, error } = await supabase.from('user_artist_profiles').insert({
+                                      user_id: user.id,
+                                      name: newProfileName.trim(),
+                                      voice_profile_id: selectedVoice || null,
+                                      genre: selectedGenre || null,
+                                      mood: selectedMood || null,
+                                      default_duration: duration,
+                                      style_notes: prompt || null,
+                                    }).select('*, voice_profiles(label, emoji)').single();
+                                    setSavingProfile(false);
+                                    if (!error && data) {
+                                      setArtistProfiles(prev => [data, ...prev]);
+                                      setSelectedProfile(data.id);
+                                      setShowSaveProfile(false);
+                                      setNewProfileName('');
+                                      toast({ title: '✅ Perfil guardado', description: `"${data.name}" listo para usar en futuras canciones` });
+                                    } else {
+                                      toast({ title: 'Error', description: 'No se pudo guardar el perfil', variant: 'destructive' });
+                                    }
+                                  }}
+                                  style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '6px',
+                                    background: 'hsl(var(--primary))',
+                                    color: 'white',
+                                    border: 'none',
+                                    fontSize: '12px',
+                                    cursor: savingProfile ? 'not-allowed' : 'pointer',
+                                    opacity: savingProfile ? 0.6 : 1,
+                                  }}
+                                >
+                                  {savingProfile ? 'Guardando...' : 'Guardar'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => { setShowSaveProfile(false); setNewProfileName(''); }}
+                                  style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       {/* Mode toggle */}
                       <div className="flex rounded-full bg-muted p-1">
                         <button
