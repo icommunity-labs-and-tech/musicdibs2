@@ -1186,12 +1186,10 @@ const AIStudioCreate = () => {
                               <>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                   {voiceClones.map((c) => (
-                                    <button
+                                    <div
                                       key={c.id}
-                                      type="button"
-                                      onClick={() => { setSelectedCloneId(selectedCloneId === c.id ? '' : c.id); setSelectedVoice(''); }}
-                                      disabled={mode === 'instrumental'}
                                       style={{
+                                        position: 'relative',
                                         display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
                                         padding: '8px 12px', borderRadius: '8px',
                                         border: selectedCloneId === c.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
@@ -1200,7 +1198,32 @@ const AIStudioCreate = () => {
                                         opacity: mode === 'instrumental' ? 0.4 : 1,
                                         transition: 'all 0.15s', textAlign: 'left', width: '100%',
                                       }}
+                                      onClick={() => { if (mode !== 'instrumental') { setSelectedCloneId(selectedCloneId === c.id ? '' : c.id); setSelectedVoice(''); } }}
                                     >
+                                      {/* Delete button */}
+                                      <span
+                                        title="Eliminar voz"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (confirm(`¿Eliminar "${c.name}"? No podrás usarla en nuevas canciones.`)) {
+                                            supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', c.id).then(() => {
+                                              setVoiceClones(prev => prev.filter(v => v.id !== c.id));
+                                              if (selectedCloneId === c.id) setSelectedCloneId('');
+                                              toast({ title: 'Voz eliminada' });
+                                            });
+                                          }
+                                        }}
+                                        style={{
+                                          position: 'absolute', top: '4px', right: '4px',
+                                          fontSize: '12px', color: 'hsl(var(--muted-foreground))',
+                                          cursor: 'pointer', padding: '2px 4px', borderRadius: '4px',
+                                          lineHeight: 1,
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--destructive))')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
+                                      >
+                                        🗑
+                                      </span>
                                       <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
                                       <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{c.name}</span>
                                       <span style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>Voz clonada</span>
@@ -1212,7 +1235,7 @@ const AIStudioCreate = () => {
                                           {playingVoice === c.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
                                         </span>
                                       )}
-                                    </button>
+                                    </div>
                                   ))}
                                 </div>
                                 <button
