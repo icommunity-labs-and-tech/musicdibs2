@@ -112,7 +112,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Col 2: Register CTA + Promote */}
+        {/* Col 2: Register CTA */}
         <div className="space-y-4">
           <div data-tour="register-work">
             <Card className="border-border/40 shadow-sm">
@@ -132,7 +132,6 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
-          <PromoteWorks />
         </div>
 
         {/* Col 3: Credit Store */}
@@ -142,6 +141,9 @@ export default function DashboardHome() {
           </div>
         </div>
       </div>
+
+      {/* Full-width Promote Works */}
+      <PromoteWorks />
 
       {/* Full-width Recent Registrations */}
       <div data-tour="recent-registrations">
