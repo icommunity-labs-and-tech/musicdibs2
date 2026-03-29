@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music } from 'lucide-react';
+import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music, Pencil, Check, X } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -28,6 +28,8 @@ const VoiceCloningPage = () => {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
+  const [editingCloneName, setEditingCloneName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadClones = async () => {
@@ -105,6 +107,17 @@ const VoiceCloningPage = () => {
     await supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', clone.id);
     setClones(prev => prev.filter(c => c.id !== clone.id));
     toast({ title: 'Voz eliminada' });
+  };
+
+  const handleRename = async (cloneId: string) => {
+    const trimmed = editingCloneName.trim();
+    if (!trimmed) return;
+    const { error } = await supabase.from('voice_clones').update({ name: trimmed }).eq('id', cloneId);
+    if (!error) {
+      setClones(prev => prev.map(c => c.id === cloneId ? { ...c, name: trimmed } : c));
+      toast({ title: 'Voz renombrada' });
+    }
+    setEditingCloneId(null);
   };
 
   const durationBadge = () => {
@@ -221,7 +234,27 @@ const VoiceCloningPage = () => {
                   <div className="flex items-center gap-2 mb-1">
                     <Badge className="bg-primary/15 text-primary border-0 text-xs">🎤 Voz clonada</Badge>
                   </div>
-                  <p className="font-semibold text-lg">{clone.name}</p>
+                  {editingCloneId === clone.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={editingCloneName}
+                        onChange={e => setEditingCloneName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleRename(clone.id); if (e.key === 'Escape') setEditingCloneId(null); }}
+                        className="h-8 text-lg font-semibold w-48"
+                        maxLength={50}
+                        autoFocus
+                      />
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleRename(clone.id)}><Check className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingCloneId(null)}><X className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-lg">{clone.name}</p>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={() => { setEditingCloneId(clone.id); setEditingCloneName(clone.name); }}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
                   {clone.description && <p className="text-xs text-muted-foreground mt-0.5">{clone.description}</p>}
                   <p className="text-xs text-muted-foreground mt-1">
                     Creada el {new Date(clone.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
