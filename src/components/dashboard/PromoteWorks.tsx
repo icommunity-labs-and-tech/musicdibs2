@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
-  ShoppingCart, CreditCard,
+  ShoppingCart, CreditCard, ChevronDown, ChevronUp, Tag, Palette, Brain, User2,
 } from 'lucide-react';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
