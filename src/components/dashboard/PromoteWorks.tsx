@@ -4,13 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
-  Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, History, Filter,
-  ShoppingCart, CreditCard, Info, Tag, Palette, Mic2,
+  Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, ChevronLeft, ChevronRight,
+  CreditCard, ShoppingCart, Info, Tag, Palette, Mic2,
 } from 'lucide-react';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +14,9 @@ import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 
 interface Work {
   id: string;
@@ -49,6 +48,7 @@ interface SocialPromo {
   regeneration_count: number;
 }
 
+const PAGE_SIZE = 5;
 const MAX_FREE_REGENS = 3;
 const REGEN_CREDIT_COST = 5;
 
@@ -72,10 +72,10 @@ export function PromoteWorks() {
   const [launching, setLaunching] = useState<string | null>(null);
   const [polling, setPolling] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState('');
-  const [historyFilter, setHistoryFilter] = useState<string>('all');
   const [regenerating, setRegenerating] = useState<string | null>(null);
   const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
-  const [expandedMeta, setExpandedMeta] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [detailWorkId, setDetailWorkId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -103,7 +103,6 @@ export function PromoteWorks() {
 
     if (worksRes.data) {
       setWorks(worksRes.data as Work[]);
-      // Map AI generation metadata to works by title match
       if (genRes.data) {
         const metaMap: Record<string, AiGenMeta> = {};
         for (const w of worksRes.data) {
@@ -200,7 +199,6 @@ export function PromoteWorks() {
         }
         throw new Error(data.error);
       }
-      // Update local regeneration_count
       if (data?.regeneration_count != null) {
         setPromos(prev => prev.map(p => p.id === promoId ? { ...p, regeneration_count: data.regeneration_count } : p));
       }
@@ -221,386 +219,365 @@ export function PromoteWorks() {
     setTimeout(() => setCopiedField(''), 2000);
   };
 
-  const getWorkPromo = (workId: string) => promos.find(p => p.work_id === workId);
-  const getWorkPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
+  const getLatestPromo = (workId: string) => promos.find(p => p.work_id === workId);
+  const getPromoCount = (workId: string) => promos.filter(p => p.work_id === workId).length;
 
-  if (loadingWorks) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  const totalPages = Math.ceil(works.length / PAGE_SIZE);
+  const pageData = works.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  // Detail dialog data
+  const detailWork = detailWorkId ? works.find(w => w.id === detailWorkId) : null;
+  const detailPromo = detailWorkId ? getLatestPromo(detailWorkId) : null;
+  const detailMeta = detailWorkId ? aiMetaMap[detailWorkId] : null;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold tracking-tight">Promoción en Redes Sociales</h2>
+    <Card className="border-border/40 shadow-sm">
+      <CardHeader className="flex-row items-center justify-between pb-2">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-primary" /> Promoción en Redes Sociales
+          </CardTitle>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Sparkles className="h-3 w-3" />
+            Cada promoción consume {FEATURE_COSTS.promote_work} créditos · Imagen + 3 copies + email
+          </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Generamos automáticamente una imagen profesional y copies virales para Instagram y TikTok.
-          Te lo enviamos todo por email, listo para publicar.
-        </p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground/80">
-          <Sparkles className="h-3 w-3" />
-          <span>Cada promoción consume {FEATURE_COSTS.promote_work} créditos · Imagen + 3 copies + email</span>
-        </div>
-      </div>
+        <button onClick={loadData} className="text-muted-foreground hover:text-foreground transition-colors">
+          <RefreshCw className="h-4 w-4" />
+        </button>
+      </CardHeader>
+      <CardContent className="px-0 pb-0">
+        {noCredits && (
+          <div className="px-6 pb-3">
+            <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
+          </div>
+        )}
 
-      {noCredits && (
-        <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
-      )}
+        {loadingWorks ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : works.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm px-6 pb-4">
+            <Music className="h-8 w-8 mx-auto mb-2 opacity-40" />
+            No tienes obras registradas todavía. Registra tu primera obra para promocionarla.
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              {/* Table header */}
+              <div className="hidden sm:grid sm:grid-cols-[1fr_100px_80px_1fr] gap-4 items-center px-6 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <span>Obra</span>
+                <span>Estado</span>
+                <span>Promos</span>
+                <span>Acciones</span>
+              </div>
+              <div className="divide-y divide-border/20">
+                {pageData.map(work => {
+                  const promo = getLatestPromo(work.id);
+                  const promoCount = getPromoCount(work.id);
+                  const isGenerating = promo?.status === 'generating';
+                  const statusInfo = promo ? STATUS_MAP[promo.status] : null;
+                  const meta = aiMetaMap[work.id];
 
-      {works.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center gap-3 py-10">
-            <Music className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground text-center">
-              No tienes obras registradas todavía.<br />
-              Registra tu primera obra para poder promocionarla.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {works.map(work => {
-            const promo = getWorkPromo(work.id);
-            const promoCount = getWorkPromoCount(work.id);
-            const isGenerating = promo?.status === 'generating';
-            const hasAssets = promo && (promo.status === 'assets_ready' || promo.status === 'completed' || promo.status === 'email_sent');
-            const statusInfo = promo ? STATUS_MAP[promo.status] : null;
-            const regenCount = promo?.regeneration_count ?? 0;
-            const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
-            const isFree = freeRemaining > 0;
-            const canLaunchNew = !isGenerating;
-            const meta = aiMetaMap[work.id];
-            const isMetaExpanded = expandedMeta === work.id;
+                  return (
+                    <div
+                      key={work.id}
+                      className="grid grid-cols-1 sm:grid-cols-[1fr_100px_80px_1fr] gap-2 sm:gap-4 items-center px-6 py-3 hover:bg-muted/30 transition-colors"
+                    >
+                      {/* Obra */}
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{work.title}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          {work.author && <span className="truncate">{work.author}</span>}
+                          {work.author && <span>·</span>}
+                          <span className="capitalize">{work.type}</span>
+                          {meta && (
+                            <>
+                              {meta.genre && (
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 ml-1">
+                                  <Tag className="h-2.5 w-2.5" />{meta.genre}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
 
-            return (
-              <Card key={work.id} className="border-border/40 overflow-hidden">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-base font-semibold truncate">
-                          {work.title}
-                        </CardTitle>
-                        {promoCount > 0 && (
-                          <Badge variant="secondary" className="text-[10px] shrink-0 px-1.5 py-0">
-                            <Megaphone className="h-2.5 w-2.5 mr-0.5" />
-                            {promoCount}×
+                      {/* Estado */}
+                      <div>
+                        {statusInfo ? (
+                          <Badge variant="outline" className={`text-[11px] ${statusInfo.color}`}>
+                            {isGenerating ? (
+                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            ) : (
+                              <statusInfo.icon className="h-3 w-3 mr-1" />
+                            )}
+                            {statusInfo.label}
                           </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Sin promo</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {work.author && <span>{work.author}</span>}
-                        <span>·</span>
-                        <span className="capitalize">{work.type}</span>
+
+                      {/* Promos count */}
+                      <div>
+                        {promoCount > 0 ? (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                            {promoCount}×
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {statusInfo && (
-                        <Badge variant="outline" className={`text-[11px] ${statusInfo.color}`}>
-                          {isGenerating ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <statusInfo.icon className="h-3 w-3 mr-1" />
-                          )}
-                          {statusInfo.label}
-                        </Badge>
-                      )}
-                      {canLaunchNew && (
+
+                      {/* Acciones */}
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Button
                           size="sm"
                           variant={promoCount > 0 ? 'outline' : 'hero'}
-                          disabled={noCredits || launching === work.id}
+                          disabled={noCredits || launching === work.id || isGenerating}
                           onClick={() => handleLaunch(work.id)}
+                          className="h-7 text-xs"
                         >
                           {launching === work.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
-                              <Megaphone className="h-4 w-4 mr-1" />
-                              {promoCount > 0 ? 'Nueva promo' : 'Promocionar'}
+                              <Megaphone className="h-3 w-3 mr-1" />
+                              {promoCount > 0 ? 'Nueva' : 'Promocionar'}
                             </>
                           )}
                         </Button>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-
-                {/* Metadata preview */}
-                {(meta || work.description) && (
-                  <CardContent className="pt-0 pb-3">
-                    <button
-                      onClick={() => setExpandedMeta(isMetaExpanded ? null : work.id)}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <Info className="h-3 w-3" />
-                      <span>Metadatos para la promoción</span>
-                      <span className="text-[10px]">{isMetaExpanded ? '▲' : '▼'}</span>
-                    </button>
-                    {isMetaExpanded && (
-                      <div className="mt-2 rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
-                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                          Datos que se usarán para generar la promo
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {meta?.genre && (
-                            <Badge variant="outline" className="text-[11px] gap-1">
-                              <Tag className="h-3 w-3" /> Género: {meta.genre}
-                            </Badge>
-                          )}
-                          {meta?.mood && (
-                            <Badge variant="outline" className="text-[11px] gap-1">
-                              <Palette className="h-3 w-3" /> Mood: {meta.mood}
-                            </Badge>
-                          )}
-                          <Badge variant="outline" className="text-[11px] gap-1">
-                            <Mic2 className="h-3 w-3" /> Tipo: {work.type}
-                          </Badge>
-                          {work.author && (
-                            <Badge variant="outline" className="text-[11px] gap-1">
-                              Artista: {work.author}
-                            </Badge>
-                          )}
-                        </div>
-                        {work.description && (
-                          <p className="text-xs text-muted-foreground">
-                            <span className="font-medium">Descripción:</span> {work.description}
-                          </p>
-                        )}
-                        {meta?.prompt && (
-                          <p className="text-xs text-muted-foreground">
-                            <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
-                          </p>
-                        )}
-                        {!meta && (
-                          <p className="text-[11px] text-muted-foreground/60 italic">
-                            No se encontraron metadatos de generación IA para esta obra. Se usarán los datos de registro.
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                )}
-
-                {/* Generated assets */}
-                {hasAssets && (
-                  <CardContent className="pt-0 space-y-4">
-                    <div className="grid md:grid-cols-[200px_1fr] gap-4">
-                      {/* Image */}
-                      {promo.image_url && (
-                        <div className="space-y-2">
-                          <img
-                            src={promo.image_url}
-                            alt={`Promo ${work.title}`}
-                            className="w-full rounded-lg border border-border/40 aspect-square object-cover"
-                          />
-                          <a
-                            href={promo.image_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-1 text-xs text-primary hover:underline"
+                        {promo && (promo.status === 'assets_ready' || promo.status === 'completed' || promo.status === 'email_sent') && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs"
+                            onClick={() => setDetailWorkId(work.id)}
                           >
-                            <ExternalLink className="h-3 w-3" /> Abrir imagen
-                          </a>
-                          <RegenButton
-                            label="imagen"
-                            isFree={isFree}
-                            freeRemaining={freeRemaining}
-                            credits={credits}
-                            isLoading={regenerating === promo.id}
-                            onRegenerate={(paid) => handleRegenerate(promo.id, 'image', paid)}
-                            onBuyCredits={() => navigate('/dashboard/credits')}
-                          />
-                        </div>
-                      )}
-
-                      {/* Copies */}
-                      <div className="space-y-3">
-                        {promo.copy_ig_feed && (
-                          <CopyBlock
-                            label="Instagram Feed"
-                            icon={<Instagram className="h-3.5 w-3.5" />}
-                            text={promo.copy_ig_feed}
-                            fieldId={`ig-feed-${promo.id}`}
-                            copiedField={copiedField}
-                            onCopy={copyToClipboard}
-                          />
-                        )}
-                        {promo.copy_ig_story && (
-                          <CopyBlock
-                            label="Instagram Story"
-                            icon={<Instagram className="h-3.5 w-3.5" />}
-                            text={promo.copy_ig_story}
-                            fieldId={`ig-story-${promo.id}`}
-                            copiedField={copiedField}
-                            onCopy={copyToClipboard}
-                          />
-                        )}
-                        {promo.copy_tiktok && (
-                          <CopyBlock
-                            label="TikTok"
-                            icon={<Music className="h-3.5 w-3.5" />}
-                            text={promo.copy_tiktok}
-                            fieldId={`tiktok-${promo.id}`}
-                            copiedField={copiedField}
-                            onCopy={copyToClipboard}
-                          />
-                        )}
-                        <RegenButton
-                          label="copies"
-                          isFree={isFree}
-                          freeRemaining={freeRemaining}
-                          credits={credits}
-                          isLoading={regenerating === promo.id}
-                          onRegenerate={(paid) => handleRegenerate(promo.id, 'copies', paid)}
-                          onBuyCredits={() => navigate('/dashboard/credits')}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Regen counter */}
-                    <p className="text-[11px] text-muted-foreground/70 text-center">
-                      {isFree
-                        ? `${freeRemaining} regeneración${freeRemaining !== 1 ? 'es' : ''} gratuita${freeRemaining !== 1 ? 's' : ''} restante${freeRemaining !== 1 ? 's' : ''}`
-                        : `Regeneraciones gratuitas agotadas · ${REGEN_CREDIT_COST} créditos por regeneración`}
-                    </p>
-
-                    {promo.status === 'completed' && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                        Email enviado con todos los assets
-                      </p>
-                    )}
-                  </CardContent>
-                )}
-
-                {/* Generating state */}
-                {isGenerating && (
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-3 py-4 px-4 rounded-lg bg-muted/50">
-                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                      <div>
-                        <p className="text-sm font-medium">Generando tu promoción...</p>
-                        <p className="text-xs text-muted-foreground">
-                          Creando imagen y copies con IA. Esto puede tardar ~30 segundos.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                )}
-
-                {/* Error state */}
-                {promo?.status === 'failed' && (
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/5 rounded-lg px-4 py-3">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>{promo.error_detail || 'Error al generar la promoción. Se han reembolsado los créditos.'}</span>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Credits info */}
-      {credits !== null && (
-        <p className="text-xs text-center text-muted-foreground">
-          Créditos disponibles: <span className="font-medium">{credits}</span>
-        </p>
-      )}
-
-      {/* ── History Section ── */}
-      {promos.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold">Historial de promociones</h3>
-              </div>
-              <Select value={historyFilter} onValueChange={setHistoryFilter}>
-                <SelectTrigger className="w-[160px] h-8 text-xs">
-                  <Filter className="h-3 w-3 mr-1" />
-                  <SelectValue placeholder="Filtrar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="completed">Completadas</SelectItem>
-                  <SelectItem value="assets_ready">Assets listos</SelectItem>
-                  <SelectItem value="generating">Generando</SelectItem>
-                  <SelectItem value="failed">Con error</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              {promos
-                .filter(p => historyFilter === 'all' || p.status === historyFilter)
-                .map(promo => {
-                  const work = works.find(w => w.id === promo.work_id);
-                  const si = STATUS_MAP[promo.status];
-                  return (
-                    <div
-                      key={promo.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border/40 bg-card px-4 py-3"
-                    >
-                      <div className="min-w-0 space-y-0.5">
-                        <p className="text-sm font-medium truncate">
-                          {work?.title || 'Obra eliminada'}
-                        </p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {new Date(promo.created_at).toLocaleDateString('es-ES', {
-                            day: 'numeric', month: 'short', year: 'numeric',
-                            hour: '2-digit', minute: '2-digit',
-                          })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {si && (
-                          <Badge variant="outline" className={`text-[11px] ${si.color}`}>
-                            {promo.status === 'generating' ? (
-                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                            ) : (
-                              <si.icon className="h-3 w-3 mr-1" />
-                            )}
-                            {si.label}
-                          </Badge>
-                        )}
-                        {promo.image_url && (
-                          <a
-                            href={promo.image_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:text-primary/80"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
+                            <ExternalLink className="h-3 w-3 mr-1" /> Ver assets
+                          </Button>
                         )}
                       </div>
                     </div>
                   );
                 })}
-              {promos.filter(p => historyFilter === 'all' || p.status === historyFilter).length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">
-                  No hay promociones con ese estado.
+              </div>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-3 border-t border-border/30">
+                <p className="text-xs text-muted-foreground">
+                  {works.length} obra{works.length !== 1 ? 's' : ''} · Página {page + 1} de {totalPages}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    disabled={page === 0}
+                    onClick={() => setPage(p => p - 1)}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0"
+                    disabled={page >= totalPages - 1}
+                    onClick={() => setPage(p => p + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Credits footer */}
+            {credits !== null && (
+              <div className="px-6 py-2 border-t border-border/30">
+                <p className="text-xs text-muted-foreground">
+                  Créditos disponibles: <span className="font-medium">{credits}</span>
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+
+      {/* Detail Dialog */}
+      <PromoDetailDialog
+        work={detailWork}
+        promo={detailPromo}
+        meta={detailMeta}
+        copiedField={copiedField}
+        regenerating={regenerating}
+        credits={credits}
+        open={!!detailWorkId}
+        onClose={() => setDetailWorkId(null)}
+        onCopy={copyToClipboard}
+        onRegenerate={handleRegenerate}
+        onBuyCredits={() => navigate('/dashboard/credits')}
+      />
+    </Card>
+  );
+}
+
+// ── Detail Dialog ──
+function PromoDetailDialog({
+  work, promo, meta, copiedField, regenerating, credits, open, onClose, onCopy, onRegenerate, onBuyCredits,
+}: {
+  work: Work | null | undefined;
+  promo: SocialPromo | null | undefined;
+  meta: AiGenMeta | null | undefined;
+  copiedField: string;
+  regenerating: string | null;
+  credits: number | null;
+  open: boolean;
+  onClose: () => void;
+  onCopy: (text: string, field: string) => void;
+  onRegenerate: (promoId: string, type: 'copies' | 'image', paid: boolean) => void;
+  onBuyCredits: () => void;
+}) {
+  if (!work || !promo) return null;
+
+  const regenCount = promo.regeneration_count ?? 0;
+  const freeRemaining = Math.max(0, MAX_FREE_REGENS - regenCount);
+  const isFree = freeRemaining > 0;
+
+  return (
+    <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-primary" />
+            Promoción: {work.title}
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Metadata */}
+          {(meta || work.description) && (
+            <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                Metadatos usados
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {meta?.genre && (
+                  <Badge variant="outline" className="text-[11px] gap-1">
+                    <Tag className="h-3 w-3" /> Género: {meta.genre}
+                  </Badge>
+                )}
+                {meta?.mood && (
+                  <Badge variant="outline" className="text-[11px] gap-1">
+                    <Palette className="h-3 w-3" /> Mood: {meta.mood}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="text-[11px] gap-1">
+                  <Mic2 className="h-3 w-3" /> Tipo: {work.type}
+                </Badge>
+                {work.author && (
+                  <Badge variant="outline" className="text-[11px] gap-1">
+                    Artista: {work.author}
+                  </Badge>
+                )}
+              </div>
+              {work.description && (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium">Descripción:</span> {work.description}
+                </p>
+              )}
+              {meta?.prompt && (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
                 </p>
               )}
             </div>
+          )}
+
+          {/* Image + copies */}
+          <div className="grid sm:grid-cols-[200px_1fr] gap-4">
+            {promo.image_url && (
+              <div className="space-y-2">
+                <img
+                  src={promo.image_url}
+                  alt={`Promo ${work.title}`}
+                  className="w-full rounded-lg border border-border/40 aspect-square object-cover"
+                />
+                <a
+                  href={promo.image_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" /> Abrir imagen
+                </a>
+                <RegenButton
+                  label="imagen"
+                  isFree={isFree}
+                  freeRemaining={freeRemaining}
+                  credits={credits}
+                  isLoading={regenerating === promo.id}
+                  onRegenerate={(paid) => onRegenerate(promo.id, 'image', paid)}
+                  onBuyCredits={onBuyCredits}
+                />
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {promo.copy_ig_feed && (
+                <CopyBlock
+                  label="Instagram Feed"
+                  icon={<Instagram className="h-3.5 w-3.5" />}
+                  text={promo.copy_ig_feed}
+                  fieldId={`ig-feed-${promo.id}`}
+                  copiedField={copiedField}
+                  onCopy={onCopy}
+                />
+              )}
+              {promo.copy_ig_story && (
+                <CopyBlock
+                  label="Instagram Story"
+                  icon={<Instagram className="h-3.5 w-3.5" />}
+                  text={promo.copy_ig_story}
+                  fieldId={`ig-story-${promo.id}`}
+                  copiedField={copiedField}
+                  onCopy={onCopy}
+                />
+              )}
+              {promo.copy_tiktok && (
+                <CopyBlock
+                  label="TikTok"
+                  icon={<Music className="h-3.5 w-3.5" />}
+                  text={promo.copy_tiktok}
+                  fieldId={`tiktok-${promo.id}`}
+                  copiedField={copiedField}
+                  onCopy={onCopy}
+                />
+              )}
+              <RegenButton
+                label="copies"
+                isFree={isFree}
+                freeRemaining={freeRemaining}
+                credits={credits}
+                isLoading={regenerating === promo.id}
+                onRegenerate={(paid) => onRegenerate(promo.id, 'copies', paid)}
+                onBuyCredits={onBuyCredits}
+              />
+            </div>
           </div>
-        </>
-      )}
-    </div>
+
+          {/* Regen counter */}
+          <p className="text-[11px] text-muted-foreground/70 text-center">
+            {isFree
+              ? `${freeRemaining} regeneración${freeRemaining !== 1 ? 'es' : ''} gratuita${freeRemaining !== 1 ? 's' : ''} restante${freeRemaining !== 1 ? 's' : ''}`
+              : `Regeneraciones gratuitas agotadas · ${REGEN_CREDIT_COST} créditos por regeneración`}
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -620,51 +597,23 @@ function RegenButton({
 
   if (isFree) {
     return (
-      <Button
-        size="sm"
-        variant="ghost"
-        className="text-xs text-muted-foreground hover:text-primary"
-        disabled={isLoading}
-        onClick={() => onRegenerate(false)}
-      >
-        {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-        ) : (
-          <RefreshCw className="h-3 w-3 mr-1" />
-        )}
-        Regenerar {label} (gratis · {freeRemaining} restantes)
+      <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(false)}>
+        {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+        Regenerar {label} (gratis · {freeRemaining})
       </Button>
     );
   }
-
   if (canAffordPaid) {
     return (
-      <Button
-        size="sm"
-        variant="ghost"
-        className="text-xs text-muted-foreground hover:text-primary"
-        disabled={isLoading}
-        onClick={() => onRegenerate(true)}
-      >
-        {isLoading ? (
-          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-        ) : (
-          <CreditCard className="h-3 w-3 mr-1" />
-        )}
+      <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(true)}>
+        {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CreditCard className="h-3 w-3 mr-1" />}
         Regenerar {label} ({REGEN_CREDIT_COST} créditos)
       </Button>
     );
   }
-
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      className="text-xs text-muted-foreground hover:text-primary"
-      onClick={onBuyCredits}
-    >
-      <ShoppingCart className="h-3 w-3 mr-1" />
-      Comprar créditos para regenerar
+    <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" onClick={onBuyCredits}>
+      <ShoppingCart className="h-3 w-3 mr-1" /> Comprar créditos
     </Button>
   );
 }
