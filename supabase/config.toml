@@ -53,3 +53,7 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.improve-prompt]
     verify_jwt = false
+  [functions.mureka-clone-voice]
+    verify_jwt = false
+  [functions.mureka-generate-song]
+    verify_jwt = false
