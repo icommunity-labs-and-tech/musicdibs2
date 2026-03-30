@@ -516,8 +516,8 @@ const AIStudioCreate = () => {
   // ── Inline voice cloning ──
   const handleInlineClone = async () => {
     if (!cloningFile || !cloningName.trim() || !user) return;
-    if (cloningProvider === 'mureka' && cloningDuration !== null && cloningDuration > 30) {
-      toast({ title: 'Audio demasiado largo para Mureka', description: 'Para clonar voz para canciones necesitas un audio de máximo 30 segundos. Graba o recorta un fragmento más corto.', variant: 'destructive' });
+    if (cloningDuration !== null && cloningDuration > 30) {
+      toast({ title: 'Audio demasiado largo', description: 'Para clonar voz necesitas un audio de máximo 30 segundos.', variant: 'destructive' });
       return;
     }
     if (cloningDuration !== null && cloningDuration < 15) {
