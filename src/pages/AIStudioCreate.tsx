@@ -175,7 +175,7 @@ const AIStudioCreate = () => {
   const [cloningDuration, setCloningDuration] = useState<number | null>(null);
   const [cloningNoise, setCloningNoise] = useState(false);
   const [isCloning, setIsCloning] = useState(false);
-  const [cloningProvider, setCloningProvider] = useState<'mureka' | 'elevenlabs'>('mureka');
+  
   const cloneFileRef = useRef<HTMLInputElement>(null);
 
   // ── Artist profile state ──
@@ -341,59 +341,7 @@ const AIStudioCreate = () => {
       const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
       const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
 
-      // Si hay voz clonada Mureka seleccionada, usar Mureka
-      const selectedCloneData = selectedCloneId
-        ? voiceClones.find((v: any) => v.id === selectedCloneId)
-        : null;
 
-      console.log('[DEBUG] selectedCloneId:', selectedCloneId);
-      console.log('[DEBUG] voiceClones:', voiceClones);
-      console.log('[MUREKA-CHECK] clone:', selectedCloneData?.name, 'provider:', selectedCloneData?.provider, 'vocal_id:', selectedCloneData?.mureka_vocal_id);
-
-      if (selectedCloneData && selectedCloneData.provider === 'mureka' && selectedCloneData.mureka_vocal_id) {
-        console.log('[MUREKA-CHECK] Using Mureka for generation');
-        const { data: { session } } = await supabase.auth.getSession();
-        const murekaRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mureka-generate-song`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session?.access_token}`,
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-            body: JSON.stringify({
-              prompt: enrichedPrompt,
-              lyrics: lyricsText || undefined,
-              mureka_vocal_id: selectedCloneData.mureka_vocal_id,
-              genre: selectedGenre || undefined,
-              mood: selectedMood || undefined,
-              duration,
-            }),
-          }
-        );
-        const murekaData = await murekaRes.json();
-        if (!murekaRes.ok) {
-          toast({ title: 'Error Mureka', description: murekaData.error || 'No se pudo generar', variant: 'destructive' });
-          return;
-        }
-        if (murekaData.audioUrl) {
-          const newResult: GenerationResult = {
-            id: murekaData.generationId || Date.now().toString(),
-            audioUrl: murekaData.audioUrl,
-            prompt: enrichedPrompt,
-            duration: duration,
-            genre: selectedGenre || undefined,
-            mood: selectedMood || undefined,
-            createdAt: new Date(),
-            isFavorite: false,
-          };
-          setResults(prev => [newResult, ...prev]);
-          setLastResult(newResult);
-          toast({ title: '🎤 ¡Canción generada con tu voz!', description: 'Tu voz clonada ha sido usada en la canción.' });
-        }
-        return;
-      }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
@@ -516,8 +464,8 @@ const AIStudioCreate = () => {
   // ── Inline voice cloning ──
   const handleInlineClone = async () => {
     if (!cloningFile || !cloningName.trim() || !user) return;
-    if (cloningProvider === 'mureka' && cloningDuration !== null && cloningDuration > 30) {
-      toast({ title: 'Audio demasiado largo para Mureka', description: 'Para clonar voz para canciones necesitas un audio de máximo 30 segundos. Graba o recorta un fragmento más corto.', variant: 'destructive' });
+    if (cloningDuration !== null && cloningDuration > 30) {
+      toast({ title: 'Audio demasiado largo', description: 'Para clonar voz necesitas un audio de máximo 30 segundos.', variant: 'destructive' });
       return;
     }
     if (cloningDuration !== null && cloningDuration < 15) {
@@ -531,9 +479,7 @@ const AIStudioCreate = () => {
       form.append('audio', cloningFile);
       form.append('name', cloningName.trim());
       form.append('remove_background_noise', String(cloningNoise));
-      const cloneUrl = cloningProvider === 'mureka'
-        ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mureka-clone-voice`
-        : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`;
+      const cloneUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`;
       const response = await fetch(
         cloneUrl,
         {
@@ -1493,21 +1439,13 @@ const AIStudioCreate = () => {
                               {cloningDuration !== null && (
                                 <p style={{
                                   marginTop: '6px', fontSize: '12px',
-                                  color: cloningProvider === 'mureka'
-                                    ? (cloningDuration > 30 ? '#ef4444' : cloningDuration >= 15 ? '#22c55e' : '#f59e0b')
-                                    : (cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e')
+                                  color: cloningDuration < 15 ? '#ef4444' : cloningDuration > 30 ? '#ef4444' : '#22c55e'
                                 }}>
-                                  {cloningProvider === 'mureka'
-                                    ? (cloningDuration > 30
-                                      ? `⚠️ Demasiado largo para Mureka (${cloningDuration}s) — máximo 30 segundos`
-                                      : cloningDuration >= 15
-                                        ? `✓ Duración óptima (${cloningDuration}s)`
-                                        : `⚠️ Muy corto (${cloningDuration}s) — recomendamos entre 15-30 segundos`)
-                                    : (cloningDuration < 30
-                                      ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
-                                      : cloningDuration < 60
-                                        ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
-                                        : `✓ Duración óptima (${cloningDuration}s)`)
+                                  {cloningDuration > 30
+                                    ? `⚠️ Audio demasiado largo (${cloningDuration}s) — máximo 30 segundos`
+                                    : cloningDuration >= 15
+                                      ? `✓ Duración óptima (${cloningDuration}s)`
+                                      : `⚠️ Muy corto (${cloningDuration}s) — mínimo 15 segundos`
                                   }
                                 </p>
                               )}
@@ -1523,42 +1461,11 @@ const AIStudioCreate = () => {
                                 Eliminar ruido de fondo automáticamente
                               </label>
                             </div>
-                            {/* Provider selector */}
-                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                              <button
-                                type="button"
-                                onClick={() => setCloningProvider('mureka')}
-                                style={{
-                                  flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px',
-                                  border: cloningProvider === 'mureka' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                                  background: cloningProvider === 'mureka' ? 'hsl(var(--primary) / 0.08)' : 'transparent',
-                                  color: 'hsl(var(--foreground))',
-                                  cursor: 'pointer', textAlign: 'center',
-                                }}
-                              >
-                                <div style={{ fontWeight: 600 }}>🎵 Para canciones</div>
-                                <div style={{ fontSize: '11px', color: 'hsl(var(--muted-foreground))' }}>Mureka — voz real en música</div>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setCloningProvider('elevenlabs')}
-                                style={{
-                                  flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px',
-                                  border: cloningProvider === 'elevenlabs' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                                  background: cloningProvider === 'elevenlabs' ? 'hsl(var(--primary) / 0.08)' : 'transparent',
-                                  color: 'hsl(var(--foreground))',
-                                  cursor: 'pointer', textAlign: 'center',
-                                }}
-                              >
-                                <div style={{ fontWeight: 600 }}>🗣️ Para texto a voz</div>
-                                <div style={{ fontSize: '11px', color: 'hsl(var(--muted-foreground))' }}>ElevenLabs — narración/dubbing</div>
-                              </button>
-                            </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                               <button
                                 type="button"
                                 onClick={handleInlineClone}
-                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && (cloningDuration < 15 || (cloningProvider === 'mureka' && cloningDuration > 30)))}
+                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && (cloningDuration < 15 || cloningDuration > 30))}
                                 style={{
                                   flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
                                   background: 'hsl(var(--primary))', color: 'white', border: 'none',
