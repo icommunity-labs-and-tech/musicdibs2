@@ -80,7 +80,7 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
   return (
     <Card className="border-border/40 shadow-sm">
       <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold tracking-tight">Resumen de la cuenta</CardTitle>
+        <CardTitle className="text-base font-semibold tracking-tight">{t('dashboard.account.title')}</CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">{data.subscriptionPlan}</Badge>
           <button onClick={() => load()} className="text-muted-foreground hover:text-foreground transition-colors">
