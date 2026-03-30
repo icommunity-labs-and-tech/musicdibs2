@@ -13,7 +13,7 @@ const SPANISH_LANG_TAGS = [
 ];
 
 /** Map browser language tag to one of our supported languages */
-const mapBrowserLang = (detected: string | undefined): string => {
+export const mapBrowserLang = (detected: string | undefined): string => {
   if (!detected) return 'es';
   const tag = detected.trim().replace(/_/g, '-');
 
@@ -29,7 +29,33 @@ const mapBrowserLang = (detected: string | undefined): string => {
   return 'es';
 };
 
-const savedLang = typeof window !== 'undefined' ? localStorage.getItem('lang') : null;
+/** Try multiple browser signals to find the best language match */
+const detectBrowserLang = (): string => {
+  // 1. User's explicit choice (localStorage)
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('lang');
+    if (saved) return mapBrowserLang(saved);
+  }
+
+  if (typeof navigator === 'undefined') return 'es';
+
+  // 2. navigator.languages — full priority list (reflects OS region + browser prefs)
+  if (navigator.languages?.length) {
+    for (const lang of navigator.languages) {
+      const mapped = mapBrowserLang(lang);
+      if (mapped) return mapped;
+    }
+  }
+
+  // 3. navigator.language — single best match
+  if (navigator.language) {
+    return mapBrowserLang(navigator.language);
+  }
+
+  return 'es';
+};
+
+const detectedLang = detectBrowserLang();
 
 const resources = {
   es: {
@@ -1616,11 +1642,6 @@ allLangs.forEach((lang) => {
   }
 });
 
-// If user manually chose a language, use it; otherwise auto-detect from browser
-const detectedLang = mapBrowserLang(
-  savedLang || (typeof navigator !== 'undefined' ? navigator.language : undefined)
-);
-
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -1647,11 +1668,21 @@ i18n.on('languageChanged', (lng) => {
     return;
   }
 
+  // Update <html lang> for accessibility and SEO
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = normalized === 'pt-BR' ? 'pt-BR' : normalized;
+  }
+
   try {
     localStorage.setItem('lang', normalized);
   } catch {
     // Ignore storage errors (private mode, etc.)
   }
 });
+
+// Set initial <html lang>
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = detectedLang === 'pt-BR' ? 'pt-BR' : detectedLang;
+}
 
 export default i18n;
