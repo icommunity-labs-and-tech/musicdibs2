@@ -3,6 +3,7 @@ import { FileText, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { generateCertificate, CertificateData } from '@/lib/generateCertificate'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   work: {
@@ -25,6 +26,8 @@ interface Props {
 
 export function CertificateButton({ work, authorName, authorDocId }: Props) {
   const [generating, setGenerating] = useState(false)
+  const { t, i18n } = useTranslation()
+  const locale = i18n.resolvedLanguage === 'pt-BR' ? 'pt-BR' : (i18n.resolvedLanguage || i18n.language || 'es')
 
   // Solo visible si la obra está certificada
   if (!work.blockchain_hash || !work.ibs_evidence_id) return null
@@ -41,13 +44,13 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
         title:       work.title,
         filename:    work.original_filename || `${work.title}.mp3`,
         filesize:    work.file_size
-                       ? `${work.file_size.toLocaleString('es-ES')} bytes`
-                       : 'N/A',
-        fileType:    work.type || 'Audio',
+                       ? `${work.file_size.toLocaleString(locale)} bytes`
+                       : t('dashboard.certificate.notAvailable'),
+        fileType:    work.type || t('dashboard.certificate.fileTypeFallback'),
         description: work.description || undefined,
         authorName,
         authorDocId,
-        certifiedAt: new Date(work.certified_at || work.created_at).toLocaleDateString('es-ES', {
+        certifiedAt: new Date(work.certified_at || work.created_at).toLocaleDateString(locale, {
           day: '2-digit', month: 'long', year: 'numeric',
           hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
         }),
@@ -61,10 +64,10 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
         evidenceId:  work.ibs_evidence_id,
       }
       await generateCertificate(certData)
-      toast.success('Certificado descargado correctamente')
+      toast.success(t('dashboard.certificate.downloadSuccess'))
     } catch (e) {
       console.error(e)
-      toast.error('Error al generar el certificado')
+      toast.error(t('dashboard.certificate.generateError'))
     } finally {
       setGenerating(false)
     }
@@ -79,8 +82,8 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
       className="gap-2"
     >
       {generating
-        ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando...</>
-        : <><FileText className="h-4 w-4" /> Certificado PDF</>
+        ? <><Loader2 className="h-4 w-4 animate-spin" /> {t('dashboard.certificate.generating')}</>
+        : <><FileText className="h-4 w-4" /> {t('dashboard.certificate.pdfLabel')}</>
       }
     </Button>
   )

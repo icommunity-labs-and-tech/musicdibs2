@@ -2090,6 +2090,402 @@ const resources = {
   },
 };
 
+const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }> = {
+  es: {
+    aiStudio: {
+      backToDashboard: 'Volver al dashboard',
+      poweredBy: 'Suite creativa impulsada por IA',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Crea música, voces, portadas y videoclips desde un solo lugar.',
+      noCredits: 'Sin créditos',
+      comingSoon: 'Próximamente',
+      creditPerUse: 'crédito por uso',
+      creditsPerUse: 'créditos por uso',
+      buyCredits: 'Comprar créditos',
+      startBtn: 'Abrir',
+      previewBtn: 'Vista previa',
+      legalTitle: 'Uso responsable y derechos',
+      legalText: 'Asegúrate de tener derechos sobre el contenido que subas o generes antes de registrarlo, distribuirlo o publicarlo.',
+      modules: {
+        createMusic: { title: 'Crear música', desc: 'Genera canciones o instrumentales a partir de una descripción.' },
+        editModify: { title: 'Editar y mejorar', desc: 'Mejora tus pistas, limpia audio y crea nuevas variaciones.' },
+        inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
+        createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
+        createCovers: { title: 'Portadas', desc: 'Crea arte visual profesional para singles, EPs o álbumes.' },
+        singYourSong: { title: 'Canta tu canción', desc: 'Haz que tu voz clonada interprete tu letra y descarga la pista vocal.' },
+      },
+      features: {
+        highQuality: { title: 'Alta calidad', desc: 'Resultados listos para iterar, presentar o publicar.' },
+        fast: { title: 'Rápido', desc: 'Flujos optimizados para crear en pocos minutos.' },
+        creative: { title: 'Creativo', desc: 'Explora ideas, estilos y combinaciones nuevas.' },
+        easy: { title: 'Fácil', desc: 'Herramientas guiadas para avanzar sin fricción.' },
+      },
+    },
+  },
+  en: {
+    aiStudio: {
+      backToDashboard: 'Back to dashboard',
+      poweredBy: 'AI-powered creative suite',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Create music, voices, covers and videoclips from one place.',
+      noCredits: 'No credits',
+      comingSoon: 'Coming soon',
+      creditPerUse: 'credit per use',
+      creditsPerUse: 'credits per use',
+      buyCredits: 'Buy credits',
+      startBtn: 'Open',
+      previewBtn: 'Preview',
+      legalTitle: 'Responsible use and rights',
+      legalText: 'Make sure you own the rights to any content you upload or generate before registering, distributing or publishing it.',
+      modules: {
+        createMusic: { title: 'Create music', desc: 'Generate songs or instrumentals from a text description.' },
+        editModify: { title: 'Edit and enhance', desc: 'Enhance tracks, clean audio and create new variations.' },
+        inspire: { title: 'Inspiration', desc: 'Discover prompts, combinations and references to start faster.' },
+        createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
+        createCovers: { title: 'Covers', desc: 'Create professional visual art for singles, EPs or albums.' },
+        singYourSong: { title: 'Sing your song', desc: 'Make your cloned voice perform your lyrics and download the vocal track.' },
+      },
+      features: {
+        highQuality: { title: 'High quality', desc: 'Results ready to iterate, pitch or publish.' },
+        fast: { title: 'Fast', desc: 'Optimized workflows to create in minutes.' },
+        creative: { title: 'Creative', desc: 'Explore new ideas, styles and combinations.' },
+        easy: { title: 'Easy', desc: 'Guided tools that keep the flow frictionless.' },
+      },
+    },
+  },
+  'pt-BR': {
+    aiStudio: {
+      backToDashboard: 'Voltar ao dashboard',
+      poweredBy: 'Suite criativa impulsionada por IA',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Crie música, vozes, capas e videoclipes em um só lugar.',
+      noCredits: 'Sem créditos',
+      comingSoon: 'Em breve',
+      creditPerUse: 'crédito por uso',
+      creditsPerUse: 'créditos por uso',
+      buyCredits: 'Comprar créditos',
+      startBtn: 'Abrir',
+      previewBtn: 'Pré-visualizar',
+      legalTitle: 'Uso responsável e direitos',
+      legalText: 'Certifique-se de ter os direitos sobre qualquer conteúdo enviado ou gerado antes de registrá-lo, distribuí-lo ou publicá-lo.',
+      modules: {
+        createMusic: { title: 'Criar música', desc: 'Gere músicas ou instrumentais a partir de uma descrição.' },
+        editModify: { title: 'Editar e melhorar', desc: 'Melhore faixas, limpe o áudio e crie novas variações.' },
+        inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
+        createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
+        createCovers: { title: 'Capas', desc: 'Crie arte visual profissional para singles, EPs ou álbuns.' },
+        singYourSong: { title: 'Cante sua música', desc: 'Faça sua voz clonada interpretar sua letra e baixe a faixa vocal.' },
+      },
+      features: {
+        highQuality: { title: 'Alta qualidade', desc: 'Resultados prontos para iterar, apresentar ou publicar.' },
+        fast: { title: 'Rápido', desc: 'Fluxos otimizados para criar em poucos minutos.' },
+        creative: { title: 'Criativo', desc: 'Explore novas ideias, estilos e combinações.' },
+        easy: { title: 'Fácil', desc: 'Ferramentas guiadas para avançar sem atrito.' },
+      },
+    },
+  },
+  fr: {
+    aiStudio: {
+      backToDashboard: 'Retour au tableau de bord',
+      poweredBy: 'Suite créative propulsée par l’IA',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Créez musique, voix, pochettes et vidéoclips depuis un seul endroit.',
+      noCredits: 'Pas de crédits',
+      comingSoon: 'Bientôt disponible',
+      creditPerUse: 'crédit par utilisation',
+      creditsPerUse: 'crédits par utilisation',
+      buyCredits: 'Acheter des crédits',
+      startBtn: 'Ouvrir',
+      previewBtn: 'Aperçu',
+      legalTitle: 'Usage responsable et droits',
+      legalText: 'Assurez-vous de détenir les droits sur tout contenu envoyé ou généré avant de l’enregistrer, le distribuer ou le publier.',
+      modules: {
+        createMusic: { title: 'Créer de la musique', desc: 'Générez des chansons ou instrumentaux à partir d’une description.' },
+        editModify: { title: 'Éditer et améliorer', desc: 'Améliorez vos pistes, nettoyez l’audio et créez de nouvelles variations.' },
+        inspire: { title: 'Inspiration', desc: 'Découvrez des prompts, combinaisons et références pour démarrer plus vite.' },
+        createVideoclips: { title: 'Vidéoclips', desc: 'Générez des vidéos musicales et fusionnez-les avec l’audio de votre historique.' },
+        createCovers: { title: 'Pochettes', desc: 'Créez des visuels professionnels pour singles, EP ou albums.' },
+        singYourSong: { title: 'Chantez votre chanson', desc: 'Faites interpréter vos paroles par votre voix clonée et téléchargez la piste vocale.' },
+      },
+      features: {
+        highQuality: { title: 'Haute qualité', desc: 'Des résultats prêts à itérer, présenter ou publier.' },
+        fast: { title: 'Rapide', desc: 'Des flux optimisés pour créer en quelques minutes.' },
+        creative: { title: 'Créatif', desc: 'Explorez de nouvelles idées, styles et combinaisons.' },
+        easy: { title: 'Simple', desc: 'Des outils guidés pour avancer sans friction.' },
+      },
+    },
+  },
+  it: {
+    aiStudio: {
+      backToDashboard: 'Torna alla dashboard',
+      poweredBy: 'Suite creativa potenziata dall’IA',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Crea musica, voci, copertine e videoclip da un unico posto.',
+      noCredits: 'Nessun credito',
+      comingSoon: 'Prossimamente',
+      creditPerUse: 'credito per utilizzo',
+      creditsPerUse: 'crediti per utilizzo',
+      buyCredits: 'Acquista crediti',
+      startBtn: 'Apri',
+      previewBtn: 'Anteprima',
+      legalTitle: 'Uso responsabile e diritti',
+      legalText: 'Assicurati di possedere i diritti su qualsiasi contenuto caricato o generato prima di registrarlo, distribuirlo o pubblicarlo.',
+      modules: {
+        createMusic: { title: 'Crea musica', desc: 'Genera brani o strumentali da una descrizione.' },
+        editModify: { title: 'Modifica e migliora', desc: 'Migliora le tracce, pulisci l’audio e crea nuove variazioni.' },
+        inspire: { title: 'Ispirazione', desc: 'Scopri prompt, combinazioni e riferimenti per iniziare più velocemente.' },
+        createVideoclips: { title: 'Videoclip', desc: 'Genera video musicali e uniscili con l’audio della tua cronologia.' },
+        createCovers: { title: 'Copertine', desc: 'Crea artwork professionali per singoli, EP o album.' },
+        singYourSong: { title: 'Canta la tua canzone', desc: 'Fai interpretare il testo alla tua voce clonata e scarica la traccia vocale.' },
+      },
+      features: {
+        highQuality: { title: 'Alta qualità', desc: 'Risultati pronti per iterare, presentare o pubblicare.' },
+        fast: { title: 'Veloce', desc: 'Workflow ottimizzati per creare in pochi minuti.' },
+        creative: { title: 'Creativo', desc: 'Esplora nuove idee, stili e combinazioni.' },
+        easy: { title: 'Facile', desc: 'Strumenti guidati per avanzare senza attrito.' },
+      },
+    },
+  },
+  de: {
+    aiStudio: {
+      backToDashboard: 'Zurück zum Dashboard',
+      poweredBy: 'KI-gestützte Creative Suite',
+      pageTitle: 'AI MusicDibs Studio',
+      pageSubtitle: 'Erstelle Musik, Stimmen, Cover und Videoclips an einem Ort.',
+      noCredits: 'Keine Credits',
+      comingSoon: 'Demnächst',
+      creditPerUse: 'Credit pro Nutzung',
+      creditsPerUse: 'Credits pro Nutzung',
+      buyCredits: 'Credits kaufen',
+      startBtn: 'Öffnen',
+      previewBtn: 'Vorschau',
+      legalTitle: 'Verantwortungsvolle Nutzung und Rechte',
+      legalText: 'Stelle sicher, dass du die Rechte an allen hochgeladenen oder generierten Inhalten besitzt, bevor du sie registrierst, verteilst oder veröffentlichst.',
+      modules: {
+        createMusic: { title: 'Musik erstellen', desc: 'Erzeuge Songs oder Instrumentals aus einer Beschreibung.' },
+        editModify: { title: 'Bearbeiten und verbessern', desc: 'Verbessere Tracks, bereinige Audio und erstelle neue Variationen.' },
+        inspire: { title: 'Inspiration', desc: 'Entdecke Prompts, Kombinationen und Referenzen für einen schnelleren Start.' },
+        createVideoclips: { title: 'Videoclips', desc: 'Erzeuge Musikvideos und kombiniere sie mit Audio aus deinem Verlauf.' },
+        createCovers: { title: 'Cover', desc: 'Erstelle professionelle Visuals für Singles, EPs oder Alben.' },
+        singYourSong: { title: 'Sing deinen Song', desc: 'Lass deine geklonte Stimme deinen Text performen und lade die Vocal-Spur herunter.' },
+      },
+      features: {
+        highQuality: { title: 'Hohe Qualität', desc: 'Ergebnisse bereit zum Iterieren, Pitchen oder Veröffentlichen.' },
+        fast: { title: 'Schnell', desc: 'Optimierte Workflows für Ergebnisse in wenigen Minuten.' },
+        creative: { title: 'Kreativ', desc: 'Entdecke neue Ideen, Stile und Kombinationen.' },
+        easy: { title: 'Einfach', desc: 'Geführte Tools für einen reibungslosen Flow.' },
+      },
+    },
+  },
+};
+
+const dashboardWidgetTranslations: Record<string, { dashboard: Record<string, any> }> = {
+  es: {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Certificado descargado correctamente',
+        generateError: 'Error al generar el certificado',
+        generating: 'Generando...',
+        pdfLabel: 'Certificado PDF',
+        fileTypeFallback: 'Audio',
+        notAvailable: 'N/D',
+      },
+      distribute: {
+        bannerButton: 'Distribuir ahora',
+        distributed: 'Distribuido',
+        distributedOn: 'Distribuido el {{date}}',
+        button: 'Distribuir',
+      },
+      notifications: {
+        title: 'Notificaciones',
+        markAll: 'Leer todo',
+        clear: 'Borrar todas',
+        empty: 'Sin notificaciones',
+        time: {
+          now: 'ahora',
+          minutes: 'hace {{count}}m',
+          hours: 'hace {{count}}h',
+          days: 'hace {{count}}d',
+        },
+      },
+      noCredits: {
+        message: 'No tienes créditos suficientes para esta acción.',
+        buyCredits: 'Comprar créditos',
+      },
+    },
+  },
+  en: {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Certificate downloaded successfully',
+        generateError: 'Error generating certificate',
+        generating: 'Generating...',
+        pdfLabel: 'PDF certificate',
+        fileTypeFallback: 'Audio',
+        notAvailable: 'N/A',
+      },
+      distribute: {
+        bannerButton: 'Distribute now',
+        distributed: 'Distributed',
+        distributedOn: 'Distributed on {{date}}',
+        button: 'Distribute',
+      },
+      notifications: {
+        title: 'Notifications',
+        markAll: 'Mark all read',
+        clear: 'Clear all',
+        empty: 'No notifications',
+        time: {
+          now: 'now',
+          minutes: '{{count}}m ago',
+          hours: '{{count}}h ago',
+          days: '{{count}}d ago',
+        },
+      },
+      noCredits: {
+        message: 'You do not have enough credits for this action.',
+        buyCredits: 'Buy credits',
+      },
+    },
+  },
+  'pt-BR': {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Certificado baixado com sucesso',
+        generateError: 'Erro ao gerar o certificado',
+        generating: 'Gerando...',
+        pdfLabel: 'Certificado PDF',
+        fileTypeFallback: 'Áudio',
+        notAvailable: 'N/D',
+      },
+      distribute: {
+        bannerButton: 'Distribuir agora',
+        distributed: 'Distribuído',
+        distributedOn: 'Distribuído em {{date}}',
+        button: 'Distribuir',
+      },
+      notifications: {
+        title: 'Notificações',
+        markAll: 'Ler tudo',
+        clear: 'Limpar todas',
+        empty: 'Sem notificações',
+        time: {
+          now: 'agora',
+          minutes: 'há {{count}}m',
+          hours: 'há {{count}}h',
+          days: 'há {{count}}d',
+        },
+      },
+      noCredits: {
+        message: 'Você não tem créditos suficientes para esta ação.',
+        buyCredits: 'Comprar créditos',
+      },
+    },
+  },
+  fr: {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Certificat téléchargé avec succès',
+        generateError: 'Erreur lors de la génération du certificat',
+        generating: 'Génération...',
+        pdfLabel: 'Certificat PDF',
+        fileTypeFallback: 'Audio',
+        notAvailable: 'N/D',
+      },
+      distribute: {
+        bannerButton: 'Distribuer maintenant',
+        distributed: 'Distribué',
+        distributedOn: 'Distribué le {{date}}',
+        button: 'Distribuer',
+      },
+      notifications: {
+        title: 'Notifications',
+        markAll: 'Tout lire',
+        clear: 'Tout effacer',
+        empty: 'Aucune notification',
+        time: {
+          now: 'à l’instant',
+          minutes: 'il y a {{count}}m',
+          hours: 'il y a {{count}}h',
+          days: 'il y a {{count}}j',
+        },
+      },
+      noCredits: {
+        message: 'Vous n’avez pas assez de crédits pour cette action.',
+        buyCredits: 'Acheter des crédits',
+      },
+    },
+  },
+  it: {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Certificato scaricato correttamente',
+        generateError: 'Errore durante la generazione del certificato',
+        generating: 'Generazione...',
+        pdfLabel: 'Certificato PDF',
+        fileTypeFallback: 'Audio',
+        notAvailable: 'N/D',
+      },
+      distribute: {
+        bannerButton: 'Distribuisci ora',
+        distributed: 'Distribuito',
+        distributedOn: 'Distribuito il {{date}}',
+        button: 'Distribuisci',
+      },
+      notifications: {
+        title: 'Notifiche',
+        markAll: 'Segna tutto come letto',
+        clear: 'Cancella tutto',
+        empty: 'Nessuna notifica',
+        time: {
+          now: 'ora',
+          minutes: '{{count}}m fa',
+          hours: '{{count}}h fa',
+          days: '{{count}}g fa',
+        },
+      },
+      noCredits: {
+        message: 'Non hai crediti sufficienti per questa azione.',
+        buyCredits: 'Acquista crediti',
+      },
+    },
+  },
+  de: {
+    dashboard: {
+      certificate: {
+        downloadSuccess: 'Zertifikat erfolgreich heruntergeladen',
+        generateError: 'Fehler beim Erstellen des Zertifikats',
+        generating: 'Wird erstellt...',
+        pdfLabel: 'PDF-Zertifikat',
+        fileTypeFallback: 'Audio',
+        notAvailable: 'k. A.',
+      },
+      distribute: {
+        bannerButton: 'Jetzt vertreiben',
+        distributed: 'Vertrieben',
+        distributedOn: 'Vertrieben am {{date}}',
+        button: 'Vertreiben',
+      },
+      notifications: {
+        title: 'Benachrichtigungen',
+        markAll: 'Alle lesen',
+        clear: 'Alle löschen',
+        empty: 'Keine Benachrichtigungen',
+        time: {
+          now: 'jetzt',
+          minutes: 'vor {{count}}m',
+          hours: 'vor {{count}}h',
+          days: 'vor {{count}}T',
+        },
+      },
+      noCredits: {
+        message: 'Du hast nicht genügend Credits für diese Aktion.',
+        buyCredits: 'Credits kaufen',
+      },
+    },
+  },
+};
+
 // Merge legal, FAQ and AI Studio translations into resources
 const langs = ['es', 'en', 'pt-BR'] as const;
 langs.forEach((lang) => {
@@ -2107,6 +2503,27 @@ const allLangs = ['es', 'en', 'pt-BR', 'fr', 'it', 'de'] as const;
 allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
     Object.assign(resources[lang].translation, aiStudioTranslations[lang]);
+  }
+});
+
+allLangs.forEach((lang) => {
+  const translation = resources[lang]?.translation as Record<string, any> | undefined;
+  if (!translation) return;
+
+  const aiStudioRoot = aiStudioRootTranslations[lang]?.aiStudio;
+  if (aiStudioRoot) {
+    translation.aiStudio = {
+      ...(translation.aiStudio || {}),
+      ...aiStudioRoot,
+    };
+  }
+
+  const dashboardWidgets = dashboardWidgetTranslations[lang]?.dashboard;
+  if (dashboardWidgets) {
+    translation.dashboard = {
+      ...(translation.dashboard || {}),
+      ...dashboardWidgets,
+    };
   }
 });
 

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Bell, CheckCircle2, XCircle, Info, CheckCheck, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const iconMap = {
   success: CheckCircle2,
@@ -17,16 +18,17 @@ const colorMap = {
   info: 'text-primary',
 };
 
-function timeAgo(ts: string) {
-  const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
-  if (diff < 60) return 'ahora';
-  if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
-  return `hace ${Math.floor(diff / 86400)}d`;
-}
-
 export function NotificationBell() {
+  const { t } = useTranslation();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
+
+  const timeAgo = (ts: string) => {
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    if (diff < 60) return t('dashboard.notifications.time.now');
+    if (diff < 3600) return t('dashboard.notifications.time.minutes', { count: Math.floor(diff / 60) });
+    if (diff < 86400) return t('dashboard.notifications.time.hours', { count: Math.floor(diff / 3600) });
+    return t('dashboard.notifications.time.days', { count: Math.floor(diff / 86400) });
+  };
 
   return (
     <Popover>
@@ -42,15 +44,15 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between border-b border-border/40 px-4 py-2.5">
-          <span className="text-sm font-semibold">Notificaciones</span>
+          <span className="text-sm font-semibold">{t('dashboard.notifications.title')}</span>
           <div className="flex items-center gap-1">
             {unreadCount > 0 && (
               <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={markAllAsRead}>
-                <CheckCheck className="h-3 w-3" /> Leer todo
+                <CheckCheck className="h-3 w-3" /> {t('dashboard.notifications.markAll')}
               </Button>
             )}
             {notifications.length > 0 && (
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" onClick={clearAll}>
+              <Button aria-label={t('dashboard.notifications.clear')} variant="ghost" size="sm" className="h-7 px-2 text-xs text-muted-foreground" onClick={clearAll}>
                 <Trash2 className="h-3 w-3" />
               </Button>
             )}
@@ -60,7 +62,7 @@ export function NotificationBell() {
         {notifications.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
             <Bell className="h-6 w-6 mx-auto mb-2 opacity-30" />
-            Sin notificaciones
+            {t('dashboard.notifications.empty')}
           </div>
         ) : (
           <ScrollArea className="max-h-80">
