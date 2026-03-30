@@ -12,7 +12,7 @@ const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const modules = [
     {
-      title: "Crear Música",
+      title: "Crea Música",
       description: "Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.",
       icon: Wand2,
       href: "/ai-studio/create",
@@ -22,7 +22,7 @@ const AIStudio = () => {
       color: "from-purple-500 to-pink-500"
     },
     {
-      title: "Editar y Variar",
+      title: "Edita y Modifica",
       description: "Modifica pistas existentes, crea variaciones o aplica inpainting para rellenar secciones.",
       icon: Edit3,
       href: "/ai-studio/edit",
@@ -32,7 +32,7 @@ const AIStudio = () => {
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Inspiración",
+      title: "Inspìrate",
       description: "Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.",
       icon: Lightbulb,
       href: "/ai-studio/inspire",
