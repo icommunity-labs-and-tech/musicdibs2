@@ -1759,7 +1759,7 @@ const AIStudioCreate = () => {
                       </Button>
                       <Link
                         to={`/ai-studio/vocal?lyrics=${encodeURIComponent(generatedLyrics)}`}
-                        className="block mt-2"
+                        className="block mt-3"
                       >
                         <Button variant="outline" size="sm" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
                           <Mic className="w-3.5 h-3.5" />
@@ -1842,7 +1842,7 @@ const AIStudioCreate = () => {
                               className="h-7 w-7 text-primary"
                               title="Cantar esta letra con mi voz"
                               onClick={() => {
-                                window.open(`/ai-studio/vocal?lyrics=${encodeURIComponent(item.lyrics)}`, '_blank');
+                                window.open(`/ai-studio/vocal?lyrics=${encodeURIComponent(item.lyrics)}`, '_self');
                               }}
                             >
                               <Mic className="h-3.5 w-3.5" />
