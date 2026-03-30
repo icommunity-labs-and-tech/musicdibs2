@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,21 +32,21 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 
-const VIDEO_STYLES = [
-  { id: "cinematic", label: "Cinemático", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
-  { id: "anime", label: "Anime", emoji: "🌸", prompt: "anime style, cel shaded, vibrant colors, japanese animation" },
-  { id: "retro-vhs", label: "Retro VHS", emoji: "📼", prompt: "VHS aesthetic, retro 80s, scan lines, chromatic aberration" },
-  { id: "abstract", label: "Abstracto", emoji: "🎨", prompt: "abstract visuals, fluid shapes, morphing colors, art installation" },
-  { id: "lyric-video", label: "Lyric Video", emoji: "✍️", prompt: "typography in motion, text animation, clean background" },
-  { id: "neon", label: "Neon/Cyberpunk", emoji: "💜", prompt: "neon lights, cyberpunk city, rain reflections, futuristic" },
-  { id: "nature", label: "Naturaleza", emoji: "🌿", prompt: "natural landscapes, organic movement, time-lapse nature" },
-  { id: "urban", label: "Urbano", emoji: "🏙️", prompt: "urban streets, city life, graffiti walls, street culture" },
+const VIDEO_STYLE_KEYS = [
+  { id: "cinematic", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
+  { id: "anime", emoji: "🌸", prompt: "anime style, cel shaded, vibrant colors, japanese animation" },
+  { id: "retro-vhs", emoji: "📼", prompt: "VHS aesthetic, retro 80s, scan lines, chromatic aberration" },
+  { id: "abstract", emoji: "🎨", prompt: "abstract visuals, fluid shapes, morphing colors, art installation" },
+  { id: "lyric-video", emoji: "✍️", prompt: "typography in motion, text animation, clean background" },
+  { id: "neon", emoji: "💜", prompt: "neon lights, cyberpunk city, rain reflections, futuristic" },
+  { id: "nature", emoji: "🌿", prompt: "natural landscapes, organic movement, time-lapse nature" },
+  { id: "urban", emoji: "🏙️", prompt: "urban streets, city life, graffiti walls, street culture" },
 ] as const;
 
-const ASPECT_RATIOS = [
-  { id: "1280:720", label: "16:9 Horizontal", icon: "▬" },
-  { id: "720:1280", label: "9:16 Vertical", icon: "▮" },
-  { id: "960:960", label: "1:1 Cuadrado", icon: "■" },
+const ASPECT_RATIO_KEYS = [
+  { id: "1280:720", key: "horizontal" },
+  { id: "720:1280", key: "vertical" },
+  { id: "960:960", key: "square" },
 ] as const;
 
 const DURATIONS = [
@@ -65,6 +66,7 @@ interface VideoResult {
 }
 
 const AIStudioVideo = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,10 +92,10 @@ const AIStudioVideo = () => {
       if (error || data?.error) throw new Error(data?.error || error?.message);
       if (data?.improved) {
         setPrompt(data.improved);
-        toast({ title: "✨ Prompt mejorado", description: "Puedes editarlo antes de generar el vídeo" });
+        toast({ title: "✨ " + t('aiVideo.improveWithAI'), description: t('aiVideo.promptImprovedDesc', { defaultValue: 'Puedes editarlo antes de generar el vídeo' }) });
       }
     } catch {
-      toast({ title: "Error", description: "No se pudo mejorar el prompt", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorNoDesc'), variant: "destructive" });
     } finally {
       setIsImprovingPrompt(false);
     }
@@ -114,9 +116,9 @@ const AIStudioVideo = () => {
   // Audio merge state
   const [audioTracks, setAudioTracks] = useState<GenerationResult[]>([]);
   const [isLoadingTracks, setIsLoadingTracks] = useState(false);
-  const [mergeDialogOpen, setMergeDialogOpen] = useState<string | null>(null); // result id
+  const [mergeDialogOpen, setMergeDialogOpen] = useState<string | null>(null);
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
-  const [preSelectedAudioId, setPreSelectedAudioId] = useState<string | null>(null); // pre-select before generation
+  const [preSelectedAudioId, setPreSelectedAudioId] = useState<string | null>(null);
   const [isMerging, setIsMerging] = useState(false);
   const [audioPlayingId, setAudioPlayingId] = useState<string | null>(null);
   const audioElementsRef = useRef<Map<string, HTMLAudioElement>>(new Map());
@@ -128,13 +130,11 @@ const AIStudioVideo = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Load audio tracks on mount
   useEffect(() => {
     if (user) {
       loadAudioTracks();
@@ -146,7 +146,6 @@ const AIStudioVideo = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Load video history on mount and when filters change
   useEffect(() => {
     if (user) {
       loadVideoHistory();
@@ -166,12 +165,8 @@ const AIStudioVideo = () => {
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
 
-      if (filterStatus !== "all") {
-        query = query.eq('status', filterStatus);
-      }
-      if (filterStyle !== "all") {
-        query = query.eq('style', filterStyle);
-      }
+      if (filterStatus !== "all") query = query.eq('status', filterStatus);
+      if (filterStyle !== "all") query = query.eq('style', filterStyle);
       if (filterDate) {
         const dayStart = new Date(filterDate);
         dayStart.setHours(0, 0, 0, 0);
@@ -179,9 +174,7 @@ const AIStudioVideo = () => {
         dayEnd.setHours(23, 59, 59, 999);
         query = query.gte('created_at', dayStart.toISOString()).lte('created_at', dayEnd.toISOString());
       }
-      if (debouncedSearch.trim()) {
-        query = query.ilike('prompt', `%${debouncedSearch.trim()}%`);
-      }
+      if (debouncedSearch.trim()) query = query.ilike('prompt', `%${debouncedSearch.trim()}%`);
 
       if (loadMore && results.length > 0) {
         const lastItem = results[results.length - 1];
@@ -210,7 +203,6 @@ const AIStudioVideo = () => {
         setResults(mapped);
       }
 
-      // Resume polling for pending/running
       mapped.forEach(r => {
         if (r.status === 'PENDING' || r.status === 'RUNNING') {
           pollTaskStatus(r.taskId, r.id);
@@ -223,7 +215,6 @@ const AIStudioVideo = () => {
     }
   };
 
-  // Load audio tracks when merge dialog opens
   const loadAudioTracks = async () => {
     if (!user || audioTracks.length > 0) return;
     setIsLoadingTracks(true);
@@ -276,7 +267,6 @@ const AIStudioVideo = () => {
 
     setIsMerging(true);
     try {
-      // Stop any audio previews
       audioElementsRef.current.forEach(a => a.pause());
       setAudioPlayingId(null);
 
@@ -286,7 +276,6 @@ const AIStudioVideo = () => {
         r.id === resultId ? { ...r, mergedUrl } : r
       ));
 
-      // Persist merged URL to DB
       await supabase.from('video_generations').update({
         merged_url: mergedUrl,
         merged_audio_id: audioTrack.id,
@@ -294,10 +283,10 @@ const AIStudioVideo = () => {
 
       setMergeDialogOpen(null);
       setSelectedAudioId(null);
-      toast({ title: "¡Audio fusionado!", description: "Tu videoclip ahora tiene banda sonora" });
+      toast({ title: t('aiVideo.audioMerged'), description: t('aiVideo.audioMergedDesc') });
     } catch (err: any) {
       console.error('Merge error:', err);
-      toast({ title: "Error al fusionar", description: err.message || "No se pudo fusionar audio y vídeo", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: err.message, variant: "destructive" });
     } finally {
       setIsMerging(false);
     }
@@ -306,7 +295,7 @@ const AIStudioVideo = () => {
   const buildFullPrompt = () => {
     let fullPrompt = prompt;
     if (selectedStyle) {
-      const style = VIDEO_STYLES.find(s => s.id === selectedStyle);
+      const style = VIDEO_STYLE_KEYS.find(s => s.id === selectedStyle);
       if (style) fullPrompt = `${style.prompt}. ${fullPrompt}`;
     }
     return fullPrompt.trim();
@@ -317,12 +306,12 @@ const AIStudioVideo = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast({ title: "Error", description: "Solo se permiten archivos de imagen", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorImageOnly'), variant: "destructive" });
       return;
     }
 
     if (file.size > 16 * 1024 * 1024) {
-      toast({ title: "Error", description: "La imagen no puede superar 16MB", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorImageSize'), variant: "destructive" });
       return;
     }
 
@@ -361,16 +350,14 @@ const AIStudioVideo = () => {
           pollingRef.current.delete(resultId);
 
           const videoUrl = data.output?.[0];
-          // Persist to DB
           await supabase.from('video_generations').update({
             status: 'SUCCEEDED',
             video_url: videoUrl || null,
             updated_at: new Date().toISOString(),
           }).eq('id', resultId);
 
-          toast({ title: "¡Videoclip generado!", description: "Tu vídeo está listo" });
+          toast({ title: t('aiVideo.videoGenerated'), description: t('aiVideo.videoReady') });
 
-          // Auto-merge if a pre-selected audio track exists
           if (preSelectedAudioId) {
             const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);
             if (audioTrack && videoUrl) {
@@ -383,10 +370,10 @@ const AIStudioVideo = () => {
                   merged_url: mergedUrl,
                   merged_audio_id: audioTrack.id,
                 }).eq('id', resultId);
-                toast({ title: "¡Audio fusionado automáticamente!", description: "Tu videoclip ya tiene banda sonora" });
+                toast({ title: t('aiVideo.autoMerged'), description: t('aiVideo.autoMergedDesc') });
               } catch (mergeErr) {
                 console.error('Auto-merge error:', mergeErr);
-                toast({ title: "Vídeo listo, pero el merge automático falló", description: "Puedes añadir audio manualmente", variant: "destructive" });
+                toast({ title: t('aiVideo.videoGenerated'), description: t('aiVideo.videoReadyMergeError', { defaultValue: 'Puedes añadir audio manualmente' }), variant: "destructive" });
               }
             }
           }
@@ -398,27 +385,27 @@ const AIStudioVideo = () => {
             failure_reason: data.failure || null,
             updated_at: new Date().toISOString(),
           }).eq('id', resultId);
-          toast({ title: "Error", description: data.failure || "La generación del vídeo falló", variant: "destructive" });
+          toast({ title: t('aiShared.error'), description: data.failure || t('aiVideo.genFailed'), variant: "destructive" });
         }
       } catch (err) {
         console.error('Polling error:', err);
       }
-    }, 5000); // Poll every 5 seconds
+    }, 5000);
 
     pollingRef.current.set(resultId, interval);
   };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      toast({ title: "Error", description: "Escribe una descripción para tu videoclip", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorNoDesc'), variant: "destructive" });
       return;
     }
     if (!user) {
-      toast({ title: "Error", description: "Debes iniciar sesión", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorLogin'), variant: "destructive" });
       return;
     }
     if (mode === 'image_to_video' && !uploadedImage) {
-      toast({ title: "Error", description: "Sube una imagen para el modo Image-to-Video", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiVideo.errorNoImage'), variant: "destructive" });
       return;
     }
 
@@ -426,7 +413,6 @@ const AIStudioVideo = () => {
     setError(null);
 
     try {
-      // Spend credits before generating
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
         body: { feature: 'generate_video', description: `Video AI: ${prompt.slice(0, 80)}` },
       });
@@ -449,11 +435,10 @@ const AIStudioVideo = () => {
 
       const { data, error: fnError } = await supabase.functions.invoke('generate-video', { body });
 
-      // Rate limit
       if (data?.error === 'rate_limit_exceeded') {
         toast({
-          title: 'Demasiadas generaciones',
-          description: data.message || 'Espera unos segundos antes de volver a generar.',
+          title: t('aiVideo.rateLimit', { defaultValue: 'Demasiadas generaciones' }),
+          description: data.message || t('aiVideo.rateLimitDesc', { defaultValue: 'Espera unos segundos antes de volver a generar.' }),
           variant: 'destructive',
         });
         return;
@@ -462,7 +447,6 @@ const AIStudioVideo = () => {
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
 
-      // Insert into database
       const { data: dbRow, error: dbError } = await supabase
         .from('video_generations')
         .insert({
@@ -492,17 +476,16 @@ const AIStudioVideo = () => {
       setResults(prev => [newResult, ...prev]);
       pollTaskStatus(data.taskId, dbRow.id);
 
-      toast({ title: "Generación iniciada", description: "El vídeo se está procesando. Esto puede tardar 1-2 minutos." });
+      toast({ title: t('aiVideo.genStarted'), description: t('aiVideo.genStartedDesc') });
     } catch (err: any) {
       console.error('Generate error:', err);
-      setError(err.message || "No se pudo iniciar la generación");
+      setError(err.message || t('aiVideo.genFailed'));
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleDelete = async (resultId: string) => {
-    // Stop polling if active
     const interval = pollingRef.current.get(resultId);
     if (interval) {
       clearInterval(interval);
@@ -513,10 +496,10 @@ const AIStudioVideo = () => {
       const { error } = await supabase.from('video_generations').delete().eq('id', resultId);
       if (error) throw error;
       setResults(prev => prev.filter(r => r.id !== resultId));
-      toast({ title: "Videoclip eliminado" });
+      toast({ title: t('aiVideo.videoDeleted') });
     } catch (err) {
       console.error('Delete error:', err);
-      toast({ title: "Error al eliminar", variant: "destructive" });
+      toast({ title: t('aiShared.error'), variant: "destructive" });
     }
   };
 
@@ -530,10 +513,10 @@ const AIStudioVideo = () => {
 
   const getStatusLabel = (status: VideoResult['status']) => {
     switch (status) {
-      case 'PENDING': return 'En cola';
-      case 'RUNNING': return 'Procesando';
-      case 'SUCCEEDED': return 'Completado';
-      case 'FAILED': return 'Fallido';
+      case 'PENDING': return t('aiVideo.pending');
+      case 'RUNNING': return t('aiVideo.running');
+      case 'SUCCEEDED': return t('aiVideo.succeeded');
+      case 'FAILED': return t('aiVideo.failed');
     }
   };
 
@@ -553,7 +536,7 @@ const AIStudioVideo = () => {
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Volver a AI MusicDibs Studio
+          {t('aiVideo.backToStudio')}
         </Link>
 
         {/* Header */}
@@ -563,8 +546,8 @@ const AIStudioVideo = () => {
               <Video className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold">Videoclips con IA</h1>
-              <p className="text-muted-foreground">Genera videoclips musicales con Runway Gen-4 Turbo</p>
+              <h1 className="text-3xl font-bold">{t('aiVideo.title')}</h1>
+              <p className="text-muted-foreground">{t('aiVideo.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -574,30 +557,30 @@ const AIStudioVideo = () => {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Modo de Generación</CardTitle>
+                <CardTitle className="text-lg">{t('aiVideo.generationMode')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <Tabs value={mode} onValueChange={(v) => setMode(v as typeof mode)}>
                   <TabsList className="grid grid-cols-2 w-full">
                     <TabsTrigger value="text_to_video" className="flex items-center gap-2">
                       <Wand2 className="w-4 h-4" />
-                      Text to Video
+                      {t('aiVideo.textToVideo')}
                     </TabsTrigger>
                     <TabsTrigger value="image_to_video" className="flex items-center gap-2">
                       <Image className="w-4 h-4" />
-                      Image to Video
+                      {t('aiVideo.imageToVideo')}
                     </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="text_to_video" className="mt-4 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Genera un vídeo completamente desde una descripción textual.
+                      {t('aiVideo.textToVideoDesc')}
                     </p>
                   </TabsContent>
 
                   <TabsContent value="image_to_video" className="mt-4 space-y-4">
                     <p className="text-sm text-muted-foreground mb-3">
-                      Anima una imagen estática para crear un videoclip. La imagen será el primer fotograma.
+                      {t('aiVideo.imageToVideoDesc')}
                     </p>
                     <input
                       ref={fileInputRef}
@@ -612,7 +595,7 @@ const AIStudioVideo = () => {
                         <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm px-3 py-2 flex justify-between items-center">
                           <span className="text-xs truncate">{uploadedImageName}</span>
                           <Button variant="ghost" size="sm" onClick={() => { setUploadedImage(null); setUploadedImageName(""); }}>
-                            Cambiar
+                            {t('aiVideo.change')}
                           </Button>
                         </div>
                       </div>
@@ -620,7 +603,7 @@ const AIStudioVideo = () => {
                       <Button variant="outline" className="w-full h-24 border-dashed" onClick={() => fileInputRef.current?.click()}>
                         <div className="flex flex-col items-center gap-2">
                           <Upload className="w-6 h-6 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">Subir imagen (max 16MB)</span>
+                          <span className="text-sm text-muted-foreground">{t('aiVideo.uploadImage')}</span>
                         </div>
                       </Button>
                     )}
@@ -633,19 +616,19 @@ const AIStudioVideo = () => {
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Wand2 className="w-5 h-5 text-rose-500" />
-                  Prompt Visual
+                  {t('aiVideo.promptVisual')}
                 </CardTitle>
-                <CardDescription>Describe el contenido y estilo del videoclip</CardDescription>
+                <CardDescription>{t('aiVideo.promptVisualDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm">Describe la escena</Label>
+                    <Label className="text-sm">{t('aiVideo.describeScene')}</Label>
                     <button
                       type="button"
                       onClick={handleImprovePrompt}
                       disabled={isImprovingPrompt || !prompt.trim()}
-                      title="Optimiza tu descripción para obtener mejores resultados"
+                      title={t('aiVideo.improveWithAI')}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -665,8 +648,8 @@ const AIStudioVideo = () => {
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                     >
                       {isImprovingPrompt
-                        ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando…</>
-                        : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                        ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />{t('aiVideo.improving')}</>
+                        : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />{t('aiVideo.improveWithAI')}</>
                       }
                     </button>
                   </div>
@@ -681,9 +664,9 @@ const AIStudioVideo = () => {
 
                 {/* Style Selection */}
                 <div className="space-y-2">
-                  <Label>Estilo Visual (opcional)</Label>
+                  <Label>{t('aiVideo.visualStyle')}</Label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {VIDEO_STYLES.map(style => (
+                    {VIDEO_STYLE_KEYS.map(style => (
                       <Badge
                         key={style.id}
                         variant={selectedStyle === style.id ? "default" : "outline"}
@@ -691,7 +674,7 @@ const AIStudioVideo = () => {
                         onClick={() => setSelectedStyle(selectedStyle === style.id ? null : style.id)}
                       >
                         <span>{style.emoji}</span>
-                        {style.label}
+                        {t(`aiVideo.styles.${style.id}`)}
                       </Badge>
                     ))}
                   </div>
@@ -702,15 +685,15 @@ const AIStudioVideo = () => {
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Ratio className="w-4 h-4" />
-                      Aspecto
+                      {t('aiVideo.aspect')}
                     </Label>
                     <Select value={aspectRatio} onValueChange={setAspectRatio}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {ASPECT_RATIOS.map(r => (
-                          <SelectItem key={r.id} value={r.id}>{r.icon} {r.label}</SelectItem>
+                        {ASPECT_RATIO_KEYS.map(r => (
+                          <SelectItem key={r.id} value={r.id}>{t(`aiVideo.aspects.${r.key}`)}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -718,7 +701,7 @@ const AIStudioVideo = () => {
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
-                      Duración
+                      {t('aiVideo.duration')}
                     </Label>
                     <Select value={String(duration)} onValueChange={(v) => setDuration(Number(v))}>
                       <SelectTrigger>
@@ -738,10 +721,10 @@ const AIStudioVideo = () => {
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Music className="w-4 h-4 text-primary" />
-                  Banda Sonora (opcional)
+                  {t('aiVideo.soundtrack')}
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Selecciona una pista de AI Studio para fusionar automáticamente con el vídeo
+                  {t('aiVideo.soundtrackDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -751,8 +734,8 @@ const AIStudioVideo = () => {
                   </div>
                 ) : audioTracks.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-2">
-                    No hay pistas. Genera una en{" "}
-                    <Link to="/ai-studio/create" className="text-primary underline">AI Studio → Crear Música</Link>.
+                    {t('aiVideo.noTracks')}{" "}
+                    <Link to="/ai-studio/create" className="text-primary underline">{t('aiVideo.createMusicLink')}</Link>.
                   </p>
                 ) : (
                   <>
@@ -797,7 +780,7 @@ const AIStudioVideo = () => {
                     {preSelectedAudioId && (
                       <p className="text-[11px] text-primary flex items-center gap-1">
                         <Volume2 className="w-3 h-3" />
-                        Se fusionará automáticamente al completar el vídeo
+                        {t('aiVideo.autoMerge')}
                       </p>
                     )}
                   </>
@@ -806,7 +789,7 @@ const AIStudioVideo = () => {
             </Card>
 
                 {!hasEnough(FEATURE_COSTS.generate_video) ? (
-                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.generate_video} créditos para generar un videoclip.`} />
+                  <NoCreditsAlert message={t('aiVideo.generateBtn')} />
                 ) : (
                 <Button
                   onClick={handleGenerate}
@@ -817,12 +800,12 @@ const AIStudioVideo = () => {
                   {isGenerating ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Iniciando generación...
+                      {t('aiVideo.startingGen')}
                     </>
                   ) : (
                     <>
                       <Video className="w-4 h-4 mr-2" />
-                      Generar Videoclip (1 crédito)
+                      {t('aiVideo.generateBtn')}
                     </>
                   )}
                 </Button>
@@ -831,7 +814,7 @@ const AIStudioVideo = () => {
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Error</AlertTitle>
+                    <AlertTitle>{t('aiShared.error')}</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -843,7 +826,7 @@ const AIStudioVideo = () => {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold flex items-center gap-2">
               <Layers className="w-5 h-5" />
-              Resultados
+              {t('aiVideo.results')}
             </h2>
 
             {/* Filters */}
@@ -855,31 +838,31 @@ const AIStudioVideo = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar por prompt..."
+                  placeholder={t('aiVideo.searchPrompt')}
                   className="h-8 w-[180px] rounded-md border border-input bg-background pl-7 pr-2 text-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Estado" />
+                  <SelectValue placeholder={t('aiVideo.allStatuses')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="PENDING">En cola</SelectItem>
-                  <SelectItem value="RUNNING">Procesando</SelectItem>
-                  <SelectItem value="SUCCEEDED">Completado</SelectItem>
-                  <SelectItem value="FAILED">Fallido</SelectItem>
+                  <SelectItem value="all">{t('aiVideo.allStatuses')}</SelectItem>
+                  <SelectItem value="PENDING">{t('aiVideo.pending')}</SelectItem>
+                  <SelectItem value="RUNNING">{t('aiVideo.running')}</SelectItem>
+                  <SelectItem value="SUCCEEDED">{t('aiVideo.succeeded')}</SelectItem>
+                  <SelectItem value="FAILED">{t('aiVideo.failed')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={filterStyle} onValueChange={setFilterStyle}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Estilo" />
+                  <SelectValue placeholder={t('aiVideo.style')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos los estilos</SelectItem>
-                  {VIDEO_STYLES.map(s => (
-                    <SelectItem key={s.id} value={s.id}>{s.emoji} {s.label}</SelectItem>
+                  <SelectItem value="all">{t('aiVideo.allStyles')}</SelectItem>
+                  {VIDEO_STYLE_KEYS.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.emoji} {t(`aiVideo.styles.${s.id}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -888,7 +871,7 @@ const AIStudioVideo = () => {
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5">
                     <CalendarIcon className="w-3.5 h-3.5" />
-                    {filterDate ? format(filterDate, "dd/MM/yyyy") : "Fecha"}
+                    {filterDate ? format(filterDate, "dd/MM/yyyy") : t('aiVideo.date')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -914,7 +897,7 @@ const AIStudioVideo = () => {
                   }}
                 >
                   <X className="w-3.5 h-3.5" />
-                  Limpiar
+                  {t('aiVideo.clean')}
                 </Button>
               )}
             </div>
@@ -924,7 +907,7 @@ const AIStudioVideo = () => {
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <Film className="w-12 h-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center text-sm">
-                    {user ? "Tus videoclips aparecerán aquí" : "Inicia sesión para generar videoclips"}
+                    {user ? t('aiVideo.videoclipsHere') : t('aiVideo.loginForVideoclips')}
                   </p>
                 </CardContent>
               </Card>
@@ -955,7 +938,7 @@ const AIStudioVideo = () => {
                         ) : (
                           <>
                             <AlertCircle className="w-10 h-10 text-destructive/50" />
-                            <p className="text-sm text-destructive">Generación fallida</p>
+                            <p className="text-sm text-destructive">{t('aiVideo.genFailed')}</p>
                           </>
                         )}
                       </div>
@@ -989,7 +972,7 @@ const AIStudioVideo = () => {
                             <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                               <div className="flex items-center gap-2 text-sm font-medium">
                                 <Volume2 className="w-4 h-4 text-primary" />
-                                Versión con audio
+                                {t('aiVideo.audioVersion')}
                               </div>
                               <video
                                 src={result.mergedUrl}
@@ -1004,7 +987,7 @@ const AIStudioVideo = () => {
                                 onClick={() => downloadVideo(result.mergedUrl!, `merged-${result.id.slice(0, 8)}`)}
                               >
                                 <Download className="w-4 h-4 mr-2" />
-                                Descargar con audio
+                                {t('aiVideo.downloadWithAudio')}
                               </Button>
                             </div>
                           )}
@@ -1016,7 +999,7 @@ const AIStudioVideo = () => {
                               onClick={() => downloadVideo(result.videoUrl!, result.id.slice(0, 8))}
                             >
                               <Download className="w-4 h-4 mr-1" />
-                              Sin audio
+                              {t('aiVideo.withoutAudio')}
                             </Button>
                             <Dialog
                               open={mergeDialogOpen === result.id}
@@ -1035,17 +1018,17 @@ const AIStudioVideo = () => {
                               <DialogTrigger asChild>
                                 <Button variant="outline" size="sm">
                                   <Music className="w-4 h-4 mr-1" />
-                                  Añadir audio
+                                  {t('aiVideo.addAudio')}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
                                 <DialogHeader>
                                   <DialogTitle className="flex items-center gap-2">
                                     <Merge className="w-5 h-5" />
-                                    Fusionar Audio + Vídeo
+                                    {t('aiVideo.mergeTitle')}
                                   </DialogTitle>
                                   <DialogDescription>
-                                    Selecciona una pista de tu historial de AI Studio para añadir como banda sonora
+                                    {t('aiVideo.mergeDesc')}
                                   </DialogDescription>
                                 </DialogHeader>
 
@@ -1056,7 +1039,7 @@ const AIStudioVideo = () => {
                                     </div>
                                   ) : audioTracks.length === 0 ? (
                                     <div className="text-center py-8 text-sm text-muted-foreground">
-                                      No hay pistas de audio. Genera una en AI Studio → Crear Música.
+                                      {t('aiVideo.noAudioTracks')}
                                     </div>
                                   ) : (
                                     audioTracks.map(track => (
@@ -1127,12 +1110,12 @@ const AIStudioVideo = () => {
                                   {isMerging ? (
                                     <>
                                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                      Fusionando...
+                                      {t('aiVideo.merging')}
                                     </>
                                   ) : (
                                     <>
                                       <Merge className="w-4 h-4 mr-2" />
-                                      Fusionar Audio + Vídeo
+                                      {t('aiVideo.mergeBtn')}
                                     </>
                                   )}
                                 </Button>
@@ -1154,10 +1137,10 @@ const AIStudioVideo = () => {
                   {isLoadingMore ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Cargando...
+                      {t('aiVideo.loadingMore')}
                     </>
                   ) : (
-                    "Cargar más"
+                    t('aiVideo.loadMore')
                   )}
                 </Button>
               )}
@@ -1167,14 +1150,14 @@ const AIStudioVideo = () => {
             {/* Info card */}
             <Card className="bg-muted/30">
               <CardContent className="pt-6">
-                <h3 className="font-semibold mb-3 text-sm">Información</h3>
+                <h3 className="font-semibold mb-3 text-sm">{t('aiVideo.infoTitle', { defaultValue: 'Información' })}</h3>
                 <ul className="space-y-2 text-xs text-muted-foreground">
-                  <li>• La generación tarda entre 30s y 2 minutos</li>
-                  <li>• Resolución de salida: 720p</li>
-                  <li>• Modelo: Runway Gen-4 Turbo</li>
-                  <li>• Los prompts en inglés dan mejores resultados</li>
-                  <li>• Cada generación consume créditos de tu cuenta Runway</li>
-                  <li>• Puedes fusionar audio de AI Studio con el vídeo directamente en tu navegador</li>
+                  <li>• {t('aiVideo.info1', { defaultValue: 'La generación tarda entre 30s y 2 minutos' })}</li>
+                  <li>• {t('aiVideo.info2', { defaultValue: 'Resolución de salida: 720p' })}</li>
+                  <li>• {t('aiVideo.info3', { defaultValue: 'Modelo: Runway Gen-4 Turbo' })}</li>
+                  <li>• {t('aiVideo.info4', { defaultValue: 'Los prompts en inglés dan mejores resultados' })}</li>
+                  <li>• {t('aiVideo.info5', { defaultValue: 'Cada generación consume créditos de tu cuenta Runway' })}</li>
+                  <li>• {t('aiVideo.info6', { defaultValue: 'Puedes fusionar audio de AI Studio con el vídeo directamente en tu navegador' })}</li>
                 </ul>
               </CardContent>
             </Card>
