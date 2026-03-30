@@ -41,7 +41,7 @@ export function VerifyRegistration() {
         >
           <FileUp className="h-4 w-4 text-muted-foreground" />
           <span className="text-xs text-muted-foreground truncate">
-            {file ? file.name : 'Seleccionar archivo'}
+            {file ? file.name : t('dashboard.verify.selectFile')}
           </span>
         </div>
         <input ref={fileRef} type="file" className="hidden" onChange={e => { setFile(e.target.files?.[0] || null); setResult(null); }} />
