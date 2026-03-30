@@ -2,6 +2,7 @@ import { useRef, useCallback, useState } from 'react';
 import { Upload, X, FileUp, Music, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { WizardData } from './types';
 
 interface StepFileProps {
@@ -18,6 +19,7 @@ function formatSize(bytes: number) {
 }
 
 export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -25,18 +27,12 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
     (newFiles: FileList | File[]) => {
       const filesArray = Array.from(newFiles);
       if (filesArray.length === 0) return;
-      // Set the first file as primary, add all to files array
       const primary = data.file || filesArray[0];
       const merged = [...data.files, ...filesArray];
-      // Deduplicate by name+size
       const unique = merged.filter((f, i, arr) =>
         arr.findIndex(x => x.name === f.name && x.size === f.size) === i
       );
-      onUpdate({
-        file: primary,
-        files: unique,
-        aiAudioUrl: null,
-      });
+      onUpdate({ file: primary, files: unique, aiAudioUrl: null });
     },
     [onUpdate, data.file, data.files]
   );
@@ -64,21 +60,19 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Subir archivo(s)</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Se generará una huella digital de cada archivo para certificar su autoría. Puedes adjuntar varios archivos.
-        </p>
+        <h2 className="text-lg font-semibold">{t('wizard.file.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('wizard.file.subtitle')}</p>
       </div>
 
       {data.aiAudioUrl && data.files.length === 0 ? (
         <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <Music className="h-5 w-5 text-primary shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Audio generado con AI MusicDibs Studio</p>
-            <p className="text-xs text-muted-foreground">Se usará automáticamente</p>
+            <p className="text-sm font-medium truncate">{t('wizard.file.aiAudioLabel')}</p>
+            <p className="text-xs text-muted-foreground">{t('wizard.file.aiAudioSub')}</p>
           </div>
           <Button variant="ghost" size="sm" onClick={() => inputRef.current?.click()}>
-            Cambiar
+            {t('wizard.file.change')}
           </Button>
         </div>
       ) : data.files.length > 0 ? (
@@ -102,13 +96,8 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
               </Button>
             </div>
           ))}
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => inputRef.current?.click()}
-          >
-            <Plus className="h-4 w-4 mr-1" /> Añadir más archivos
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => inputRef.current?.click()}>
+            <Plus className="h-4 w-4 mr-1" /> {t('wizard.file.addMore')}
           </Button>
         </div>
       ) : (
@@ -126,8 +115,8 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
             <Upload className="h-6 w-6 text-primary" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium">Arrastra tus archivos aquí</p>
-            <p className="text-xs text-muted-foreground mt-1">o haz clic para seleccionar (puedes elegir varios)</p>
+            <p className="text-sm font-medium">{t('wizard.file.dragHere')}</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('wizard.file.clickSelect')}</p>
           </div>
         </div>
       )}
@@ -138,8 +127,8 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
       }} />
 
       <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={onBack}>Atrás</Button>
-        <Button variant="hero" onClick={onNext} disabled={!hasFile}>Continuar</Button>
+        <Button variant="outline" onClick={onBack}>{t('wizard.back')}</Button>
+        <Button variant="hero" onClick={onNext} disabled={!hasFile}>{t('wizard.continue')}</Button>
       </div>
     </div>
   );

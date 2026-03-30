@@ -2505,6 +2505,9 @@ allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
     Object.assign(resources[lang].translation, aiStudioTranslations[lang]);
   }
+  if (resources[lang] && wizardTranslations[lang]) {
+    Object.assign(resources[lang].translation, wizardTranslations[lang]);
+  }
 });
 
 allLangs.forEach((lang) => {

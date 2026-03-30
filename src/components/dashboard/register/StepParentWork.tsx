@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import type { WizardData } from './types';
 
 interface Work {
@@ -23,6 +24,7 @@ interface StepParentWorkProps {
 }
 
 export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWorkProps) {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,11 +48,13 @@ export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWor
     w.title.toLowerCase().includes(search.toLowerCase())
   );
 
+  const dateLang = i18n.resolvedLanguage || 'es';
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Seleccionar obra original</h2>
-        <p className="text-sm text-muted-foreground mt-1">Elige la obra de la que esta es una nueva versión.</p>
+        <h2 className="text-lg font-semibold">{t('wizard.parent.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('wizard.parent.subtitle')}</p>
       </div>
 
       <div className="relative">
@@ -58,7 +62,7 @@ export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWor
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar obra..."
+          placeholder={t('wizard.parent.searchPlaceholder')}
           className="pl-9"
         />
       </div>
@@ -68,7 +72,7 @@ export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWor
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-6">No se encontraron obras registradas.</p>
+        <p className="text-sm text-muted-foreground text-center py-6">{t('wizard.parent.noResults')}</p>
       ) : (
         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
           {filtered.map((w) => (
@@ -86,7 +90,7 @@ export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWor
                 <div>
                   <p className="text-sm font-medium">{w.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(w.created_at).toLocaleDateString('es-ES')} · {w.type}
+                    {new Date(w.created_at).toLocaleDateString(dateLang)} · {w.type}
                   </p>
                 </div>
                 <p className="text-[10px] text-muted-foreground font-mono">{w.id.slice(0, 8)}</p>
@@ -97,8 +101,8 @@ export function StepParentWork({ data, onUpdate, onNext, onBack }: StepParentWor
       )}
 
       <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={onBack}>Atrás</Button>
-        <Button variant="hero" onClick={onNext} disabled={!data.parentWorkId}>Continuar</Button>
+        <Button variant="outline" onClick={onBack}>{t('wizard.back')}</Button>
+        <Button variant="hero" onClick={onNext} disabled={!data.parentWorkId}>{t('wizard.continue')}</Button>
       </div>
     </div>
   );

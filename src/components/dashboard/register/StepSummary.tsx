@@ -3,7 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { useTranslation } from 'react-i18next';
 import { WORK_TYPES, VERSION_TYPES, CREATOR_ROLES, type WizardData } from './types';
+import { useWorkTypeLabels, useVersionTypeLabels, useCreatorRoleLabels } from './useWizardLabels';
 
 interface StepSummaryProps {
   data: WizardData;
@@ -12,19 +14,24 @@ interface StepSummaryProps {
   onBack: () => void;
 }
 
-function labelFor(arr: readonly { value: string; label: string }[], val: string) {
-  return arr.find((x) => x.value === val)?.label ?? val;
-}
-
 export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProps) {
+  const { t } = useTranslation();
+  const workTypeLabels = useWorkTypeLabels();
+  const versionTypeLabels = useVersionTypeLabels();
+  const roleLabels = useCreatorRoleLabels();
+
   const isVersion = data.flow === 'version';
   const title = isVersion ? (data.versionTitle || data.parentWorkTitle || 'Versión') : data.title;
+
+  const typeLabel = isVersion
+    ? (versionTypeLabels[data.versionType] || data.versionType)
+    : (workTypeLabels[data.workType] || data.workType);
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Resumen del registro</h2>
-        <p className="text-sm text-muted-foreground mt-1">Revisa la información antes de confirmar.</p>
+        <h2 className="text-lg font-semibold">{t('wizard.summary.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('wizard.summary.subtitle')}</p>
       </div>
 
       <div className="space-y-3">
@@ -33,7 +40,7 @@ export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProp
             <CardContent className="p-4 flex items-center gap-3">
               <Music className="h-4 w-4 text-primary shrink-0" />
               <div>
-                <p className="text-xs text-muted-foreground">Obra original</p>
+                <p className="text-xs text-muted-foreground">{t('wizard.summary.originalWork')}</p>
                 <p className="text-sm font-medium">{data.parentWorkTitle}</p>
               </div>
             </CardContent>
@@ -48,17 +55,14 @@ export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProp
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-muted-foreground">Título:</span> {title}
+                <span className="text-muted-foreground">{t('wizard.summary.titleLabel')}</span> {title}
               </div>
               <div>
-                <span className="text-muted-foreground">Tipo:</span>{' '}
-                {isVersion
-                  ? labelFor(VERSION_TYPES, data.versionType)
-                  : labelFor(WORK_TYPES, data.workType)}
+                <span className="text-muted-foreground">{t('wizard.summary.typeLabel')}</span> {typeLabel}
               </div>
               {data.description && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Descripción:</span> {data.description}
+                  <span className="text-muted-foreground">{t('wizard.summary.descLabel')}</span> {data.description}
                 </div>
               )}
             </div>
@@ -69,14 +73,14 @@ export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProp
           <CardContent className="p-4 space-y-2">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">Creadores ({data.creators.length})</p>
+              <p className="text-sm font-medium">{t('wizard.summary.creatorsLabel', { count: data.creators.length })}</p>
             </div>
             {data.creators.map((c) => (
               <div key={c.id} className="flex items-center gap-2 text-xs">
                 <span className="font-medium">{c.name}</span>
                 {c.roles.map((r) => (
                   <Badge key={r} variant="outline" className="text-[10px] h-5">
-                    {CREATOR_ROLES.find((x) => x.value === r)?.label ?? r}
+                    {roleLabels[r] || r}
                   </Badge>
                 ))}
                 {c.percentage !== null && c.percentage > 0 && (
@@ -89,20 +93,20 @@ export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProp
 
         <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 p-3">
           <Info className="h-4 w-4 text-primary shrink-0" />
-          <p className="text-sm">
-            Este registro consumirá <strong>{FEATURE_COSTS.register_work} crédito</strong>.
-            {isVersion && ' Esta versión quedará vinculada a la obra original en tu catálogo.'}
-          </p>
+          <p className="text-sm" dangerouslySetInnerHTML={{
+            __html: t('wizard.summary.creditInfo', { cost: FEATURE_COSTS.register_work }) +
+              (isVersion ? t('wizard.summary.creditInfoVersion') : '')
+          }} />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={onBack}>Atrás</Button>
+        <Button variant="outline" onClick={onBack}>{t('wizard.back')}</Button>
         <Button variant="hero" onClick={onSubmit} disabled={loading} className="min-w-[180px]">
           {loading ? (
-            <><Loader2 className="h-4 w-4 animate-spin mr-2" />Registrando...</>
+            <><Loader2 className="h-4 w-4 animate-spin mr-2" />{t('wizard.summary.registering')}</>
           ) : (
-            isVersion ? 'Registrar versión' : 'Registrar obra'
+            isVersion ? t('wizard.summary.registerVersion') : t('wizard.summary.registerWork')
           )}
         </Button>
       </div>
