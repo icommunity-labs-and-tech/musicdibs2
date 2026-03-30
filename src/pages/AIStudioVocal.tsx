@@ -440,7 +440,7 @@ export default function AIStudioVocal() {
             >
               {isGenerating
                 ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generando tu pista vocal...</>
-                : <><Mic className="w-4 h-4 mr-2" />Generar pista vocal — 1 crédito</>
+                : <><Mic className="w-4 h-4 mr-2" />Generar pista vocal — tu voz cantando tu letra</>
               }
             </Button>
           </div>
