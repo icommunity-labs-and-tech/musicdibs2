@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins, Image } from "lucide-react";
+import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins, Image, Mic } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
@@ -60,6 +60,16 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_cover' as const,
       color: "from-emerald-500 to-teal-500"
+    },
+    {
+      title: "Canta tu canción",
+      description: "Genera una pista vocal con tu voz clonada cantando tu letra. Descárgala y mézclala con tu base instrumental.",
+      icon: Mic,
+      href: "/ai-studio/vocal",
+      available: true,
+      costsCredits: true,
+      featureKey: 'generate_audio' as const,
+      color: "from-violet-500 to-purple-600"
     }
   ];
 
