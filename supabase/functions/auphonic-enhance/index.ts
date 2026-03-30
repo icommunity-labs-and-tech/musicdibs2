@@ -160,6 +160,25 @@ serve(async (req) => {
           })
           .eq("auphonic_uuid", productionUuid)
           .eq("user_id", user.id)
+
+        // ── Refund credits if Auphonic processing failed ──
+        if (errored) {
+          const CREDITS_COST = 1
+          const { data: p } = await supabaseAdmin.from("profiles").select("available_credits").eq("user_id", user.id).single()
+          if (p) {
+            await supabaseAdmin.from("profiles").update({
+              available_credits: p.available_credits + CREDITS_COST,
+              updated_at: new Date().toISOString(),
+            }).eq("user_id", user.id)
+            await supabaseAdmin.from("credit_transactions").insert({
+              user_id: user.id,
+              amount: CREDITS_COST,
+              type: "refund",
+              description: `Reembolso: fallo Auphonic (${prod.error_message || "error"})`.slice(0, 200),
+            })
+            console.log(`[AUPHONIC] Refunded ${CREDITS_COST} credit to user ${user.id}: processing error`)
+          }
+        }
       }
 
       // Re-upload resultado a Supabase Storage para URL pública estable
@@ -225,6 +244,49 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
+    // ── Credit deduction ──────────────────────────────────────
+    const CREDITS_COST = 1
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("available_credits")
+      .eq("user_id", user.id)
+      .single()
+
+    if (!profile || profile.available_credits < CREDITS_COST) {
+      return new Response(JSON.stringify({ error: "insufficient_credits", available: profile?.available_credits ?? 0, required: CREDITS_COST }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      })
+    }
+
+    await supabaseAdmin.from("profiles").update({
+      available_credits: profile.available_credits - CREDITS_COST,
+      updated_at: new Date().toISOString(),
+    }).eq("user_id", user.id).eq("available_credits", profile.available_credits)
+
+    await supabaseAdmin.from("credit_transactions").insert({
+      user_id: user.id,
+      amount: -CREDITS_COST,
+      type: "usage",
+      description: `Mejora audio (${modeConfig.label})`.slice(0, 200),
+    })
+
+    const refundCredits = async (reason: string) => {
+      const { data: p } = await supabaseAdmin.from("profiles").select("available_credits").eq("user_id", user.id).single()
+      if (p) {
+        await supabaseAdmin.from("profiles").update({
+          available_credits: p.available_credits + CREDITS_COST,
+          updated_at: new Date().toISOString(),
+        }).eq("user_id", user.id)
+        await supabaseAdmin.from("credit_transactions").insert({
+          user_id: user.id,
+          amount: CREDITS_COST,
+          type: "refund",
+          description: `Reembolso: ${reason}`.slice(0, 200),
+        })
+        console.log(`[AUPHONIC] Refunded ${CREDITS_COST} credit to user ${user.id}: ${reason}`)
+      }
+    }
+
     const productionBody = {
       input_file:   audioUrl,
       metadata:     { title: filename || "MusicDibs Enhancement" },
@@ -245,6 +307,7 @@ serve(async (req) => {
     if (!auphRes.ok) {
       const errText = await auphRes.text()
       console.error("[AUPHONIC] API error:", errText)
+      await refundCredits(`Auphonic error: ${auphRes.status}`)
       return new Response(JSON.stringify({ error: `Auphonic error: ${auphRes.status}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
@@ -253,6 +316,7 @@ serve(async (req) => {
     const newProductionUuid = auphData.data?.uuid
 
     if (!newProductionUuid) {
+      await refundCredits("No production UUID from Auphonic")
       return new Response(JSON.stringify({ error: "No production UUID from Auphonic" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
@@ -265,7 +329,7 @@ serve(async (req) => {
       input_url:     audioUrl,
     })
 
-    console.log(`[AUPHONIC] Production started: ${newProductionUuid} mode=${mode} user=${user.id}`)
+    console.log(`[AUPHONIC] Production started: ${newProductionUuid} mode=${mode} user=${user.id}, ${CREDITS_COST} credit charged`)
 
     return new Response(JSON.stringify({
       productionUuid: newProductionUuid,

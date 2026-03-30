@@ -15,12 +15,10 @@ serve(async (req) => {
   }
 
   try {
-    // JWT authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -34,8 +32,7 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -46,15 +43,15 @@ serve(async (req) => {
       throw new Error('RUNWAY_API_KEY is not configured');
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+
     const { action, mode, promptText, promptImage, ratio, duration, taskId } = await req.json();
 
     // ── Rate limiting: solo para generate, no para status (polling) ──
     if (action === 'generate') {
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-      );
-
       const VIDEO_LIMIT = 1;
       const WINDOW_SECS = 60;
       const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
@@ -76,21 +73,13 @@ serve(async (req) => {
           }),
           {
             status: 429,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json',
-              'Retry-After': String(WINDOW_SECS),
-            },
+            headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(WINDOW_SECS) },
           }
         );
       }
 
-      // Registrar esta llamada
-      await supabaseAdmin
-        .from('ai_rate_limits')
-        .insert({ user_id: userId, function_name: 'generate-video' });
+      await supabaseAdmin.from('ai_rate_limits').insert({ user_id: userId, function_name: 'generate-video' });
     }
-    // ── Fin rate limiting ──
 
     const headers = {
       'Authorization': `Bearer ${RUNWAY_API_KEY}`,
@@ -123,6 +112,50 @@ serve(async (req) => {
     if (action === 'generate') {
       if (!promptText) throw new Error('promptText is required');
 
+      // ── Credit deduction ──────────────────────────────────────
+      const CREDITS_COST = 6;
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('available_credits')
+        .eq('user_id', userId)
+        .single();
+
+      if (!profile || profile.available_credits < CREDITS_COST) {
+        return new Response(JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Deduct credits upfront
+      await supabaseAdmin.from('profiles').update({
+        available_credits: profile.available_credits - CREDITS_COST,
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', userId).eq('available_credits', profile.available_credits);
+
+      await supabaseAdmin.from('credit_transactions').insert({
+        user_id: userId,
+        amount: -CREDITS_COST,
+        type: 'usage',
+        description: `Video AI: ${promptText.slice(0, 80)}`,
+      });
+
+      const refundCredits = async (reason: string) => {
+        const { data: p } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
+        if (p) {
+          await supabaseAdmin.from('profiles').update({
+            available_credits: p.available_credits + CREDITS_COST,
+            updated_at: new Date().toISOString(),
+          }).eq('user_id', userId);
+          await supabaseAdmin.from('credit_transactions').insert({
+            user_id: userId,
+            amount: CREDITS_COST,
+            type: 'refund',
+            description: `Reembolso: ${reason}`.slice(0, 200),
+          });
+          console.log(`[GENERATE-VIDEO] Refunded ${CREDITS_COST} credits to user ${userId}: ${reason}`);
+        }
+      };
+
       const endpoint = mode === 'image_to_video' ? 'image_to_video' : 'text_to_video';
       
       const body: Record<string, unknown> = {
@@ -149,25 +182,25 @@ serve(async (req) => {
         console.error(`[GENERATE-VIDEO] Runway API error: ${response.status} - ${errorText}`);
         
         if (response.status === 429) {
+          await refundCredits('Rate limit Runway');
           return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait and try again.' }), {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        // Runway returns 400 or 402 for insufficient credits
         if (response.status === 402 || errorText.includes('not have enough credits')) {
+          await refundCredits('Créditos Runway insuficientes');
           return new Response(JSON.stringify({ error: 'insufficient_credits', provider: 'runway', message: 'No hay créditos suficientes en Runway. Recarga créditos en runway.com.' }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
+        await refundCredits(`Error Runway: ${response.status}`);
         throw new Error(`Runway API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log(`[GENERATE-VIDEO] Task created: ${data.id}`);
+      console.log(`[GENERATE-VIDEO] Task created: ${data.id}, ${CREDITS_COST} credits charged`);
 
       return new Response(JSON.stringify({ taskId: data.id }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -179,8 +212,7 @@ serve(async (req) => {
     console.error('[GENERATE-VIDEO] Error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });

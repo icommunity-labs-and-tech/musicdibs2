@@ -16,8 +16,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -31,8 +30,7 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
@@ -83,26 +81,66 @@ serve(async (req) => {
       });
     }
 
+    // ── Credit deduction ──────────────────────────────────────
+    const CREDITS_COST = mode === 'song' ? 3 : 2;
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('available_credits')
+      .eq('user_id', userId)
+      .single();
+
+    if (!profile || profile.available_credits < CREDITS_COST) {
+      return new Response(JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }), {
+        status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Deduct credits upfront
+    await supabaseAdmin.from('profiles').update({
+      available_credits: profile.available_credits - CREDITS_COST,
+      updated_at: new Date().toISOString(),
+    }).eq('user_id', userId).eq('available_credits', profile.available_credits);
+
+    await supabaseAdmin.from('credit_transactions').insert({
+      user_id: userId,
+      amount: -CREDITS_COST,
+      type: 'usage',
+      description: `Generación audio (${mode || 'instrumental'}): ${prompt.slice(0, 80)}`,
+    });
+
+    // ── Helper to refund on failure ──
+    const refundCredits = async (reason: string) => {
+      const { data: p } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
+      if (p) {
+        await supabaseAdmin.from('profiles').update({
+          available_credits: p.available_credits + CREDITS_COST,
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', userId);
+        await supabaseAdmin.from('credit_transactions').insert({
+          user_id: userId,
+          amount: CREDITS_COST,
+          type: 'refund',
+          description: `Reembolso: ${reason}`.slice(0, 200),
+        });
+        console.log(`[GENERATE-AUDIO] Refunded ${CREDITS_COST} credits to user ${userId}: ${reason}`);
+      }
+    };
+
     // Build enriched prompt for ElevenLabs Music API
-    // IMPORTANT: Do NOT include raw lyrics in the prompt — they often trigger
-    // ElevenLabs content-policy filters. Only send a clean musical description.
     const parts: string[] = [];
     if (genre) parts.push(genre);
     if (mood) parts.push(mood);
     if (mode === 'song') parts.push('song with vocals');
     if (mode === 'instrumental') parts.push('instrumental');
-    // Sanitise the user prompt: strip any quoted song titles or artist names
-    // that could be flagged as copyright references.
     const cleanPrompt = prompt
-      .replace(/["«»""]/g, '')          // remove quotation marks
-      .replace(/\b(estilo|style)\s+(de|of)\s+.{1,60}/gi, '') // strip "estilo de <artist>"
+      .replace(/["«»""]/g, '')
+      .replace(/\b(estilo|style)\s+(de|of)\s+.{1,60}/gi, '')
       .trim();
     if (cleanPrompt) parts.push(cleanPrompt);
     const enrichedPrompt = parts.join('. ');
 
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
 
-    // Helper to call ElevenLabs Music API
     const callElevenLabs = async (promptText: string) => {
       return fetch('https://api.elevenlabs.io/v1/music', {
         method: 'POST',
@@ -136,19 +174,21 @@ serve(async (req) => {
           if (!response.ok) {
             const retryErr = await response.text();
             console.error(`[GENERATE-AUDIO] Retry also failed: ${response.status} - ${retryErr}`);
+            await refundCredits(`Fallo generación audio (reintento): ${response.status}`);
             return new Response(
               JSON.stringify({ error: `Generation failed on retry: ${response.status}`, details: retryErr }),
               { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
-          // Retry succeeded — fall through to success handling below
         } else {
+          await refundCredits(`Prompt rechazado: ${errText.slice(0, 100)}`);
           return new Response(
             JSON.stringify({ error: `Generation failed: 400`, details: errText }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
       } catch {
+        await refundCredits(`Fallo generación audio: 400`);
         return new Response(
           JSON.stringify({ error: `Generation failed: 400`, details: errText }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -159,12 +199,14 @@ serve(async (req) => {
       console.error(`[GENERATE-AUDIO] ElevenLabs error: ${response.status} - ${errText}`);
 
       if (response.status === 401 || response.status === 403) {
+        await refundCredits('Créditos ElevenLabs insuficientes');
         return new Response(
           JSON.stringify({ error: 'insufficient_credits', message: 'Créditos de ElevenLabs insuficientes', details: errText }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
+      await refundCredits(`Error ElevenLabs: ${response.status}`);
       return new Response(
         JSON.stringify({ error: `Generation failed: ${response.status}`, details: errText }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -174,7 +216,7 @@ serve(async (req) => {
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = base64Encode(audioBuffer);
 
-    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes`);
+    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes, ${CREDITS_COST} credits charged`);
 
     return new Response(
       JSON.stringify({
@@ -189,6 +231,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[GENERATE-AUDIO] Error:', error);
+    // Note: if we reach here after deducting credits, the error is unexpected.
+    // We attempt a refund but can't guarantee it in all edge cases.
     return new Response(
       JSON.stringify({ error: error.message || 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

@@ -13,7 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    // JWT auth
     const authHeader = req.headers.get("Authorization")
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }),
@@ -31,6 +30,11 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    )
+
     const FAL_API_KEY = Deno.env.get("FAL_API_KEY")
     if (!FAL_API_KEY) {
       return new Response(JSON.stringify({ error: "FAL_API_KEY not configured" }),
@@ -45,6 +49,49 @@ serve(async (req) => {
       artistRef,
       description,
     } = await req.json()
+
+    // ── Credit deduction ──────────────────────────────────────
+    const CREDITS_COST = 2
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("available_credits")
+      .eq("user_id", user.id)
+      .single()
+
+    if (!profile || profile.available_credits < CREDITS_COST) {
+      return new Response(JSON.stringify({ error: "insufficient_credits", available: profile?.available_credits ?? 0, required: CREDITS_COST }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      })
+    }
+
+    await supabaseAdmin.from("profiles").update({
+      available_credits: profile.available_credits - CREDITS_COST,
+      updated_at: new Date().toISOString(),
+    }).eq("user_id", user.id).eq("available_credits", profile.available_credits)
+
+    await supabaseAdmin.from("credit_transactions").insert({
+      user_id: user.id,
+      amount: -CREDITS_COST,
+      type: "usage",
+      description: `Portada IA: ${trackTitle || "Sin título"}`.slice(0, 200),
+    })
+
+    const refundCredits = async (reason: string) => {
+      const { data: p } = await supabaseAdmin.from("profiles").select("available_credits").eq("user_id", user.id).single()
+      if (p) {
+        await supabaseAdmin.from("profiles").update({
+          available_credits: p.available_credits + CREDITS_COST,
+          updated_at: new Date().toISOString(),
+        }).eq("user_id", user.id)
+        await supabaseAdmin.from("credit_transactions").insert({
+          user_id: user.id,
+          amount: CREDITS_COST,
+          type: "refund",
+          description: `Reembolso: ${reason}`.slice(0, 200),
+        })
+        console.log(`[COVER] Refunded ${CREDITS_COST} credits to user ${user.id}: ${reason}`)
+      }
+    }
 
     // Construir prompt optimizado para portadas musicales
     let prompt = `Music album cover art, square 1:1 format, professional quality.`
@@ -72,7 +119,6 @@ serve(async (req) => {
 
     console.log(`[COVER] Generating for user ${user.id}: ${prompt.slice(0, 100)}`)
 
-    // Llamada a fal.ai — Nano Banana 2
     const falRes = await fetch(
       "https://fal.run/fal-ai/nano-banana-2",
       {
@@ -94,6 +140,7 @@ serve(async (req) => {
     if (!falRes.ok) {
       const errText = await falRes.text()
       console.error("[COVER] fal.ai error:", errText)
+      await refundCredits(`fal.ai error: ${falRes.status}`)
       return new Response(
         JSON.stringify({ error: `fal.ai error: ${falRes.status}` }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -104,13 +151,14 @@ serve(async (req) => {
     const imageUrl = falData.images?.[0]?.url
 
     if (!imageUrl) {
+      await refundCredits("No image returned from fal.ai")
       return new Response(
         JSON.stringify({ error: "No image returned from fal.ai" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
-    console.log(`[COVER] Generated successfully for user ${user.id}`)
+    console.log(`[COVER] Generated successfully for user ${user.id}, ${CREDITS_COST} credits charged`)
 
     return new Response(
       JSON.stringify({ imageUrl }),
