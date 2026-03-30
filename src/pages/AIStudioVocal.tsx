@@ -5,11 +5,32 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Mic, Download, Loader2, Music, Sparkles } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+
+const THEMES = ["Amor", "Desamor", "Superación", "Fiesta", "Calle", "Familia", "Libertad", "Nostalgia", "Éxito", "Identidad"];
+const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
+const MUSIC_MOODS = ['Alegre', 'Melancólico', 'Épico', 'Relajado', 'Enérgico', 'Romántico', 'Oscuro', 'Motivador'];
+const LYRIC_STYLES = ["Narrativa", "Abstracta", "Descriptiva", "Reivindicativa", "Introspectiva", "Poética"];
+const LYRIC_LANGUAGES = ["Español", "Inglés", "Spanglish", "Portugués", "Francés"];
+const RHYME_SCHEMES = [
+  { value: "ABAB", label: "ABAB — Alterna" },
+  { value: "AABB", label: "AABB — Pareados" },
+  { value: "ABCB", label: "ABCB — Balada" },
+  { value: "libre", label: "Libre — Sin rima" },
+];
+const STRUCTURES = [
+  { value: "V+C+V+C+P+C", label: "Verso · Coro · Verso · Coro · Puente · Coro" },
+  { value: "V+C+V+C", label: "Verso · Coro · Verso · Coro" },
+  { value: "V+V+C+V+C", label: "Verso · Verso · Coro · Verso · Coro" },
+  { value: "V+C+P+C", label: "Verso · Coro · Puente · Coro" },
+];
+const ARTIST_REFS = ["Bad Bunny", "Rosalía", "C. Tangana", "J Balvin", "Bizarrap", "Shakira", "Residente", "Anuel AA", "Eminem", "Drake", "Kendrick Lamar", "Taylor Swift", "The Weeknd", "Beyoncé", "Radiohead", "Arctic Monkeys"];
+const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
 export default function AIStudioVocal() {
   const { user } = useAuth();
@@ -22,6 +43,19 @@ export default function AIStudioVocal() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
   const [history, setHistory] = useState<any[]>([]);
+
+  // Lyrics generator states
+  const [lyricsDesc, setLyricsDesc] = useState('');
+  const [lyricsTheme, setLyricsTheme] = useState('');
+  const [lyricsGenre, setLyricsGenre] = useState('');
+  const [lyricsMood, setLyricsMood] = useState('');
+  const [lyricsStyle, setLyricsStyle] = useState('');
+  const [lyricsLanguage, setLyricsLanguage] = useState('Español');
+  const [lyricsStructure, setLyricsStructure] = useState('V+C+V+C+P+C');
+  const [lyricsRhyme, setLyricsRhyme] = useState('ABAB');
+  const [lyricsPov, setLyricsPov] = useState('Primera persona');
+  const [lyricsArtistRefs, setLyricsArtistRefs] = useState<string[]>([]);
+  const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false);
 
   // Clone modal states
   const [showCloneModal, setShowCloneModal] = useState(false);
@@ -83,6 +117,39 @@ export default function AIStudioVocal() {
       toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar.` });
     } catch { toast({ title: 'Error de conexión', variant: 'destructive' }); }
     finally { setIsCloning(false); }
+  };
+
+  const handleGenerateLyrics = async () => {
+    if (!lyricsDesc.trim() && !lyricsTheme) {
+      toast({ title: 'Describe tu canción o elige un tema', variant: 'destructive' });
+      return;
+    }
+    setIsGeneratingLyrics(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('lyrics-generator', {
+        body: {
+          description: lyricsDesc,
+          theme: lyricsTheme,
+          genre: lyricsGenre,
+          mood: lyricsMood,
+          style: lyricsStyle,
+          language: lyricsLanguage,
+          structure: lyricsStructure,
+          rhymeScheme: lyricsRhyme,
+          pov: lyricsPov,
+          artistRefs: lyricsArtistRefs,
+        }
+      });
+      if (error) throw error;
+      if (data?.lyrics) {
+        setLyrics(data.lyrics);
+        toast({ title: '✅ Letra generada', description: 'Puedes editarla antes de cantar.' });
+      }
+    } catch {
+      toast({ title: 'Error al generar la letra', variant: 'destructive' });
+    } finally {
+      setIsGeneratingLyrics(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -191,25 +258,150 @@ export default function AIStudioVocal() {
               </CardContent>
             </Card>
 
-            {/* Lyrics */}
+            {/* Lyrics generator */}
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base">📝 Tu letra</CardTitle>
-                  <Badge variant="secondary" className="text-[10px]">Gratis con el compositor</Badge>
+                  <Badge variant="secondary" className="text-[10px]">Generación gratis</Badge>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Descripción */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">¿De qué va tu canción?</Label>
+                  <Textarea
+                    value={lyricsDesc}
+                    onChange={(e) => setLyricsDesc(e.target.value)}
+                    placeholder="Describe la historia, el sentimiento, la situación..."
+                    rows={3}
+                    className="resize-none text-sm"
+                    maxLength={400}
+                  />
+                </div>
+
+                {/* Tema central */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Tema central</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {THEMES.map(t => (
+                      <Badge key={t} variant={lyricsTheme === t ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                        onClick={() => setLyricsTheme(lyricsTheme === t ? '' : t)}>{t}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Género y Mood */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Género musical</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {MUSIC_GENRES.map(g => (
+                        <Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                          onClick={() => setLyricsGenre(lyricsGenre === g ? '' : g)}>{g}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-medium">Mood / Tono</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {MUSIC_MOODS.map(m => (
+                        <Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                          onClick={() => setLyricsMood(lyricsMood === m ? '' : m)}>{m}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Artistas de referencia */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">
+                    Estilo de artistas de referencia
+                    <span className="text-muted-foreground font-normal ml-1">(También puedes escribir uno propio en el campo de texto)</span>
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ARTIST_REFS.map(a => (
+                      <Badge key={a} variant={lyricsArtistRefs.includes(a) ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                        onClick={() => setLyricsArtistRefs(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])}>{a}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Estructura y Esquema de rima */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Estructura</Label>
+                    <select value={lyricsStructure} onChange={e => setLyricsStructure(e.target.value)}
+                      className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
+                      {STRUCTURES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Esquema de rima</Label>
+                    <select value={lyricsRhyme} onChange={e => setLyricsRhyme(e.target.value)}
+                      className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
+                      {RHYME_SCHEMES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Idioma y Punto de vista */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Idioma</Label>
+                    <select value={lyricsLanguage} onChange={e => setLyricsLanguage(e.target.value)}
+                      className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
+                      {LYRIC_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs font-medium">Punto de vista</Label>
+                    <select value={lyricsPov} onChange={e => setLyricsPov(e.target.value)}
+                      className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
+                      {POVS.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Estilo de escritura */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">Estilo de escritura</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {LYRIC_STYLES.map(s => (
+                      <Badge key={s} variant={lyricsStyle === s ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                        onClick={() => setLyricsStyle(lyricsStyle === s ? '' : s)}>{s}</Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Botón generar letra */}
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleGenerateLyrics}
+                  disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}
+                >
+                  {isGeneratingLyrics
+                    ? <><Loader2 className="w-4 h-4 animate-spin" />Generando letra...</>
+                    : <><Sparkles className="w-4 h-4" />Generar letra (gratis)</>
+                  }
+                </Button>
+
+                {/* Separador */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
+                  <div className="relative flex justify-center"><span className="bg-background px-2 text-xs text-muted-foreground">o escribe / pega tu letra</span></div>
+                </div>
+
+                {/* Textarea letra */}
                 <Textarea
                   value={lyrics}
-                  onChange={(e) => setLyrics(e.target.value)}
+                  onChange={e => setLyrics(e.target.value)}
                   placeholder={"[Verso 1]\nEscribe aquí tu letra...\n\n[Coro]\nO pégala desde el Compositor de Letras"}
-                  rows={10}
-                  className="resize-none text-sm"
+                  rows={8}
+                  className="resize-none text-sm font-mono"
                 />
-                <p className="text-xs text-muted-foreground mt-2">
-                  {lyrics.length} caracteres · Los tags [Verso], [Coro] se eliminan automáticamente
-                </p>
+                <p className="text-xs text-muted-foreground">{lyrics.length} caracteres · Los tags [Verso], [Coro] se eliminan automáticamente</p>
               </CardContent>
             </Card>
 
