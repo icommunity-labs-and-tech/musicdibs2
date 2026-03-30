@@ -108,13 +108,13 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
                 {expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
                 <span>
                   {expiringSoon
-                    ? `Tu suscripción expira en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}`
-                    : `Renovación: ${format(endDate, "d 'de' MMMM yyyy", { locale: es })}`}
+                    ? t('dashboard.account.expiresIn', { days: daysLeft })
+                    : t('dashboard.account.renewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </span>
               </div>
               {expiringSoon && (
                 <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400 text-center">
-                  Tu suscripción se renovará automáticamente. Comprueba que tu método de pago sigue vigente para evitar interrupciones.
+                  {t('dashboard.account.renewalWarning')}
                 </div>
               )}
             </>

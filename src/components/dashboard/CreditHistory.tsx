@@ -84,7 +84,7 @@ export function CreditHistory() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">{tx.description || config.label}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(tx.created_at).toLocaleDateString('es-ES', {
+                    {new Date(tx.created_at).toLocaleDateString(lang, {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric',

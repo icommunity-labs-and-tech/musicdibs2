@@ -69,10 +69,10 @@ export function VerifyRegistration() {
           ) : (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4">
               <div className="flex items-center gap-2 text-destructive font-medium text-sm">
-                <XCircle className="h-4 w-4" /> Registro no encontrado
+                <XCircle className="h-4 w-4" /> {t('dashboard.verify.notFound')}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Este archivo no está registrado en nuestro sistema.
+                {t('dashboard.verify.notFoundDesc')}
               </p>
             </div>
           )
