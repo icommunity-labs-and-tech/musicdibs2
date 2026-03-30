@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -92,6 +93,7 @@ const AudioWaveAnimation = () => (
 );
 
 const AIStudioCreate = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -188,7 +190,7 @@ const AIStudioCreate = () => {
   // ── Derived values ──
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
-  const modeLabel = mode === 'song' ? 'Canción con voz' : 'Instrumental';
+  const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
 
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
@@ -308,11 +310,11 @@ const AIStudioCreate = () => {
   // ── Generate music ──
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      toast({ title: "Error", description: "Escribe una descripción para tu canción", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiCreate.errorNoDesc'), variant: "destructive" });
       return;
     }
     if (!user) {
-      toast({ title: "Error", description: "Debes iniciar sesión para generar música", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiCreate.errorLogin'), variant: "destructive" });
       return;
     }
 
@@ -403,7 +405,7 @@ const AIStudioCreate = () => {
         };
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
-        toast({ title: "¡Música generada!", description: `Tu ${mode === 'song' ? 'canción' : 'instrumental'} está lista` });
+        toast({ title: t('aiCreate.musicGenerated'), description: mode === 'song' ? t('aiCreate.songReady') : t('aiCreate.instrReady') });
       }
     } catch (error: any) {
       console.error('Generation error:', error);
@@ -443,7 +445,7 @@ const AIStudioCreate = () => {
     const { error } = await supabase.from('ai_generations').update({ is_favorite: newFavorite }).eq('id', id);
     if (error) {
       setResults(prev => prev.map(r => r.id === id ? { ...r, isFavorite: !newFavorite } : r));
-      toast({ title: "Error", description: "No se pudo actualizar favorito", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiShared.error'), variant: "destructive" });
     }
   };
 
@@ -451,7 +453,7 @@ const AIStudioCreate = () => {
     if (playingId === id) { audioElements.get(id)?.pause(); setPlayingId(null); }
     setResults(prev => prev.filter(r => r.id !== id));
     const { error } = await supabase.from('ai_generations').delete().eq('id', id);
-    if (error) { toast({ title: "Error", description: "No se pudo eliminar", variant: "destructive" }); loadHistory(); }
+    if (error) { toast({ title: t('aiShared.error'), variant: "destructive" }); loadHistory(); }
   };
 
   const downloadAudio = (result: GenerationResult) => {
@@ -465,7 +467,7 @@ const AIStudioCreate = () => {
   const handleInlineClone = async () => {
     if (!cloningFile || !cloningName.trim() || !user) return;
     if (cloningDuration !== null && cloningDuration < 30) {
-      toast({ title: 'Audio muy corto', description: 'Necesitas al menos 30 segundos de audio para clonar tu voz.', variant: 'destructive' });
+      toast({ title: t('aiCreate.audioTooShort', { dur: cloningDuration }), variant: 'destructive' });
       return;
     }
     setIsCloning(true);
@@ -489,7 +491,7 @@ const AIStudioCreate = () => {
       );
       const data = await response.json();
       if (!response.ok) {
-        toast({ title: 'Error', description: data.error || 'No se pudo clonar la voz', variant: 'destructive' });
+        toast({ title: t('aiShared.error'), description: data.error, variant: 'destructive' });
         return;
       }
       const { data: newClones } = await supabase.from('voice_clones')
@@ -510,9 +512,9 @@ const AIStudioCreate = () => {
       setShowCloneModal(false);
       setCloningName(''); setCloningFile(null); setCloningDuration(null); setCloningNoise(false);
       if (cloneFileRef.current) cloneFileRef.current.value = '';
-      toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar. Ya está seleccionada.` });
+      toast({ title: t('aiCreate.voiceCloned'), description: t('aiCreate.voiceClonedDesc', { name: cloningName }) });
     } catch {
-      toast({ title: 'Error', description: 'No se pudo conectar con el servidor', variant: 'destructive' });
+      toast({ title: t('aiShared.error'), variant: 'destructive' });
     } finally {
       setIsCloning(false);
     }
@@ -536,8 +538,8 @@ const AIStudioCreate = () => {
     setResults(prev => prev.filter(r => !selectedIds.has(r.id)));
     setSelectedIds(new Set()); setBulkMode(false);
     const { error } = await supabase.from('ai_generations').delete().in('id', ids);
-    if (error) { toast({ title: "Error", description: "No se pudieron eliminar algunas generaciones", variant: "destructive" }); loadHistory(); }
-    else { toast({ title: `${ids.length} generaciones eliminadas` }); }
+    if (error) { toast({ title: t('aiShared.error'), variant: "destructive" }); loadHistory(); }
+    else { toast({ title: `${ids.length} ${t('aiCreate.generations')}` }); }
   };
 
   const registerAsWork = (result: GenerationResult) => {
@@ -554,12 +556,12 @@ const AIStudioCreate = () => {
   // ── Import lyrics from compositor ──
   const importLyricsFromCompositor = () => {
     if (!generatedLyrics) {
-      toast({ title: "Sin letras", description: "Primero genera una letra en el Compositor de Letras", variant: "destructive" });
+      toast({ title: t('aiCreate.noLyrics'), description: t('aiCreate.noLyricsDesc'), variant: "destructive" });
       return;
     }
     setLyricsText(generatedLyrics);
     setLyricsExpanded(true);
-    toast({ title: "Letra importada", description: "Se ha copiado la última letra generada" });
+    toast({ title: t('aiCreate.lyricsImported'), description: t('aiCreate.lyricsImportedDesc') });
   };
 
   // ── Regenerate with same params ──
@@ -607,7 +609,7 @@ const AIStudioCreate = () => {
       if (data?.error) throw new Error(data.error);
       if (data?.improved) {
         setPrompt(data.improved.slice(0, 400));
-        toast({ title: "Prompt mejorado", description: "La descripción ha sido enriquecida con IA" });
+        toast({ title: t('aiCreate.promptImproved'), description: t('aiCreate.promptImprovedDesc') });
       }
     } catch (e: any) {
       toast({ title: "Error al mejorar", description: e.message, variant: "destructive" });
@@ -632,9 +634,9 @@ const AIStudioCreate = () => {
       if (error || !data?.improved) throw new Error(error?.message || 'No response');
       setLyricsDesc(data.improved.slice(0, 400));
       setImprovedLyricsDesc(true);
-      toast({ title: '✨ Descripción mejorada', description: 'Puedes editarla antes de generar la letra' });
+      toast({ title: t('aiCreate.lyricsDescImproved'), description: t('aiCreate.lyricsDescImprovedSub') });
     } catch {
-      toast({ title: 'Error', description: 'No se pudo mejorar la descripción', variant: 'destructive' });
+      toast({ title: t('aiShared.error'), variant: 'destructive' });
     } finally {
       setIsImprovingLyrics(false);
     }
@@ -647,7 +649,7 @@ const AIStudioCreate = () => {
 
   const handleGenerateLyrics = async (regenerateSec?: string) => {
     if (!lyricsDesc.trim() && !lyricsTheme) {
-      toast({ title: "Describe tu canción", description: "Añade una descripción o elige un tema.", variant: "destructive" });
+      toast({ title: t('aiCreate.describeSongOrTheme'), variant: "destructive" });
       return;
     }
     setIsGeneratingLyrics(true);
@@ -667,9 +669,9 @@ const AIStudioCreate = () => {
       setGeneratedLyrics(data.lyrics);
       loadLyricsHistory();
       if (regenerateSec) {
-        toast({ title: `Sección regenerada`, description: `[${regenerateSec}] actualizado.` });
+        toast({ title: t('aiCreate.sectionRegenerated'), description: `[${regenerateSec}]` });
       } else {
-        toast({ title: "¡Letra generada!", description: "Revisa el resultado en el panel." });
+        toast({ title: t('aiCreate.lyricsGenerated'), description: t('aiCreate.lyricsGeneratedDesc') });
       }
     } catch (err: any) {
       setLyricsError(err.message || "Error al generar la letra");
@@ -694,7 +696,7 @@ const AIStudioCreate = () => {
     setMode('song');
     setActiveTab('music');
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    toast({ title: "¡Letra cargada!", description: "Completa los detalles y genera tu canción." });
+    toast({ title: t('aiCreate.lyricsLoaded'), description: t('aiCreate.lyricsLoadedDesc') });
   };
 
   const lyricsSections = generatedLyrics
@@ -744,26 +746,26 @@ const AIStudioCreate = () => {
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Volver a AI MusicDibs Studio
+          {t('aiCreate.backToStudio')}
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* ═══ LEFT: Creation Panel ═══ */}
           <div className="space-y-6" ref={formRef}>
             <div>
-              <h1 className="text-3xl font-bold mb-2">AI MusicDibs Studio</h1>
-              <p className="text-muted-foreground">Crea música e inspírate con IA</p>
+              <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
+              <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "music" | "lyrics")} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="music" className="gap-2">
                   <Music className="h-4 w-4" />
-                  Crear Música
+                  {t('aiCreate.tabMusic')}
                 </TabsTrigger>
                 <TabsTrigger value="lyrics" className="gap-2">
                   <FileText className="h-4 w-4" />
-                  Compositor de Letras
+                  {t('aiCreate.tabLyrics')}
                 </TabsTrigger>
               </TabsList>
 
@@ -775,8 +777,8 @@ const AIStudioCreate = () => {
                     <CardContent className="py-12 space-y-6">
                       <AudioWaveAnimation />
                       <div className="text-center space-y-2">
-                        <p className="text-lg font-medium">Componiendo tu {mode === 'song' ? 'canción' : 'instrumental'}...</p>
-                        <p className="text-sm text-muted-foreground">Esto puede tardar 1-2 minutos</p>
+                        <p className="text-lg font-medium">{t('aiCreate.composing')} {mode === 'song' ? t('aiCreate.song') : t('aiCreate.instrumental')}...</p>
+                        <p className="text-sm text-muted-foreground">{t('aiCreate.waitMsg')}</p>
                       </div>
                       <Progress value={undefined} className="w-full animate-pulse" />
                     </CardContent>
@@ -787,7 +789,7 @@ const AIStudioCreate = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
                           <CheckCircle2 className="h-5 w-5 text-primary" />
-                          ¡{modeLabel} generada!
+                          {modeLabel} {t('aiCreate.generated')}
                         </CardTitle>
                         <Badge variant={mode === 'song' ? 'default' : 'secondary'}>
                           {modeLabel}
@@ -824,15 +826,15 @@ const AIStudioCreate = () => {
                       <div className="grid grid-cols-3 gap-2">
                         <Button variant="outline" onClick={() => downloadAudio(lastResult)} className="gap-2">
                           <Download className="h-4 w-4" />
-                          Descargar
+                          {t('aiCreate.download')}
                         </Button>
                         <Button variant="outline" onClick={handleRegenerate} className="gap-2">
                           <RotateCw className="h-4 w-4" />
-                          Regenerar
+                          {t('aiCreate.regenerate')}
                         </Button>
                         <Button variant="default" onClick={() => registerAsWork(lastResult)} className="gap-2">
                           <ShieldCheck className="h-4 w-4" />
-                          Registrar obra
+                          {t('aiCreate.registerWork')}
                         </Button>
                       </div>
                     </CardContent>
@@ -841,20 +843,20 @@ const AIStudioCreate = () => {
                   /* ── Form ── */
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Crear música con IA</CardTitle>
-                      <CardDescription>Describe tu canción y elige el estilo. Cuanto más detallado, mejor resultado.</CardDescription>
+                      <CardTitle className="text-lg">{t('aiCreate.createWithAI')}</CardTitle>
+                      <CardDescription>{t('aiCreate.createDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Artist profile selector */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium">🎤 Perfil de artista</Label>
+                          <Label className="text-sm font-medium">🎤 {t('aiCreate.artistProfile')}</Label>
                           <button
                             type="button"
                             onClick={() => navigate('/dashboard/artist-profiles')}
                             style={{ fontSize: '11px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
                           >
-                            Gestionar perfiles →
+                             {t('aiCreate.manageProfiles')}
                           </button>
                         </div>
                         <select
@@ -885,7 +887,7 @@ const AIStudioCreate = () => {
                             cursor: 'pointer',
                           }}
                         >
-                          <option value="">— Sin perfil (configuración libre) —</option>
+                          <option value="">{t('aiCreate.noProfile')}</option>
                           {artistProfiles.map(p => (
                             <option key={p.id} value={p.id}>
                               {p.voice_profiles?.emoji || '🎤'} {p.name}
@@ -902,13 +904,13 @@ const AIStudioCreate = () => {
                                 onClick={() => setShowSaveProfile(true)}
                                 style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer' }}
                               >
-                                + Guardar esta configuración como perfil de artista
+                                {t('aiCreate.saveAsProfile')}
                               </button>
                             ) : (
                               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <input
                                   type="text"
-                                  placeholder="Nombre del artista (ej: Mi proyecto trap)"
+                                  placeholder={t('aiCreate.profilePlaceholder')}
                                   value={newProfileName}
                                   onChange={e => setNewProfileName(e.target.value)}
                                   maxLength={50}
@@ -943,9 +945,9 @@ const AIStudioCreate = () => {
                                       setSelectedProfile(data.id);
                                       setShowSaveProfile(false);
                                       setNewProfileName('');
-                                      toast({ title: '✅ Perfil guardado', description: `"${data.name}" listo para usar en futuras canciones` });
+                                      toast({ title: t('aiCreate.profileSaved'), description: `"${data.name}" ${t('aiCreate.profileSavedDesc')}` });
                                     } else {
-                                      toast({ title: 'Error', description: 'No se pudo guardar el perfil', variant: 'destructive' });
+                                      toast({ title: t('aiShared.error'), variant: 'destructive' });
                                     }
                                   }}
                                   style={{
@@ -959,14 +961,14 @@ const AIStudioCreate = () => {
                                     opacity: savingProfile ? 0.6 : 1,
                                   }}
                                 >
-                                  {savingProfile ? 'Guardando...' : 'Guardar'}
+                                   {savingProfile ? t('aiCreate.saving') : t('aiCreate.save')}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => { setShowSaveProfile(false); setNewProfileName(''); }}
                                   style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
                                 >
-                                  Cancelar
+                                   {t('aiCreate.cancel')}
                                 </button>
                               </div>
                             )}
@@ -986,8 +988,8 @@ const AIStudioCreate = () => {
                           )}
                         >
                           <Mic className="h-4 w-4" />
-                          Canción con voz
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} créd.</Badge>
+                           {t('aiCreate.songWithVoice')}
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} {t('aiCreate.credits')}</Badge>
                         </button>
                         <button
                           onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedLanguage(''); }}
@@ -999,15 +1001,15 @@ const AIStudioCreate = () => {
                           )}
                         >
                           <Headphones className="h-4 w-4" />
-                          Instrumental / Base
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio} créd.</Badge>
+                           {t('aiCreate.instrumentalBase')}
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio} {t('aiCreate.credits')}</Badge>
                         </button>
                       </div>
 
                       {/* Main textarea */}
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <Label>Describe tu canción</Label>
+                          <Label>{t('aiCreate.describeSong')}</Label>
                           <button
                             type="button"
                             onClick={handleImprovePrompt}
@@ -1032,13 +1034,13 @@ const AIStudioCreate = () => {
                             onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                           >
                             {isImprovingPrompt
-                              ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                              : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                              ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />{t('aiCreate.improving')}</>
+                              : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />{t('aiCreate.improveWithAI')}</>
                             }
                           </button>
                         </div>
                         <Textarea
-                          placeholder="Una canción de pop romántico sobre el primer amor..."
+                          placeholder={t('aiCreate.promptPlaceholder')}
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value.slice(0, 400))}
                           rows={4}
@@ -1054,32 +1056,32 @@ const AIStudioCreate = () => {
                           <Button variant="ghost" className="w-full justify-between px-3 h-10 text-sm text-muted-foreground hover:text-foreground">
                             <span className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
-                              Letra (opcional)
+                              {t('aiCreate.lyricsOptional')}
                             </span>
                             <ChevronDown className={cn("h-4 w-4 transition-transform", lyricsExpanded && "rotate-180")} />
                           </Button>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="space-y-3 pt-2">
                           <Textarea
-                            placeholder="Pega o escribe la letra de tu canción aquí..."
+                            placeholder={t('aiCreate.pasteLyrics')}
                             value={lyricsText}
                             onChange={(e) => setLyricsText(e.target.value)}
                             rows={8}
                             className="resize-none font-mono text-sm"
                           />
                           <p className="text-xs text-muted-foreground">
-                            Puedes usar la letra generada por el Compositor de Letras
+                             {t('aiCreate.canUseLyrics')}
                           </p>
                           <Button variant="outline" size="sm" onClick={importLyricsFromCompositor} className="gap-2">
-                            <Import className="h-3.5 w-3.5" />
-                            Importar desde Compositor
+                             <Import className="h-3.5 w-3.5" />
+                             {t('aiCreate.importFromCompositor')}
                           </Button>
                         </CollapsibleContent>
                       </Collapsible>
 
                       {/* Genre chips */}
                       <div className="space-y-2">
-                        <Label>Género</Label>
+                        <Label>{t('aiCreate.genre')}</Label>
                         <div className="flex flex-wrap gap-2">
                           {MUSIC_GENRES.map(genre => (
                             <Badge
@@ -1096,7 +1098,7 @@ const AIStudioCreate = () => {
 
                       {/* Tema central */}
                       <div className="space-y-2">
-                        <Label>Tema central</Label>
+                        <Label>{t('aiCreate.centralTheme')}</Label>
                         <div className="flex flex-wrap gap-2">
                           {THEMES.map(t => (
                             <Badge
@@ -1113,7 +1115,7 @@ const AIStudioCreate = () => {
 
                       {/* Mood chips */}
                       <div className="space-y-2">
-                        <Label>Mood</Label>
+                        <Label>{t('aiCreate.moodLabel')}</Label>
                         <div className="flex flex-wrap gap-2">
                           {MUSIC_MOODS.map(m => (
                             <Badge
@@ -1131,8 +1133,8 @@ const AIStudioCreate = () => {
                       {/* Artistas de referencia */}
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">
-                          Artistas de referencia
-                          <span className="text-xs text-muted-foreground font-normal ml-2">(También puedes escribir uno propio en el campo de texto)</span>
+                          {t('aiCreate.artistRefs')}
+                          <span className="text-xs text-muted-foreground font-normal ml-2">{t('aiCreate.customArtistHint')}</span>
                         </Label>
                         <div className="flex flex-wrap gap-2">
                           {ARTIST_REFS.map(a => (
@@ -1153,7 +1155,7 @@ const AIStudioCreate = () => {
                       {/* Idioma de la letra */}
                       {mode === 'song' && (
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium">Idioma de la letra</Label>
+                          <Label className="text-sm font-medium">{t('aiCreate.lyricLanguage')}</Label>
                           <div className="flex flex-wrap gap-2">
                             {LYRIC_LANGUAGES.map(l => (
                               <Badge
@@ -1171,8 +1173,8 @@ const AIStudioCreate = () => {
 
                       {/* Voice type selector */}
                       <div className="space-y-2">
-                        <Label className="text-sm font-medium">Tipo de voz</Label>
-                        <p className="text-xs text-muted-foreground">Solo disponible en modo "Canción con voz"</p>
+                         <Label className="text-sm font-medium">{t('aiCreate.voice')}</Label>
+                        <p className="text-xs text-muted-foreground">{t('aiCreate.songWithVoice')}</p>
                         {/* Tabs preset / mi voz */}
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                           <button
@@ -1186,7 +1188,7 @@ const AIStudioCreate = () => {
                               cursor: 'pointer',
                             }}
                           >
-                            🎵 Voces predefinidas
+                            {t('aiCreate.presetVoices')}
                           </button>
                           <button
                             type="button"
@@ -1199,7 +1201,7 @@ const AIStudioCreate = () => {
                               cursor: 'pointer',
                             }}
                           >
-                            🎤 Mi voz {voiceClones.length > 0 && `(${voiceClones.length})`}
+                            {t('aiCreate.myVoice')} {voiceClones.length > 0 && `(${voiceClones.length})`}
                           </button>
                         </div>
                         {/* TAB: Voces predefinidas */}
@@ -1229,7 +1231,7 @@ const AIStudioCreate = () => {
                                     onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
                                     style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
                                   >
-                                    {playingVoice === v.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                                    {playingVoice === v.id ? <span>{t('aiCreate.stop')}</span> : <span>{t('aiCreate.listen')}</span>}
                                   </span>
                                 )}
                               </button>
@@ -1242,7 +1244,7 @@ const AIStudioCreate = () => {
                             {voiceClones.length === 0 ? (
                               <div style={{ textAlign: 'center', padding: '24px 16px', border: '1px dashed hsl(var(--border))', borderRadius: '8px' }}>
                                 <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginBottom: '12px' }}>
-                                  🎤 Aún no tienes ninguna voz clonada
+                                  {t('aiCreate.noClones')}
                                 </p>
                                 <button
                                   type="button"
@@ -1252,7 +1254,7 @@ const AIStudioCreate = () => {
                                     background: 'hsl(var(--primary))', color: 'white', border: 'none', cursor: 'pointer',
                                   }}
                                 >
-                                  + Clonar mi voz ahora
+                                  {t('aiCreate.cloneNow')}
                                 </button>
                               </div>
                             ) : (
@@ -1276,7 +1278,7 @@ const AIStudioCreate = () => {
                                       {/* Action buttons */}
                                       <div style={{ position: 'absolute', top: '4px', right: '4px', display: 'flex', gap: '2px' }}>
                                         <span
-                                          title="Renombrar voz"
+                                          title={t('aiCreate.renameVoice')}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setEditingCloneId(c.id);
@@ -1290,14 +1292,14 @@ const AIStudioCreate = () => {
                                           onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
                                         >✏️</span>
                                         <span
-                                          title="Eliminar voz"
+                                          title={t('aiCreate.deleteVoice')}
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            if (confirm(`¿Eliminar "${c.name}"? No podrás usarla en nuevas canciones.`)) {
+                                            if (confirm(t('aiCreate.deleteVoiceConfirm', { name: c.name }))) {
                                               supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', c.id).then(() => {
                                                 setVoiceClones(prev => prev.filter(v => v.id !== c.id));
                                                 if (selectedCloneId === c.id) setSelectedCloneId('');
-                                                toast({ title: 'Voz eliminada' });
+                                                toast({ title: t('aiCreate.voiceDeleted') });
                                               });
                                             }
                                           }}
@@ -1320,7 +1322,7 @@ const AIStudioCreate = () => {
                                             supabase.from('voice_clones').update({ name: trimmed }).eq('id', c.id).then(({ error }) => {
                                               if (!error) {
                                                 setVoiceClones(prev => prev.map(v => v.id === c.id ? { ...v, name: trimmed } : v));
-                                                toast({ title: 'Voz renombrada' });
+                                                toast({ title: t('aiCreate.voiceRenamed') });
                                               }
                                               setEditingCloneId(null);
                                             });
@@ -1346,13 +1348,13 @@ const AIStudioCreate = () => {
                                       ) : (
                                         <span style={{ fontSize: '12px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{c.name}</span>
                                       )}
-                                      <span style={{ fontSize: '10px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>Voz clonada</span>
+                                      <span style={{ fontSize: '10px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>{t('aiCreate.clonedVoice')}</span>
                                       {c.sample_url && (
                                         <span
                                           onClick={(e) => handlePreviewVoice(e, c.id, c.sample_url)}
                                           style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === c.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
                                         >
-                                          {playingVoice === c.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                                          {playingVoice === c.id ? <span>{t('aiCreate.stop')}</span> : <span>{t('aiCreate.listen')}</span>}
                                         </span>
                                       )}
                                     </div>
@@ -1363,7 +1365,7 @@ const AIStudioCreate = () => {
                                   onClick={() => setShowCloneModal(true)}
                                   style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
                                 >
-                                  + Añadir otra voz
+                                  {t('aiCreate.addVoice')}
                                 </button>
                               </>
                             )}
@@ -1373,7 +1375,7 @@ const AIStudioCreate = () => {
                           <p className="text-xs text-muted-foreground">
                             {selectedVoice
                               ? voiceProfiles.find(v => v.id === selectedVoice)?.description
-                              : `Usando tu voz clonada: ${voiceClones.find(c => c.id === selectedCloneId)?.name}`
+                              : `${t('aiCreate.usingClone')} ${voiceClones.find(c => c.id === selectedCloneId)?.name}`
                             }
                           </p>
                         )}
@@ -1390,23 +1392,23 @@ const AIStudioCreate = () => {
                             width: '100%', maxWidth: '480px', border: '1px solid hsl(var(--border))',
                           }}>
                             <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
-                              🎤 Clonar mi voz
-                            </h2>
-                            <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>
-                              Sube 1-2 minutos de tu voz hablando o cantando. Sin música de fondo ni ruido.
-                            </p>
-                            <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
-                              💡 <strong>Consejos:</strong> Graba en silencio · Voz clara y natural · MP3 o WAV · Mínimo 1 minuto recomendado
+                               {t('aiCreate.cloneTitle')}
+                             </h2>
+                             <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>
+                               {t('aiCreate.cloneDesc')}
+                             </p>
+                             <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+                               {t('aiCreate.cloneTips')}
                             </div>
                             <div style={{ marginBottom: '16px' }}>
                               <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
-                                Nombre de tu voz *
+                                {t('aiCreate.voiceName')}
                               </label>
                               <input
                                 type="text"
                                 value={cloningName}
                                 onChange={e => setCloningName(e.target.value)}
-                                placeholder="Ej: Mi voz, Luna, Artista..."
+                                placeholder={t('aiCreate.voiceNamePlaceholder')}
                                 maxLength={50}
                                 style={{
                                   width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px',
@@ -1417,7 +1419,7 @@ const AIStudioCreate = () => {
                             </div>
                             <div style={{ marginBottom: '16px' }}>
                               <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
-                                Audio de tu voz *
+                                {t('aiCreate.voiceAudio')}
                               </label>
                               <input
                                 ref={cloneFileRef}
@@ -1437,11 +1439,11 @@ const AIStudioCreate = () => {
                                   marginTop: '6px', fontSize: '12px',
                                   color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#eab308' : '#22c55e'
                                 }}>
-                                  {cloningDuration < 30
-                                    ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
-                                    : cloningDuration < 60
-                                      ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
-                                      : `✓ Duración óptima (${cloningDuration}s)`
+                                   {cloningDuration < 30
+                                     ? t('aiCreate.audioTooShort', { dur: cloningDuration })
+                                     : cloningDuration < 60
+                                       ? t('aiCreate.audioOk', { dur: cloningDuration })
+                                       : t('aiCreate.audioOptimal', { dur: cloningDuration })
                                   }
                                 </p>
                               )}
@@ -1454,7 +1456,7 @@ const AIStudioCreate = () => {
                                 onChange={e => setCloningNoise(e.target.checked)}
                               />
                               <label htmlFor="clone-noise" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>
-                                Eliminar ruido de fondo automáticamente
+                                {t('aiCreate.removeNoise')}
                               </label>
                             </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
@@ -1470,9 +1472,9 @@ const AIStudioCreate = () => {
                                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                                 }}
                               >
-                                {isCloning
-                                  ? <><Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />Clonando... (30-60s)</>
-                                  : '🎤 Clonar mi voz'
+                                 {isCloning
+                                   ? <><Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />{t('aiCreate.cloning')}</>
+                                   : t('aiCreate.cloneBtn')
                                 }
                               </button>
                               <button
@@ -1484,7 +1486,7 @@ const AIStudioCreate = () => {
                                   border: '1px solid hsl(var(--border))', cursor: 'pointer',
                                 }}
                               >
-                                Cancelar
+                                 {t('aiCreate.cancel')}
                               </button>
                             </div>
                           </div>
@@ -1493,7 +1495,7 @@ const AIStudioCreate = () => {
 
                       {/* Duration options */}
                       <div className="space-y-2">
-                        <Label>Duración</Label>
+                        <Label>{t('aiCreate.duration')}</Label>
                         <div className="flex gap-2">
                           {DURATION_OPTIONS.map(d => (
                             <button
@@ -1539,10 +1541,10 @@ const AIStudioCreate = () => {
                           size="lg"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
-                          {mode === 'song'
-                            ? `Generar canción — ${FEATURE_COSTS.generate_audio_song} créditos`
-                            : `Generar instrumental — ${FEATURE_COSTS.generate_audio} créditos`
-                          }
+                           {mode === 'song'
+                             ? `${t('aiCreate.generateBtn')} ${t('aiCreate.songWithVoice')} — ${FEATURE_COSTS.generate_audio_song} ${t('aiCreate.credits')}`
+                             : `${t('aiCreate.generateBtn')} ${t('aiCreate.instrumentalBase')} — ${FEATURE_COSTS.generate_audio} ${t('aiCreate.credits')}`
+                           }
                         </Button>
                       )}
                     </CardContent>
@@ -1556,14 +1558,14 @@ const AIStudioCreate = () => {
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <FileText className="h-5 w-5 text-primary" />
-                      Describe tu canción
-                    </CardTitle>
-                    <CardDescription>Cuanto más detallado seas, mejor será el resultado</CardDescription>
+                       {t('aiCreate.lyricsDescLabel')}
+                     </CardTitle>
+                     <CardDescription>{t('aiCreate.createDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between mb-1">
-                        <Label className="text-sm">¿De qué va tu canción?</Label>
+                        <Label className="text-sm">{t('aiCreate.lyricsDescLabel')}</Label>
                         <button
                           type="button"
                           onClick={handleImproveLyricsDesc}
@@ -1588,22 +1590,22 @@ const AIStudioCreate = () => {
                           onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                         >
                           {isImprovingLyrics
-                            ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando...</>
-                            : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                             ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />{t('aiCreate.improving')}</>
+                             : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />{t('aiCreate.improveWithAI')}</>
                           }
                         </button>
                       </div>
-                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={400} placeholder="Describe la historia, el sentimiento, la situación..." />
+                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={400} placeholder={t('aiCreate.lyricsDescPlaceholder')} />
                       {improvedLyricsDesc && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          ✨ Descripción optimizada por IA — puedes editarla antes de generar
+                          {t('aiCreate.lyricsDescImproved')} — {t('aiCreate.lyricsDescImprovedSub')}
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/400</p>
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-sm">Tema central</Label>
+                      <Label className="text-sm">{t('aiCreate.centralTheme')}</Label>
                       <div className="flex flex-wrap gap-1.5">
                         {THEMES.map(t => (
                           <Badge key={t} variant={lyricsTheme === t ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === t ? "" : t)}>{t}</Badge>
@@ -1613,7 +1615,7 @@ const AIStudioCreate = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Género musical</Label>
+                        <Label className="text-sm">{t('aiCreate.genreLabel')}</Label>
                         <div className="flex flex-wrap gap-1.5">
                           {(GENRES as readonly string[]).slice(0, 8).map(g => (
                             <Badge key={g} variant={lyricsGenre === g ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}>{g}</Badge>
@@ -1621,7 +1623,7 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Mood / Tono</Label>
+                        <Label className="text-sm">{t('aiCreate.moodLabel')}</Label>
                         <div className="flex flex-wrap gap-1.5">
                           {(MOODS as readonly string[]).slice(0, 8).map(m => (
                             <Badge key={m} variant={lyricsMood === m ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? "" : m)}>{m}</Badge>
@@ -1631,10 +1633,10 @@ const AIStudioCreate = () => {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-sm">
-                        Estilo de artistas de referencia
-                        <span className="text-muted-foreground ml-1 font-normal">(También puedes escribir uno propio en el campo de texto)</span>
-                      </Label>
+                       <Label className="text-sm">
+                         {t('aiCreate.artistRefsLabel')}
+                         <span className="text-muted-foreground ml-1 font-normal">{t('aiCreate.customArtistHint')}</span>
+                       </Label>
                       <div className="flex flex-wrap gap-1.5">
                         {ARTIST_REFS.map(a => (
                           <Badge key={a} variant={lyricsArtistRefs.includes(a) ? "default" : "outline"}
@@ -1648,7 +1650,7 @@ const AIStudioCreate = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Estructura</Label>
+                        <Label className="text-sm">{t('aiCreate.structureLabel')}</Label>
                         <Select value={lyricsStructure} onValueChange={setLyricsStructure}>
                           <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
@@ -1657,7 +1659,7 @@ const AIStudioCreate = () => {
                         </Select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Esquema de rima</Label>
+                        <Label className="text-sm">{t('aiCreate.rhymeLabel')}</Label>
                         <Select value={lyricsRhyme} onValueChange={setLyricsRhyme}>
                           <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
@@ -1669,7 +1671,7 @@ const AIStudioCreate = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Idioma</Label>
+                        <Label className="text-sm">{t('aiCreate.languageLabel')}</Label>
                         <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
                           <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
@@ -1678,7 +1680,7 @@ const AIStudioCreate = () => {
                         </Select>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-sm">Punto de vista</Label>
+                        <Label className="text-sm">{t('aiCreate.povLabel')}</Label>
                         <Select value={lyricsPov} onValueChange={setLyricsPov}>
                           <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                           <SelectContent>
@@ -1689,7 +1691,7 @@ const AIStudioCreate = () => {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-sm">Estilo de escritura</Label>
+                      <Label className="text-sm">{t('aiCreate.writingStyleLabel')}</Label>
                       <div className="flex flex-wrap gap-1.5">
                         {LYRIC_STYLES.map(s => (
                           <Badge key={s} variant={lyricsStyle === s ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === s ? "" : s)}>{s}</Badge>
@@ -1705,11 +1707,11 @@ const AIStudioCreate = () => {
 
                     <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)} className="w-full" size="lg">
                       {isGeneratingLyrics
-                        ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Componiendo letra...</>
-                        : <><FileText className="w-4 h-4 mr-2" />Generar letra (gratis)</>
-                      }
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">La generación de letras no consume créditos</p>
+                         ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiCreate.composingLyrics')}</>
+                         : <><FileText className="w-4 h-4 mr-2" />{t('aiCreate.generateLyricsFree')}</>
+                       }
+                     </Button>
+                     <p className="text-xs text-muted-foreground text-center">{t('aiCreate.lyricsFreeBadge')}</p>
                   </CardContent>
                 </Card>
 
@@ -1720,15 +1722,15 @@ const AIStudioCreate = () => {
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base flex items-center gap-2">
                           <Music2 className="h-4 w-4 text-primary" />
-                          Tu letra
+                          {t('aiCreate.yourLyrics')}
                         </CardTitle>
                         <div className="flex items-center gap-1.5">
                           <Button variant="outline" size="sm" onClick={copyLyrics} className="h-8 text-xs gap-1.5">
-                            {copiedLyrics ? <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />Copiado</> : <><Copy className="h-3.5 w-3.5" />Copiar</>}
+                            {copiedLyrics ? <><CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />{t('aiCreate.copied')}</> : <><Copy className="h-3.5 w-3.5" />{t('aiCreate.copy')}</>}
                           </Button>
                           <Button variant="default" size="sm" onClick={sendLyricsToMusic} className="h-8 text-xs gap-1.5">
                             <Music className="h-3.5 w-3.5" />
-                            🎵 Crear canción con esta letra
+                            {t('aiCreate.createSongWithLyrics')}
                           </Button>
                         </div>
                       </div>
@@ -1740,7 +1742,7 @@ const AIStudioCreate = () => {
 
                       {lyricsSections.length > 0 && (
                         <div className="space-y-2">
-                          <Label className="text-xs text-muted-foreground">Regenerar una sección específica:</Label>
+                          <Label className="text-xs text-muted-foreground">{t('aiCreate.regenSection')}</Label>
                           <div className="flex flex-wrap gap-1.5">
                             {lyricsSections.map(section => (
                               <Button key={section} variant="outline" size="sm" className="h-7 text-xs gap-1.5" disabled={isGeneratingLyrics} onClick={() => handleGenerateLyrics(section)}>
@@ -1749,13 +1751,13 @@ const AIStudioCreate = () => {
                               </Button>
                             ))}
                           </div>
-                          <p className="text-[11px] text-muted-foreground">Solo regenera esa sección manteniendo el resto intacto</p>
+                          <p className="text-[11px] text-muted-foreground">{t('aiCreate.regenSectionNote')}</p>
                         </div>
                       )}
 
                       <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground gap-1.5" onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics}>
                         <RotateCcw className="h-3.5 w-3.5" />
-                        Regenerar letra completa
+                        {t('aiCreate.regenFull')}
                       </Button>
                       <Link
                         to={`/ai-studio/vocal?lyrics=${encodeURIComponent(generatedLyrics)}`}
@@ -1763,7 +1765,7 @@ const AIStudioCreate = () => {
                       >
                         <Button variant="outline" size="sm" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
                           <Mic className="w-3.5 h-3.5" />
-                          🎤 Cantar esta letra con mi voz — 1 crédito
+                          {t('aiCreate.singThisLyrics')}
                         </Button>
                       </Link>
                     </CardContent>
@@ -1777,23 +1779,23 @@ const AIStudioCreate = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">
-                {activeTab === "lyrics" ? "Mis letras" : "Resultados"}
+                {activeTab === "lyrics" ? t('aiCreate.myLyrics') : t('aiCreate.results')}
               </h2>
               {activeTab === "lyrics" && lyricsHistory.length > 0 ? (
                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Últimas {lyricsHistory.length}
+                  {t('aiCreate.latest')} {lyricsHistory.length}
                 </span>
               ) : activeTab === "music" && (
                 <div className="flex items-center gap-2">
                   {results.length > 0 && (
                     <>
                       <span className="text-sm text-muted-foreground">
-                        {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} generaciones
+                        {filteredResults.length}{filteredResults.length !== results.length ? ` / ${results.length}` : ''} {t('aiCreate.generations')}
                       </span>
                       <Button variant={bulkMode ? "default" : "outline"} size="sm" className="h-8" onClick={toggleBulkMode}>
                         <CheckSquare className="w-3.5 h-3.5 mr-1.5" />
-                        {bulkMode ? "Cancelar" : "Seleccionar"}
+                        {bulkMode ? t('aiCreate.cancel') : t('aiCreate.select')}
                       </Button>
                     </>
                   )}
@@ -1804,13 +1806,13 @@ const AIStudioCreate = () => {
             {activeTab === "lyrics" ? (
               lyricsLoading ? (
                 <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />Cargando...
+                  <Loader2 className="h-4 w-4 animate-spin" />{t('aiCreate.loading')}
                 </div>
               ) : lyricsHistory.length === 0 ? (
                 <Card className="border-dashed">
                   <CardContent className="flex flex-col items-center justify-center py-16 gap-3">
                     <FileText className="h-10 w-10 text-muted-foreground" />
-                    <p className="text-muted-foreground text-sm text-center">Tus letras generadas aparecerán aquí</p>
+                    <p className="text-muted-foreground text-sm text-center">{t('aiCreate.lyricsEmptyHist')}</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -1820,7 +1822,7 @@ const AIStudioCreate = () => {
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{item.theme || item.description || "Sin título"}</p>
+                            <p className="text-sm font-medium truncate">{item.theme || item.description || t('aiCreate.noTitle')}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               {item.genre && <Badge variant="outline" className="text-[10px] h-4 px-1.5">{item.genre}</Badge>}
                               {item.mood && <Badge variant="outline" className="text-[10px] h-4 px-1.5">{item.mood}</Badge>}
@@ -1855,7 +1857,7 @@ const AIStudioCreate = () => {
                         <details className="group">
                           <summary className="text-xs text-primary cursor-pointer hover:underline list-none flex items-center gap-1">
                             <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
-                            Ver letra completa
+                            {t('aiCreate.fullLyrics')}
                           </summary>
                           <div className="mt-2 rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap max-h-64 overflow-y-auto">
                             {item.lyrics}
@@ -1872,39 +1874,39 @@ const AIStudioCreate = () => {
                 {bulkMode && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border">
                     <Button variant="outline" size="sm" className="h-7 text-xs" onClick={selectedIds.size === filteredResults.length ? deselectAll : selectAll}>
-                      {selectedIds.size === filteredResults.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                      {selectedIds.size === filteredResults.length ? t('aiCreate.deselectAll') : t('aiCreate.selectAll')}
                     </Button>
-                    <span className="text-xs text-muted-foreground flex-1">{selectedIds.size} seleccionado{selectedIds.size !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-muted-foreground flex-1">{selectedIds.size} {selectedIds.size !== 1 ? t('aiCreate.selectedPlural') : t('aiCreate.selected')}</span>
                     <TooltipProvider delayDuration={300}>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button variant="outline" size="sm" className="h-7" disabled={selectedIds.size === 0} onClick={bulkDownload}>
-                            <Download className="w-3.5 h-3.5 mr-1" />Descargar
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent><p>Descargar seleccionados</p></TooltipContent>
+                             <Download className="w-3.5 h-3.5 mr-1" />{t('aiCreate.download')}
+                           </Button>
+                         </TooltipTrigger>
+                         <TooltipContent><p>{t('aiCreate.downloadSelected')}</p></TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="destructive" size="sm" className="h-7" disabled={selectedIds.size === 0}>
-                                <Trash2 className="w-3.5 h-3.5 mr-1" />Eliminar
+                                <Trash2 className="w-3.5 h-3.5 mr-1" />{t('aiCreate.delete')}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>¿Eliminar {selectedIds.size} generación{selectedIds.size !== 1 ? 'es' : ''}?</AlertDialogTitle>
-                                <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                 <AlertDialogTitle>{t('aiCreate.deleteConfirm', { count: selectedIds.size, plural: selectedIds.size !== 1 ? 'es' : '' })}</AlertDialogTitle>
+                                 <AlertDialogDescription>{t('aiCreate.cannotUndo')}</AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={bulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar {selectedIds.size}</AlertDialogAction>
+                                 <AlertDialogCancel>{t('aiCreate.cancel')}</AlertDialogCancel>
+                                 <AlertDialogAction onClick={bulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('aiCreate.delete')} {selectedIds.size}</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         </TooltipTrigger>
-                        <TooltipContent><p>Eliminar seleccionados</p></TooltipContent>
+                        <TooltipContent><p>{t('aiCreate.deleteSelected')}</p></TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
@@ -1914,12 +1916,12 @@ const AIStudioCreate = () => {
                 {results.length > 0 && (
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant={filterFavorites ? "default" : "outline"} size="sm" onClick={() => setFilterFavorites(!filterFavorites)} className="h-8">
-                      <Heart className={cn("w-3.5 h-3.5 mr-1.5", filterFavorites && "fill-current")} />Favoritos
+                      <Heart className={cn("w-3.5 h-3.5 mr-1.5", filterFavorites && "fill-current")} />{t('aiCreate.favorites')}
                     </Button>
                     <Select value={filterGenre} onValueChange={setFilterGenre}>
                       <SelectTrigger className="w-[140px] h-8 text-sm"><SelectValue placeholder="Género" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos los géneros</SelectItem>
+                        <SelectItem value="all">{t('aiCreate.allGenres')}</SelectItem>
                         {availableGenres.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -1927,7 +1929,7 @@ const AIStudioCreate = () => {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateFrom && "border-primary text-primary")}>
                           <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
-                          {filterDateFrom ? format(filterDateFrom, "dd MMM", { locale: es }) : "Desde"}
+                          {filterDateFrom ? format(filterDateFrom, "dd MMM", { locale: es }) : t('aiCreate.from')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -1938,7 +1940,7 @@ const AIStudioCreate = () => {
                       <PopoverTrigger asChild>
                         <Button variant="outline" size="sm" className={cn("h-8 text-sm", filterDateTo && "border-primary text-primary")}>
                           <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
-                          {filterDateTo ? format(filterDateTo, "dd MMM", { locale: es }) : "Hasta"}
+                          {filterDateTo ? format(filterDateTo, "dd MMM", { locale: es }) : t('aiCreate.to')}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -1947,7 +1949,7 @@ const AIStudioCreate = () => {
                     </Popover>
                     {hasActiveFilters && (
                       <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground" onClick={clearFilters}>
-                        <X className="w-3 h-3 mr-1" />Limpiar
+                        <X className="w-3 h-3 mr-1" />{t('aiCreate.clear')}
                       </Button>
                     )}
                   </div>
@@ -1957,7 +1959,7 @@ const AIStudioCreate = () => {
                   <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-16">
                       <Loader2 className="w-12 h-12 text-muted-foreground mb-4 animate-spin" />
-                      <p className="text-muted-foreground text-center">Cargando historial...</p>
+                      <p className="text-muted-foreground text-center">{t('aiCreate.loadingHistory')}</p>
                     </CardContent>
                   </Card>
                 ) : results.length === 0 ? (
@@ -1965,7 +1967,7 @@ const AIStudioCreate = () => {
                     <CardContent className="flex flex-col items-center justify-center py-16">
                       <Music className="w-12 h-12 text-muted-foreground mb-4" />
                       <p className="text-muted-foreground text-center">
-                        {user ? "Tus generaciones aparecerán aquí" : "Inicia sesión para guardar tu historial"}
+                        {user ? t('aiCreate.generationsHere') : t('aiCreate.loginForHistory')}
                       </p>
                     </CardContent>
                   </Card>
@@ -1973,8 +1975,8 @@ const AIStudioCreate = () => {
                   <Card className="border-dashed">
                     <CardContent className="flex flex-col items-center justify-center py-12">
                       <Filter className="w-10 h-10 text-muted-foreground mb-3" />
-                      <p className="text-muted-foreground text-center text-sm">Sin resultados para estos filtros</p>
-                      <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">Limpiar filtros</Button>
+                       <p className="text-muted-foreground text-center text-sm">{t('aiCreate.noFilterResults')}</p>
+                       <Button variant="link" size="sm" onClick={clearFilters} className="mt-2">{t('aiCreate.clearFilters')}</Button>
                     </CardContent>
                   </Card>
                 ) : (
@@ -2006,7 +2008,7 @@ const AIStudioCreate = () => {
                                       <ShieldCheck className="w-4 h-4" />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent><p>Registrar como obra protegida</p></TooltipContent>
+                                  <TooltipContent><p>{t('aiCreate.registerAsWork')}</p></TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -2014,7 +2016,7 @@ const AIStudioCreate = () => {
                                       <Heart className={`w-4 h-4 ${result.isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent><p>{result.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}</p></TooltipContent>
+                                  <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -2022,7 +2024,7 @@ const AIStudioCreate = () => {
                                       <Download className="w-4 h-4" />
                                     </Button>
                                   </TooltipTrigger>
-                                  <TooltipContent><p>Descargar audio</p></TooltipContent>
+                                  <TooltipContent><p>{t('aiCreate.downloadAudio')}</p></TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -2034,12 +2036,12 @@ const AIStudioCreate = () => {
                                       </AlertDialogTrigger>
                                       <AlertDialogContent>
                                         <AlertDialogHeader>
-                                          <AlertDialogTitle>¿Eliminar esta generación?</AlertDialogTitle>
-                                          <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                           <AlertDialogTitle>{t('aiCreate.deleteGeneration')}</AlertDialogTitle>
+                                           <AlertDialogDescription>{t('aiCreate.cannotUndo')}</AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => deleteGeneration(result.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                                           <AlertDialogCancel>{t('aiCreate.cancel')}</AlertDialogCancel>
+                                           <AlertDialogAction onClick={() => deleteGeneration(result.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('aiCreate.delete')}</AlertDialogAction>
                                         </AlertDialogFooter>
                                       </AlertDialogContent>
                                     </AlertDialog>
