@@ -15,6 +15,8 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
 
   const load = useCallback(async (showSpinner = true) => {
     if (showSpinner) setLoading(true);
@@ -23,9 +25,9 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
       const summary = await fetchDashboardSummary();
       setData(summary);
       onSummaryLoaded?.(summary);
-    } catch { setError('Error al cargar el resumen'); }
+    } catch { setError(t('dashboard.account.loadError')); }
     if (showSpinner) setLoading(false);
-  }, [onSummaryLoaded]);
+  }, [onSummaryLoaded, t]);
 
   useEffect(() => { load(); }, [load]);
 
