@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { WORK_TYPES, type WizardData } from './types';
+import { useWorkTypeLabels } from './useWizardLabels';
 
 interface StepTitleProps {
   data: WizardData;
@@ -17,17 +19,19 @@ interface StepTitleProps {
 }
 
 export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
+  const { t } = useTranslation();
+  const workTypeLabels = useWorkTypeLabels();
   const valid = data.title.trim() && data.workType;
   const [generatingDesc, setGeneratingDesc] = useState(false);
 
   const handleGenerateDescription = async () => {
     if (!data.title.trim()) {
-      toast.error('Escribe un título primero para generar la descripción');
+      toast.error(t('wizard.stepTitle.generateFirst'));
       return;
     }
     setGeneratingDesc(true);
     try {
-      const workTypeLabel = WORK_TYPES.find(t => t.value === data.workType)?.label || data.workType;
+      const workTypeLabel = workTypeLabels[data.workType] || data.workType;
       const context = [
         `Título: "${data.title}"`,
         data.workType ? `Tipo: ${workTypeLabel}` : '',
@@ -45,12 +49,12 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
       const improved = result?.improved || result?.result;
       if (improved) {
         onUpdate({ description: improved });
-        toast.success('Descripción generada');
+        toast.success(t('wizard.stepTitle.descGenerated'));
       } else {
-        toast.error('No se pudo generar la descripción');
+        toast.error(t('wizard.stepTitle.descError'));
       }
     } catch {
-      toast.error('Error al generar la descripción');
+      toast.error(t('wizard.stepTitle.descErrorGeneric'));
     }
     setGeneratingDesc(false);
   };
@@ -58,27 +62,27 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Información de la obra</h2>
-        <p className="text-sm text-muted-foreground mt-1">Describe tu obra.</p>
+        <h2 className="text-lg font-semibold">{t('wizard.stepTitle.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('wizard.stepTitle.subtitle')}</p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label className="text-sm">Título de la obra *</Label>
+          <Label className="text-sm">{t('wizard.stepTitle.titleLabel')} *</Label>
           <Input
             value={data.title}
             onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="Ej: Mi canción favorita"
+            placeholder={t('wizard.stepTitle.titlePlaceholder')}
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-sm">Tipo de obra *</Label>
+          <Label className="text-sm">{t('wizard.stepTitle.typeLabel')} *</Label>
           <Select value={data.workType} onValueChange={(v) => onUpdate({ workType: v })}>
-            <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder={t('wizard.stepTitle.typePlaceholder')} /></SelectTrigger>
             <SelectContent>
-              {WORK_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+              {WORK_TYPES.map((wt) => (
+                <SelectItem key={wt.value} value={wt.value}>{workTypeLabels[wt.value] || wt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -86,7 +90,7 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label className="text-sm">Descripción <span className="text-muted-foreground">(opcional)</span></Label>
+            <Label className="text-sm">{t('wizard.stepTitle.descLabel')} <span className="text-muted-foreground">({t('wizard.optional')})</span></Label>
             <Button
               type="button"
               variant="ghost"
@@ -96,21 +100,21 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
               onClick={handleGenerateDescription}
             >
               {generatingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-              {generatingDesc ? 'Generando...' : 'Generar con IA'}
+              {generatingDesc ? t('wizard.stepTitle.generating') : t('wizard.stepTitle.generateAI')}
             </Button>
           </div>
           <Textarea
             value={data.description}
             onChange={(e) => onUpdate({ description: e.target.value })}
             rows={3}
-            placeholder="Describe brevemente tu obra..."
+            placeholder={t('wizard.stepTitle.descPlaceholder')}
           />
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={onBack}>Atrás</Button>
-        <Button variant="hero" onClick={onNext} disabled={!valid}>Continuar</Button>
+        <Button variant="outline" onClick={onBack}>{t('wizard.back')}</Button>
+        <Button variant="hero" onClick={onNext} disabled={!valid}>{t('wizard.continue')}</Button>
       </div>
     </div>
   );

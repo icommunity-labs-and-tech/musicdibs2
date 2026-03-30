@@ -2,6 +2,7 @@ import { FileUp, GitBranch } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import type { WizardData } from './types';
 
 interface StepEntryProps {
@@ -11,26 +12,28 @@ interface StepEntryProps {
 }
 
 export function StepEntry({ data, onUpdate, onNext }: StepEntryProps) {
+  const { t } = useTranslation();
+
   const options = [
     {
       value: 'new' as const,
       icon: FileUp,
-      title: 'Registrar una nueva obra',
-      description: 'Protege una canción, letra, demo o archivo creativo como una obra nueva.',
+      title: t('wizard.entry.newTitle'),
+      description: t('wizard.entry.newDesc'),
     },
     {
       value: 'version' as const,
       icon: GitBranch,
-      title: 'Registrar una nueva versión de una obra existente',
-      description: 'Protege una nueva versión de una obra ya registrada, manteniendo su relación con la original.',
+      title: t('wizard.entry.versionTitle'),
+      description: t('wizard.entry.versionDesc'),
     },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Elegir tipo de protección</h2>
-        <p className="text-sm text-muted-foreground mt-1">¿Qué deseas registrar?</p>
+        <h2 className="text-lg font-semibold">{t('wizard.entry.title')}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t('wizard.entry.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -67,7 +70,7 @@ export function StepEntry({ data, onUpdate, onNext }: StepEntryProps) {
         variant="hero"
         className="w-full sm:w-auto"
       >
-        Continuar
+        {t('wizard.continue')}
       </Button>
     </div>
   );

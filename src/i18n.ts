@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { legalTranslations } from './i18nLegal';
 import { faqTranslations } from './i18nFaq';
 import { aiStudioTranslations } from './i18nAIStudio';
+import { wizardTranslations } from './i18nWizard';
 
 // Spanish-speaking country codes (ISO 3166-1 alpha-2 mapped via navigator.language)
 const SPANISH_LANG_TAGS = [
@@ -2503,6 +2504,9 @@ const allLangs = ['es', 'en', 'pt-BR', 'fr', 'it', 'de'] as const;
 allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
     Object.assign(resources[lang].translation, aiStudioTranslations[lang]);
+  }
+  if (resources[lang] && wizardTranslations[lang]) {
+    Object.assign(resources[lang].translation, wizardTranslations[lang]);
   }
 });
 
