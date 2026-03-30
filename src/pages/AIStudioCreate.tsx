@@ -1757,6 +1757,15 @@ const AIStudioCreate = () => {
                         <RotateCcw className="h-3.5 w-3.5" />
                         Regenerar letra completa
                       </Button>
+                      <Link
+                        to={`/ai-studio/vocal?lyrics=${encodeURIComponent(generatedLyrics)}`}
+                        className="block mt-2"
+                      >
+                        <Button variant="outline" size="sm" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
+                          <Mic className="w-3.5 h-3.5" />
+                          🎤 Cantar esta letra con mi voz — ir a Voz & Letra
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 )}
