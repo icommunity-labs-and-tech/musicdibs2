@@ -3,6 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { legalTranslations } from './i18nLegal';
 import { faqTranslations } from './i18nFaq';
+import { aiStudioTranslations } from './i18nAIStudio';
 
 // Spanish-speaking country codes (ISO 3166-1 alpha-2 mapped via navigator.language)
 const SPANISH_LANG_TAGS = [
@@ -1583,7 +1584,7 @@ const resources = {
   },
 };
 
-// Merge legal and FAQ translations into resources
+// Merge legal, FAQ and AI Studio translations into resources
 const langs = ['es', 'en', 'pt-BR'] as const;
 langs.forEach((lang) => {
   const key = lang === 'pt-BR' ? 'pt-BR' : lang;
@@ -1592,6 +1593,14 @@ langs.forEach((lang) => {
   }
   if (resources[key] && faqTranslations[lang]) {
     Object.assign(resources[key].translation, faqTranslations[lang]);
+  }
+});
+
+// Merge AI Studio subpage translations (all 6 languages)
+const allLangs = ['es', 'en', 'pt-BR', 'fr', 'it', 'de'] as const;
+allLangs.forEach((lang) => {
+  if (resources[lang] && aiStudioTranslations[lang]) {
+    Object.assign(resources[lang].translation, aiStudioTranslations[lang]);
   }
 });
 
