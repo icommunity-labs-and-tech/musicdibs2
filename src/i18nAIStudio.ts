@@ -966,6 +966,10 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       noCredits: 'No credits',
       creditSingular: 'credit',
       creditPlural: 'credits',
+      rateLimit: 'Generation limit reached',
+      rateLimitDesc: 'Wait a moment before trying again.',
+      enhanceError: 'Error enhancing audio',
+      enhanceTimeout: 'Processing took too long. Please try again.',
     },
   },
   'pt-BR': {
