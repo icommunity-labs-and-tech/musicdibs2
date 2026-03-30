@@ -325,6 +325,32 @@ export default function AIStudioVocal() {
                         onClick={() => setLyricsArtistRefs(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])}>{a}</Badge>
                     ))}
                   </div>
+                  <div className="flex gap-2 mt-1.5">
+                    <Input
+                      placeholder="Añadir artista personalizado…"
+                      className="text-xs h-8"
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = (e.target as HTMLInputElement).value.trim();
+                          if (val && !lyricsArtistRefs.includes(val)) {
+                            setLyricsArtistRefs(prev => [...prev, val]);
+                            (e.target as HTMLInputElement).value = '';
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  {lyricsArtistRefs.filter(a => !ARTIST_REFS.includes(a)).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {lyricsArtistRefs.filter(a => !ARTIST_REFS.includes(a)).map(a => (
+                        <Badge key={a} variant="default" className="cursor-pointer text-xs gap-1"
+                          onClick={() => setLyricsArtistRefs(prev => prev.filter(x => x !== a))}>
+                          {a} ✕
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Estructura y Esquema de rima */}
