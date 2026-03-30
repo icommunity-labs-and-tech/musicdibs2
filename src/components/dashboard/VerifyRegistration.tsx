@@ -7,6 +7,8 @@ import { verifyFile } from '@/services/dashboardApi';
 import type { VerificationResult } from '@/types/dashboard';
 
 export function VerifyRegistration() {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
