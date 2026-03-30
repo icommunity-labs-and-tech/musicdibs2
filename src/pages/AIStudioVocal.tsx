@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Mic, Download, Loader2, Music, Sparkles } from 'lucide-react';
@@ -23,6 +22,15 @@ export default function AIStudioVocal() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [audioUrl, setAudioUrl] = useState('');
   const [history, setHistory] = useState<any[]>([]);
+
+  // Clone modal states
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [cloningName, setCloningName] = useState('');
+  const [cloningFile, setCloningFile] = useState<File | null>(null);
+  const [cloningDuration, setCloningDuration] = useState<number | null>(null);
+  const [cloningNoise, setCloningNoise] = useState(false);
+  const [isCloning, setIsCloning] = useState(false);
+  const cloneFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const lyricsParam = searchParams.get('lyrics');
@@ -46,6 +54,36 @@ export default function AIStudioVocal() {
         setHistory(vocaltracks);
       });
   }, [user]);
+
+  const handleInlineClone = async () => {
+    if (!cloningFile || !cloningName.trim() || !user) return;
+    if (cloningDuration !== null && cloningDuration < 30) {
+      toast({ title: 'Audio muy corto', description: 'Mínimo 30 segundos.', variant: 'destructive' });
+      return;
+    }
+    setIsCloning(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const form = new FormData();
+      form.append('audio', cloningFile);
+      form.append('name', cloningName.trim());
+      form.append('remove_background_noise', String(cloningNoise));
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`,
+        { method: 'POST', headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: form }
+      );
+      const data = await response.json();
+      if (!response.ok) { toast({ title: 'Error al clonar', description: data.error || 'No se pudo clonar', variant: 'destructive' }); return; }
+      const { data: newClones } = await supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false });
+      setVoiceClones(newClones || []);
+      if (newClones?.length) setSelectedCloneId(newClones[0].id);
+      setShowCloneModal(false);
+      setCloningName(''); setCloningFile(null); setCloningDuration(null);
+      if (cloneFileRef.current) cloneFileRef.current.value = '';
+      toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar.` });
+    } catch { toast({ title: 'Error de conexión', variant: 'destructive' }); }
+    finally { setIsCloning(false); }
+  };
 
   const handleGenerate = async () => {
     if (!lyrics.trim()) { toast({ title: 'Escribe o pega tu letra primero', variant: 'destructive' }); return; }
@@ -122,9 +160,9 @@ export default function AIStudioVocal() {
                 {voiceClones.length === 0 ? (
                   <div className="text-center py-6">
                     <p className="text-sm text-muted-foreground mb-3">Aún no tienes ninguna voz clonada</p>
-                    <Link to="/dashboard/voice-cloning">
-                      <Button size="sm">Clonar mi voz</Button>
-                    </Link>
+                    <Button size="sm" variant="outline" onClick={() => setShowCloneModal(true)}>
+                      <Mic className="w-3.5 h-3.5 mr-2" />Clonar mi voz
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -145,6 +183,9 @@ export default function AIStudioVocal() {
                         </div>
                       </button>
                     ))}
+                    <Button size="sm" variant="ghost" className="w-full text-xs text-muted-foreground mt-1" onClick={() => setShowCloneModal(true)}>
+                      <Mic className="w-3 h-3 mr-1" /> Añadir otra voz
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -257,6 +298,50 @@ export default function AIStudioVocal() {
             )}
           </div>
         </div>
+
+        {/* Clone voice modal */}
+        {showCloneModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+            <div style={{ background: 'hsl(var(--background))', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '480px', border: '1px solid hsl(var(--border))' }}>
+              <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>🎤 Clonar mi voz</h2>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>Sube 1-2 minutos de tu voz hablando o cantando. Sin música de fondo.</p>
+              <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
+                💡 Graba en silencio · Voz clara y natural · MP3 o WAV · Mínimo 1 minuto recomendado
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>Nombre de tu voz *</label>
+                <input type="text" value={cloningName} onChange={e => setCloningName(e.target.value)} placeholder="Ej: Mi voz, Luna..." maxLength={50}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--background))', color: 'hsl(var(--foreground))', boxSizing: 'border-box' }} />
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>Audio de tu voz *</label>
+                <input ref={cloneFileRef} type="file" accept="audio/mp3,audio/mpeg,audio/wav,.mp3,.wav,.m4a"
+                  onChange={e => { const f = e.target.files?.[0]; if (!f) return; setCloningFile(f); const a = new Audio(URL.createObjectURL(f)); a.onloadedmetadata = () => setCloningDuration(Math.round(a.duration)); }}
+                  style={{ width: '100%', fontSize: '13px', color: 'hsl(var(--foreground))' }} />
+                {cloningDuration !== null && (
+                  <p style={{ marginTop: '6px', fontSize: '12px', color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e' }}>
+                    {cloningDuration < 30 ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos` : cloningDuration < 60 ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)` : `✓ Duración óptima (${cloningDuration}s)`}
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+                <input type="checkbox" id="clone-noise-vocal" checked={cloningNoise} onChange={e => setCloningNoise(e.target.checked)} />
+                <label htmlFor="clone-noise-vocal" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>Eliminar ruido de fondo</label>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={handleInlineClone}
+                  disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && cloningDuration < 30)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, background: 'hsl(var(--primary))', color: 'white', border: 'none', cursor: 'pointer', opacity: (!cloningFile || !cloningName.trim() || isCloning) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  {isCloning ? <><Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />Clonando...</> : '🎤 Clonar mi voz'}
+                </button>
+                <button type="button" onClick={() => { setShowCloneModal(false); setCloningName(''); setCloningFile(null); setCloningDuration(null); }}
+                  style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'transparent', color: 'hsl(var(--muted-foreground))', border: '1px solid hsl(var(--border))', cursor: 'pointer' }}>
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </div>
