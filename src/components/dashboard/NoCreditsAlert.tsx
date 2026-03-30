@@ -7,7 +7,7 @@ interface NoCreditsAlertProps {
   message?: string;
 }
 
-export function NoCreditsAlert({ message = 'No tienes créditos suficientes para esta acción.' }: NoCreditsAlertProps) {
+export function NoCreditsAlert({ message }: NoCreditsAlertProps) {
   const { t } = useTranslation();
 
   return (
