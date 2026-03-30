@@ -52,7 +52,7 @@ const AIStudio = () => {
       color: "from-rose-500 to-red-500"
     },
     {
-      title: "Portadas con IA",
+      title: "Crea Portadas",
       description: "Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.",
       icon: Image,
       href: "/ai-studio/covers",
