@@ -213,6 +213,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       errorSelectMood: 'Selecciona un nuevo mood',
       errorAudioOnly: 'Solo se permiten archivos de audio',
       errorFileSize: 'El archivo no puede superar 20MB',
+      enhanceError: 'Error al mejorar el audio. Inténtalo de nuevo.',
+      enhanceTimeout: 'El procesamiento ha tardado demasiado. Inténtalo de nuevo.',
     },
     aiInspire: {
       backToStudio: 'Volver a AI MusicDibs Studio',
