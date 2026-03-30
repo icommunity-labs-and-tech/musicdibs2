@@ -18,14 +18,8 @@ import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
 import { CertificateButton } from '@/components/dashboard/CertificateButton';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from 'react-i18next';
 
-const workTypes = [
-  { value: 'audio', label: 'Audio' },
-  { value: 'video', label: 'Vídeo' },
-  { value: 'image', label: 'Imagen' },
-  { value: 'document', label: 'Documento' },
-  { value: 'other', label: 'Otro' },
-];
 
 interface PrefillData {
   title?: string;
@@ -47,7 +41,15 @@ interface RegistrationResult {
 export function RegisterWork({ summary }: { summary: DashboardSummary | null }) {
   const location = useLocation();
   const prefill = (location.state as { prefill?: PrefillData })?.prefill;
+  const { t } = useTranslation();
 
+  const workTypes = [
+    { value: 'audio', label: t('dashboard.registerWork.typeAudio') },
+    { value: 'video', label: t('dashboard.registerWork.typeVideo') },
+    { value: 'image', label: t('dashboard.registerWork.typeImage') },
+    { value: 'document', label: t('dashboard.registerWork.typeDocument') },
+    { value: 'other', label: t('dashboard.registerWork.typeOther') },
+  ];
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'failed' | 'error'>('idle');
   const [ownership, setOwnership] = useState(false);
@@ -169,8 +171,8 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
         // Success — reset form immediately so user can register more works
         // Blockchain certification happens asynchronously via webhook
         window.dispatchEvent(new CustomEvent('musicdibs:work-registered'));
-        toast.success('🎉 ¡Obra enviada! La certificación en blockchain se procesará en segundo plano.', {
-          description: 'Recibirás una notificación cuando finalice. Puedes seguir registrando obras.',
+        toast.success(t('dashboard.registerWork.toastSuccess'), {
+          description: t('dashboard.registerWork.toastSuccessDesc'),
           duration: 6000,
         });
         setLastRegisteredWorkId(res.registrationId);
@@ -224,66 +226,65 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
     <Card className="border-border/40 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-          <Upload className="h-4 w-4 text-primary" /> Registrar obra
+          <Upload className="h-4 w-4 text-primary" /> {t('dashboard.registerWork.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {noCredits ? (
-          <NoCreditsAlert message="No tienes créditos suficientes para registrar una obra." />
+          <NoCreditsAlert message={t('dashboard.registerWork.noCreditsMsg')} />
         ) : kycBlocked ? (
           <div className="space-y-3 py-2">
             <div className="flex items-center gap-2 text-amber-600">
               <ShieldAlert className="h-5 w-5" />
-              <span className="font-medium text-sm">Verificación de identidad requerida</span>
+              <span className="font-medium text-sm">{t('dashboard.registerWork.kycRequired')}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Tu verificación de identidad puede tardar hasta 48 horas en estar lista.
-              Si ha pasado más tiempo, contáctanos.
+              {t('dashboard.registerWork.kycWait')}
             </p>
             <Badge variant="outline" className="text-amber-600 border-amber-300">
-              Estado: {summary?.kycStatus === 'pending' ? 'Pendiente' : 'No verificado'}
+              {t('dashboard.registerWork.statusLabel')}: {summary?.kycStatus === 'pending' ? t('dashboard.registerWork.statusPending') : t('dashboard.registerWork.statusUnverified')}
             </Badge>
           </div>
         ) : status === 'failed' ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <XCircle className="h-10 w-10 text-destructive" />
-            <p className="font-medium text-sm">Error en el registro blockchain</p>
+            <p className="font-medium text-sm">{t('dashboard.registerWork.blockchainError')}</p>
             <p className="text-xs text-muted-foreground">{result?.ibsError}</p>
             {result?.registrationId && (
               <p className="text-xs text-muted-foreground">ID: {result.registrationId}</p>
             )}
             <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              <span className="text-xs text-emerald-700 font-medium">Crédito reembolsado</span>
+              <span className="text-xs text-emerald-700 font-medium">{t('dashboard.registerWork.creditRefunded')}</span>
             </div>
             <Button variant="outline" size="sm" className="w-full" onClick={resetForm}>
-              Intentar de nuevo
+              {t('dashboard.registerWork.tryAgain')}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            <p className="text-xs text-muted-foreground">1 registro = {FEATURE_COSTS.register_work} crédito{FEATURE_COSTS.register_work > 1 ? 's' : ''}</p>
+            <p className="text-xs text-muted-foreground">{t('dashboard.registerWork.creditCost', { cost: FEATURE_COSTS.register_work, plural: FEATURE_COSTS.register_work > 1 ? 's' : '' })}</p>
             
             {aiAudioUrl && (
               <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">
                 <Music className="h-4 w-4 text-primary" />
-                <span className="text-xs text-primary font-medium">Audio generado con AI MusicDibs Studio</span>
+                <span className="text-xs text-primary font-medium">{t('dashboard.registerWork.aiAudioAttached')}</span>
               </div>
             )}
 
             {/* Signature Selection */}
             <div className="space-y-1.5">
               <Label className="text-xs flex items-center gap-1">
-                <Key className="h-3 w-3" /> Identidad digital (firma)
+                <Key className="h-3 w-3" /> {t('dashboard.registerWork.signatureLabel')}
               </Label>
               {loadingSigs ? (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground p-2">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Cargando firmas...
+                  <Loader2 className="h-3 w-3 animate-spin" /> {t('dashboard.registerWork.loadingSignatures')}
                 </div>
               ) : activeSignatures.length > 0 ? (
                 <Select value={selectedSignature} onValueChange={setSelectedSignature}>
                   <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="Seleccionar firma" />
+                    <SelectValue placeholder={t('dashboard.registerWork.selectSignature')} />
                   </SelectTrigger>
                   <SelectContent>
                     {activeSignatures.map((sig: IbsSignature) => (
@@ -296,11 +297,11 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               ) : (
                 <div className="space-y-2 p-2 rounded-md border border-dashed border-amber-400/50 bg-amber-50/50 dark:bg-amber-900/10">
                   <p className="text-xs text-amber-700 dark:text-amber-400">
-                    Necesitas crear una identidad digital para firmar tus obras.
+                    {t('dashboard.registerWork.needSignature')}
                   </p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Nombre de la firma"
+                      placeholder={t('dashboard.registerWork.signatureName')}
                       value={newSigName}
                       onChange={(e) => setNewSigName(e.target.value)}
                       className="h-8 text-xs flex-1"
@@ -312,7 +313,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                       disabled={creatingSignature || !newSigName.trim()}
                       onClick={handleCreateSignature}
                     >
-                      {creatingSignature ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Crear'}
+                      {creatingSignature ? <Loader2 className="h-3 w-3 animate-spin" /> : t('dashboard.registerWork.create')}
                     </Button>
                   </div>
                   {kycUrl && (
@@ -322,22 +323,22 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                       rel="noopener noreferrer"
                       className="flex items-center gap-1 text-xs text-primary hover:underline"
                     >
-                      <LinkIcon className="h-3 w-3" /> Completar verificación KYC
+                      <LinkIcon className="h-3 w-3" /> {t('dashboard.registerWork.completeKyc')}
                     </a>
                   )}
                   {signatures.filter((s: IbsSignature) => s.status === 'pending').length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Firmas pendientes de verificación:</p>
+                      <p className="text-xs text-muted-foreground">{t('dashboard.registerWork.pendingSignatures')}</p>
                       {signatures
                         .filter((s: IbsSignature) => s.status === 'pending')
                         .map((s: IbsSignature) => (
                           <div key={s.id} className="flex items-center gap-2">
                             <Badge variant="outline" className="text-amber-600 text-xs">
-                              {s.signature_name} — Pendiente
+                              {s.signature_name} — {t('dashboard.registerWork.pending')}
                             </Badge>
                             {s.kyc_url && (
                               <a href={s.kyc_url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                                Verificar
+                                {t('dashboard.registerWork.verify')}
                               </a>
                             )}
                           </div>
@@ -349,7 +350,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                         className="h-7 text-xs"
                         onClick={loadSignatures}
                       >
-                        <RefreshCw className="h-3 w-3 mr-1" /> Actualizar estado
+                        <RefreshCw className="h-3 w-3 mr-1" /> {t('dashboard.registerWork.refreshStatus')}
                       </Button>
                     </div>
                   )}
@@ -358,7 +359,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Título de la obra</Label>
+              <Label className="text-xs">{t('dashboard.registerWork.workTitle')}</Label>
               <Input 
                 name="title" 
                 required 
@@ -368,16 +369,16 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Tipo de obra</Label>
+              <Label className="text-xs">{t('dashboard.registerWork.workType')}</Label>
               <Select value={workType} onValueChange={setWorkType} required>
-                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-sm"><SelectValue placeholder={t('dashboard.registerWork.selectType')} /></SelectTrigger>
                 <SelectContent>
                   {workTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Autor o titular</Label>
+              <Label className="text-xs">{t('dashboard.registerWork.authorHolder')}</Label>
               <Input 
                 name="author" 
                 required 
@@ -387,7 +388,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Descripción</Label>
+              <Label className="text-xs">{t('dashboard.registerWork.description')}</Label>
               <Textarea 
                 name="description" 
                 rows={2} 
@@ -397,12 +398,12 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Archivo original</Label>
+              <Label className="text-xs">{t('dashboard.registerWork.originalFile')}</Label>
               {aiAudioUrl && !file ? (
                 <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 p-3">
                   <Music className="h-4 w-4 text-primary" />
                   <span className="text-xs text-foreground truncate flex-1">
-                    Audio AI generado (se usará automáticamente)
+                    {t('dashboard.registerWork.aiAudioGenerated')}
                   </span>
                   <Button 
                     type="button" 
@@ -411,7 +412,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                     className="text-xs h-7"
                     onClick={() => fileRef.current?.click()}
                   >
-                    Cambiar
+                    {t('dashboard.registerWork.change')}
                   </Button>
                 </div>
               ) : (
@@ -421,7 +422,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                 >
                   <FileUp className="h-4 w-4 text-muted-foreground" />
                   <span className="text-xs text-muted-foreground truncate">
-                    {file ? file.name : 'Seleccionar archivo'}
+                    {file ? file.name : t('dashboard.registerWork.selectFile')}
                   </span>
                 </div>
               )}
@@ -430,13 +431,13 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
             <div className="flex items-start gap-2">
               <Checkbox id="ownership" checked={ownership} onCheckedChange={v => setOwnership(!!v)} />
               <Label htmlFor="ownership" className="text-xs leading-tight cursor-pointer">
-                Declaro ser titular legítimo de esta obra
+                {t('dashboard.registerWork.ownershipDeclaration')}
               </Label>
             </div>
 
             {status === 'error' && (
               <div className="flex items-center gap-2 text-xs text-destructive">
-                <AlertCircle className="h-3.5 w-3.5" /> {result?.ibsError || 'Error al registrar la obra'}
+                <AlertCircle className="h-3.5 w-3.5" /> {result?.ibsError || t('dashboard.registerWork.errorDefault')}
               </div>
             )}
             <Button
@@ -445,7 +446,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
               size="sm"
               disabled={loading || !ownership || !hasFileOrAudio || !workType || !selectedSignature}
             >
-              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Registrando en blockchain...</> : 'Registrar obra'}
+              {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> {t('dashboard.registerWork.registering')}</> : t('dashboard.registerWork.registerBtn')}
             </Button>
 
             {showDistributeBanner && lastRegisteredWorkId && (
@@ -455,9 +456,9 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                     <Radio className="h-4 w-4 text-emerald-600" />
                   </div>
                   <div className="flex-1 min-w-0 space-y-1.5">
-                    <p className="text-sm font-semibold">¡Obra registrada! ¿La distribuimos?</p>
+                    <p className="text-sm font-semibold">{t('dashboard.registerWork.workRegistered')}</p>
                     <p className="text-xs text-muted-foreground">
-                      Llega a Spotify, Apple Music, Amazon Music y más de 150 plataformas con MusicDibs Distribución.
+                      {t('dashboard.registerWork.distributeDesc')}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {lastRegisteredWork?.blockchain_hash && lastRegisteredWork?.ibs_evidence_id && (
