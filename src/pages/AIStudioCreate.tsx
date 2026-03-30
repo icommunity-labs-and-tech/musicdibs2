@@ -1503,6 +1503,37 @@ const AIStudioCreate = () => {
                                 Eliminar ruido de fondo automáticamente
                               </label>
                             </div>
+                            {/* Provider selector */}
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                              <button
+                                type="button"
+                                onClick={() => setCloningProvider('mureka')}
+                                style={{
+                                  flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px',
+                                  border: cloningProvider === 'mureka' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                                  background: cloningProvider === 'mureka' ? 'hsl(var(--primary) / 0.08)' : 'transparent',
+                                  color: 'hsl(var(--foreground))',
+                                  cursor: 'pointer', textAlign: 'center',
+                                }}
+                              >
+                                <div style={{ fontWeight: 600 }}>🎵 Para canciones</div>
+                                <div style={{ fontSize: '11px', color: 'hsl(var(--muted-foreground))' }}>Mureka — voz real en música</div>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setCloningProvider('elevenlabs')}
+                                style={{
+                                  flex: 1, padding: '8px', borderRadius: '8px', fontSize: '12px',
+                                  border: cloningProvider === 'elevenlabs' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                                  background: cloningProvider === 'elevenlabs' ? 'hsl(var(--primary) / 0.08)' : 'transparent',
+                                  color: 'hsl(var(--foreground))',
+                                  cursor: 'pointer', textAlign: 'center',
+                                }}
+                              >
+                                <div style={{ fontWeight: 600 }}>🗣️ Para texto a voz</div>
+                                <div style={{ fontSize: '11px', color: 'hsl(var(--muted-foreground))' }}>ElevenLabs — narración/dubbing</div>
+                              </button>
+                            </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                               <button
                                 type="button"
