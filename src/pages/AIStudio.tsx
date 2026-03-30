@@ -32,7 +32,7 @@ const AIStudio = () => {
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Inspìrate",
+      title: "Inspírate",
       description: "Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.",
       icon: Lightbulb,
       href: "/ai-studio/inspire",
