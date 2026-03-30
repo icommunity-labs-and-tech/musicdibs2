@@ -7,13 +7,16 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+import { useTranslation } from "react-i18next";
 
 const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
+  const { t } = useTranslation();
+
   const modules = [
     {
-      title: "Crea Música",
-      description: "Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.",
+      titleKey: "aiStudio.modules.createMusic.title",
+      descKey: "aiStudio.modules.createMusic.desc",
       icon: Wand2,
       href: "/ai-studio/create",
       available: true,
@@ -22,8 +25,8 @@ const AIStudio = () => {
       color: "from-purple-500 to-pink-500"
     },
     {
-      title: "Edita y Modifica",
-      description: "Modifica pistas existentes, crea variaciones o aplica inpainting para rellenar secciones.",
+      titleKey: "aiStudio.modules.editModify.title",
+      descKey: "aiStudio.modules.editModify.desc",
       icon: Edit3,
       href: "/ai-studio/edit",
       available: true,
@@ -32,8 +35,8 @@ const AIStudio = () => {
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Inspírate",
-      description: "Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.",
+      titleKey: "aiStudio.modules.inspire.title",
+      descKey: "aiStudio.modules.inspire.desc",
       icon: Lightbulb,
       href: "/ai-studio/inspire",
       available: true,
@@ -42,8 +45,8 @@ const AIStudio = () => {
       color: "from-amber-500 to-orange-500"
     },
     {
-      title: "Crea Videoclips",
-      description: "Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.",
+      titleKey: "aiStudio.modules.createVideoclips.title",
+      descKey: "aiStudio.modules.createVideoclips.desc",
       icon: Video,
       href: "/ai-studio/video",
       available: true,
@@ -52,8 +55,8 @@ const AIStudio = () => {
       color: "from-rose-500 to-red-500"
     },
     {
-      title: "Crea Portadas",
-      description: "Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.",
+      titleKey: "aiStudio.modules.createCovers.title",
+      descKey: "aiStudio.modules.createCovers.desc",
       icon: Image,
       href: "/ai-studio/covers",
       available: true,
@@ -62,8 +65,8 @@ const AIStudio = () => {
       color: "from-emerald-500 to-teal-500"
     },
     {
-      title: "Canta tu canción",
-      description: "Genera una pista vocal con tu voz clonada cantando tu letra. Descárgala y mézclala con tu base instrumental.",
+      titleKey: "aiStudio.modules.singYourSong.title",
+      descKey: "aiStudio.modules.singYourSong.desc",
       icon: Mic,
       href: "/ai-studio/vocal",
       available: true,
@@ -81,20 +84,20 @@ const AIStudio = () => {
         {/* Back Button */}
         <Link to="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Volver al Dashboard
+          {t('aiStudio.backToDashboard')}
         </Link>
 
         {/* Hero Section */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Powered by ElevenLabs AI</span>
+            <span className="text-sm font-medium">{t('aiStudio.poweredBy')}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            AI MusicDibs Studio
+            {t('aiStudio.pageTitle')}
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Crea música original con inteligencia artificial. Genera, edita y explora nuevos sonidos para tus proyectos creativos.
+            {t('aiStudio.pageSubtitle')}
           </p>
         </div>
 
@@ -104,10 +107,10 @@ const AIStudio = () => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = module.costsCredits && !hasEnough(cost);
             return (
-            <Card key={module.title} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
               {disabled && (
                 <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
-                  Sin créditos
+                  {t('aiStudio.noCredits')}
                 </Badge>
               )}
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
@@ -116,15 +119,15 @@ const AIStudio = () => {
                   <module.icon className="w-6 h-6 text-white" />
                 </div>
                 <CardTitle className="flex items-center gap-2">
-                  {module.title}
+                  {t(module.titleKey)}
                   {!module.available && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">Próximamente</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">{t('aiStudio.comingSoon')}</span>
                   )}
                 </CardTitle>
-                <CardDescription>{module.description}</CardDescription>
+                <CardDescription>{t(module.descKey)}</CardDescription>
                 {module.costsCredits && cost > 0 && (
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Coins className="h-3 w-3" /> {cost} crédito{cost > 1 ? 's' : ''} por uso
+                    <Coins className="h-3 w-3" /> {cost} {cost > 1 ? t('aiStudio.creditsPerUse') : t('aiStudio.creditPerUse')}
                   </span>
                 )}
               </CardHeader>
@@ -133,14 +136,14 @@ const AIStudio = () => {
                   <Button asChild className="w-full" variant="default">
                     <Link to="/dashboard/credits">
                       <Coins className="w-4 h-4 mr-2" />
-                      Comprar créditos
+                      {t('aiStudio.buyCredits')}
                     </Link>
                   </Button>
                 ) : (
                 <Button asChild className="w-full" variant={module.available ? "default" : "secondary"}>
                   <Link to={module.href}>
                     <Zap className="w-4 h-4 mr-2" />
-                    {module.available ? "Comenzar" : "Ver Preview"}
+                    {module.available ? t('aiStudio.startBtn') : t('aiStudio.previewBtn')}
                   </Link>
                 </Button>
                 )}
@@ -153,15 +156,15 @@ const AIStudio = () => {
         {/* Features */}
         <div className="grid md:grid-cols-4 gap-4 mb-16">
           {[
-            { icon: Music, title: "Alta Calidad", desc: "Audio de 44.1kHz estéreo" },
-            { icon: Zap, title: "Rápido", desc: "Generación en segundos" },
-            { icon: Sparkles, title: "Creativo", desc: "Infinitas posibilidades" },
-            { icon: Wand2, title: "Fácil", desc: "Solo describe tu idea" }
+            { icon: Music, key: 'highQuality' },
+            { icon: Zap, key: 'fast' },
+            { icon: Sparkles, key: 'creative' },
+            { icon: Wand2, key: 'easy' }
           ].map((feature) => (
-            <div key={feature.title} className="text-center p-6 rounded-xl bg-muted/50">
+            <div key={feature.key} className="text-center p-6 rounded-xl bg-muted/50">
               <feature.icon className="w-8 h-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold mb-1">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground">{feature.desc}</p>
+              <h3 className="font-semibold mb-1">{t(`aiStudio.features.${feature.key}.title`)}</h3>
+              <p className="text-sm text-muted-foreground">{t(`aiStudio.features.${feature.key}.desc`)}</p>
             </div>
           ))}
         </div>
@@ -172,13 +175,10 @@ const AIStudio = () => {
             <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0 mt-0.5" />
             <div>
               <h3 className="font-semibold text-amber-700 dark:text-amber-400 mb-2">
-                Uso Responsable y Derechos
+                {t('aiStudio.legalTitle')}
               </h3>
               <p className="text-sm text-muted-foreground">
-                La música generada por IA está sujeta a los términos de servicio de Stable Audio. 
-                Úsala de manera ética y responsable. Las obras generadas pueden registrarse en MusicDibs 
-                para proteger tus derechos, pero debes verificar que cumplen con las políticas de uso comercial.
-                No generes contenido que infrinja derechos de terceros o que sea ofensivo.
+                {t('aiStudio.legalText')}
               </p>
             </div>
           </CardContent>
