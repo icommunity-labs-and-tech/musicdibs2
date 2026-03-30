@@ -341,59 +341,7 @@ const AIStudioCreate = () => {
       const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
       const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
 
-      // Si hay voz clonada Mureka seleccionada, usar Mureka
-      const selectedCloneData = selectedCloneId
-        ? voiceClones.find((v: any) => v.id === selectedCloneId)
-        : null;
 
-      console.log('[DEBUG] selectedCloneId:', selectedCloneId);
-      console.log('[DEBUG] voiceClones:', voiceClones);
-      console.log('[MUREKA-CHECK] clone:', selectedCloneData?.name, 'provider:', selectedCloneData?.provider, 'vocal_id:', selectedCloneData?.mureka_vocal_id);
-
-      if (selectedCloneData && selectedCloneData.provider === 'mureka' && selectedCloneData.mureka_vocal_id) {
-        console.log('[MUREKA-CHECK] Using Mureka for generation');
-        const { data: { session } } = await supabase.auth.getSession();
-        const murekaRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mureka-generate-song`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session?.access_token}`,
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-            body: JSON.stringify({
-              prompt: enrichedPrompt,
-              lyrics: lyricsText || undefined,
-              mureka_vocal_id: selectedCloneData.mureka_vocal_id,
-              genre: selectedGenre || undefined,
-              mood: selectedMood || undefined,
-              duration,
-            }),
-          }
-        );
-        const murekaData = await murekaRes.json();
-        if (!murekaRes.ok) {
-          toast({ title: 'Error Mureka', description: murekaData.error || 'No se pudo generar', variant: 'destructive' });
-          return;
-        }
-        if (murekaData.audioUrl) {
-          const newResult: GenerationResult = {
-            id: murekaData.generationId || Date.now().toString(),
-            audioUrl: murekaData.audioUrl,
-            prompt: enrichedPrompt,
-            duration: duration,
-            genre: selectedGenre || undefined,
-            mood: selectedMood || undefined,
-            createdAt: new Date(),
-            isFavorite: false,
-          };
-          setResults(prev => [newResult, ...prev]);
-          setLastResult(newResult);
-          toast({ title: '🎤 ¡Canción generada con tu voz!', description: 'Tu voz clonada ha sido usada en la canción.' });
-        }
-        return;
-      }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
