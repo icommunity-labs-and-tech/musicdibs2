@@ -42,7 +42,7 @@ const AIStudio = () => {
       color: "from-amber-500 to-orange-500"
     },
     {
-      title: "Videoclips",
+      title: "Crea Videoclips",
       description: "Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.",
       icon: Video,
       href: "/ai-studio/video",
