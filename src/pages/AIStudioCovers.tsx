@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle,
@@ -21,28 +22,28 @@ import {
   RefreshCw, ImageIcon, Sparkles,
 } from "lucide-react"
 
-const VISUAL_STYLES = [
-  { value: "photorealistic",   label: "Fotorrealista" },
-  { value: "digital illustration", label: "Ilustración digital" },
-  { value: "abstract art",     label: "Abstracto" },
-  { value: "vintage retro",    label: "Vintage / Retro" },
-  { value: "anime manga",      label: "Anime / Manga" },
-  { value: "minimalist",       label: "Minimalista" },
-  { value: "dark atmospheric", label: "Oscuro / Atmósferico" },
-  { value: "neon cyberpunk",   label: "Neon / Cyberpunk" },
-  { value: "watercolor",       label: "Acuarela" },
-  { value: "grunge urban",     label: "Grunge / Urbano" },
+const STYLE_KEYS = [
+  { value: "photorealistic",      key: "photorealistic" },
+  { value: "digital illustration", key: "digitalIllustration" },
+  { value: "abstract art",        key: "abstract" },
+  { value: "vintage retro",       key: "vintage" },
+  { value: "anime manga",         key: "anime" },
+  { value: "minimalist",          key: "minimalist" },
+  { value: "dark atmospheric",    key: "dark" },
+  { value: "neon cyberpunk",      key: "neon" },
+  { value: "watercolor",          key: "watercolor" },
+  { value: "grunge urban",        key: "grunge" },
 ]
 
-const COLOR_PALETTES = [
-  { value: "vibrant multicolor", label: "Vibrante / Multicolor" },
-  { value: "dark moody blacks and deep blues", label: "Oscuro / Moody" },
-  { value: "warm golden sunset tones", label: "Cálido / Dorado" },
-  { value: "cold icy blues and whites", label: "Frío / Azul hielo" },
-  { value: "neon pink and purple", label: "Neon Rosa / Púrpura" },
-  { value: "earth tones browns and greens", label: "Tierra / Natural" },
-  { value: "black and white monochrome", label: "Blanco y Negro" },
-  { value: "pastel soft colors", label: "Pastel / Suave" },
+const COLOR_KEYS = [
+  { value: "vibrant multicolor",               key: "vibrant" },
+  { value: "dark moody blacks and deep blues",  key: "dark" },
+  { value: "warm golden sunset tones",          key: "warm" },
+  { value: "cold icy blues and whites",         key: "cold" },
+  { value: "neon pink and purple",              key: "neon" },
+  { value: "earth tones browns and greens",     key: "earth" },
+  { value: "black and white monochrome",        key: "bw" },
+  { value: "pastel soft colors",                key: "pastel" },
 ]
 
 const ARTIST_REFS = [
@@ -53,6 +54,7 @@ const ARTIST_REFS = [
 ]
 
 const AIStudioCovers = () => {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { hasEnough } = useCredits()
 
@@ -77,10 +79,10 @@ const AIStudioCovers = () => {
       if (error || data?.error) throw new Error(data?.error || error?.message)
       if (data?.improved) {
         setDescription(data.improved.slice(0, 300))
-        toast.success("✨ Descripción mejorada")
+        toast.success(t('aiCovers.descImproved'))
       }
     } catch {
-      toast.error("No se pudo mejorar la descripción")
+      toast.error(t('aiShared.error'))
     } finally {
       setIsImprovingDesc(false)
     }
@@ -88,11 +90,11 @@ const AIStudioCovers = () => {
 
   const handleGenerate = async () => {
     if (!trackTitle.trim() && !description.trim()) {
-      toast.error("Añade al menos el título del single o una descripción")
+      toast.error(t('aiCovers.errorMinInput'))
       return
     }
     if (!hasEnough(FEATURE_COSTS.generate_cover)) {
-      toast.error("Necesitas 2 créditos para generar una portada")
+      toast.error(t('aiShared.noCredits'))
       return
     }
 
@@ -101,7 +103,6 @@ const AIStudioCovers = () => {
     setImageUrl(null)
 
     try {
-      // Gastar créditos
       const { data: spend, error: spendErr } =
         await supabase.functions.invoke("spend-credits", {
           body: {
@@ -110,10 +111,9 @@ const AIStudioCovers = () => {
           },
         })
       if (spendErr || spend?.error) {
-        throw new Error(spend?.message || "Error al gastar créditos")
+        throw new Error(spend?.message || t('aiShared.error'))
       }
 
-      // Generar portada
       const { data, error } = await supabase.functions.invoke(
         "generate-cover",
         {
@@ -132,10 +132,10 @@ const AIStudioCovers = () => {
       }
 
       setImageUrl(data.imageUrl)
-      toast.success("¡Portada generada!")
+      toast.success(t('aiCovers.coverGenerated'))
     } catch (err: any) {
-      setGenError(err.message || "Error al generar la portada")
-      toast.error(err.message || "Error al generar la portada")
+      setGenError(err.message || t('aiShared.error'))
+      toast.error(err.message || t('aiShared.error'))
     }
 
     setIsGenerating(false)
@@ -155,7 +155,7 @@ const AIStudioCovers = () => {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch {
-      toast.error("Error al descargar la imagen")
+      toast.error(t('aiShared.error'))
     }
   }
 
@@ -165,17 +165,17 @@ const AIStudioCovers = () => {
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Volver a AI MusicDibs Studio
+          {t('aiCovers.backToStudio')}
         </Link>
 
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Powered by Nano Banana 2</span>
+            <span className="text-sm font-medium">{t('aiCovers.poweredBy')}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Generador de Portadas</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('aiCovers.title')}</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Crea portadas profesionales para tu single o álbum con IA.
+            {t('aiCovers.subtitle')}
           </p>
         </div>
 
@@ -186,32 +186,32 @@ const AIStudioCovers = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <ImageIcon className="h-5 w-5 text-primary" />
-                  Configura tu portada
+                  {t('aiCovers.configTitle')}
                 </CardTitle>
                 <CardDescription>
-                  Cuanto más detallado seas, mejor será el resultado
+                  {t('aiCovers.configDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 {/* Nombre artista + título */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-sm">Nombre del artista</Label>
+                    <Label className="text-sm">{t('aiCovers.artistName')}</Label>
                     <Input
                       value={artistName}
                       onChange={(e) => setArtistName(e.target.value)}
-                      placeholder="Tu nombre artístico"
+                      placeholder={t('aiCovers.artistNamePlaceholder')}
                       className="h-9"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm">
-                      Título del single / disco <span className="text-destructive">*</span>
+                      {t('aiCovers.trackTitle')} <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       value={trackTitle}
                       onChange={(e) => setTrackTitle(e.target.value)}
-                      placeholder="Nombre de la canción"
+                      placeholder={t('aiCovers.trackTitlePlaceholder')}
                       className="h-9"
                     />
                   </div>
@@ -219,16 +219,16 @@ const AIStudioCovers = () => {
 
                 {/* Estilo visual */}
                 <div className="space-y-2">
-                  <Label className="text-sm">Estilo visual</Label>
+                  <Label className="text-sm">{t('aiCovers.visualStyle')}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {VISUAL_STYLES.map(s => (
+                    {STYLE_KEYS.map(s => (
                       <Badge
                         key={s.value}
                         variant={style === s.value ? "default" : "outline"}
                         className="cursor-pointer text-xs"
                         onClick={() => setStyle(style === s.value ? "" : s.value)}
                       >
-                        {s.label}
+                        {t(`aiCovers.styles.${s.key}`)}
                       </Badge>
                     ))}
                   </div>
@@ -236,16 +236,16 @@ const AIStudioCovers = () => {
 
                 {/* Paleta de color */}
                 <div className="space-y-2">
-                  <Label className="text-sm">Color dominante</Label>
+                  <Label className="text-sm">{t('aiCovers.dominantColor')}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {COLOR_PALETTES.map(c => (
+                    {COLOR_KEYS.map(c => (
                       <Badge
                         key={c.value}
                         variant={colorPalette === c.value ? "default" : "outline"}
                         className="cursor-pointer text-xs"
                         onClick={() => setColorPalette(colorPalette === c.value ? "" : c.value)}
                       >
-                        {c.label}
+                        {t(`aiCovers.colors.${c.key}`)}
                       </Badge>
                     ))}
                   </div>
@@ -254,8 +254,8 @@ const AIStudioCovers = () => {
                 {/* Referencia de artista */}
                 <div className="space-y-2">
                   <Label className="text-sm">
-                    Estilo visual inspirado en{" "}
-                    <span className="text-muted-foreground font-normal">(opcional)</span>
+                    {t('aiCovers.visualInspired')}{" "}
+                    <span className="text-muted-foreground font-normal">{t('aiCovers.optional')}</span>
                   </Label>
                   <div className="flex flex-wrap gap-1.5">
                     {ARTIST_REFS.map(a => (
@@ -275,14 +275,14 @@ const AIStudioCovers = () => {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm">
-                      Descripción adicional{" "}
-                      <span className="text-muted-foreground font-normal">(opcional)</span>
+                      {t('aiCovers.additionalDesc')}{" "}
+                      <span className="text-muted-foreground font-normal">{t('aiCovers.optional')}</span>
                     </Label>
                     <button
                       type="button"
                       onClick={handleImproveDescription}
                       disabled={isImprovingDesc || !description.trim()}
-                      title="Optimiza tu descripción para obtener mejores resultados"
+                      title={t('aiCovers.improveWithAI')}
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
@@ -302,15 +302,15 @@ const AIStudioCovers = () => {
                       onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                     >
                       {isImprovingDesc
-                        ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />Mejorando…</>
-                        : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />Mejorar con IA</>
+                        ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />{t('aiCovers.improving')}</>
+                        : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />{t('aiCovers.improveWithAI')}</>
                       }
                     </button>
                   </div>
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Ej: Una figura solitaria en un paisaje urbano nocturno, lluvia, luces de neón..."
+                    placeholder={t('aiCovers.descPlaceholder')}
                     rows={3}
                     className="resize-none text-sm"
                     maxLength={300}
@@ -325,7 +325,7 @@ const AIStudioCovers = () => {
                 )}
 
                 {!hasEnough(FEATURE_COSTS.generate_cover) ? (
-                  <NoCreditsAlert message="Necesitas 2 créditos para generar una portada." />
+                  <NoCreditsAlert message={t('aiCovers.generateBtn')} />
                 ) : (
                   <Button
                     className="w-full gap-2"
@@ -336,19 +336,19 @@ const AIStudioCovers = () => {
                     {isGenerating ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Generando portada…
+                        {t('aiCovers.generatingCover')}
                       </>
                     ) : (
                       <>
                         <Wand2 className="h-4 w-4" />
-                        Generar portada (2 créditos)
+                        {t('aiCovers.generateBtn')}
                       </>
                     )}
                   </Button>
                 )}
 
                 <p className="text-[11px] text-muted-foreground text-center">
-                  Powered by Nano Banana 2 · fal.ai
+                  {t('aiCovers.poweredByFal')}
                 </p>
               </CardContent>
             </Card>
@@ -356,7 +356,7 @@ const AIStudioCovers = () => {
 
           {/* Panel derecho — resultado */}
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Resultado</h2>
+            <h2 className="text-xl font-semibold">{t('aiCovers.result')}</h2>
 
             {isGenerating ? (
               <Card className="border-border/40">
@@ -365,9 +365,9 @@ const AIStudioCovers = () => {
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="font-medium">Creando tu portada…</p>
+                    <p className="font-medium">{t('aiCovers.creatingCover')}</p>
                     <p className="text-sm text-muted-foreground">
-                      Nano Banana 2 está generando tu imagen. Suele tardar 10–20 segundos.
+                      {t('aiCovers.creatingCoverDesc')}
                     </p>
                   </div>
                 </CardContent>
@@ -384,7 +384,7 @@ const AIStudioCovers = () => {
                 <div className="flex gap-2">
                   <Button className="flex-1 gap-2" onClick={handleDownload}>
                     <Download className="h-4 w-4" />
-                    Descargar portada
+                    {t('aiCovers.downloadCover')}
                   </Button>
                   <Button
                     variant="outline"
@@ -393,11 +393,11 @@ const AIStudioCovers = () => {
                     disabled={isGenerating}
                   >
                     <RefreshCw className="h-4 w-4" />
-                    Regenerar
+                    {t('aiCovers.regenerate')}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground text-center">
-                  Imagen en alta resolución · Formato cuadrado 1:1
+                  {t('aiCovers.hiRes')}
                 </p>
               </div>
             ) : (
@@ -407,9 +407,9 @@ const AIStudioCovers = () => {
                     <ImageIcon className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="font-medium text-muted-foreground">Tu portada aparecerá aquí</p>
+                    <p className="font-medium text-muted-foreground">{t('aiCovers.coverHere')}</p>
                     <p className="text-sm text-muted-foreground">
-                      Configura los parámetros y pulsa "Generar portada"
+                      {t('aiCovers.coverHereDesc')}
                     </p>
                   </div>
                 </CardContent>
