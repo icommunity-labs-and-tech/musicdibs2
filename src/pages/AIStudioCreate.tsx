@@ -1439,21 +1439,13 @@ const AIStudioCreate = () => {
                               {cloningDuration !== null && (
                                 <p style={{
                                   marginTop: '6px', fontSize: '12px',
-                                  color: cloningProvider === 'mureka'
-                                    ? (cloningDuration > 30 ? '#ef4444' : cloningDuration >= 15 ? '#22c55e' : '#f59e0b')
-                                    : (cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e')
+                                  color: cloningDuration < 15 ? '#ef4444' : cloningDuration > 30 ? '#ef4444' : '#22c55e'
                                 }}>
-                                  {cloningProvider === 'mureka'
-                                    ? (cloningDuration > 30
-                                      ? `⚠️ Demasiado largo para Mureka (${cloningDuration}s) — máximo 30 segundos`
-                                      : cloningDuration >= 15
-                                        ? `✓ Duración óptima (${cloningDuration}s)`
-                                        : `⚠️ Muy corto (${cloningDuration}s) — recomendamos entre 15-30 segundos`)
-                                    : (cloningDuration < 30
-                                      ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
-                                      : cloningDuration < 60
-                                        ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
-                                        : `✓ Duración óptima (${cloningDuration}s)`)
+                                  {cloningDuration > 30
+                                    ? `⚠️ Audio demasiado largo (${cloningDuration}s) — máximo 30 segundos`
+                                    : cloningDuration >= 15
+                                      ? `✓ Duración óptima (${cloningDuration}s)`
+                                      : `⚠️ Muy corto (${cloningDuration}s) — mínimo 15 segundos`
                                   }
                                 </p>
                               )}
