@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -54,42 +54,53 @@ serve(async (req) => {
     }
 
     if (audioFile.size > 10 * 1024 * 1024) {
-      return new Response(JSON.stringify({ error: 'Audio file too large. Maximum 10MB for Mureka.' }), {
+      return new Response(JSON.stringify({ error: 'Audio file too large. Maximum 10MB.' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    console.log(`[MUREKA-CLONE] User ${user.id} cloning voice: "${name}"`);
+    console.log(`[MUREKA-CLONE] User ${user.id} uploading vocal: "${name}", size: ${audioFile.size} bytes`);
 
-    // Llamar a Mureka /v1/vocal/clone
+    // Usar /v1/files/upload con purpose="vocal"
     const murekaForm = new FormData();
     const audioBuffer = new Uint8Array(await audioFile.arrayBuffer());
     murekaForm.append('file', new Blob([audioBuffer], { type: audioFile.type || 'audio/mpeg' }), audioFile.name);
+    murekaForm.append('purpose', 'vocal');
 
-    const murekaRes = await fetch('https://api.mureka.ai/v1/vocal/clone', {
+    const murekaRes = await fetch('https://api.mureka.ai/v1/files/upload', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${MUREKA_API_KEY}` },
       body: murekaForm,
     });
 
+    const murekaText = await murekaRes.text();
+    console.log(`[MUREKA-CLONE] Files upload response (${murekaRes.status}): ${murekaText}`);
+
     if (!murekaRes.ok) {
-      const err = await murekaRes.text();
-      console.error('[MUREKA-CLONE] Error:', err);
-      return new Response(JSON.stringify({ error: 'Mureka cloning failed', details: err }), {
+      return new Response(JSON.stringify({ error: 'Mureka upload failed', details: murekaText, status: murekaRes.status }), {
         status: murekaRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    const murekaData = await murekaRes.json();
-    const murekaVocalId = murekaData.id || murekaData.vocal_id;
-
-    if (!murekaVocalId) {
-      return new Response(JSON.stringify({ error: 'No vocal_id returned from Mureka', data: murekaData }), {
+    let murekaData: any;
+    try {
+      murekaData = JSON.parse(murekaText);
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON from Mureka', raw: murekaText }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    console.log(`[MUREKA-CLONE] Got vocal_id: ${murekaVocalId}`);
+    // El file_id es el vocal_id que usaremos en la generación
+    const murekaVocalId = murekaData.id || murekaData.file_id || murekaData.vocal_id;
+
+    console.log(`[MUREKA-CLONE] Got vocal file_id: ${murekaVocalId}, full response: ${JSON.stringify(murekaData)}`);
+
+    if (!murekaVocalId) {
+      return new Response(JSON.stringify({ error: 'No id returned from Mureka', data: murekaData }), {
+        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
 
     // Guardar en BD
     const { data: clone, error: dbError } = await supabase
@@ -110,6 +121,8 @@ serve(async (req) => {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    console.log(`[MUREKA-CLONE] Saved clone ID: ${clone.id}`);
 
     return new Response(JSON.stringify({
       success: true,
