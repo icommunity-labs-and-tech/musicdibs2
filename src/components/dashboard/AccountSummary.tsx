@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, Coins, RefreshCw, CalendarClock, AlertTriangle } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
-import { format, differenceInDays } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { differenceInDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -15,6 +15,8 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
 
   const load = useCallback(async (showSpinner = true) => {
     if (showSpinner) setLoading(true);
@@ -23,9 +25,9 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
       const summary = await fetchDashboardSummary();
       setData(summary);
       onSummaryLoaded?.(summary);
-    } catch { setError('Error al cargar el resumen'); }
+    } catch { setError(t('dashboard.account.loadError')); }
     if (showSpinner) setLoading(false);
-  }, [onSummaryLoaded]);
+  }, [onSummaryLoaded, t]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -70,15 +72,15 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
   if (!data) return null;
 
   const stats = [
-    { icon: FileText, value: data.registeredWorks, label: 'Obras registradas', color: 'text-primary' },
-    { icon: Clock, value: data.pendingRegistrations, label: 'Registros pendientes', color: 'text-amber-500' },
-    { icon: Coins, value: data.availableCredits, label: 'Créditos disponibles', color: 'text-emerald-500' },
+    { icon: FileText, value: data.registeredWorks, label: t('dashboard.account.registeredWorks'), color: 'text-primary' },
+    { icon: Clock, value: data.pendingRegistrations, label: t('dashboard.account.pendingRegistrations'), color: 'text-amber-500' },
+    { icon: Coins, value: data.availableCredits, label: t('dashboard.account.availableCredits'), color: 'text-emerald-500' },
   ];
 
   return (
     <Card className="border-border/40 shadow-sm">
       <CardHeader className="flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-semibold tracking-tight">Resumen de la cuenta</CardTitle>
+        <CardTitle className="text-base font-semibold tracking-tight">{t('dashboard.account.title')}</CardTitle>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">{data.subscriptionPlan}</Badge>
           <button onClick={() => load()} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -106,13 +108,13 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
                 {expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
                 <span>
                   {expiringSoon
-                    ? `Tu suscripción expira en ${daysLeft} día${daysLeft !== 1 ? 's' : ''}`
-                    : `Renovación: ${format(endDate, "d 'de' MMMM yyyy", { locale: es })}`}
+                    ? t('dashboard.account.expiresIn', { days: daysLeft })
+                    : t('dashboard.account.renewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </span>
               </div>
               {expiringSoon && (
                 <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400 text-center">
-                  Tu suscripción se renovará automáticamente. Comprueba que tu método de pago sigue vigente para evitar interrupciones.
+                  {t('dashboard.account.renewalWarning')}
                 </div>
               )}
             </>

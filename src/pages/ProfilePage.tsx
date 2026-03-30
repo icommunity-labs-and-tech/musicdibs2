@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
 function NotifSoundToggle() {
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState(() => localStorage.getItem('notif_sound') !== 'off');
   const toggle = (val: boolean) => {
     setEnabled(val);
@@ -27,25 +29,21 @@ function NotifSoundToggle() {
       <div className="flex items-center gap-2">
         <Volume2 className="h-4 w-4 text-muted-foreground" />
         <div>
-          <p className="text-sm font-medium">Sonido de notificación</p>
-          <p className="text-xs text-muted-foreground">Reproduce un sonido cuando llega una alerta</p>
+          <p className="text-sm font-medium">{t('dashboard.profile.notifSound')}</p>
+          <p className="text-xs text-muted-foreground">{t('dashboard.profile.notifSoundDesc')}</p>
         </div>
       </div>
       <Switch checked={enabled} onCheckedChange={toggle} />
     </div>
   );
 }
-const kycConfig: Record<string, { label: string; icon: typeof CheckCircle2; badgeClass: string }> = {
-  verified: { label: 'Verificado', icon: CheckCircle2, badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  pending: { label: 'En revisión', icon: Loader2, badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  unverified: { label: 'No verificado', icon: AlertCircle, badgeClass: 'bg-destructive/10 text-destructive border-destructive/20' },
-};
 
 export default function ProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
 
-  // Profile editing
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
@@ -53,7 +51,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Password change
   const [showPwForm, setShowPwForm] = useState(false);
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -61,7 +58,6 @@ export default function ProfilePage() {
   const [pwLoading, setPwLoading] = useState(false);
   const [pwMsg, setPwMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // KYC
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [kycLoading, setKycLoading] = useState(true);
 
@@ -82,7 +78,6 @@ export default function ProfilePage() {
 
     const emailChanged = email.trim().toLowerCase() !== (user?.email || '').toLowerCase();
 
-    // Update display name & phone
     const { error } = await supabase.auth.updateUser({
       data: { display_name: displayName.trim(), phone: phone.trim() },
     });
@@ -93,13 +88,11 @@ export default function ProfilePage() {
       return;
     }
 
-    // Sync display_name and phone to profiles table
     await supabase.from('profiles').update({
       display_name: displayName.trim(),
       phone: phone.trim() || null,
     }).eq('user_id', user!.id);
 
-    // If email changed, request email change (sends confirmation to new email)
     if (emailChanged) {
       const { error: emailError } = await supabase.auth.updateUser({
         email: email.trim(),
@@ -108,7 +101,7 @@ export default function ProfilePage() {
       if (emailError) {
         setSaveMsg({ type: 'error', text: emailError.message });
       } else {
-        setSaveMsg({ type: 'success', text: 'Perfil actualizado. Se ha enviado un email de confirmación a tu nueva dirección para completar el cambio.' });
+        setSaveMsg({ type: 'success', text: t('dashboard.profile.profileUpdatedEmail') });
         setEditing(false);
         setTimeout(() => setSaveMsg(null), 8000);
       }
@@ -116,7 +109,7 @@ export default function ProfilePage() {
     }
 
     setSaving(false);
-    setSaveMsg({ type: 'success', text: 'Perfil actualizado correctamente.' });
+    setSaveMsg({ type: 'success', text: t('dashboard.profile.profileUpdated') });
     setEditing(false);
     setTimeout(() => setSaveMsg(null), 3000);
   };
@@ -125,11 +118,11 @@ export default function ProfilePage() {
     e.preventDefault();
     setPwMsg(null);
     if (newPw.length < 6) {
-      setPwMsg({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' });
+      setPwMsg({ type: 'error', text: t('dashboard.profile.pwMinLength') });
       return;
     }
     if (newPw !== confirmPw) {
-      setPwMsg({ type: 'error', text: 'Las contraseñas no coinciden.' });
+      setPwMsg({ type: 'error', text: t('dashboard.profile.pwMismatch') });
       return;
     }
     setPwLoading(true);
@@ -138,7 +131,7 @@ export default function ProfilePage() {
     if (error) {
       setPwMsg({ type: 'error', text: error.message });
     } else {
-      setPwMsg({ type: 'success', text: 'Contraseña actualizada correctamente.' });
+      setPwMsg({ type: 'success', text: t('dashboard.profile.pwUpdated') });
       setNewPw('');
       setConfirmPw('');
       setShowPwForm(false);
@@ -146,31 +139,37 @@ export default function ProfilePage() {
     }
   };
 
-  const kyc = kycConfig[summary?.kycStatus || 'unverified'] || kycConfig.unverified;
+  const kycMap: Record<string, { label: string; icon: typeof CheckCircle2; badgeClass: string }> = {
+    verified: { label: t('dashboard.profile.kycVerified'), icon: CheckCircle2, badgeClass: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+    pending: { label: t('dashboard.profile.kycPending'), icon: Loader2, badgeClass: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    unverified: { label: t('dashboard.profile.kycUnverified'), icon: AlertCircle, badgeClass: 'bg-destructive/10 text-destructive border-destructive/20' },
+  };
+
+  const kyc = kycMap[summary?.kycStatus || 'unverified'] || kycMap.unverified;
   const KycIcon = kyc.icon;
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Perfil</h2>
+      <h2 className="text-xl font-bold">{t('dashboard.profile.title')}</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      {/* ─── Personal info ─── */}
+      {/* Personal info */}
       <Card className="border-border/40">
         <CardHeader className="flex-row items-center justify-between pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <User className="h-4 w-4 text-primary" /> Información personal
+            <User className="h-4 w-4 text-primary" /> {t('dashboard.profile.personalInfo')}
           </CardTitle>
           {!editing && (
             <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => setEditing(true)}>
-              <Pencil className="h-3.5 w-3.5" /> Editar
+              <Pencil className="h-3.5 w-3.5" /> {t('dashboard.profile.edit')}
             </Button>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label className="text-xs flex items-center gap-1.5">
-              <Mail className="h-3.5 w-3.5" /> Email
+              <Mail className="h-3.5 w-3.5" /> {t('dashboard.profile.email')}
             </Label>
             <Input
               value={email}
@@ -181,24 +180,24 @@ export default function ProfilePage() {
               placeholder="tu@email.com"
             />
             {editing && email.trim().toLowerCase() !== (user?.email || '').toLowerCase() && (
-              <p className="text-[10px] text-amber-600">Se enviará un email de confirmación a la nueva dirección.</p>
+              <p className="text-[10px] text-amber-600">{t('dashboard.profile.emailConfirmNote')}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Nombre para mostrar</Label>
+            <Label className="text-xs">{t('dashboard.profile.displayName')}</Label>
             <Input
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
               disabled={!editing}
               className={`h-9 text-sm ${!editing ? 'bg-muted/50' : ''}`}
-              placeholder="Tu nombre artístico o real"
+              placeholder={t('dashboard.profile.displayNamePlaceholder')}
               maxLength={100}
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs">Teléfono</Label>
+            <Label className="text-xs">{t('dashboard.profile.phone')}</Label>
             <Input
               value={phone}
               onChange={e => setPhone(e.target.value)}
@@ -211,10 +210,10 @@ export default function ProfilePage() {
 
           <div className="space-y-2">
             <Label className="text-xs flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" /> Miembro desde
+              <Calendar className="h-3.5 w-3.5" /> {t('dashboard.profile.memberSince')}
             </Label>
             <Input
-              value={user?.created_at ? new Date(user.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
+              value={user?.created_at ? new Date(user.created_at).toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' }) : ''}
               disabled
               className="h-9 text-sm bg-muted/50"
             />
@@ -224,10 +223,10 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2 pt-1">
               <Button size="sm" className="gap-1" onClick={handleSaveProfile} disabled={saving}>
                 {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                Guardar
+                {t('dashboard.profile.save')}
               </Button>
               <Button variant="ghost" size="sm" className="gap-1" onClick={() => setEditing(false)}>
-                <X className="h-3.5 w-3.5" /> Cancelar
+                <X className="h-3.5 w-3.5" /> {t('dashboard.profile.cancel')}
               </Button>
             </div>
           )}
@@ -241,17 +240,17 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* ─── KYC status ─── */}
+      {/* KYC */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" /> Verificación de identidad (KYC)
+            <Shield className="h-4 w-4 text-primary" /> {t('dashboard.profile.kycTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {kycLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Cargando estado…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t('dashboard.profile.kycLoading')}
             </div>
           ) : (
             <>
@@ -261,26 +260,20 @@ export default function ProfilePage() {
                   {kyc.label}
                 </Badge>
                 {summary?.subscriptionPlan && (
-                  <Badge variant="secondary" className="text-xs">Plan {summary.subscriptionPlan}</Badge>
+                  <Badge variant="secondary" className="text-xs">{t('dashboard.profile.plan')} {summary.subscriptionPlan}</Badge>
                 )}
               </div>
               {summary?.kycStatus === 'verified' && (
-                <p className="text-xs text-muted-foreground">
-                  Tu identidad ha sido verificada. Puedes registrar obras sin restricciones.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.profile.kycVerifiedDesc')}</p>
               )}
               {summary?.kycStatus === 'pending' && (
-                <p className="text-xs text-muted-foreground">
-                  Tu verificación está en proceso. Puede tardar hasta 48 horas.
-                </p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.profile.kycPendingDesc')}</p>
               )}
               {summary?.kycStatus === 'unverified' && (
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground">
-                    Necesitas verificar tu identidad para poder registrar obras.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.profile.kycUnverifiedDesc')}</p>
                   <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate('/dashboard/verify-identity')}>
-                    <Shield className="h-3.5 w-3.5" /> Iniciar verificación
+                    <Shield className="h-3.5 w-3.5" /> {t('dashboard.profile.startVerification')}
                   </Button>
                 </div>
               )}
@@ -289,11 +282,11 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* ─── Notification Preferences ─── */}
+      {/* Notifications */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Bell className="h-4 w-4 text-primary" /> Preferencias de notificaciones
+            <Bell className="h-4 w-4 text-primary" /> {t('dashboard.profile.notifPreferences')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -301,22 +294,22 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* ─── Security / Password ─── */}
+      {/* Security */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Lock className="h-4 w-4 text-primary" /> Seguridad
+            <Lock className="h-4 w-4 text-primary" /> {t('dashboard.profile.security')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {!showPwForm ? (
             <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setShowPwForm(true)}>
-              <Lock className="h-3.5 w-3.5" /> Cambiar contraseña
+              <Lock className="h-3.5 w-3.5" /> {t('dashboard.profile.changePassword')}
             </Button>
           ) : (
             <form onSubmit={handleChangePassword} className="space-y-3 max-w-sm">
               <div className="space-y-2">
-                <Label className="text-xs">Nueva contraseña</Label>
+                <Label className="text-xs">{t('dashboard.profile.newPassword')}</Label>
                 <div className="relative">
                   <Input
                     type={showPw ? 'text' : 'password'}
@@ -325,7 +318,7 @@ export default function ProfilePage() {
                     required
                     minLength={6}
                     className="h-9 text-sm pr-9"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder={t('dashboard.profile.newPasswordPlaceholder')}
                   />
                   <button
                     type="button"
@@ -337,7 +330,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Confirmar contraseña</Label>
+                <Label className="text-xs">{t('dashboard.profile.confirmPassword')}</Label>
                 <Input
                   type={showPw ? 'text' : 'password'}
                   value={confirmPw}
@@ -345,15 +338,15 @@ export default function ProfilePage() {
                   required
                   minLength={6}
                   className="h-9 text-sm"
-                  placeholder="Repite la contraseña"
+                  placeholder={t('dashboard.profile.confirmPasswordPlaceholder')}
                 />
               </div>
               <div className="flex items-center gap-2">
                 <Button type="submit" size="sm" disabled={pwLoading}>
-                  {pwLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Actualizar'}
+                  {pwLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t('dashboard.profile.update')}
                 </Button>
                 <Button type="button" variant="ghost" size="sm" onClick={() => { setShowPwForm(false); setNewPw(''); setConfirmPw(''); setPwMsg(null); }}>
-                  Cancelar
+                  {t('dashboard.profile.cancel')}
                 </Button>
               </div>
             </form>
@@ -370,7 +363,7 @@ export default function ProfilePage() {
 
           <div>
             <p className="text-xs text-muted-foreground">
-              Última sesión: {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('es-ES') : 'N/A'}
+              {t('dashboard.profile.lastSession')} {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString(lang) : 'N/A'}
             </p>
           </div>
         </CardContent>
