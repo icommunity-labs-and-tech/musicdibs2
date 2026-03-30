@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +35,7 @@ const ARTIST_REFS = ["Bad Bunny", "Rosalía", "C. Tangana", "J Balvin", "Bizarra
 const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
 export default function AIStudioVocal() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -93,7 +95,7 @@ export default function AIStudioVocal() {
   const handleInlineClone = async () => {
     if (!cloningFile || !cloningName.trim() || !user) return;
     if (cloningDuration !== null && cloningDuration < 30) {
-      toast({ title: 'Audio muy corto', description: 'Mínimo 30 segundos.', variant: 'destructive' });
+      toast({ title: t('aiVocal.audioTooShort', { dur: cloningDuration }), variant: 'destructive' });
       return;
     }
     setIsCloning(true);
@@ -108,21 +110,21 @@ export default function AIStudioVocal() {
         { method: 'POST', headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: form }
       );
       const data = await response.json();
-      if (!response.ok) { toast({ title: 'Error al clonar', description: data.error || 'No se pudo clonar', variant: 'destructive' }); return; }
+      if (!response.ok) { toast({ title: t('aiShared.error'), description: data.error || 'No se pudo clonar', variant: 'destructive' }); return; }
       const { data: newClones } = await supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false });
       setVoiceClones(newClones || []);
       if (newClones?.length) setSelectedCloneId(newClones[0].id);
       setShowCloneModal(false);
       setCloningName(''); setCloningFile(null); setCloningDuration(null);
       if (cloneFileRef.current) cloneFileRef.current.value = '';
-      toast({ title: '🎤 ¡Voz clonada!', description: `"${cloningName}" lista para usar.` });
-    } catch { toast({ title: 'Error de conexión', variant: 'destructive' }); }
+      toast({ title: t('aiVocal.voiceCloned'), description: t('aiVocal.voiceClonedDesc', { name: cloningName }) });
+    } catch { toast({ title: t('aiShared.error'), variant: 'destructive' }); }
     finally { setIsCloning(false); }
   };
 
   const handleGenerateLyrics = async () => {
     if (!lyricsDesc.trim() && !lyricsTheme) {
-      toast({ title: 'Describe tu canción o elige un tema', variant: 'destructive' });
+      toast({ title: t('aiCreate.describeSongOrTheme'), variant: 'destructive' });
       return;
     }
     setIsGeneratingLyrics(true);
@@ -144,19 +146,19 @@ export default function AIStudioVocal() {
       if (error) throw error;
       if (data?.lyrics) {
         setLyrics(data.lyrics);
-        toast({ title: '✅ Letra generada', description: 'Puedes editarla antes de cantar.' });
+        toast({ title: t('aiVocal.lyricsGenerated'), description: t('aiVocal.lyricsGeneratedDesc') });
       }
     } catch {
-      toast({ title: 'Error al generar la letra', variant: 'destructive' });
+      toast({ title: t('aiShared.error'), variant: 'destructive' });
     } finally {
       setIsGeneratingLyrics(false);
     }
   };
 
   const handleGenerate = async () => {
-    if (!lyrics.trim()) { toast({ title: 'Escribe o pega tu letra primero', variant: 'destructive' }); return; }
+    if (!lyrics.trim()) { toast({ title: t('aiVocal.errorWriteLyrics'), variant: 'destructive' }); return; }
     const selectedClone = voiceClones.find((c: any) => c.id === selectedCloneId);
-    if (!selectedClone) { toast({ title: 'Selecciona una voz clonada', description: 'Ve a "Clonación de Voz" para crear tu primera voz.', variant: 'destructive' }); return; }
+    if (!selectedClone) { toast({ title: t('aiVocal.errorSelectVoice'), description: t('aiVocal.errorSelectVoiceDesc'), variant: 'destructive' }); return; }
 
     setIsGenerating(true);
     setAudioUrl('');
@@ -181,17 +183,17 @@ export default function AIStudioVocal() {
       const data = await res.json();
       if (!res.ok) {
         if (data.error === 'insufficient_credits') {
-          toast({ title: 'Créditos insuficientes', description: 'Necesitas 1 crédito para generar una pista vocal.', variant: 'destructive' });
+          toast({ title: t('aiVocal.insufficientCredits'), description: t('aiVocal.insufficientCreditsDesc'), variant: 'destructive' });
         } else {
-          toast({ title: 'Error', description: data.error || 'No se pudo generar', variant: 'destructive' });
+          toast({ title: t('aiShared.error'), description: data.error || 'Error', variant: 'destructive' });
         }
         return;
       }
       setAudioUrl(data.audioUrl);
       setHistory(prev => [{ id: data.generationId, audio_url: data.audioUrl, prompt: `Pista vocal: ${selectedClone.name}`, created_at: new Date().toISOString() }, ...prev]);
-      toast({ title: '🎤 ¡Pista vocal generada!', description: 'Tu voz cantando tu letra está lista.' });
+      toast({ title: t('aiVocal.vocalGenerated'), description: t('aiVocal.vocalGeneratedDesc') });
     } catch {
-      toast({ title: 'Error de conexión', variant: 'destructive' });
+      toast({ title: t('aiShared.error'), variant: 'destructive' });
     } finally {
       setIsGenerating(false);
     }
@@ -202,17 +204,17 @@ export default function AIStudioVocal() {
       <Navbar />
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
-          <ArrowLeft className="w-4 h-4" /> Volver a AI Studio
+          <ArrowLeft className="w-4 h-4" /> {t('aiVocal.backToStudio')}
         </Link>
 
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Voz & Letra</span>
+            <span className="text-sm font-medium">{t('aiVocal.badge')}</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Canta tu canción</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('aiVocal.title')}</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Tu voz clonada cantando tu letra. Descarga la pista vocal y mézclala con tu base.
+            {t('aiVocal.subtitle')}
           </p>
         </div>
 
@@ -222,14 +224,14 @@ export default function AIStudioVocal() {
             {/* Voice selector */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">🎤 Tu voz clonada</CardTitle>
+                <CardTitle className="text-base">{t('aiVocal.clonedVoice')}</CardTitle>
               </CardHeader>
               <CardContent>
                 {voiceClones.length === 0 ? (
                   <div className="text-center py-6">
-                    <p className="text-sm text-muted-foreground mb-3">Aún no tienes ninguna voz clonada</p>
+                    <p className="text-sm text-muted-foreground mb-3">{t('aiVocal.noClones')}</p>
                     <Button size="sm" variant="outline" onClick={() => setShowCloneModal(true)}>
-                      <Mic className="w-3.5 h-3.5 mr-2" />Clonar mi voz
+                      <Mic className="w-3.5 h-3.5 mr-2" />{t('aiVocal.cloneVoice')}
                     </Button>
                   </div>
                 ) : (
@@ -247,12 +249,12 @@ export default function AIStudioVocal() {
                         <span className="text-lg">🎤</span>
                         <div>
                           <p className="text-sm font-medium">{c.name}</p>
-                          <p className="text-xs text-muted-foreground">Voz clonada · ElevenLabs</p>
+                          <p className="text-xs text-muted-foreground">{t('aiVocal.clonedLabel')}</p>
                         </div>
                       </button>
                     ))}
                     <Button size="sm" variant="ghost" className="w-full text-xs text-muted-foreground mt-1" onClick={() => setShowCloneModal(true)}>
-                      <Mic className="w-3 h-3 mr-1" /> Añadir otra voz
+                      <Mic className="w-3 h-3 mr-1" /> {t('aiVocal.addVoice')}
                     </Button>
                   </div>
                 )}
@@ -263,18 +265,18 @@ export default function AIStudioVocal() {
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">📝 Tu letra</CardTitle>
-                  <Badge variant="secondary" className="text-[10px]">Generación gratis</Badge>
+                  <CardTitle className="text-base">{t('aiVocal.yourLyrics')}</CardTitle>
+                  <Badge variant="secondary" className="text-[10px]">{t('aiVocal.freeGenBadge')}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Descripción */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">¿De qué va tu canción?</Label>
+                  <Label className="text-xs font-medium">{t('aiVocal.whatAbout')}</Label>
                   <Textarea
                     value={lyricsDesc}
                     onChange={(e) => setLyricsDesc(e.target.value)}
-                    placeholder="Describe la historia, el sentimiento, la situación..."
+                    placeholder={t('aiVocal.descPlaceholder')}
                     rows={3}
                     className="resize-none text-sm"
                     maxLength={400}
@@ -283,11 +285,11 @@ export default function AIStudioVocal() {
 
                 {/* Tema central */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">Tema central</Label>
+                  <Label className="text-xs font-medium">{t('aiVocal.centralTheme')}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {THEMES.map(t => (
-                      <Badge key={t} variant={lyricsTheme === t ? 'default' : 'outline'} className="cursor-pointer text-xs"
-                        onClick={() => setLyricsTheme(lyricsTheme === t ? '' : t)}>{t}</Badge>
+                    {THEMES.map(th => (
+                      <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs"
+                        onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>
                     ))}
                   </div>
                 </div>
@@ -295,7 +297,7 @@ export default function AIStudioVocal() {
                 {/* Género y Mood */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Género musical</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.genreLabel')}</Label>
                     <div className="flex flex-wrap gap-1.5">
                       {MUSIC_GENRES.map(g => (
                         <Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs"
@@ -304,7 +306,7 @@ export default function AIStudioVocal() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Mood / Tono</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.moodLabel')}</Label>
                     <div className="flex flex-wrap gap-1.5">
                       {MUSIC_MOODS.map(m => (
                         <Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs"
@@ -317,8 +319,8 @@ export default function AIStudioVocal() {
                 {/* Artistas de referencia */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">
-                    Estilo de artistas de referencia
-                    <span className="text-muted-foreground font-normal ml-1">(También puedes escribir uno propio en el campo de texto)</span>
+                    {t('aiVocal.artistRefsLabel')}
+                    <span className="text-muted-foreground font-normal ml-1">{t('aiVocal.customArtistHint')}</span>
                   </Label>
                   <div className="flex flex-wrap gap-1.5">
                     {ARTIST_REFS.map(a => (
@@ -328,7 +330,7 @@ export default function AIStudioVocal() {
                   </div>
                   <div className="flex gap-2 mt-1.5">
                     <Input
-                      placeholder="Añadir artista personalizado…"
+                      placeholder={t('aiVocal.addCustomArtist')}
                       className="text-xs h-8"
                       onKeyDown={e => {
                         if (e.key === 'Enter') {
@@ -357,14 +359,14 @@ export default function AIStudioVocal() {
                 {/* Estructura y Esquema de rima */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs font-medium">Estructura</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.structureLabel')}</Label>
                     <select value={lyricsStructure} onChange={e => setLyricsStructure(e.target.value)}
                       className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
                       {STRUCTURES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-medium">Esquema de rima</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.rhymeLabel')}</Label>
                     <select value={lyricsRhyme} onChange={e => setLyricsRhyme(e.target.value)}
                       className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
                       {RHYME_SCHEMES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -375,14 +377,14 @@ export default function AIStudioVocal() {
                 {/* Idioma y Punto de vista */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-xs font-medium">Idioma</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.languageLabel')}</Label>
                     <select value={lyricsLanguage} onChange={e => setLyricsLanguage(e.target.value)}
                       className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
                       {LYRIC_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs font-medium">Punto de vista</Label>
+                    <Label className="text-xs font-medium">{t('aiVocal.povLabel')}</Label>
                     <select value={lyricsPov} onChange={e => setLyricsPov(e.target.value)}
                       className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
                       {POVS.map(p => <option key={p} value={p}>{p}</option>)}
@@ -392,7 +394,7 @@ export default function AIStudioVocal() {
 
                 {/* Estilo de escritura */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">Estilo de escritura</Label>
+                  <Label className="text-xs font-medium">{t('aiVocal.writingStyleLabel')}</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {LYRIC_STYLES.map(s => (
                       <Badge key={s} variant={lyricsStyle === s ? 'default' : 'outline'} className="cursor-pointer text-xs"
@@ -409,26 +411,26 @@ export default function AIStudioVocal() {
                   disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}
                 >
                   {isGeneratingLyrics
-                    ? <><Loader2 className="w-4 h-4 animate-spin" />Generando letra...</>
-                    : <><Sparkles className="w-4 h-4" />Generar letra (gratis)</>
+                    ? <><Loader2 className="w-4 h-4 animate-spin" />{t('aiVocal.generatingLyrics')}</>
+                    : <><Sparkles className="w-4 h-4" />{t('aiVocal.generateLyricsFree')}</>
                   }
                 </Button>
 
                 {/* Separador */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-                  <div className="relative flex justify-center"><span className="bg-background px-2 text-xs text-muted-foreground">o escribe / pega tu letra</span></div>
+                  <div className="relative flex justify-center"><span className="bg-background px-2 text-xs text-muted-foreground">{t('aiVocal.orWritePaste')}</span></div>
                 </div>
 
                 {/* Textarea letra */}
                 <Textarea
                   value={lyrics}
                   onChange={e => setLyrics(e.target.value)}
-                  placeholder={"[Verso 1]\nEscribe aquí tu letra...\n\n[Coro]\nO pégala desde el Compositor de Letras"}
+                  placeholder={t('aiVocal.lyricsPlaceholder')}
                   rows={8}
                   className="resize-none text-sm font-mono"
                 />
-                <p className="text-xs text-muted-foreground">{lyrics.length} caracteres · Los tags [Verso], [Coro] se eliminan automáticamente</p>
+                <p className="text-xs text-muted-foreground">{t('aiVocal.charsCount', { count: lyrics.length })}</p>
               </CardContent>
             </Card>
 
@@ -439,8 +441,8 @@ export default function AIStudioVocal() {
               disabled={isGenerating || !lyrics.trim() || !selectedCloneId}
             >
               {isGenerating
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generando tu pista vocal...</>
-                : <><Mic className="w-4 h-4 mr-2" />Generar pista vocal — tu voz cantando tu letra</>
+                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiVocal.generatingVocal')}</>
+                : <><Mic className="w-4 h-4 mr-2" />{t('aiVocal.generateVocalBtn')}</>
               }
             </Button>
           </div>
@@ -450,24 +452,24 @@ export default function AIStudioVocal() {
             {audioUrl && (
               <Card className="border-primary/30 bg-primary/5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base text-primary">✅ Pista vocal lista</CardTitle>
+                  <CardTitle className="text-base text-primary">{t('aiVocal.vocalReady')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <audio controls className="w-full" src={audioUrl} />
                   <div className="flex gap-2">
                     <a href={audioUrl} download="pista-vocal.mp3" className="flex-1">
                       <Button variant="outline" className="w-full gap-2">
-                        <Download className="w-4 h-4" /> Descargar pista vocal
+                        <Download className="w-4 h-4" /> {t('aiVocal.downloadVocal')}
                       </Button>
                     </a>
                     <Link to="/ai-studio/create" className="flex-1">
                       <Button variant="outline" className="w-full gap-2">
-                        <Music className="w-4 h-4" /> Generar base instrumental
+                        <Music className="w-4 h-4" /> {t('aiVocal.generateInstrumental')}
                       </Button>
                     </Link>
                   </div>
                   <p className="text-xs text-muted-foreground text-center">
-                    💡 Descarga la pista vocal y mézclala con tu base en GarageBand, Audacity o cualquier DAW
+                    {t('aiVocal.mixTip')}
                   </p>
                 </CardContent>
               </Card>
@@ -476,17 +478,12 @@ export default function AIStudioVocal() {
             {!audioUrl && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">¿Cómo funciona?</CardTitle>
+                  <CardTitle className="text-base">{t('aiVocal.howItWorks')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {[
-                    { step: '1', text: 'Clona tu voz en "Clonación de Voz" del sidebar (mínimo 1 minuto de audio)' },
-                    { step: '2', text: 'Escribe tu letra o impórtala desde el Compositor de Letras' },
-                    { step: '3', text: 'Genera tu pista vocal — tu voz cantando tu letra (1 crédito)' },
-                    { step: '4', text: 'Descarga la pista y combínala con tu base instrumental' },
-                  ].map(({ step, text }) => (
-                    <div key={step} className="flex gap-3 items-start">
-                      <span className="min-w-[24px] h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">{step}</span>
+                  {(t('aiVocal.steps', { returnObjects: true }) as string[]).map((text: string, idx: number) => (
+                    <div key={idx} className="flex gap-3 items-start">
+                      <span className="min-w-[24px] h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">{idx + 1}</span>
                       <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
                     </div>
                   ))}
@@ -497,14 +494,14 @@ export default function AIStudioVocal() {
             {history.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Pistas generadas</CardTitle>
+                  <CardTitle className="text-base">{t('aiVocal.generatedTracks')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {history.slice(0, 5).map((h: any) => (
                     <div key={h.id} className="flex items-center gap-3 p-2 rounded-lg border border-border">
                       <Mic className="w-4 h-4 text-primary shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{h.prompt || 'Pista vocal'}</p>
+                        <p className="text-xs font-medium truncate">{h.prompt || t('aiVocal.vocalTrack')}</p>
                         <p className="text-[11px] text-muted-foreground">{new Date(h.created_at).toLocaleDateString('es-ES')}</p>
                       </div>
                       <a href={h.audio_url} download>
@@ -522,40 +519,40 @@ export default function AIStudioVocal() {
         {showCloneModal && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
             <div style={{ background: 'hsl(var(--background))', borderRadius: '16px', padding: '32px', width: '100%', maxWidth: '480px', border: '1px solid hsl(var(--border))' }}>
-              <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>🎤 Clonar mi voz</h2>
-              <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>Sube 1-2 minutos de tu voz hablando o cantando. Sin música de fondo.</p>
+              <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>{t('aiVocal.cloneTitle')}</h2>
+              <p style={{ margin: '0 0 16px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>{t('aiVocal.cloneDesc')}</p>
               <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '16px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
-                💡 Graba en silencio · Voz clara y natural · MP3 o WAV · Mínimo 1 minuto recomendado
+                {t('aiVocal.cloneTips')}
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>Nombre de tu voz *</label>
-                <input type="text" value={cloningName} onChange={e => setCloningName(e.target.value)} placeholder="Ej: Mi voz, Luna..." maxLength={50}
+                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>{t('aiVocal.voiceName')}</label>
+                <input type="text" value={cloningName} onChange={e => setCloningName(e.target.value)} placeholder={t('aiVocal.voiceNamePlaceholder')} maxLength={50}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--background))', color: 'hsl(var(--foreground))', boxSizing: 'border-box' }} />
               </div>
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>Audio de tu voz *</label>
+                <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>{t('aiVocal.voiceAudio')}</label>
                 <input ref={cloneFileRef} type="file" accept="audio/mp3,audio/mpeg,audio/wav,.mp3,.wav,.m4a"
                   onChange={e => { const f = e.target.files?.[0]; if (!f) return; setCloningFile(f); const a = new Audio(URL.createObjectURL(f)); a.onloadedmetadata = () => setCloningDuration(Math.round(a.duration)); }}
                   style={{ width: '100%', fontSize: '13px', color: 'hsl(var(--foreground))' }} />
                 {cloningDuration !== null && (
                   <p style={{ marginTop: '6px', fontSize: '12px', color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e' }}>
-                    {cloningDuration < 30 ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos` : cloningDuration < 60 ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)` : `✓ Duración óptima (${cloningDuration}s)`}
+                    {cloningDuration < 30 ? t('aiVocal.audioTooShort', { dur: cloningDuration }) : cloningDuration < 60 ? t('aiVocal.audioOk', { dur: cloningDuration }) : t('aiVocal.audioOptimal', { dur: cloningDuration })}
                   </p>
                 )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                 <input type="checkbox" id="clone-noise-vocal" checked={cloningNoise} onChange={e => setCloningNoise(e.target.checked)} />
-                <label htmlFor="clone-noise-vocal" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>Eliminar ruido de fondo</label>
+                <label htmlFor="clone-noise-vocal" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>{t('aiVocal.removeNoise')}</label>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="button" onClick={handleInlineClone}
                   disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && cloningDuration < 30)}
                   style={{ flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, background: 'hsl(var(--primary))', color: 'white', border: 'none', cursor: 'pointer', opacity: (!cloningFile || !cloningName.trim() || isCloning) ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                  {isCloning ? <><Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />Clonando...</> : '🎤 Clonar mi voz'}
+                  {isCloning ? <><Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />{t('aiVocal.cloning')}</> : t('aiVocal.cloneBtn')}
                 </button>
                 <button type="button" onClick={() => { setShowCloneModal(false); setCloningName(''); setCloningFile(null); setCloningDuration(null); }}
                   style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '14px', background: 'transparent', color: 'hsl(var(--muted-foreground))', border: '1px solid hsl(var(--border))', cursor: 'pointer' }}>
-                  Cancelar
+                  {t('aiVocal.cancel')}
                 </button>
               </div>
             </div>
