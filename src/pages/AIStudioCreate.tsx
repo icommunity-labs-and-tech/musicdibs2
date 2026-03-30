@@ -516,8 +516,12 @@ const AIStudioCreate = () => {
   // ── Inline voice cloning ──
   const handleInlineClone = async () => {
     if (!cloningFile || !cloningName.trim() || !user) return;
-    if (cloningDuration !== null && cloningDuration < 30) {
-      toast({ title: 'Audio muy corto', description: 'Necesitas al menos 30 segundos de audio.', variant: 'destructive' });
+    if (cloningProvider === 'mureka' && cloningDuration !== null && cloningDuration > 30) {
+      toast({ title: 'Audio demasiado largo para Mureka', description: 'Para clonar voz para canciones necesitas un audio de máximo 30 segundos. Graba o recorta un fragmento más corto.', variant: 'destructive' });
+      return;
+    }
+    if (cloningDuration !== null && cloningDuration < 15) {
+      toast({ title: 'Audio muy corto', description: 'Necesitas al menos 15 segundos de audio.', variant: 'destructive' });
       return;
     }
     setIsCloning(true);
@@ -1450,7 +1454,7 @@ const AIStudioCreate = () => {
                               Sube 1-2 minutos de tu voz cantando o hablando. Sin música de fondo.
                             </p>
                             <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
-                              💡 <strong>Consejos:</strong> Graba en silencio · Voz clara y natural · MP3 o WAV · Mín. 30 segundos
+                              💡 <strong>Consejos:</strong> Graba en silencio · Voz clara y natural · MP3 o M4A · Entre 15 y 30 segundos
                             </div>
                             <div style={{ marginBottom: '16px' }}>
                               <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
@@ -1489,13 +1493,21 @@ const AIStudioCreate = () => {
                               {cloningDuration !== null && (
                                 <p style={{
                                   marginTop: '6px', fontSize: '12px',
-                                  color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e'
+                                  color: cloningProvider === 'mureka'
+                                    ? (cloningDuration > 30 ? '#ef4444' : cloningDuration >= 15 ? '#22c55e' : '#f59e0b')
+                                    : (cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#f59e0b' : '#22c55e')
                                 }}>
-                                  {cloningDuration < 30
-                                    ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
-                                    : cloningDuration < 60
-                                      ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
-                                      : `✓ Duración óptima (${cloningDuration}s)`
+                                  {cloningProvider === 'mureka'
+                                    ? (cloningDuration > 30
+                                      ? `⚠️ Demasiado largo para Mureka (${cloningDuration}s) — máximo 30 segundos`
+                                      : cloningDuration >= 15
+                                        ? `✓ Duración óptima (${cloningDuration}s)`
+                                        : `⚠️ Muy corto (${cloningDuration}s) — recomendamos entre 15-30 segundos`)
+                                    : (cloningDuration < 30
+                                      ? `⚠️ Audio muy corto (${cloningDuration}s) — mínimo 30 segundos`
+                                      : cloningDuration < 60
+                                        ? `⚠️ Funciona pero mejor con más de 1 minuto (${cloningDuration}s)`
+                                        : `✓ Duración óptima (${cloningDuration}s)`)
                                   }
                                 </p>
                               )}
@@ -1546,7 +1558,7 @@ const AIStudioCreate = () => {
                               <button
                                 type="button"
                                 onClick={handleInlineClone}
-                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && cloningDuration < 30)}
+                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && (cloningDuration < 15 || (cloningProvider === 'mureka' && cloningDuration > 30)))}
                                 style={{
                                   flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
                                   background: 'hsl(var(--primary))', color: 'white', border: 'none',
