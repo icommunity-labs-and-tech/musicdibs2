@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Clock, Coins, RefreshCw, CalendarClock, AlertTriangle } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
-import { format, differenceInDays } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { differenceInDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
