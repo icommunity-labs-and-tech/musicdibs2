@@ -55,11 +55,11 @@ export function CreditHistory() {
       <Card className="border-border/40 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <History className="h-4 w-4 text-primary" /> Historial de créditos
+            <History className="h-4 w-4 text-primary" /> {t('dashboard.creditHistory.title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="py-6 text-center text-sm text-muted-foreground">
-          Aún no tienes movimientos de créditos.
+          {t('dashboard.creditHistory.empty')}
         </CardContent>
       </Card>
     );
