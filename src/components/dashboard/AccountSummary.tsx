@@ -72,9 +72,9 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummary
   if (!data) return null;
 
   const stats = [
-    { icon: FileText, value: data.registeredWorks, label: 'Obras registradas', color: 'text-primary' },
-    { icon: Clock, value: data.pendingRegistrations, label: 'Registros pendientes', color: 'text-amber-500' },
-    { icon: Coins, value: data.availableCredits, label: 'Créditos disponibles', color: 'text-emerald-500' },
+    { icon: FileText, value: data.registeredWorks, label: t('dashboard.account.registeredWorks'), color: 'text-primary' },
+    { icon: Clock, value: data.pendingRegistrations, label: t('dashboard.account.pendingRegistrations'), color: 'text-amber-500' },
+    { icon: Coins, value: data.availableCredits, label: t('dashboard.account.availableCredits'), color: 'text-emerald-500' },
   ];
 
   return (
