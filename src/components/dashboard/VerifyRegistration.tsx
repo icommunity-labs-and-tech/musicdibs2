@@ -62,7 +62,7 @@ export function VerifyRegistration() {
               </p>
               <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
                 <a href={result.certificateUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-3.5 w-3.5" /> Ver certificado
+                  <ExternalLink className="h-3.5 w-3.5" /> {t('dashboard.verify.viewCertificate')}
                 </a>
               </Button>
             </div>
