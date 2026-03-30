@@ -1605,8 +1605,8 @@ allLangs.forEach((lang) => {
 });
 
 // If user manually chose a language, use it; otherwise auto-detect from browser
-const detectedLang = savedLang || mapBrowserLang(
-  typeof navigator !== 'undefined' ? navigator.language : undefined
+const detectedLang = mapBrowserLang(
+  savedLang || (typeof navigator !== 'undefined' ? navigator.language : undefined)
 );
 
 i18n
