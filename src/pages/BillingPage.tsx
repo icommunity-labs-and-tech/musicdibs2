@@ -9,12 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const PLAN_LABELS: Record<string, string> = {
-  Free: 'Free',
-  Monthly: 'Mensual',
-  Annual: 'Anual',
-};
+import { useTranslation } from 'react-i18next';
 
 interface Invoice {
   id: string;
@@ -31,14 +26,6 @@ interface Invoice {
   description: string | null;
 }
 
-const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  paid: { label: 'Pagada', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
-  open: { label: 'Pendiente', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  draft: { label: 'Borrador', className: 'bg-muted text-muted-foreground border-border' },
-  void: { label: 'Anulada', className: 'bg-muted text-muted-foreground border-border' },
-  uncollectible: { label: 'Incobrable', className: 'bg-destructive/10 text-destructive border-destructive/20' },
-};
-
 function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
@@ -46,8 +33,8 @@ function formatCurrency(amount: number, currency: string) {
   }).format(amount / 100);
 }
 
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleDateString('es-ES', {
+function formatDate(ts: number, lang: string) {
+  return new Date(ts * 1000).toLocaleDateString(lang, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -57,16 +44,32 @@ function formatDate(ts: number) {
 export default function BillingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
-  // Invoice state
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  const lang = i18n.resolvedLanguage || 'es';
+
+  const STATUS_MAP: Record<string, { label: string; className: string }> = {
+    paid: { label: t('dashboard.billing.statusPaid'), className: 'bg-green-500/10 text-green-600 border-green-500/20' },
+    open: { label: t('dashboard.billing.statusOpen'), className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    draft: { label: t('dashboard.billing.statusDraft'), className: 'bg-muted text-muted-foreground border-border' },
+    void: { label: t('dashboard.billing.statusVoid'), className: 'bg-muted text-muted-foreground border-border' },
+    uncollectible: { label: t('dashboard.billing.statusUncollectible'), className: 'bg-destructive/10 text-destructive border-destructive/20' },
+  };
+
+  const PLAN_LABELS: Record<string, string> = {
+    Free: t('dashboard.billing.planFree'),
+    Monthly: t('dashboard.billing.planMonthly'),
+    Annual: t('dashboard.billing.planAnnual'),
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -95,7 +98,6 @@ export default function BillingPage() {
     return () => { mounted = false; };
   }, [user]);
 
-  // Listen for realtime changes
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -112,7 +114,6 @@ export default function BillingPage() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Load invoices
   useEffect(() => {
     if (!user) return;
     let mounted = true;
@@ -151,7 +152,7 @@ export default function BillingPage() {
       setInvoices((prev) => [...prev, ...(data?.invoices ?? [])]);
       setHasMore(data?.has_more ?? false);
     } catch (err: any) {
-      toast.error('Error al cargar más facturas');
+      toast.error(t('dashboard.billing.loadMoreError'));
     } finally {
       setLoadingMore(false);
     }
@@ -165,10 +166,10 @@ export default function BillingPage() {
       if (data?.url) {
         window.open(data.url, '_blank');
       } else {
-        throw new Error('No se pudo obtener el enlace del portal');
+        throw new Error(t('dashboard.billing.portalError'));
       }
     } catch (err: any) {
-      const msg = err?.message || 'Error al abrir el portal de gestión';
+      const msg = err?.message || t('dashboard.billing.portalError');
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -179,12 +180,12 @@ export default function BillingPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h2 className="text-xl font-bold">Facturación</h2>
+      <h2 className="text-xl font-bold">{t('dashboard.billing.title')}</h2>
 
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-primary" /> Plan actual
+            <CreditCard className="h-4 w-4 text-primary" /> {t('dashboard.billing.currentPlan')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -193,8 +194,8 @@ export default function BillingPage() {
               <p className="font-semibold">{planLabel}</p>
               <p className="text-sm text-muted-foreground">
                 {cancelAtPeriodEnd
-                  ? `Cancelada — acceso hasta ${subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : 'fin del período'}`
-                  : plan === 'Free' ? 'Sin suscripción activa' : plan === 'Annual' ? 'Renovación anual' : 'Renovación mensual'}
+                  ? t('dashboard.billing.cancelledAccess', { date: subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString(lang, { day: '2-digit', month: 'long', year: 'numeric' }) : '' })
+                  : plan === 'Free' ? t('dashboard.billing.noSubscription') : plan === 'Annual' ? t('dashboard.billing.renewalAnnual') : t('dashboard.billing.renewalMonthly')}
               </p>
             </div>
             <Badge
@@ -205,12 +206,12 @@ export default function BillingPage() {
                   : 'bg-primary/10 text-primary border-primary/20'}
               variant="outline"
             >
-              {cancelAtPeriodEnd ? 'Cancelada' : plan === 'Free' ? 'Free' : 'Activo'}
+              {cancelAtPeriodEnd ? t('dashboard.billing.cancelled') : plan === 'Free' ? 'Free' : t('dashboard.billing.active')}
             </Badge>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
-              {plan === 'Free' ? 'Ver planes' : 'Cambiar plan'} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              {plan === 'Free' ? t('dashboard.billing.viewPlans') : t('dashboard.billing.changePlan')} <ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
             {plan && plan !== 'Free' && (
               <Button
@@ -224,7 +225,7 @@ export default function BillingPage() {
                 ) : (
                   <ExternalLink className="h-3.5 w-3.5 mr-1" />
                 )}
-                Gestionar suscripción
+                {t('dashboard.billing.manageSubscription')}
               </Button>
             )}
           </div>
@@ -234,7 +235,7 @@ export default function BillingPage() {
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <Receipt className="h-4 w-4 text-primary" /> Historial de facturas
+            <Receipt className="h-4 w-4 text-primary" /> {t('dashboard.billing.invoiceHistory')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -247,18 +248,18 @@ export default function BillingPage() {
           ) : invoices.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-6">
               <FileText className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              No hay facturas todavía.
+              {t('dashboard.billing.noInvoices')}
             </div>
           ) : (
             <>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Factura</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Importe</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t('dashboard.billing.invoice')}</TableHead>
+                    <TableHead>{t('dashboard.billing.date')}</TableHead>
+                    <TableHead>{t('dashboard.billing.amount')}</TableHead>
+                    <TableHead>{t('dashboard.billing.status')}</TableHead>
+                    <TableHead className="text-right">{t('dashboard.billing.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -275,7 +276,7 @@ export default function BillingPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDate(inv.created)}
+                          {formatDate(inv.created, lang)}
                         </TableCell>
                         <TableCell className="text-xs font-medium whitespace-nowrap">
                           {formatCurrency(inv.amount_paid || inv.amount_due, inv.currency)}
@@ -293,7 +294,7 @@ export default function BillingPage() {
                                 size="icon"
                                 className="h-7 w-7"
                                 onClick={() => window.open(inv.hosted_invoice_url!, '_blank')}
-                                title="Ver factura"
+                                title={t('dashboard.billing.viewInvoice')}
                               >
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
@@ -304,7 +305,7 @@ export default function BillingPage() {
                                 size="icon"
                                 className="h-7 w-7"
                                 onClick={() => window.open(inv.invoice_pdf!, '_blank')}
-                                title="Descargar PDF"
+                                title={t('dashboard.billing.downloadPdf')}
                               >
                                 <Download className="h-3.5 w-3.5" />
                               </Button>
@@ -327,7 +328,7 @@ export default function BillingPage() {
                     {loadingMore ? (
                       <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
                     ) : null}
-                    Cargar más
+                    {t('dashboard.billing.loadMore')}
                   </Button>
                 </div>
               )}

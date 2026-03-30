@@ -2530,6 +2530,14 @@ allLangs.forEach((lang) => {
       ...dashboardWidgets,
     };
   }
+
+  const dashboardFull = dashboardTranslations[lang]?.translation?.dashboard;
+  if (dashboardFull) {
+    translation.dashboard = {
+      ...(translation.dashboard || {}),
+      ...dashboardFull,
+    };
+  }
 });
 
 // Safety fix: in some locales aiStudio was accidentally nested under privacy

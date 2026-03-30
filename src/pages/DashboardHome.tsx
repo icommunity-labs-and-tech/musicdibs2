@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
@@ -18,6 +19,7 @@ import type { DashboardSummary } from '@/types/dashboard';
 export default function DashboardHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [hasWorks, setHasWorks] = useState<boolean | null>(null);
@@ -72,19 +74,19 @@ export default function DashboardHome() {
             </div>
             <div className="flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold">Verificación de identidad requerida</p>
+                <p className="text-sm font-semibold">{t('dashboard.home.kycRequired')}</p>
                 <Badge variant="outline" className="gap-1 text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
                   {summary.kycStatus === 'pending' ? (
-                    <><Loader2 className="h-3 w-3 animate-spin" /> En revisión</>
+                    <><Loader2 className="h-3 w-3 animate-spin" /> {t('dashboard.home.kycPending')}</>
                   ) : (
-                    <><AlertCircle className="h-3 w-3" /> No verificado</>
+                    <><AlertCircle className="h-3 w-3" /> {t('dashboard.home.kycUnverified')}</>
                   )}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground">
                 {summary.kycStatus === 'pending'
-                  ? 'Tu verificación de identidad puede tardar hasta 48 horas en estar lista.'
-                  : 'Necesitas verificar tu identidad para poder registrar obras. Completa el proceso de verificación KYC.'}
+                  ? t('dashboard.home.kycPendingDesc')
+                  : t('dashboard.home.kycUnverifiedDesc')}
               </p>
             </div>
             {summary.kycStatus === 'unverified' && (
@@ -94,7 +96,7 @@ export default function DashboardHome() {
                 className="gap-1.5 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 shrink-0"
                 onClick={() => navigate('/dashboard/verify-identity')}
               >
-                <Shield className="h-3.5 w-3.5" /> Verificar identidad
+                <Shield className="h-3.5 w-3.5" /> {t('dashboard.home.verifyIdentity')}
               </Button>
             )}
           </CardContent>
@@ -121,13 +123,13 @@ export default function DashboardHome() {
                   <Upload className="h-6 w-6 text-primary" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-semibold">Registrar una nueva obra</h3>
+                  <h3 className="text-base font-semibold">{t('dashboard.home.registerNew')}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Inicia el proceso de registro y protección de tu obra paso a paso.
+                    {t('dashboard.home.registerNewDesc')}
                   </p>
                 </div>
                 <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
-                  Ir al registro
+                  {t('dashboard.home.goToRegister')}
                 </Button>
               </CardContent>
             </Card>
