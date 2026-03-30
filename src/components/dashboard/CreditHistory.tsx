@@ -14,16 +14,18 @@ type Transaction = {
   created_at: string;
 };
 
-const TYPE_CONFIG: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
-  purchase: { label: 'Compra', icon: ArrowUpCircle, color: 'text-emerald-500' },
-  renewal: { label: 'Renovación', icon: RefreshCw, color: 'text-blue-500' },
-  consumption: { label: 'Consumo', icon: ArrowDownCircle, color: 'text-orange-500' },
-};
-
 export function CreditHistory() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const TYPE_CONFIG: Record<string, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
+    purchase: { label: t('dashboard.creditHistory.purchase'), icon: ArrowUpCircle, color: 'text-emerald-500' },
+    renewal: { label: t('dashboard.creditHistory.renewal'), icon: RefreshCw, color: 'text-blue-500' },
+    consumption: { label: t('dashboard.creditHistory.consumption'), icon: ArrowDownCircle, color: 'text-orange-500' },
+  };
 
   useEffect(() => {
     if (!user) return;
