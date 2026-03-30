@@ -54,11 +54,11 @@ export function VerifyRegistration() {
           result.found ? (
             <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-4 space-y-2">
               <div className="flex items-center gap-2 text-emerald-600 font-medium text-sm">
-                <CheckCircle2 className="h-4 w-4" /> Registro encontrado
+                <CheckCircle2 className="h-4 w-4" /> {t('dashboard.verify.found')}
               </div>
               <p className="text-xs text-muted-foreground">
-                <span className="font-medium">{result.title}</span> — registrado el{' '}
-                {new Date(result.registeredAt!).toLocaleDateString('es-ES')}
+                <span className="font-medium">{result.title}</span> — {t('dashboard.verify.registeredOn')}{' '}
+                {new Date(result.registeredAt!).toLocaleDateString(lang)}
               </p>
               <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
                 <a href={result.certificateUrl} target="_blank" rel="noopener noreferrer">
