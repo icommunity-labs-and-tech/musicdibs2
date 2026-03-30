@@ -45,7 +45,7 @@ export function CreditHistory() {
   if (loading) {
     return (
       <Card className="border-border/40 shadow-sm">
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">Cargando historial...</CardContent>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">{t('dashboard.creditHistory.loading')}</CardContent>
       </Card>
     );
   }
