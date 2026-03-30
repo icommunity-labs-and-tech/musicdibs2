@@ -531,9 +531,7 @@ const AIStudioCreate = () => {
       form.append('audio', cloningFile);
       form.append('name', cloningName.trim());
       form.append('remove_background_noise', String(cloningNoise));
-      const cloneUrl = cloningProvider === 'mureka'
-        ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mureka-clone-voice`
-        : `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`;
+      const cloneUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`;
       const response = await fetch(
         cloneUrl,
         {
