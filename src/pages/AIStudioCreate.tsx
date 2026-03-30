@@ -1763,7 +1763,7 @@ const AIStudioCreate = () => {
                       >
                         <Button variant="outline" size="sm" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/10">
                           <Mic className="w-3.5 h-3.5" />
-                          🎤 Cantar esta letra con mi voz — ir a Voz & Letra
+                          🎤 Cantar esta letra con mi voz — 1 crédito
                         </Button>
                       </Link>
                     </CardContent>
@@ -1835,6 +1835,17 @@ const AIStudioCreate = () => {
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => downloadLyrics(item.lyrics, item.theme || item.description || "letra")} title="Descargar .txt">
                               <Download className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-primary"
+                              title="Cantar esta letra con mi voz"
+                              onClick={() => {
+                                window.open(`/ai-studio/vocal?lyrics=${encodeURIComponent(item.lyrics)}`, '_blank');
+                              }}
+                            >
+                              <Mic className="h-3.5 w-3.5" />
                             </Button>
                           </div>
                         </div>
