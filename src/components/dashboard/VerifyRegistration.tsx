@@ -47,7 +47,7 @@ export function VerifyRegistration() {
         <input ref={fileRef} type="file" className="hidden" onChange={e => { setFile(e.target.files?.[0] || null); setResult(null); }} />
 
         <Button className="w-full" size="sm" onClick={handleVerify} disabled={!file || loading}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('dashboard.verify.verify')}
         </Button>
 
         {result && (
