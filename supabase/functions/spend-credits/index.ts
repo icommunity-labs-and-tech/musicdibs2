@@ -20,13 +20,19 @@ const FEATURE_COSTS: Record<string, number> = {
   generate_video: 6,
 };
 
+/**
+ * spend-credits — VALIDATION ONLY
+ *
+ * Checks if the user has enough credits for the requested feature.
+ * Does NOT deduct credits. Each Edge Function is responsible for
+ * deducting credits after a successful operation and refunding on failure.
+ */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -50,29 +56,18 @@ serve(async (req) => {
       });
     }
 
-    const userId = user.id;
+    const { feature } = await req.json();
 
-    // Parse body
-    const { feature, description } = await req.json();
-
-    // Validate feature
     if (!feature || typeof feature !== "string" || !(feature in FEATURE_COSTS)) {
       return new Response(
-        JSON.stringify({
-          error: "Invalid feature",
-          validFeatures: Object.keys(FEATURE_COSTS),
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Invalid feature", validFeatures: Object.keys(FEATURE_COSTS) }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get cost from server config (ignore any client-sent amount)
     const amount = FEATURE_COSTS[feature];
 
-    // Free features — no credit deduction needed
+    // Free features
     if (amount === 0) {
       return new Response(
         JSON.stringify({ success: true, spent: 0, remaining: null, feature }),
@@ -80,21 +75,18 @@ serve(async (req) => {
       );
     }
 
-    // Use service role for trusted operations
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Check current balance
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("available_credits")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .single();
 
     if (profileError || !profile) {
-      console.error("[SPEND-CREDITS] Profile not found:", profileError);
       return new Response(JSON.stringify({ error: "Profile not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -108,62 +100,28 @@ serve(async (req) => {
           available: profile.available_credits,
           required: amount,
         }),
-        {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Deduct credits atomically
-    const { error: updateError } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        available_credits: profile.available_credits - amount,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId)
-      .eq("available_credits", profile.available_credits); // Optimistic lock
-
-    if (updateError) {
-      console.error("[SPEND-CREDITS] Update error:", updateError);
-      return new Response(JSON.stringify({ error: "Failed to deduct credits" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Log the transaction
-    const txDescription = description || `${feature}`;
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      amount: -amount,
-      type: "usage",
-      description: txDescription.slice(0, 200),
-    });
-
-    const remaining = profile.available_credits - amount;
-    console.log(`[SPEND-CREDITS] User ${userId}: -${amount} credits for ${feature}. Remaining: ${remaining}`);
+    // ✅ Validation passed — do NOT deduct. Each Edge Function handles deduction.
+    console.log(`[SPEND-CREDITS] Validation OK: user ${user.id}, feature=${feature}, cost=${amount}, balance=${profile.available_credits}`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        spent: amount,
-        remaining,
+        spent: 0,
+        remaining: profile.available_credits,
         feature,
+        cost: amount,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
     console.error("[SPEND-CREDITS] Error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Internal error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
