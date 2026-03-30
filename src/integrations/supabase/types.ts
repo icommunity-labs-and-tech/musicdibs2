@@ -979,7 +979,9 @@ export type Database = {
           description: string | null
           elevenlabs_voice_id: string
           id: string
+          mureka_vocal_id: string | null
           name: string
+          provider: string | null
           remove_background_noise: boolean | null
           sample_storage_path: string | null
           status: string
@@ -991,7 +993,9 @@ export type Database = {
           description?: string | null
           elevenlabs_voice_id: string
           id?: string
+          mureka_vocal_id?: string | null
           name: string
+          provider?: string | null
           remove_background_noise?: boolean | null
           sample_storage_path?: string | null
           status?: string
@@ -1003,7 +1007,9 @@ export type Database = {
           description?: string | null
           elevenlabs_voice_id?: string
           id?: string
+          mureka_vocal_id?: string | null
           name?: string
+          provider?: string | null
           remove_background_noise?: boolean | null
           sample_storage_path?: string | null
           status?: string
