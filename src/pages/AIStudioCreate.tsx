@@ -175,6 +175,7 @@ const AIStudioCreate = () => {
   const [cloningDuration, setCloningDuration] = useState<number | null>(null);
   const [cloningNoise, setCloningNoise] = useState(false);
   const [isCloning, setIsCloning] = useState(false);
+  const [cloningProvider, setCloningProvider] = useState<'mureka' | 'elevenlabs'>('mureka');
   const cloneFileRef = useRef<HTMLInputElement>(null);
 
   // ── Artist profile state ──
