@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,55 +26,8 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 
-const ENHANCE_MODES = [
-  {
-    id:          "professional",
-    icon:        Sparkles,
-    iconColor:   "text-violet-500",
-    bg:          "bg-violet-500/10",
-    border:      "border-violet-500/30",
-    label:       "Sonar profesional",
-    description: "Todo en uno: equilibra volumen, claridad y loudness óptimo.",
-  },
-  {
-    id:          "spotify",
-    icon:        Volume2,
-    iconColor:   "text-green-500",
-    bg:          "bg-green-500/10",
-    border:      "border-green-500/30",
-    label:       "Listo para Spotify",
-    description: "Ajusta el volumen al estándar -14 LUFS de plataformas de streaming.",
-  },
-  {
-    id:          "denoise",
-    icon:        Wind,
-    iconColor:   "text-blue-500",
-    bg:          "bg-blue-500/10",
-    border:      "border-blue-500/30",
-    label:       "Limpiar ruido de fondo",
-    description: "Elimina ruido ambiental y zumbidos de grabaciones caseras.",
-  },
-  {
-    id:          "clarity",
-    icon:        Zap,
-    iconColor:   "text-amber-500",
-    bg:          "bg-amber-500/10",
-    border:      "border-amber-500/30",
-    label:       "Más brillo y claridad",
-    description: "Mejora la presencia y definición con EQ inteligente.",
-  },
-  {
-    id:          "reverb",
-    icon:        Mic2,
-    iconColor:   "text-rose-500",
-    bg:          "bg-rose-500/10",
-    border:      "border-rose-500/30",
-    label:       "Quitar eco de habitación",
-    description: "Reduce la reverberación en grabaciones con eco.",
-  },
-] as const;
-
 const AIStudioEdit = () => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +61,15 @@ const AIStudioEdit = () => {
   const [enhanceOutputUrl, setEnhanceOutputUrl] = useState<string | null>(null);
   const [enhanceError, setEnhanceError] = useState<string | null>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Enhance mode config (icons + colors only; labels from i18n)
+  const ENHANCE_MODES = [
+    { id: "professional", icon: Sparkles, iconColor: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/30" },
+    { id: "spotify", icon: Volume2, iconColor: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/30" },
+    { id: "denoise", icon: Wind, iconColor: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/30" },
+    { id: "clarity", icon: Zap, iconColor: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30" },
+    { id: "reverb", icon: Mic2, iconColor: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/30" },
+  ] as const;
 
   useEffect(() => {
     if (user) loadHistory();
@@ -148,12 +111,12 @@ const AIStudioEdit = () => {
     if (!file) return;
 
     if (!file.type.startsWith('audio/')) {
-      toast({ title: "Error", description: "Solo se permiten archivos de audio", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiEdit.errorAudioOnly'), variant: "destructive" });
       return;
     }
 
     if (file.size > 20 * 1024 * 1024) {
-      toast({ title: "Error", description: "El archivo no puede superar 20MB", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiEdit.errorFileSize'), variant: "destructive" });
       return;
     }
 
@@ -188,17 +151,17 @@ const AIStudioEdit = () => {
 
   const handleProcess = async () => {
     if (!selectedSource && !uploadedFile) {
-      toast({ title: "Error", description: "Selecciona una pista del historial o sube un archivo", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiEdit.errorSelectSource'), variant: "destructive" });
       return;
     }
 
     if (!user) {
-      toast({ title: "Error", description: "Debes iniciar sesión", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiEdit.errorLogin'), variant: "destructive" });
       return;
     }
 
     if (variationType === 'mood_change' && !newMood) {
-      toast({ title: "Error", description: "Selecciona un nuevo mood", variant: "destructive" });
+      toast({ title: t('aiShared.error'), description: t('aiEdit.errorSelectMood'), variant: "destructive" });
       return;
     }
 
@@ -255,13 +218,13 @@ const AIStudioEdit = () => {
         };
         
         setResult(newResult);
-        toast({ title: "¡Variación creada!", description: "Tu nueva pista está lista" });
+        toast({ title: t('aiEdit.variationCreated'), description: t('aiEdit.newTrackReady') });
       }
     } catch (error: any) {
       console.error('Process error:', error);
       toast({ 
-        title: "Error al procesar", 
-        description: error.message || "No se pudo crear la variación", 
+        title: t('aiShared.error'), 
+        description: error.message || t('aiEdit.errorSelectSource'), 
         variant: "destructive" 
       });
     } finally {
@@ -298,12 +261,11 @@ const AIStudioEdit = () => {
 
   // ── Auphonic helpers ──────────────────────────────────────
   const uploadFileForAuphonic = async (file: File): Promise<string> => {
-    // Limpiar el nombre: solo letras, números, guiones y puntos
     const safeName = file.name
       .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")   // quitar tildes
-      .replace(/[^a-zA-Z0-9._-]/g, "_")  // reemplazar especiales por _
-      .replace(/_+/g, "_")               // colapsar múltiples _
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .replace(/_+/g, "_")
       .toLowerCase();
     const path = `auphonic/${user!.id}/${Date.now()}_${safeName}`;
     const { error } = await supabase.storage
@@ -324,14 +286,14 @@ const AIStudioEdit = () => {
   const handleEnhance = async () => {
     const sourceSelected = uploadedFile || uploadedAudioUrl || selectedSource;
     if (!sourceSelected) {
-      toast({ title: "Selecciona un audio",
-              description: "Sube un archivo o elige una generación previa.",
+      toast({ title: t('aiShared.error'),
+              description: t('aiEdit.errorSelectSource'),
               variant: "destructive" });
       return;
     }
     if (!hasEnough(FEATURE_COSTS.enhance_audio)) {
-      toast({ title: "Sin créditos",
-              description: "Necesitas 1 crédito para mejorar el audio.",
+      toast({ title: t('aiShared.noCredits'),
+              description: t('aiEdit.enhanceBtn'),
               variant: "destructive" });
       return;
     }
@@ -377,12 +339,11 @@ const AIStudioEdit = () => {
             setEnhanceStatus("done");
             setEnhanceOutputUrl(st.outputUrl);
             setIsEnhancing(false);
-            toast({ title: "¡Audio mejorado!",
-                    description: "Tu track está listo para descargar." });
+            toast({ title: t('aiEdit.enhanced') });
           } else if (st?.errored) {
             stopPolling();
             setEnhanceStatus("error");
-            setEnhanceError("Auphonic no pudo procesar el audio. Intenta con otro archivo.");
+            setEnhanceError(t('aiEdit.enhanceError', { defaultValue: 'Auphonic no pudo procesar el audio. Intenta con otro archivo.' }));
             setIsEnhancing(false);
           }
         } catch { /* continuar polling */ }
@@ -393,13 +354,13 @@ const AIStudioEdit = () => {
           stopPolling();
           setIsEnhancing(false);
           setEnhanceStatus("error");
-          setEnhanceError("Tiempo de espera agotado. El procesamiento tardó demasiado.");
+          setEnhanceError(t('aiEdit.enhanceTimeout', { defaultValue: 'Tiempo de espera agotado. El procesamiento tardó demasiado.' }));
         }
       }, 300_000);
 
     } catch (err: any) {
       setEnhanceStatus("error");
-      setEnhanceError(err.message || "Error al procesar el audio");
+      setEnhanceError(err.message || t('aiEdit.enhanceError', { defaultValue: 'Error al procesar el audio' }));
       setIsEnhancing(false);
     }
   };
@@ -413,12 +374,12 @@ const AIStudioEdit = () => {
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          Volver a AI MusicDibs Studio
+          {t('aiEdit.backToStudio')}
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Editar Audio</h1>
-          <p className="text-muted-foreground">Crea variaciones y edita tus pistas de audio</p>
+          <h1 className="text-3xl font-bold mb-2">{t('aiEdit.title')}</h1>
+          <p className="text-muted-foreground">{t('aiEdit.subtitle')}</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -426,8 +387,8 @@ const AIStudioEdit = () => {
           <div className="space-y-6 lg:row-span-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Fuente de Audio</CardTitle>
-                <CardDescription>Selecciona del historial o sube un archivo</CardDescription>
+                <CardTitle className="text-lg">{t('aiEdit.audioSource')}</CardTitle>
+                <CardDescription>{t('aiEdit.audioSourceDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Upload Button */}
@@ -444,7 +405,7 @@ const AIStudioEdit = () => {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="w-4 h-4 mr-2" />
-                  Subir archivo de audio
+                  {t('aiEdit.uploadAudio')}
                 </Button>
 
                 {/* Uploaded File Preview */}
@@ -462,7 +423,7 @@ const AIStudioEdit = () => {
                         </Button>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
-                          <p className="text-xs text-muted-foreground">Archivo subido</p>
+                          <p className="text-xs text-muted-foreground">{t('aiEdit.uploadedFile')}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -471,14 +432,14 @@ const AIStudioEdit = () => {
 
                 {/* History */}
                 <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">O selecciona del historial:</Label>
+                  <Label className="text-sm text-muted-foreground">{t('aiEdit.selectFromHistory')}</Label>
                   {isLoadingHistory ? (
                     <div className="flex items-center justify-center py-8">
                       <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : history.length === 0 ? (
                     <div className="text-center py-8 text-sm text-muted-foreground">
-                      {user ? "No hay generaciones previas" : "Inicia sesión para ver tu historial"}
+                      {user ? t('aiEdit.noHistory') : t('aiEdit.loginForHistory')}
                     </div>
                   ) : (
                     <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
@@ -518,15 +479,14 @@ const AIStudioEdit = () => {
 
           {/* Mejora con Auphonic - Col 2 */}
           <div className="space-y-6">
-            {/* ── Mejora con Auphonic ─────────────────────────────── */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-violet-500" />
-                  Mejora tu canción con IA
+                  {t('aiEdit.enhanceTitle')}
                 </CardTitle>
                 <CardDescription>
-                  Procesado profesional en la nube · 1 crédito por track
+                  {t('aiEdit.enhanceDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -554,10 +514,10 @@ const AIStudioEdit = () => {
 
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium leading-tight">
-                            {m.label}
+                            {t(`aiEdit.enhanceModes.${m.id}.label`)}
                           </p>
                           <p className="text-xs text-muted-foreground leading-snug mt-0.5">
-                            {m.description}
+                            {t(`aiEdit.enhanceModes.${m.id}.desc`)}
                           </p>
                         </div>
 
@@ -574,10 +534,10 @@ const AIStudioEdit = () => {
                     <Loader2 className="w-5 h-5 animate-spin text-violet-500 shrink-0" />
                     <div>
                       <p className="text-sm font-medium">
-                        Procesando con Auphonic…
+                        {t('aiEdit.processing')}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Suele tardar 1–3 minutos. No cierres la página.
+                        {t('aiEdit.processingDesc')}
                       </p>
                     </div>
                   </div>
@@ -587,7 +547,7 @@ const AIStudioEdit = () => {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-emerald-500">
                       <CheckCircle2 className="w-5 h-5" />
-                      <p className="text-sm font-semibold">¡Audio mejorado y listo!</p>
+                      <p className="text-sm font-semibold">{t('aiEdit.enhanced')}</p>
                     </div>
                     <a
                       href={enhanceOutputUrl}
@@ -600,7 +560,7 @@ const AIStudioEdit = () => {
                                  transition-colors"
                     >
                       <Download className="w-4 h-4" />
-                      Descargar track mejorado
+                      {t('aiEdit.downloadEnhanced')}
                     </a>
                     <Button
                       variant="ghost"
@@ -612,7 +572,7 @@ const AIStudioEdit = () => {
                         setEnhanceProductionUuid(null);
                       }}
                     >
-                      Procesar de nuevo →
+                      {t('aiEdit.processAgain')}
                     </Button>
                   </div>
                 )}
@@ -620,13 +580,13 @@ const AIStudioEdit = () => {
                 {enhanceStatus === "error" && (
                   <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <p>{enhanceError || "Error al procesar el audio."}</p>
+                    <p>{enhanceError || t('aiEdit.enhanceError', { defaultValue: 'Error al procesar el audio.' })}</p>
                   </div>
                 )}
 
                 {enhanceStatus !== "done" && (
                   !hasEnough(FEATURE_COSTS.enhance_audio) ? (
-                    <NoCreditsAlert message="Necesitas 1 crédito para mejorar el audio." />
+                    <NoCreditsAlert message={t('aiEdit.enhanceBtn')} />
                   ) : (
                     <Button
                       onClick={handleEnhance}
@@ -637,11 +597,11 @@ const AIStudioEdit = () => {
                       {isEnhancing || enhanceStatus === "processing"
                         ? <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Procesando…
+                            {t('aiEdit.processingBtn')}
                           </>
                         : <>
                             <Sparkles className="w-4 h-4 mr-2" />
-                            Mejorar audio (1 crédito)
+                            {t('aiEdit.enhanceBtn')}
                           </>
                       }
                     </Button>
@@ -649,7 +609,7 @@ const AIStudioEdit = () => {
                 )}
 
                 <p className="text-[11px] text-center text-muted-foreground">
-                  Procesado por Auphonic · Algoritmos de audio profesionales
+                  {t('aiEdit.poweredBy')}
                 </p>
               </CardContent>
             </Card>
@@ -660,42 +620,42 @@ const AIStudioEdit = () => {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Tipo de Edición</CardTitle>
-                <CardDescription>Elige cómo quieres modificar el audio</CardDescription>
+                <CardTitle className="text-lg">{t('aiEdit.editType')}</CardTitle>
+                <CardDescription>{t('aiEdit.editTypeDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Tabs value={variationType} onValueChange={(v) => setVariationType(v as VariationType)}>
                   <TabsList className="grid grid-cols-2 gap-1 h-auto">
                     <TabsTrigger value="similar" className="flex flex-col gap-1 py-3">
                       <RefreshCw className="w-4 h-4" />
-                      <span className="text-xs">Variación</span>
+                      <span className="text-xs">{t('aiEdit.variation')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="mood_change" className="flex flex-col gap-1 py-3">
                       <Palette className="w-4 h-4" />
-                      <span className="text-xs">Mood</span>
+                      <span className="text-xs">{t('aiEdit.mood')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="extend" className="flex flex-col gap-1 py-3">
                       <Clock className="w-4 h-4" />
-                      <span className="text-xs">Extender</span>
+                      <span className="text-xs">{t('aiEdit.extend')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="inpaint" className="flex flex-col gap-1 py-3">
                       <Scissors className="w-4 h-4" />
-                      <span className="text-xs">Inpaint</span>
+                      <span className="text-xs">{t('aiEdit.inpaint')}</span>
                     </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="similar" className="mt-4 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Genera una variación similar manteniendo el estilo y estructura general pero con diferencias sutiles.
+                      {t('aiEdit.variationDesc')}
                     </p>
                   </TabsContent>
 
                   <TabsContent value="mood_change" className="mt-4 space-y-4">
                     <div className="space-y-2">
-                      <Label>Nuevo Mood</Label>
+                      <Label>{t('aiEdit.newMood')}</Label>
                       <Select value={newMood} onValueChange={setNewMood}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un mood" />
+                          <SelectValue placeholder={t('aiEdit.selectMood')} />
                         </SelectTrigger>
                         <SelectContent>
                           {MOODS.map(mood => (
@@ -705,14 +665,14 @@ const AIStudioEdit = () => {
                       </Select>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Transforma el mood de la pista manteniendo la estructura musical.
+                      {t('aiEdit.moodDesc')}
                     </p>
                   </TabsContent>
 
                   <TabsContent value="extend" className="mt-4 space-y-4">
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <Label>Nueva duración</Label>
+                        <Label>{t('aiEdit.newDuration')}</Label>
                         <span className="text-sm font-medium">{newDuration}s</span>
                       </div>
                       <Slider
@@ -724,16 +684,16 @@ const AIStudioEdit = () => {
                       />
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Extiende la duración de la pista manteniendo coherencia.
+                      {t('aiEdit.extendDesc')}
                     </p>
                   </TabsContent>
 
                   <TabsContent value="inpaint" className="mt-4 space-y-4">
                     <div className="space-y-3">
-                      <Label>Región a modificar (segundos)</Label>
+                      <Label>{t('aiEdit.regionToModify')}</Label>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label className="text-xs text-muted-foreground">Inicio</Label>
+                          <Label className="text-xs text-muted-foreground">{t('aiEdit.start')}</Label>
                           <Slider
                             value={[inpaintStart]}
                             onValueChange={([v]) => setInpaintStart(v)}
@@ -744,7 +704,7 @@ const AIStudioEdit = () => {
                           <span className="text-xs">{inpaintStart}s</span>
                         </div>
                         <div>
-                          <Label className="text-xs text-muted-foreground">Fin</Label>
+                          <Label className="text-xs text-muted-foreground">{t('aiEdit.end')}</Label>
                           <Slider
                             value={[inpaintEnd]}
                             onValueChange={([v]) => setInpaintEnd(v)}
@@ -757,9 +717,9 @@ const AIStudioEdit = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label>Descripción del cambio</Label>
+                      <Label>{t('aiEdit.changeDesc')}</Label>
                       <Textarea
-                        placeholder="Ej: Añade un solo de guitarra eléctrica..."
+                        placeholder={t('aiEdit.changePlaceholder')}
                         value={inpaintPrompt}
                         onChange={(e) => setInpaintPrompt(e.target.value)}
                         rows={3}
@@ -769,7 +729,7 @@ const AIStudioEdit = () => {
                 </Tabs>
 
                 {!hasEnough(FEATURE_COSTS.edit_audio) ? (
-                  <NoCreditsAlert message={`Necesitas ${FEATURE_COSTS.edit_audio} créditos para editar música.`} />
+                  <NoCreditsAlert message={t('aiEdit.enhanceBtn')} />
                 ) : (
                 <Button 
                   onClick={handleProcess} 
@@ -780,12 +740,12 @@ const AIStudioEdit = () => {
                   {isProcessing ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Procesando...
+                      {t('aiShared.processing')}
                     </>
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      Crear {variationType === 'similar' ? 'Variación' : variationType === 'mood_change' ? 'Versión' : variationType === 'extend' ? 'Extensión' : 'Edición'} (1 crédito)
+                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)} (1 {t('aiShared.creditSingular')})
                     </>
                   )}
                 </Button>
@@ -796,7 +756,7 @@ const AIStudioEdit = () => {
 
           {/* Result */}
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-xl font-semibold">Resultado</h2>
+            <h2 className="text-xl font-semibold">{t('aiEdit.result')}</h2>
             {isProcessing ? (
               <Card>
                 <CardContent className="p-6 space-y-4">
@@ -810,7 +770,7 @@ const AIStudioEdit = () => {
                   </div>
                   <Skeleton className="h-10 w-full" />
                   <p className="text-sm text-muted-foreground text-center animate-pulse">
-                    Generando audio...
+                    {t('aiEdit.generatingAudio')}
                   </p>
                 </CardContent>
               </Card>
@@ -832,9 +792,9 @@ const AIStudioEdit = () => {
                     </Button>
                     <div className="flex-1 min-w-0">
                       <Badge variant="secondary" className="mb-2">
-                        {variationType === 'similar' ? 'Variación' : 
-                         variationType === 'mood_change' ? `Mood: ${newMood}` :
-                         variationType === 'extend' ? 'Extendido' : 'Inpaint'}
+                        {variationType === 'similar' ? t('aiEdit.variation') : 
+                         variationType === 'mood_change' ? `${t('aiEdit.mood')}: ${newMood}` :
+                         variationType === 'extend' ? t('aiEdit.extend') : t('aiEdit.inpaint')}
                       </Badge>
                       <p className="text-sm truncate">{result.prompt}</p>
                       <p className="text-xs text-muted-foreground">{result.duration}s</p>
@@ -847,7 +807,7 @@ const AIStudioEdit = () => {
                     onClick={() => downloadAudio(result.audioUrl, result.id.slice(0, 8))}
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Descargar
+                    {t('aiEdit.download')}
                   </Button>
                 </CardContent>
               </Card>
@@ -856,7 +816,7 @@ const AIStudioEdit = () => {
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <Music className="w-12 h-12 text-muted-foreground mb-4" />
                   <p className="text-muted-foreground text-center">
-                    {sourceSelected ? "Elige un tipo de edición y procesa" : "Selecciona una fuente de audio"}
+                    {sourceSelected ? t('aiEdit.selectSourceOrEdit') : t('aiEdit.selectAudioSource')}
                   </p>
                 </CardContent>
               </Card>
