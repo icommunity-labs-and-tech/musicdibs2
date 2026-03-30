@@ -15,7 +15,7 @@ const SPANISH_LANG_TAGS = [
 /** Map browser language tag to one of our supported languages */
 const mapBrowserLang = (detected: string | undefined): string => {
   if (!detected) return 'es';
-  const tag = detected.trim();
+  const tag = detected.trim().replace(/_/g, '-');
 
   // Any Spanish variant → es
   if (tag === 'es' || SPANISH_LANG_TAGS.some(s => tag.toLowerCase().startsWith(s.toLowerCase()))) return 'es';
@@ -1617,6 +1617,9 @@ i18n
     lng: detectedLang,
     fallbackLng: 'es',
     supportedLngs: ['es', 'en', 'pt-BR', 'fr', 'it', 'de'],
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
+    cleanCode: true,
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],
@@ -1624,5 +1627,19 @@ i18n
       caches: ['localStorage'],
     },
   });
+
+i18n.on('languageChanged', (lng) => {
+  const normalized = mapBrowserLang(lng);
+  if (lng !== normalized) {
+    void i18n.changeLanguage(normalized);
+    return;
+  }
+
+  try {
+    localStorage.setItem('lang', normalized);
+  } catch {
+    // Ignore storage errors (private mode, etc.)
+  }
+});
 
 export default i18n;
