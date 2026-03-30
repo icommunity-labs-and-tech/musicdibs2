@@ -28,12 +28,12 @@ export function VerifyRegistration() {
     <Card className="border-border/40 shadow-sm">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-          <Search className="h-4 w-4 text-primary" /> Verificar tu registro
+          <Search className="h-4 w-4 text-primary" /> {t('dashboard.verify.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Verifica si una obra ha sido registrada con nosotros.
+          {t('dashboard.verify.description')}
         </p>
         <div
           className="flex items-center gap-2 rounded-md border border-dashed border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
