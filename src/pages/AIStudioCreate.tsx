@@ -342,8 +342,16 @@ const AIStudioCreate = () => {
       const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
 
       // Si hay voz clonada Mureka seleccionada, usar Mureka
-      const selectedCloneData = voiceClones.find((v: any) => v.id === selectedCloneId);
-      if (selectedCloneData?.provider === 'mureka' && selectedCloneData?.mureka_vocal_id) {
+      const selectedCloneData = selectedCloneId
+        ? voiceClones.find((v: any) => v.id === selectedCloneId)
+        : null;
+
+      console.log('[DEBUG] selectedCloneId:', selectedCloneId);
+      console.log('[DEBUG] voiceClones:', voiceClones);
+      console.log('[MUREKA-CHECK] clone:', selectedCloneData?.name, 'provider:', selectedCloneData?.provider, 'vocal_id:', selectedCloneData?.mureka_vocal_id);
+
+      if (selectedCloneData && selectedCloneData.provider === 'mureka' && selectedCloneData.mureka_vocal_id) {
+        console.log('[MUREKA-CHECK] Using Mureka for generation');
         const { data: { session } } = await supabase.auth.getSession();
         const murekaRes = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mureka-generate-song`,
