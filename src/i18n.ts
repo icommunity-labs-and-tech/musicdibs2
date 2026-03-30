@@ -1604,6 +1604,18 @@ allLangs.forEach((lang) => {
   }
 });
 
+// Safety fix: in some locales aiStudio was accidentally nested under privacy
+allLangs.forEach((lang) => {
+  const translation = resources[lang]?.translation as Record<string, any> | undefined;
+  if (!translation) return;
+
+  const misplacedAiStudio = translation?.privacy?.aiStudio;
+  if (misplacedAiStudio && !translation.aiStudio) {
+    translation.aiStudio = misplacedAiStudio;
+    delete translation.privacy.aiStudio;
+  }
+});
+
 // If user manually chose a language, use it; otherwise auto-detect from browser
 const detectedLang = mapBrowserLang(
   savedLang || (typeof navigator !== 'undefined' ? navigator.language : undefined)
