@@ -343,7 +343,7 @@ serve(async (req) => {
       .from('social_promotions')
       .insert({
         user_id: user.id,
-        work_id,
+        work_id: itemId,
         status: 'generating',
         credits_spent: CREDITS_COST,
       })
