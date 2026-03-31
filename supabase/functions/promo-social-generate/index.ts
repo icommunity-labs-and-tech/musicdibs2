@@ -292,9 +292,10 @@ serve(async (req) => {
       });
     }
 
-    const { work_id, tone, language } = await req.json();
-    if (!work_id) {
-      return new Response(JSON.stringify({ error: 'work_id required' }), {
+    const { work_id, ai_generation_id, tone, language } = await req.json();
+    const itemId = work_id || ai_generation_id;
+    if (!itemId) {
+      return new Response(JSON.stringify({ error: 'work_id or ai_generation_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -313,10 +314,12 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation + lyrics metadata
-    const meta = await fetchWorkMetadata(supabase, work_id, user.id);
+    // Fetch metadata — from works table or ai_generations table
+    const meta = ai_generation_id
+      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id)
+      : await fetchWorkMetadata(supabase, work_id, user.id);
     if (!meta) {
-      return new Response(JSON.stringify({ error: 'Work not found' }), {
+      return new Response(JSON.stringify({ error: 'Item not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
