@@ -2358,6 +2358,9 @@ const de: typeof es = {
       registerNew: 'Neues Werk registrieren',
       registerNewDesc: 'Starten Sie den schrittweisen Registrierungs- und Schutzprozess für Ihr Werk.',
       goToRegister: 'Zur Registrierung',
+      distributeWork: 'Verteile deine Musik',
+      distributeWorkDesc: 'Bringe deine Musik auf alle digitalen Plattformen: Spotify, Apple Music, Amazon und mehr.',
+      goToDistribute: 'Zur Distribution',
     },
     billing: {
       title: 'Abrechnung',
