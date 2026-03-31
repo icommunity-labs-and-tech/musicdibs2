@@ -326,7 +326,7 @@ serve(async (req) => {
 
     // Fetch metadata — from works table or ai_generations table
     const meta = ai_generation_id
-      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id)
+      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id, author)
       : await fetchWorkMetadata(supabase, work_id, user.id);
     if (!meta) {
       return new Response(JSON.stringify({ error: 'Item not found' }), {
