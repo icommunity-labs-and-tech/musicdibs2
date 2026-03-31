@@ -62,6 +62,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Ocultar contraseña',
         showPassword: 'Ver contraseña',
       },
+      whyBadge: { comingSoon: 'Próximamente' },
+      artistsAB: { joinFreeToday: '🎵 Únete gratis hoy', startCareer: 'Comienza tu carrera', whoTrusts: 'Mira quién confía en nosotros' },
+      promoBanner: { label: 'San Valentín' },
+      footerExtra: { web: 'Web', version: 'Versión 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   en: {
