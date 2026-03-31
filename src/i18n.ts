@@ -1586,8 +1586,9 @@ const resources = {
           admin: 'Administration',
           panelGuide: 'Guide du panneau',
           logout: 'Se déconnecter',
-          new: 'NOUVEAU',
-        },
+           new: 'NOUVEAU',
+           premiumPromos: 'Promos Premium',
+         },
         registerWork: {
           title: 'Enregistrer une œuvre',
           noCreditsMsg: 'Vous n\'avez pas assez de crédits pour enregistrer une œuvre.',
