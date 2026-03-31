@@ -160,6 +160,8 @@ export function PromoteWorks() {
         setPromos(prev => prev.map(x => x.id === p.id ? p : x));
         if (p.status !== 'generating') {
           setPolling(null);
+          setRegenerating(null);
+          setLaunching(null);
           if (p.status === 'completed' || p.status === 'assets_ready') {
             toast.success(t('dashboard.promote.promoGenerated'));
           } else if (p.status === 'failed') {
@@ -184,6 +186,7 @@ export function PromoteWorks() {
         } else {
           throw new Error(data.error);
         }
+        setLaunching(null);
         return;
       }
       const newPromo: SocialPromo = {
@@ -203,9 +206,9 @@ export function PromoteWorks() {
       toast.info(t('dashboard.promote.generatingInfo'));
     } catch (err: any) {
       toast.error(err.message || t('dashboard.promote.launchError'));
-    } finally {
       setLaunching(null);
     }
+    // Note: launching stays set until polling completes — cleared in the poll effect
   };
 
   const handleRegenerate = async (promoId: string, type: 'copies' | 'image', paid: boolean) => {
@@ -219,6 +222,7 @@ export function PromoteWorks() {
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
           toast.error(t('dashboard.promote.regenInsufficient'));
+          setRegenerating(null);
           return;
         }
         throw new Error(data.error);
@@ -231,9 +235,9 @@ export function PromoteWorks() {
       toast.info(paid ? t('dashboard.promote.regeneratingPaid', { label, cost: REGEN_CREDIT_COST }) : t('dashboard.promote.regenerating', { label }));
     } catch (err: any) {
       toast.error(err.message || t('dashboard.promote.regenError'));
-    } finally {
       setRegenerating(null);
     }
+    // Note: regenerating stays set until polling completes — cleared in the poll effect
   };
 
   const copyToClipboard = (text: string, field: string) => {
