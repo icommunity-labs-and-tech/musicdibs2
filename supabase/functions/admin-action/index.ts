@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { premiumPromoPublishedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -504,6 +505,101 @@ serve(async (req) => {
         action: "retry_ibs_queue",
         details: { queueId, workId },
       });
+
+      return json({ success: true });
+    }
+
+    // ── get_premium_promos ───────────────────────────────────────
+    if (action === "get_premium_promos") {
+      const offset = payload.offset || 0;
+      let query = admin
+        .from("premium_social_promotions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + 49);
+      if (payload.status_filter) query = query.eq("status", payload.status_filter);
+
+      const { data: promos, error } = await query;
+      if (error) return json({ error: error.message }, 500);
+
+      const userIds = [...new Set((promos || []).map((p: any) => p.user_id))];
+      const emailsMap = await getAllEmailsMap();
+      const { data: profiles } = await admin.from("profiles").select("user_id, display_name").in("user_id", userIds);
+      const namesMap: Record<string, string> = {};
+      (profiles || []).forEach((p: any) => { namesMap[p.user_id] = p.display_name; });
+
+      const enriched = (promos || []).map((p: any) => ({
+        ...p,
+        user_email: emailsMap[p.user_id] || "",
+        user_display_name: namesMap[p.user_id] || "",
+      }));
+
+      return json({ promos: enriched });
+    }
+
+    // ── update_premium_promo_status ───────────────────────────────
+    if (action === "update_premium_promo_status") {
+      const { promo_id, new_status } = payload;
+      if (!promo_id || !new_status) return json({ error: "promo_id and new_status required" }, 400);
+      const validStatuses = ["submitted", "under_review", "approved", "scheduled", "published", "rejected"];
+      if (!validStatuses.includes(new_status)) return json({ error: "Invalid status" }, 400);
+
+      const { data: promo, error: fetchErr } = await admin
+        .from("premium_social_promotions")
+        .select("*")
+        .eq("id", promo_id)
+        .single();
+      if (fetchErr || !promo) return json({ error: "Promo not found" }, 404);
+
+      const { error: upErr } = await admin
+        .from("premium_social_promotions")
+        .update({ status: new_status, updated_at: new Date().toISOString() })
+        .eq("id", promo_id);
+      if (upErr) return json({ error: upErr.message }, 500);
+
+      await audit({
+        action: "update_premium_promo",
+        target_user_id: promo.user_id,
+        details: { promo_id, old_status: promo.status, new_status },
+      });
+
+      // If published, send email to user
+      if (new_status === "published") {
+        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+        if (RESEND_API_KEY) {
+          try {
+            const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
+            const userEmail = targetAuth?.user?.email;
+            const { data: userProfile } = await admin.from("profiles").select("display_name").eq("user_id", promo.user_id).single();
+            const displayName = userProfile?.display_name || userEmail || "Artista";
+
+            if (userEmail) {
+              const emailContent = premiumPromoPublishedEmail({
+                name: displayName,
+                artistName: promo.artist_name,
+                songTitle: promo.song_title,
+              });
+
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${RESEND_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: "MusicDibs <noreply@notify.musicdibs.com>",
+                  to: [userEmail],
+                  subject: emailContent.subject,
+                  html: emailContent.html,
+                }),
+              });
+              console.log(`[ADMIN] Published promo email sent to ${userEmail}`);
+            }
+          } catch (emailErr) {
+            console.error("[ADMIN] Failed to send published promo email:", emailErr);
+          }
+        }
+      }
 
       return json({ success: true });
     }

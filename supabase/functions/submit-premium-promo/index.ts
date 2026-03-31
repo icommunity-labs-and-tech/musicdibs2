@@ -6,6 +6,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -69,6 +73,69 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: insertError.message }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Send notification email to marketing
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (RESEND_API_KEY) {
+      const styleName = promo_style ? escapeHtml(promo_style) : '—';
+      const html = `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8" /></head>
+<body style="margin:0;padding:0;background-color:#0d0618;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0618;">
+    <tr><td align="center" style="padding:40px 20px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <tr><td align="center" style="padding:0 0 30px;">
+          <h2 style="margin:0;color:#a855f7;font-size:22px;font-weight:800;letter-spacing:1px;">MUSICDIBS</h2>
+          <p style="margin:4px 0 0;color:#9ca3af;font-size:11px;">Nueva solicitud de Promo Premium</p>
+        </td></tr>
+        <tr><td style="background-color:#1a0a2e;border-radius:16px;padding:40px 36px;">
+          <h1 style="margin:0 0 24px;color:#f3f4f6;font-size:22px;font-weight:700;text-align:center;">👑 Nueva Promo Premium</h1>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.12));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:20px 24px;margin-bottom:16px;">
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Artista</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(artist_name)}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Canción</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(song_title)}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Email</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(user.email || '—')}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Estilo</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${styleName}</td></tr>
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Descripción</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(description)}</td></tr>
+            ${promo_message ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Mensaje promo</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(promo_message)}</td></tr>` : ''}
+            ${external_link ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Enlace</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);"><a href="${escapeHtml(external_link)}" style="color:#a855f7;">${escapeHtml(external_link)}</a></td></tr>` : ''}
+            ${team_notes ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:140px;">Notas</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;">${escapeHtml(team_notes)}</td></tr>` : ''}
+          </table>
+          <p style="margin:16px 0 0;color:#9ca3af;font-size:12px;text-align:center;">ID: ${promo.id} · Créditos: ${promo.credits_spent}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+      try {
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'MusicDibs <noreply@notify.musicdibs.com>',
+            to: ['marketing@musicdibs.com'],
+            subject: `👑 Nueva Promo Premium: ${artist_name} — ${song_title}`,
+            html,
+          }),
+        });
+
+        if (!emailRes.ok) {
+          const errText = await emailRes.text();
+          console.error('[PREMIUM-PROMO] Email send error:', emailRes.status, errText);
+        } else {
+          console.log('[PREMIUM-PROMO] Email sent to marketing@musicdibs.com');
+        }
+      } catch (emailErr) {
+        console.error('[PREMIUM-PROMO] Email exception:', emailErr);
+      }
+    } else {
+      console.warn('[PREMIUM-PROMO] RESEND_API_KEY not set, skipping email');
     }
 
     console.log(`[PREMIUM-PROMO] Request submitted: ${promo.id} by ${user.id}`);
