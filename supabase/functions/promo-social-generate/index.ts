@@ -320,7 +320,7 @@ serve(async (req) => {
     (async () => {
       try {
         // ── 1. Generate copies with Gemini 2.5 Pro (parallel) ──
-        const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics);
+        const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics, tone, language);
         const copiesPromise = generateCopiesWithAI(copiesPrompt, LOVABLE_API_KEY);
 
         // ── 2. Generate image (parallel) ──
