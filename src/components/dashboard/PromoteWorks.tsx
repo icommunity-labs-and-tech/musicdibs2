@@ -205,10 +205,15 @@ export function PromoteWorks() {
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
+    const work = works.find(w => w.id === workId);
+    const body: Record<string, any> = { tone: selectedTone, language: userLang };
+    if (work?.source === 'ai_studio') {
+      body.ai_generation_id = workId;
+    } else {
+      body.work_id = workId;
+    }
     try {
-      const { data, error } = await supabase.functions.invoke('promo-social-generate', {
-        body: { work_id: workId, tone: selectedTone, language: userLang },
-      });
+      const { data, error } = await supabase.functions.invoke('promo-social-generate', { body });
       if (error) throw new Error(error.message);
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
