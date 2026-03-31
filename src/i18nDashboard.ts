@@ -944,6 +944,7 @@ const en: typeof es = {
     virtualArtists: {
       title: 'My Virtual Artists',
       description: 'Save your artists\' voice and style settings to create consistent songs.',
+      newArtist: 'New Virtual Artist',
     },
   },
 };
