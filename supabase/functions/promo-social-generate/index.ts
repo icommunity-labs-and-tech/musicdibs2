@@ -253,7 +253,7 @@ serve(async (req) => {
       });
     }
 
-    const { work_id } = await req.json();
+    const { work_id, tone, language } = await req.json();
     if (!work_id) {
       return new Response(JSON.stringify({ error: 'work_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
