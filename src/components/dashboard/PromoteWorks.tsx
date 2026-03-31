@@ -616,7 +616,7 @@ function PromoDetailDialog({
               )}
               {meta?.prompt && (
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
+                  <span className="font-medium">{t('dashboard.promote.aiPrompt')}:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
                 </p>
               )}
             </div>
