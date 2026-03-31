@@ -1,4 +1,4 @@
-export const pagesTranslations: Record<string, { translation: { verify: any; managerBanner: any; userLogin: any } }> = {
+export const pagesTranslations: Record<string, { translation: { verify: any; managerBanner: any; userLogin: any; whyBadge: any; artistsAB: any; promoBanner: any; footerExtra: any; calcStreams: any } }> = {
   es: {
     translation: {
       verify: {
