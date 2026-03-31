@@ -31,6 +31,7 @@ interface Work {
   description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+  source: 'registered' | 'ai_studio';
 }
 
 interface AiGenMeta {
