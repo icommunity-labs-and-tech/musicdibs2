@@ -13,7 +13,7 @@ const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const { t } = useTranslation();
 
-  const modules = [
+  const mainModules = [
     {
       titleKey: "aiStudio.modules.createMusic.title",
       descKey: "aiStudio.modules.createMusic.desc",
@@ -45,6 +45,19 @@ const AIStudio = () => {
       color: "from-amber-500 to-orange-500"
     },
     {
+      titleKey: "aiStudio.modules.singYourSong.title",
+      descKey: "aiStudio.modules.singYourSong.desc",
+      icon: Mic,
+      href: "/ai-studio/vocal",
+      available: true,
+      costsCredits: true,
+      featureKey: 'generate_audio' as const,
+      color: "from-violet-500 to-purple-600"
+    }
+  ];
+
+  const promoModules = [
+    {
       titleKey: "aiStudio.modules.createVideoclips.title",
       descKey: "aiStudio.modules.createVideoclips.desc",
       icon: Video,
@@ -64,16 +77,6 @@ const AIStudio = () => {
       featureKey: 'generate_cover' as const,
       color: "from-emerald-500 to-teal-500"
     },
-    {
-      titleKey: "aiStudio.modules.singYourSong.title",
-      descKey: "aiStudio.modules.singYourSong.desc",
-      icon: Mic,
-      href: "/ai-studio/vocal",
-      available: true,
-      costsCredits: true,
-      featureKey: 'generate_audio' as const,
-      color: "from-violet-500 to-purple-600"
-    }
   ];
 
   return (
@@ -101,9 +104,9 @@ const AIStudio = () => {
           </p>
         </div>
 
-        {/* Modules Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-16">
-          {modules.map((module) => {
+        {/* Main Modules Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {mainModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = module.costsCredits && !hasEnough(cost);
             return (
@@ -151,6 +154,59 @@ const AIStudio = () => {
             </Card>
             );
           })}
+        </div>
+
+        {/* Promo Material Group */}
+        <div className="rounded-2xl border border-border/60 bg-muted/30 p-6 mb-16">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            {t('aiStudio.promoGroupTitle', 'Genera material promocional')}
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {promoModules.map((module) => {
+              const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
+              const disabled = module.costsCredits && !hasEnough(cost);
+              return (
+              <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+                {disabled && (
+                  <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
+                    {t('aiStudio.noCredits')}
+                  </Badge>
+                )}
+                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
+                <CardHeader>
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
+                    <module.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <CardTitle>{t(module.titleKey)}</CardTitle>
+                  <CardDescription>{t(module.descKey)}</CardDescription>
+                  {module.costsCredits && cost > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                      <Coins className="h-3 w-3" /> {cost} {cost > 1 ? t('aiStudio.creditsPerUse') : t('aiStudio.creditPerUse')}
+                    </span>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  {disabled ? (
+                    <Button asChild className="w-full" variant="default">
+                      <Link to="/dashboard/credits">
+                        <Coins className="w-4 h-4 mr-2" />
+                        {t('aiStudio.buyCredits')}
+                      </Link>
+                    </Button>
+                  ) : (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to={module.href}>
+                      <Zap className="w-4 h-4 mr-2" />
+                      {t('aiStudio.startBtn')}
+                    </Link>
+                  </Button>
+                  )}
+                </CardContent>
+              </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Features */}

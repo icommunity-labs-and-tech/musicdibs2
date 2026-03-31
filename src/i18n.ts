@@ -609,6 +609,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Próximamente',
+        promoGroupTitle: 'Genera material promocional',
         modules: {
           createMusic: { title: 'Crea Música', desc: 'Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.' },
           editModify: { title: 'Edita y Modifica', desc: 'Modifica pistas existentes, crea variaciones o aplica inpainting para rellenar secciones.' },
@@ -1090,6 +1091,7 @@ const resources = {
         creditPerUse: 'credit per use',
         creditsPerUse: 'credits per use',
         comingSoon: 'Coming soon',
+        promoGroupTitle: 'Generate promotional material',
         modules: {
           createMusic: { title: 'Create Music', desc: 'Generate original music from scratch using AI. Describe the style, mood and characteristics you want.' },
           editModify: { title: 'Edit & Modify', desc: 'Modify existing tracks, create variations or apply inpainting to fill in sections.' },
@@ -1382,6 +1384,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Em breve',
+        promoGroupTitle: 'Gere material promocional',
         modules: {
           createMusic: { title: 'Crie Música', desc: 'Gere música original do zero usando IA. Descreva o estilo, mood e características que deseja.' },
           editModify: { title: 'Edite e Modifique', desc: 'Modifique faixas existentes, crie variações ou aplique inpainting para preencher seções.' },
@@ -1532,6 +1535,7 @@ const resources = {
         creditPerUse: 'crédit par utilisation',
         creditsPerUse: 'crédits par utilisation',
         comingSoon: 'Bientôt disponible',
+        promoGroupTitle: 'Générez du matériel promotionnel',
         modules: {
           createMusic: { title: 'Créez de la Musique', desc: 'Générez de la musique originale à partir de zéro avec l\'IA. Décrivez le style, le mood et les caractéristiques souhaités.' },
           editModify: { title: 'Éditez et Modifiez', desc: 'Modifiez des pistes existantes, créez des variations ou appliquez de l\'inpainting pour remplir des sections.' },
@@ -1762,6 +1766,7 @@ const resources = {
         creditPerUse: 'credito per utilizzo',
         creditsPerUse: 'crediti per utilizzo',
         comingSoon: 'Prossimamente',
+        promoGroupTitle: 'Genera materiale promozionale',
         modules: {
           createMusic: { title: 'Crea Musica', desc: 'Genera musica originale da zero usando l\'IA. Descrivi lo stile, il mood e le caratteristiche che desideri.' },
           editModify: { title: 'Modifica e Varia', desc: 'Modifica tracce esistenti, crea variazioni o applica inpainting per riempire sezioni.' },
@@ -1992,6 +1997,7 @@ const resources = {
         creditPerUse: 'Credit pro Nutzung',
         creditsPerUse: 'Credits pro Nutzung',
         comingSoon: 'Demnächst',
+        promoGroupTitle: 'Werbematerial erstellen',
         modules: {
           createMusic: { title: 'Musik erstellen', desc: 'Generiere originelle Musik von Grund auf mit KI. Beschreibe den Stil, die Stimmung und die gewünschten Eigenschaften.' },
           editModify: { title: 'Bearbeiten & Ändern', desc: 'Bearbeite bestehende Tracks, erstelle Variationen oder wende Inpainting an, um Abschnitte auszufüllen.' },
