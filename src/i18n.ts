@@ -1566,7 +1566,7 @@ const resources = {
           verifyRegistration: 'Vérifier un enregistrement',
           verifyIdentity: 'Vérifier l\'identité',
           promoteWork: 'Promouvoir une œuvre',
-          artistProfiles: 'Mes Artistes',
+          artistProfiles: 'Mes Artistes Virtuels',
           voiceCloning: 'Clonage vocal',
           profile: 'Profil',
           plansCredits: 'Plans et crédits',
