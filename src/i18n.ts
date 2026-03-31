@@ -1997,6 +1997,7 @@ const resources = {
         creditPerUse: 'Credit pro Nutzung',
         creditsPerUse: 'Credits pro Nutzung',
         comingSoon: 'Demnächst',
+        promoGroupTitle: 'Werbematerial erstellen',
         modules: {
           createMusic: { title: 'Musik erstellen', desc: 'Generiere originelle Musik von Grund auf mit KI. Beschreibe den Stil, die Stimmung und die gewünschten Eigenschaften.' },
           editModify: { title: 'Bearbeiten & Ändern', desc: 'Bearbeite bestehende Tracks, erstelle Variationen oder wende Inpainting an, um Abschnitte auszufüllen.' },
