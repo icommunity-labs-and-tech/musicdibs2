@@ -46,7 +46,7 @@ serve(async (req) => {
       });
     }
 
-    const { promo_id, paid } = await req.json();
+    const { promo_id, paid, tone, language } = await req.json();
     if (!promo_id) {
       return new Response(JSON.stringify({ error: 'promo_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
