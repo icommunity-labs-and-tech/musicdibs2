@@ -31,14 +31,14 @@ interface PremiumPromo {
 
 type PromoView = 'selector' | 'standard' | 'premium';
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  submitted: { label: 'Pendiente de revisión', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  under_review: { label: 'En revisión', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  approved: { label: 'Aprobada', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  scheduled: { label: 'Programada', color: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
-  published: { label: 'Publicada', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  rejected: { label: 'Rechazada', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
-};
+const getStatusMap = (t: (key: string, fallback: string) => string): Record<string, { label: string; color: string }> => ({
+  submitted: { label: t('dashboard.premium.statusPending', 'Pendiente de revisión'), color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  under_review: { label: t('dashboard.premium.statusUnderReview', 'En revisión'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  approved: { label: t('dashboard.premium.statusApproved', 'Aprobada'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  scheduled: { label: t('dashboard.premium.statusScheduled', 'Programada'), color: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
+  published: { label: t('dashboard.premium.statusPublished', 'Publicada'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  rejected: { label: t('dashboard.premium.statusRejected', 'Rechazada'), color: 'bg-red-500/10 text-red-600 border-red-500/20' },
+});
 
 export default function PromotePage() {
   const { t, i18n } = useTranslation();
