@@ -482,6 +482,9 @@ const en: typeof es = {
       registerNew: 'Register a new work',
       registerNewDesc: 'Start the step-by-step registration and protection process for your work.',
       goToRegister: 'Go to registration',
+      distributeWork: 'Distribute your music',
+      distributeWorkDesc: 'Get your music on all digital platforms: Spotify, Apple Music, Amazon and more.',
+      goToDistribute: 'Go to distribution',
     },
     billing: {
       title: 'Billing',
