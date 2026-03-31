@@ -39,7 +39,7 @@ const ArtistsBanner = () => {
     id: 'artists_cta_testimonials',
     variants: [
       { text: t("artists.view_testimonials"), className: '' },
-      { text: 'Mira quién confía en nosotros', className: '' },
+      { text: t('artistsAB.whoTrusts'), className: '' },
     ],
   });
 

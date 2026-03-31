@@ -168,7 +168,7 @@ export const RoyaltiesCalculator = () => {
                 >
                   {formatNumber(Math.round(animatedStreams), lang)}
                 </span>
-                <span className="ml-2 text-lg" style={{ color: "#C4B5FD" }}>streams</span>
+                <span className="ml-2 text-lg" style={{ color: "#C4B5FD" }}>{t('calcStreams.unit')}</span>
               </div>
             </div>
 
