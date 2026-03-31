@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 async function fetchWorkMetadata(supabase: any, workId: string, userId: string) {
-  const [workRes, genRes] = await Promise.all([
+  const [workRes, genRes, lyricsRes] = await Promise.all([
     supabase
       .from('works')
       .select('title, author, description, type, certificate_url, checker_url')
@@ -17,6 +17,12 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
     supabase
       .from('ai_generations')
       .select('prompt, genre, mood')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('lyrics_generations')
+      .select('lyrics, genre, mood, theme, style, description')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20),
@@ -30,44 +36,78 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
     work.title && g.prompt && g.prompt.toLowerCase().includes(work.title.toLowerCase())
   ) || genRes.data?.[0] || null;
 
-  return { work, aiGen };
+  // Try to match lyrics to this work
+  const lyrics = lyricsRes.data?.find((l: any) =>
+    work.title && l.description && l.description.toLowerCase().includes(work.title.toLowerCase())
+  ) || lyricsRes.data?.[0] || null;
+
+  return { work, aiGen, lyrics };
 }
 
-function buildImagePrompt(work: any, aiGen: any): string {
+function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   const parts = [
-    `Generate a promotional image for the song "${work.title}" by ${work.author || 'artist'}.`,
+    `Create a professional promotional artwork for the song "${work.title}" by ${work.author || 'artist'}.`,
+    `IMPORTANT: The ONLY text in the image must be the artist name "${work.author || 'artist'}" and the song title "${work.title}". No other text, no watermarks, no slogans.`,
   ];
   if (aiGen?.genre) parts.push(`Genre: ${aiGen.genre}.`);
-  if (aiGen?.mood) parts.push(`Mood: ${aiGen.mood}.`);
+  if (aiGen?.mood) parts.push(`Mood/atmosphere: ${aiGen.mood}.`);
   if (work.type) parts.push(`Type: ${work.type}.`);
-  if (work.description) parts.push(`Context: ${work.description.slice(0, 100)}.`);
-  if (aiGen?.prompt) parts.push(`Original AI concept: ${aiGen.prompt.slice(0, 120)}.`);
-  parts.push('Create a striking square 1080x1080 promotional artwork with a dark purple and violet gradient background, gold accents, and modern minimalist design. Include the song title as text overlay. High quality, professional music promotion image.');
+  if (work.description) parts.push(`Context: ${work.description.slice(0, 150)}.`);
+  if (aiGen?.prompt) parts.push(`Original concept: ${aiGen.prompt.slice(0, 150)}.`);
+
+  // Add lyrics context for visual inspiration (NOT as text in the image)
+  if (lyrics?.lyrics) {
+    const lyricsSnippet = lyrics.lyrics.slice(0, 300);
+    parts.push(`The song lyrics convey this feeling (use as visual inspiration only, DO NOT write these words in the image): "${lyricsSnippet}"`);
+  }
+  if (lyrics?.theme) parts.push(`Lyrical theme: ${lyrics.theme}.`);
+  if (lyrics?.style) parts.push(`Musical style from lyrics: ${lyrics.style}.`);
+
+  parts.push('Square 1080x1080 format. Striking promotional artwork with bold, modern design. Rich colors, dramatic lighting. Professional music promotion image suitable for Instagram and TikTok. High quality.');
   return parts.join(' ');
 }
 
-function buildCopiesPrompt(work: any, aiGen: any): string {
+function buildCopiesPrompt(work: any, aiGen: any, lyrics: any): string {
   const lines = [
-    `Genera 3 copies para promocionar esta obra musical en redes sociales.`,
+    `Eres un copywriter de élite especializado en marketing musical viral. Tu trabajo es crear copies que generen HYPE real, que hagan que la gente quiera escuchar la canción YA.`,
     '',
-    `Obra: "${work.title}"`,
-    `Artista: "${work.author || 'Artista'}"`,
-    `Tipo: ${work.type || 'obra musical'}`,
+    `## Datos de la obra`,
+    `- Título: "${work.title}"`,
+    `- Artista: "${work.author || 'Artista'}"`,
+    `- Tipo: ${work.type || 'obra musical'}`,
   ];
-  if (aiGen?.genre) lines.push(`Género: ${aiGen.genre}`);
-  if (aiGen?.mood) lines.push(`Mood: ${aiGen.mood}`);
-  if (work.description) lines.push(`Descripción: ${work.description}`);
-  if (aiGen?.prompt) lines.push(`Prompt IA original: ${aiGen.prompt.slice(0, 150)}`);
-  if (work.checker_url) lines.push(`Verificar en blockchain: ${work.checker_url}`);
-  lines.push('');
-  lines.push(`Genera exactamente este JSON:
-{
-  "ig_feed": "Copy para Instagram Feed (máx 150 chars, 2-3 emojis, 3-5 hashtags musicales relevantes, menciona que está certificado en blockchain)",
-  "ig_story": "Copy para Instagram Story (máx 80 chars, directo, impactante, 1-2 emojis)",
-  "tiktok": "Copy para TikTok (máx 150 chars, tono joven y viral, 3-5 hashtags trending de música)"
-}
+  if (aiGen?.genre) lines.push(`- Género: ${aiGen.genre}`);
+  if (aiGen?.mood) lines.push(`- Mood/vibra: ${aiGen.mood}`);
+  if (work.description) lines.push(`- Descripción: ${work.description}`);
+  if (aiGen?.prompt) lines.push(`- Concepto artístico: ${aiGen.prompt.slice(0, 200)}`);
 
-Idioma: español. Tono: auténtico, no corporativo.`);
+  // Add lyrics for richer copies
+  if (lyrics?.lyrics) {
+    const lyricsSnippet = lyrics.lyrics.slice(0, 500);
+    lines.push(`- Letra de la canción (extracto): "${lyricsSnippet}"`);
+  }
+  if (lyrics?.theme) lines.push(`- Temática lírica: ${lyrics.theme}`);
+
+  if (work.checker_url) lines.push(`- Enlace de verificación blockchain: ${work.checker_url}`);
+
+  lines.push('');
+  lines.push(`## Instrucciones de estilo`);
+  lines.push(`- Los copies deben ser IMPACTANTES, emocionales y generar urgencia por escuchar la canción`);
+  lines.push(`- Usa lenguaje que conecte emocionalmente, no corporativo ni genérico`);
+  lines.push(`- Si tienes la letra, usa fragmentos o referencias a ella para crear copies más auténticos y personales`);
+  lines.push(`- Incluye la mención de que la obra está "registrada con blockchain" (NO "certificada en blockchain")`);
+  lines.push(`- Los hashtags deben ser relevantes al género musical y tendencias actuales`);
+  lines.push(`- Cada copy debe tener personalidad propia, no ser variaciones del mismo texto`);
+  lines.push('');
+  lines.push(`## Formato de respuesta`);
+  lines.push(`Responde SOLO con este JSON exacto, sin markdown, sin explicaciones:`);
+  lines.push(`{
+  "ig_feed": "Copy para Instagram Feed: máx 200 chars, 2-3 emojis estratégicos, 4-6 hashtags relevantes al género. Debe generar hype y curiosidad. Si hay letra, referencia algún verso o emoción de la canción.",
+  "ig_story": "Copy para Instagram Story: máx 100 chars, directo, impactante, urgente. 1-2 emojis. Debe provocar un swipe up o click inmediato.",
+  "tiktok": "Copy para TikTok: máx 200 chars, tono joven, viral, conversacional. 4-6 hashtags trending de música. Debe sonar como algo que diría un fan, no una marca."
+}`);
+  lines.push('');
+  lines.push(`Idioma: español. Tono: auténtico, apasionado, generador de hype.`);
   return lines.join('\n');
 }
 
@@ -97,8 +137,8 @@ async function generateImageWithNanoBanana(prompt: string, apiKey: string): Prom
       if (!res.ok) {
         const errText = await res.text();
         console.error(`[PROMO] Model ${model} HTTP error ${res.status}:`, errText);
-        if (res.status === 410 || res.status === 404) continue; // model deprecated, try next
-        if (res.status === 429) continue; // rate limited, try next
+        if (res.status === 410 || res.status === 404) continue;
+        if (res.status === 429) continue;
         continue;
       }
 
@@ -111,7 +151,6 @@ async function generateImageWithNanoBanana(prompt: string, apiKey: string): Prom
         return imageUrl;
       }
       
-      // Log the full response structure for debugging
       const msg = data.choices?.[0]?.message;
       console.warn(`[PROMO] Model ${model} returned no image. Content: ${JSON.stringify(msg).slice(0, 300)}`);
     } catch (err: any) {
@@ -120,6 +159,44 @@ async function generateImageWithNanoBanana(prompt: string, apiKey: string): Prom
   }
   console.error('[PROMO] All image models failed');
   return null;
+}
+
+async function generateCopiesWithAI(prompt: string, apiKey: string): Promise<{ ig_feed: string; ig_story: string; tiktok: string } | null> {
+  try {
+    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-pro',
+        messages: [
+          {
+            role: 'system',
+            content: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
+          },
+          { role: 'user', content: prompt },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      console.error(`[PROMO] Copies AI error: ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const text = data.choices?.[0]?.message?.content?.trim();
+    if (!text) return null;
+
+    // Clean potential markdown wrapping
+    const cleaned = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+    return JSON.parse(cleaned);
+  } catch (err: any) {
+    console.error('[PROMO] Copies AI exception:', err.message);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -152,11 +229,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-    if (!ANTHROPIC_API_KEY || !LOVABLE_API_KEY || !RESEND_API_KEY) {
+    if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API keys' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -183,14 +259,14 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation metadata
+    // Fetch work + AI generation + lyrics metadata
     const meta = await fetchWorkMetadata(supabase, work_id, user.id);
     if (!meta) {
       return new Response(JSON.stringify({ error: 'Work not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
-    const { work, aiGen } = meta;
+    const { work, aiGen, lyrics } = meta;
 
     // Deduct credits
     await supabase.from('profiles').update({
@@ -228,49 +304,23 @@ serve(async (req) => {
     // Background processing
     (async () => {
       try {
-        // ── 1. Generate copies with Claude (parallel) ──
-        const copiesPromise = fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 800,
-            system: `Eres un experto en marketing musical y redes sociales. 
-Genera copies virales y auténticos para promocionar obras musicales.
-Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
-            messages: [{ role: 'user', content: buildCopiesPrompt(work, aiGen) }]
-          })
-        });
+        // ── 1. Generate copies with Gemini 2.5 Pro (parallel) ──
+        const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics);
+        const copiesPromise = generateCopiesWithAI(copiesPrompt, LOVABLE_API_KEY);
 
-        // ── 2. Generate image with Nano Banana 2 (parallel) ──
-        const imagePrompt = buildImagePrompt(work, aiGen);
+        // ── 2. Generate image (parallel) ──
+        const imagePrompt = buildImagePrompt(work, aiGen, lyrics);
         const imagePromise = generateImageWithNanoBanana(imagePrompt, LOVABLE_API_KEY);
 
-        const [copiesRes, base64Image] = await Promise.all([copiesPromise, imagePromise]);
+        const [copies, base64Image] = await Promise.all([copiesPromise, imagePromise]);
 
-        let copies = { ig_feed: '', ig_story: '', tiktok: '' };
+        const finalCopies = copies || {
+          ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible y registrada con blockchain. ¡Escúchala ahora! #MusicDibs #Música #NuevaMusica`,
+          ig_story: `🔥 "${work.title}" — registrada con blockchain ✅`,
+          tiktok: `Nueva música de ${work.author || 'artista'} registrada con blockchain 🎵 "${work.title}" #MusicDibs #NuevaMusica #Blockchain`,
+        };
+
         let imageUrl = '';
-
-        // Process copies
-        if (copiesRes.ok) {
-          const copiesData = await copiesRes.json();
-          const text = copiesData.content?.[0]?.text?.trim();
-          if (text) {
-            try {
-              copies = JSON.parse(text);
-            } catch {
-              copies = {
-                ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible y certificado en blockchain. ¡Escúchalo ahora! #MusicDibs #Música #NuevaMusica`,
-                ig_story: `🔥 "${work.title}" — certificado en blockchain ✅`,
-                tiktok: `Nueva música de ${work.author || 'artista'} certificada en blockchain 🎵 "${work.title}" #MusicDibs #NuevaMusica #Blockchain`,
-              };
-            }
-          }
-        }
 
         // Process image - upload base64 to storage
         if (base64Image && base64Image.startsWith('data:image')) {
@@ -295,9 +345,9 @@ Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
 
         // Update DB
         await supabase.from('social_promotions').update({
-          copy_ig_feed: copies.ig_feed,
-          copy_ig_story: copies.ig_story,
-          copy_tiktok: copies.tiktok,
+          copy_ig_feed: finalCopies.ig_feed,
+          copy_ig_story: finalCopies.ig_story,
+          copy_tiktok: finalCopies.tiktok,
           image_url: imageUrl || null,
           status: 'assets_ready',
           updated_at: new Date().toISOString(),
@@ -324,17 +374,17 @@ Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
   <h3 style="color:#18181b;font-size:16px;margin:0 0 16px;">📱 Copies listos</h3>
   <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:16px;margin:0 0 12px;">
     <p style="color:#7c3aed;font-size:11px;font-weight:700;margin:0 0 8px;text-transform:uppercase;">Instagram Feed</p>
-    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${copies.ig_feed}</p>
+    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${finalCopies.ig_feed}</p>
   </div>
   <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:16px;margin:0 0 12px;">
     <p style="color:#7c3aed;font-size:11px;font-weight:700;margin:0 0 8px;text-transform:uppercase;">Instagram Story</p>
-    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${copies.ig_story}</p>
+    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${finalCopies.ig_story}</p>
   </div>
   <div style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:16px;margin:0 0 12px;">
     <p style="color:#7c3aed;font-size:11px;font-weight:700;margin:0 0 8px;text-transform:uppercase;">TikTok</p>
-    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${copies.tiktok}</p>
+    <p style="color:#18181b;font-size:14px;line-height:1.5;margin:0;">${finalCopies.tiktok}</p>
   </div>
-  ${work.checker_url ? `<div style="text-align:center;margin:24px 0;"><a href="${work.checker_url}" style="background:#7c3aed;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;display:inline-block;">🔗 Ver certificado blockchain</a></div>` : ''}
+  ${work.checker_url ? `<div style="text-align:center;margin:24px 0;"><a href="${work.checker_url}" style="background:#7c3aed;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;display:inline-block;">🔗 Verificar registro blockchain</a></div>` : ''}
   <p style="text-align:center;color:#71717a;font-size:13px;margin:24px 0 0;">Sigue creando música protegida con MusicDibs 🎵</p>
 </td></tr>
 <tr><td style="background:#fafafa;padding:16px;text-align:center;border-top:1px solid #e4e4e7;">
