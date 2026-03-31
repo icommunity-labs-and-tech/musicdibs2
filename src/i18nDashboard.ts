@@ -1646,6 +1646,9 @@ const fr: typeof es = {
       toneMetal: 'Métal',
       toneFolk: 'Folk',
       languageNote: 'Copies en {{lang}}',
+      generatedWithAI: 'Générée avec AI MusicDibs Studio',
+      imageLabel: 'image',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promouvez votre musique',
