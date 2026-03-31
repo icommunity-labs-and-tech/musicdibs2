@@ -587,7 +587,7 @@ function PromoDetailDialog({
           {(meta || work.description) && (
             <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                Metadatos usados
+                {t('dashboard.promote.metadataUsed')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {meta?.genre && (
