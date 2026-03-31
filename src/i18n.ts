@@ -1535,6 +1535,7 @@ const resources = {
         creditPerUse: 'crédit par utilisation',
         creditsPerUse: 'crédits par utilisation',
         comingSoon: 'Bientôt disponible',
+        promoGroupTitle: 'Générez du matériel promotionnel',
         modules: {
           createMusic: { title: 'Créez de la Musique', desc: 'Générez de la musique originale à partir de zéro avec l\'IA. Décrivez le style, le mood et les caractéristiques souhaités.' },
           editModify: { title: 'Éditez et Modifiez', desc: 'Modifiez des pistes existantes, créez des variations ou appliquez de l\'inpainting pour remplir des sections.' },
