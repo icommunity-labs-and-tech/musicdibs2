@@ -39,8 +39,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API key' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -105,11 +105,13 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation metadata
-    const [workRes, genRes] = await Promise.all([
+    // Fetch work + AI generation + lyrics metadata
+    const [workRes, genRes, lyricsRes] = await Promise.all([
       supabase.from('works').select('title, author, description, type, checker_url')
         .eq('id', promo.work_id).eq('user_id', user.id).single(),
       supabase.from('ai_generations').select('prompt, genre, mood')
+        .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('lyrics_generations').select('lyrics, genre, mood, theme, style, description')
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
     ]);
 
@@ -124,29 +126,49 @@ serve(async (req) => {
       work.title && g.prompt?.toLowerCase().includes(work.title.toLowerCase())
     ) || null;
 
+    const lyrics = lyricsRes.data?.find((l: any) =>
+      work.title && l.description?.toLowerCase().includes(work.title.toLowerCase())
+    ) || lyricsRes.data?.[0] || null;
+
     // Build enriched prompt
     const lines = [
-      `Genera 3 copies NUEVOS y DIFERENTES para promocionar esta obra musical en redes sociales.`,
-      `Sé creativo, usa un enfoque distinto al anterior.`,
+      `Eres un copywriter de élite especializado en marketing musical viral. Genera copies COMPLETAMENTE NUEVOS y con un enfoque DIFERENTE al anterior.`,
       '',
-      `Obra: "${work.title}"`,
-      `Artista: "${work.author || 'Artista'}"`,
-      `Tipo: ${work.type || 'obra musical'}`,
+      `## Datos de la obra`,
+      `- Título: "${work.title}"`,
+      `- Artista: "${work.author || 'Artista'}"`,
+      `- Tipo: ${work.type || 'obra musical'}`,
     ];
-    if (aiGen?.genre) lines.push(`Género: ${aiGen.genre}`);
-    if (aiGen?.mood) lines.push(`Mood: ${aiGen.mood}`);
-    if (work.description) lines.push(`Descripción: ${work.description}`);
-    if (aiGen?.prompt) lines.push(`Prompt IA original: ${aiGen.prompt.slice(0, 150)}`);
-    if (work.checker_url) lines.push(`Verificar en blockchain: ${work.checker_url}`);
-    lines.push('');
-    lines.push(`Genera exactamente este JSON:
-{
-  "ig_feed": "Copy para Instagram Feed (máx 150 chars, 2-3 emojis, 3-5 hashtags musicales relevantes, menciona que está certificado en blockchain)",
-  "ig_story": "Copy para Instagram Story (máx 80 chars, directo, impactante, 1-2 emojis)",
-  "tiktok": "Copy para TikTok (máx 150 chars, tono joven y viral, 3-5 hashtags trending de música)"
-}
+    if (aiGen?.genre) lines.push(`- Género: ${aiGen.genre}`);
+    if (aiGen?.mood) lines.push(`- Mood/vibra: ${aiGen.mood}`);
+    if (work.description) lines.push(`- Descripción: ${work.description}`);
+    if (aiGen?.prompt) lines.push(`- Concepto artístico: ${aiGen.prompt.slice(0, 200)}`);
 
-Idioma: español. Tono: auténtico, no corporativo.`);
+    if (lyrics?.lyrics) {
+      lines.push(`- Letra de la canción (extracto): "${lyrics.lyrics.slice(0, 500)}"`);
+    }
+    if (lyrics?.theme) lines.push(`- Temática lírica: ${lyrics.theme}`);
+
+    if (work.checker_url) lines.push(`- Enlace de verificación blockchain: ${work.checker_url}`);
+
+    lines.push('');
+    lines.push(`## Instrucciones de estilo`);
+    lines.push(`- Copies IMPACTANTES, emocionales, que generen urgencia por escuchar`);
+    lines.push(`- Lenguaje auténtico, no corporativo ni genérico`);
+    lines.push(`- Si tienes la letra, usa fragmentos o referencias para copies más personales`);
+    lines.push(`- Usa "registrada con blockchain" (NO "certificada en blockchain")`);
+    lines.push(`- Hashtags relevantes al género y tendencias actuales`);
+    lines.push(`- Cada copy con personalidad propia`);
+    lines.push('');
+    lines.push(`## Formato de respuesta`);
+    lines.push(`Responde SOLO con este JSON exacto, sin markdown, sin explicaciones:`);
+    lines.push(`{
+  "ig_feed": "Copy para Instagram Feed: máx 200 chars, 2-3 emojis estratégicos, 4-6 hashtags relevantes al género. Genera hype y curiosidad.",
+  "ig_story": "Copy para Instagram Story: máx 100 chars, directo, impactante, urgente. 1-2 emojis.",
+  "tiktok": "Copy para TikTok: máx 200 chars, tono joven, viral, conversacional. 4-6 hashtags trending."
+}`);
+    lines.push('');
+    lines.push(`Idioma: español. Tono: auténtico, apasionado, generador de hype.`);
 
     // Mark as regenerating
     await supabase.from('social_promotions').update({
@@ -160,37 +182,39 @@ Idioma: español. Tono: auténtico, no corporativo.`);
     // Background: regenerate copies
     (async () => {
       try {
-        const copiesRes = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
-            'x-api-key': ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 800,
-            system: `Eres un experto en marketing musical y redes sociales. 
-Genera copies virales y auténticos para promocionar obras musicales.
-Responde SOLO con JSON válido, sin markdown ni explicaciones.`,
-            messages: [{ role: 'user', content: lines.join('\n') }]
-          })
+            model: 'google/gemini-2.5-pro',
+            messages: [
+              {
+                role: 'system',
+                content: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
+              },
+              { role: 'user', content: lines.join('\n') },
+            ],
+          }),
         });
 
-        let copies = { ig_feed: '', ig_story: '', tiktok: '' };
+        let copies = {
+          ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible y registrada con blockchain. ¡Escúchala ahora! #MusicDibs #Música #NuevaMusica`,
+          ig_story: `🔥 "${work.title}" — registrada con blockchain ✅`,
+          tiktok: `Nueva música de ${work.author || 'artista'} registrada con blockchain 🎵 "${work.title}" #MusicDibs #NuevaMusica #Blockchain`,
+        };
 
-        if (copiesRes.ok) {
-          const copiesData = await copiesRes.json();
-          const text = copiesData.content?.[0]?.text?.trim();
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.choices?.[0]?.message?.content?.trim();
           if (text) {
             try {
-              copies = JSON.parse(text);
+              const cleaned = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+              copies = JSON.parse(cleaned);
             } catch {
-              copies = {
-                ig_feed: `🎵 "${work.title}" de ${work.author || 'nuestro artista'} ya está disponible y certificado en blockchain. ¡Escúchalo ahora! #MusicDibs #Música #NuevaMusica`,
-                ig_story: `🔥 "${work.title}" — certificado en blockchain ✅`,
-                tiktok: `Nueva música de ${work.author || 'artista'} certificada en blockchain 🎵 "${work.title}" #MusicDibs #NuevaMusica #Blockchain`,
-              };
+              console.warn('[PROMO-REGEN] Failed to parse AI response, using fallback');
             }
           }
         }
