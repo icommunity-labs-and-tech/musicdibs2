@@ -58,6 +58,7 @@ const AdminCreditsPage = lazy(() => import("./pages/AdminCreditsPage"));
 const AdminWorksPage = lazy(() => import("./pages/AdminWorksPage"));
 const AdminMetricsPage = lazy(() => import("./pages/AdminMetricsPage"));
 const AdminSystemPage = lazy(() => import("./pages/AdminSystemPage"));
+const AdminPremiumPromosPage = lazy(() => import("./pages/AdminPremiumPromosPage"));
 const ManagerDashboard = lazy(() => import("./pages/ManagerDashboard"));
 const ManagerArtists = lazy(() => import("./pages/ManagerArtists"));
 const ManagerArtistNew = lazy(() => import("./pages/ManagerArtistNew"));
