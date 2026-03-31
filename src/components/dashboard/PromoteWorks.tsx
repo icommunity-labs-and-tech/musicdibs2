@@ -186,6 +186,7 @@ export function PromoteWorks() {
         } else {
           throw new Error(data.error);
         }
+        setLaunching(null);
         return;
       }
       const newPromo: SocialPromo = {
