@@ -11,7 +11,7 @@ import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Upload, Shield, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
@@ -134,6 +134,24 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
+          <Card className="border-border/40 shadow-sm">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+                <Share2 className="h-6 w-6 text-blue-500" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold">{t('dashboard.home.distributeWork')}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('dashboard.home.distributeWorkDesc')}
+                </p>
+              </div>
+              <Button variant="blue" className="w-full" asChild>
+                <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
+                  {t('dashboard.home.goToDistribute')}
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Col 3: Credit Store */}

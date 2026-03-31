@@ -13,6 +13,9 @@ const es = {
       registerNew: 'Registrar una nueva obra',
       registerNewDesc: 'Inicia el proceso de registro y protección de tu obra paso a paso.',
       goToRegister: 'Ir al registro',
+      distributeWork: 'Distribuir tu música',
+      distributeWorkDesc: 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.',
+      goToDistribute: 'Ir a distribución',
     },
     billing: {
       title: 'Facturación',
@@ -479,6 +482,9 @@ const en: typeof es = {
       registerNew: 'Register a new work',
       registerNewDesc: 'Start the step-by-step registration and protection process for your work.',
       goToRegister: 'Go to registration',
+      distributeWork: 'Distribute your music',
+      distributeWorkDesc: 'Get your music on all digital platforms: Spotify, Apple Music, Amazon and more.',
+      goToDistribute: 'Go to distribution',
     },
     billing: {
       title: 'Billing',
@@ -945,6 +951,9 @@ const pt: typeof es = {
       registerNew: 'Registrar uma nova obra',
       registerNewDesc: 'Inicie o processo de registro e proteção da sua obra passo a passo.',
       goToRegister: 'Ir ao registro',
+      distributeWork: 'Distribua sua música',
+      distributeWorkDesc: 'Leve sua música para todas as plataformas digitais: Spotify, Apple Music, Amazon e mais.',
+      goToDistribute: 'Ir para distribuição',
     },
     billing: {
       title: 'Faturamento',
@@ -1411,6 +1420,9 @@ const fr: typeof es = {
       registerNew: 'Enregistrer une nouvelle œuvre',
       registerNewDesc: "Démarrez le processus d'enregistrement et de protection de votre œuvre étape par étape.",
       goToRegister: "Aller à l'enregistrement",
+      distributeWork: 'Distribuer votre musique',
+      distributeWorkDesc: 'Diffusez votre musique sur toutes les plateformes numériques : Spotify, Apple Music, Amazon et plus.',
+      goToDistribute: 'Aller à la distribution',
     },
     billing: {
       title: 'Facturation',
@@ -1877,6 +1889,9 @@ const it: typeof es = {
       registerNew: "Registra una nuova opera",
       registerNewDesc: "Avvia il processo di registrazione e protezione della tua opera passo dopo passo.",
       goToRegister: 'Vai alla registrazione',
+      distributeWork: 'Distribuisci la tua musica',
+      distributeWorkDesc: 'Porta la tua musica su tutte le piattaforme digitali: Spotify, Apple Music, Amazon e altro.',
+      goToDistribute: 'Vai alla distribuzione',
     },
     billing: {
       title: 'Fatturazione',
@@ -2343,6 +2358,9 @@ const de: typeof es = {
       registerNew: 'Neues Werk registrieren',
       registerNewDesc: 'Starten Sie den schrittweisen Registrierungs- und Schutzprozess für Ihr Werk.',
       goToRegister: 'Zur Registrierung',
+      distributeWork: 'Verteile deine Musik',
+      distributeWorkDesc: 'Bringe deine Musik auf alle digitalen Plattformen: Spotify, Apple Music, Amazon und mehr.',
+      goToDistribute: 'Zur Distribution',
     },
     billing: {
       title: 'Abrechnung',
