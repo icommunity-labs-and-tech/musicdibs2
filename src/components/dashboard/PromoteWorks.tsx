@@ -222,6 +222,7 @@ export function PromoteWorks() {
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
           toast.error(t('dashboard.promote.regenInsufficient'));
+          setRegenerating(null);
           return;
         }
         throw new Error(data.error);
