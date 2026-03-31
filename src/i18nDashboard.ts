@@ -1420,6 +1420,9 @@ const fr: typeof es = {
       registerNew: 'Enregistrer une nouvelle œuvre',
       registerNewDesc: "Démarrez le processus d'enregistrement et de protection de votre œuvre étape par étape.",
       goToRegister: "Aller à l'enregistrement",
+      distributeWork: 'Distribuer votre musique',
+      distributeWorkDesc: 'Diffusez votre musique sur toutes les plateformes numériques : Spotify, Apple Music, Amazon et plus.',
+      goToDistribute: 'Aller à la distribution',
     },
     billing: {
       title: 'Facturation',
