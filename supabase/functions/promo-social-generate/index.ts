@@ -94,6 +94,7 @@ function buildCopiesPrompt(work: any, aiGen: any, lyrics: any, tone?: string, la
 
   lines.push('');
   lines.push(`## Instrucciones de estilo`);
+  lines.push(`- TONO: ${toneDesc}. Adapta el lenguaje y las referencias culturales a este estilo musical.`);
   lines.push(`- Los copies deben ser IMPACTANTES, emocionales y generar urgencia por escuchar la canción`);
   lines.push(`- Usa lenguaje que conecte emocionalmente, no corporativo ni genérico`);
   lines.push(`- Si tienes la letra, usa fragmentos o referencias a ella para crear copies más auténticos y personales`);
