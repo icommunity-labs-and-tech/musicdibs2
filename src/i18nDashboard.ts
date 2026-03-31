@@ -1892,6 +1892,7 @@ const fr: typeof es = {
     virtualArtists: {
       title: 'Mes Artistes Virtuels',
       description: 'Enregistrez la configuration vocale et stylistique de vos artistes pour créer des chansons cohérentes.',
+      newArtist: 'Nouvel Artiste Virtuel',
     },
   },
 };
