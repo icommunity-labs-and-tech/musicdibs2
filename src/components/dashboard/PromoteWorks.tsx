@@ -592,7 +592,7 @@ function PromoDetailDialog({
               <div className="flex flex-wrap gap-2">
                 {meta?.genre && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    <Tag className="h-3 w-3" /> Género: {meta.genre}
+                    <Tag className="h-3 w-3" /> {t('dashboard.promote.genre')}: {meta.genre}
                   </Badge>
                 )}
                 {meta?.mood && (
