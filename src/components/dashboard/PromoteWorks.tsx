@@ -637,7 +637,7 @@ function PromoDetailDialog({
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-1 text-xs text-primary hover:underline"
                 >
-                  <ExternalLink className="h-3 w-3" /> Abrir imagen
+                  <ExternalLink className="h-3 w-3" /> {t('dashboard.promote.openImage')}
                 </a>
                 <RegenButton
                   label="imagen"
