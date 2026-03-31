@@ -1418,6 +1418,7 @@ const pt: typeof es = {
     virtualArtists: {
       title: 'Meus Artistas Virtuais',
       description: 'Salve a configuração de voz e estilo dos seus artistas para criar músicas consistentes.',
+      newArtist: 'Novo Artista Virtual',
     },
   },
 };
