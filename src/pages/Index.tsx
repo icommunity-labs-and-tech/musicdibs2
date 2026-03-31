@@ -1,15 +1,18 @@
+import { lazy, Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
-import { WhyChooseSection } from "@/components/WhyChooseSection";
-import { DistributionSection } from "@/components/DistributionSection";
 import { ArtistsBanner } from "@/components/ArtistsBanner";
-import { TestimonialsSection } from "@/components/TestimonialsSection";
-import { PricingSection } from "@/components/PricingSection";
-import { RoyaltiesCalculator } from "@/components/RoyaltiesCalculator";
-import { TutorialSection } from "@/components/TutorialSection";
-import { ManagerBannerSection } from "@/components/ManagerBannerSection";
-import { Footer } from "@/components/Footer";
 import { SEO } from "@/components/SEO";
+
+// Lazy-load below-fold sections to reduce initial JS and improve TTI
+const WhyChooseSection = lazy(() => import("@/components/WhyChooseSection").then(m => ({ default: m.WhyChooseSection })));
+const DistributionSection = lazy(() => import("@/components/DistributionSection").then(m => ({ default: m.DistributionSection })));
+const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
+const PricingSection = lazy(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
+const RoyaltiesCalculator = lazy(() => import("@/components/RoyaltiesCalculator").then(m => ({ default: m.RoyaltiesCalculator })));
+const TutorialSection = lazy(() => import("@/components/TutorialSection").then(m => ({ default: m.TutorialSection })));
+const ManagerBannerSection = lazy(() => import("@/components/ManagerBannerSection").then(m => ({ default: m.ManagerBannerSection })));
+const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
 const Index = () => {
   return (
@@ -72,14 +75,16 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <ArtistsBanner />
-      <WhyChooseSection />
-      <DistributionSection />
-      <TestimonialsSection />
-      <RoyaltiesCalculator />
-      <PricingSection />
-      <ManagerBannerSection />
-      <TutorialSection />
-      <Footer />
+      <Suspense fallback={null}>
+        <WhyChooseSection />
+        <DistributionSection />
+        <TestimonialsSection />
+        <RoyaltiesCalculator />
+        <PricingSection />
+        <ManagerBannerSection />
+        <TutorialSection />
+        <Footer />
+      </Suspense>
     </div>
   );
 };

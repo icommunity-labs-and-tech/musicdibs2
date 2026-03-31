@@ -5,8 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
-import { ChatWidget } from "./components/ChatWidget";
-import { SocialProofPopup } from "./components/SocialProofPopup";
+const ChatWidget = lazy(() => import("./components/ChatWidget").then(m => ({ default: m.ChatWidget })));
+const SocialProofPopup = lazy(() => import("./components/SocialProofPopup").then(m => ({ default: m.SocialProofPopup })));
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./hooks/useAuth";
 
