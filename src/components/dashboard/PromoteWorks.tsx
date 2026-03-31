@@ -64,6 +64,16 @@ const TONE_OPTIONS = [
   { value: 'electronic', labelKey: 'dashboard.promote.toneElectronic' },
   { value: 'pop', labelKey: 'dashboard.promote.tonePop' },
   { value: 'rock', labelKey: 'dashboard.promote.toneRock' },
+  { value: 'latino', labelKey: 'dashboard.promote.toneLatino' },
+  { value: 'classical', labelKey: 'dashboard.promote.toneClassical' },
+  { value: '80s', labelKey: 'dashboard.promote.tone80s' },
+  { value: 'religious', labelKey: 'dashboard.promote.toneReligious' },
+  { value: 'hiphop', labelKey: 'dashboard.promote.toneHipHop' },
+  { value: 'jazz', labelKey: 'dashboard.promote.toneJazz' },
+  { value: 'reggaeton', labelKey: 'dashboard.promote.toneReggaeton' },
+  { value: 'country', labelKey: 'dashboard.promote.toneCountry' },
+  { value: 'metal', labelKey: 'dashboard.promote.toneMetal' },
+  { value: 'folk', labelKey: 'dashboard.promote.toneFolk' },
 ] as const;
 
 const LANG_MAP: Record<string, string> = {
