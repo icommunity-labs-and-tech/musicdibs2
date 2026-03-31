@@ -28,42 +28,43 @@ export function DashboardSidebar() {
   const { user, signOut, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
   const managerItems = useMemo(() => [
-    { title: t('dashboard.sidebar.managerPanel'), url: '/dashboard/manager', icon: Briefcase },
-    { title: t('dashboard.sidebar.myArtists'), url: '/dashboard/manager/artists', icon: Users },
-    { title: t('dashboard.sidebar.registerWorkNav'), url: '/dashboard/manager/register', icon: Upload },
-    { title: t('dashboard.sidebar.registeredWorks'), url: '/dashboard/manager/works', icon: ClipboardList },
-  ], [t]);
+    { title: tr('dashboard.sidebar.managerPanel', 'Panel Manager'), url: '/dashboard/manager', icon: Briefcase },
+    { title: tr('dashboard.sidebar.myArtists', 'Mis Artistas'), url: '/dashboard/manager/artists', icon: Users },
+    { title: tr('dashboard.sidebar.registerWorkNav', 'Registrar Obra'), url: '/dashboard/manager/register', icon: Upload },
+    { title: tr('dashboard.sidebar.registeredWorks', 'Obras Registradas'), url: '/dashboard/manager/works', icon: ClipboardList },
+  ], [i18n.resolvedLanguage, t]);
 
   const mainItems = useMemo(() => [
-    { title: t('dashboard.sidebar.launchHit'), url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
-    { title: t('dashboard.sidebar.controlPanel'), url: '/dashboard', icon: LayoutDashboard },
-    { title: t('dashboard.sidebar.registerWork'), url: '/dashboard/register', icon: Upload, hideForManager: true },
-    { title: t('dashboard.sidebar.registrationHistory'), url: '/dashboard/blockchain', icon: Shield },
-    { title: t('dashboard.sidebar.verifyRegistration'), url: '/dashboard/verify', icon: Search },
-    { title: t('dashboard.sidebar.verifyIdentity'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
-    { title: t('dashboard.sidebar.promoteWork'), url: '/dashboard/promote', icon: Megaphone },
+    { title: tr('dashboard.sidebar.launchHit', 'Lanza tu primer hit 🚀'), url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
+    { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
+    { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
+    { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
+    { title: tr('dashboard.sidebar.verifyRegistration', 'Verificar registro'), url: '/dashboard/verify', icon: Search },
+    { title: tr('dashboard.sidebar.verifyIdentity', 'Verificar identidad'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
+    { title: tr('dashboard.sidebar.promoteWork', 'Promocionar obra'), url: '/dashboard/promote', icon: Megaphone },
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
-    { title: t('dashboard.sidebar.artistProfiles'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
-    { title: t('dashboard.sidebar.voiceCloning'), url: '/dashboard/voice-cloning', icon: Mic, hideForManager: true },
-  ], [t]);
+    { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
+    { title: tr('dashboard.sidebar.voiceCloning', 'Clonación de Voz'), url: '/dashboard/voice-cloning', icon: Mic, hideForManager: true },
+  ], [i18n.resolvedLanguage, t]);
 
   const accountItems = useMemo(() => [
-    { title: t('dashboard.sidebar.profile'), url: '/dashboard/profile', icon: User },
-    { title: t('dashboard.sidebar.plansCredits'), url: '/dashboard/credits', icon: ShoppingBag },
-    { title: t('dashboard.sidebar.billing'), url: '/dashboard/billing', icon: CreditCard },
-    { title: t('dashboard.sidebar.support'), url: '/dashboard/support', icon: LifeBuoy },
-  ], [t]);
+    { title: tr('dashboard.sidebar.profile', 'Perfil'), url: '/dashboard/profile', icon: User },
+    { title: tr('dashboard.sidebar.plansCredits', 'Planes y créditos'), url: '/dashboard/credits', icon: ShoppingBag },
+    { title: tr('dashboard.sidebar.billing', 'Facturación'), url: '/dashboard/billing', icon: CreditCard },
+    { title: tr('dashboard.sidebar.support', 'Soporte'), url: '/dashboard/support', icon: LifeBuoy },
+  ], [i18n.resolvedLanguage, t]);
 
   const adminItems = useMemo(() => [
-    { title: t('dashboard.sidebar.users'), url: '/dashboard/admin/users', icon: Users },
-    { title: t('dashboard.sidebar.credits'), url: '/dashboard/admin/credits', icon: CreditCard },
-    { title: t('dashboard.sidebar.works'), url: '/dashboard/admin/works', icon: Music },
-    { title: t('dashboard.sidebar.metrics'), url: '/dashboard/admin/metrics', icon: BarChart3 },
-    { title: t('dashboard.sidebar.system'), url: '/dashboard/admin/system', icon: Settings2 },
-  ], [t]);
+    { title: tr('dashboard.sidebar.users', 'Usuarios'), url: '/dashboard/admin/users', icon: Users },
+    { title: tr('dashboard.sidebar.credits', 'Créditos'), url: '/dashboard/admin/credits', icon: CreditCard },
+    { title: tr('dashboard.sidebar.works', 'Obras'), url: '/dashboard/admin/works', icon: Music },
+    { title: tr('dashboard.sidebar.metrics', 'Métricas'), url: '/dashboard/admin/metrics', icon: BarChart3 },
+    { title: tr('dashboard.sidebar.system', 'Sistema'), url: '/dashboard/admin/system', icon: Settings2 },
+  ], [i18n.resolvedLanguage, t]);
 
   // Determine which group is active based on current route
   const activeGroup = useMemo<GroupId>(() => {
@@ -133,7 +134,7 @@ export function DashboardSidebar() {
                 {item.title}
                 {isHighlight && !isActive(item.url) && (
                   <span className="ml-auto rounded-full bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-500 leading-none">
-                    {t('dashboard.sidebar.new')}
+                    {tr('dashboard.sidebar.new', 'NUEVO')}
                   </span>
                 )}
               </span>
@@ -178,13 +179,13 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {isManager && renderCollapsibleGroup('manager', t('dashboard.sidebar.manager'), managerItems)}
+        {isManager && renderCollapsibleGroup('manager', tr('dashboard.sidebar.manager', 'Manager'), managerItems)}
 
-        {renderCollapsibleGroup('principal', t('dashboard.sidebar.principal'), filteredMainItems)}
+        {renderCollapsibleGroup('principal', tr('dashboard.sidebar.principal', 'Principal'), filteredMainItems)}
 
-        {renderCollapsibleGroup('cuenta', t('dashboard.sidebar.account'), accountItems)}
+        {renderCollapsibleGroup('cuenta', tr('dashboard.sidebar.account', 'Cuenta'), accountItems)}
 
-        {isAdmin && renderCollapsibleGroup('admin', t('dashboard.sidebar.admin'), adminItems, 'bg-pink-500/10 text-pink-400 font-medium')}
+        {isAdmin && renderCollapsibleGroup('admin', tr('dashboard.sidebar.admin', 'Administración'), adminItems, 'bg-pink-500/10 text-pink-400 font-medium')}
       </SidebarContent>
 
       <SidebarFooter className="p-3">
@@ -198,7 +199,7 @@ export function DashboardSidebar() {
           onClick={() => { window.dispatchEvent(new CustomEvent('musicdibs:start-tour')); }}
         >
           <HelpCircle className="h-4 w-4 mr-2" />
-          {!collapsed && <span>{t('dashboard.sidebar.panelGuide')}</span>}
+          {!collapsed && <span>{tr('dashboard.sidebar.panelGuide', 'Guía del panel')}</span>}
         </Button>
         <Button
           variant="ghost"
@@ -207,7 +208,7 @@ export function DashboardSidebar() {
           onClick={async () => { await signOut(); navigate('/login'); }}
         >
           <LogOut className="h-4 w-4 mr-2" />
-          {!collapsed && <span>{t('dashboard.sidebar.logout')}</span>}
+          {!collapsed && <span>{tr('dashboard.sidebar.logout', 'Cerrar sesión')}</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>

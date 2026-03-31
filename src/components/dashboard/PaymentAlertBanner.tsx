@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, CreditCard, X, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 type AlertType = 'payment_failed' | 'subscription_issue';
 
@@ -14,6 +15,7 @@ interface PaymentAlert {
 }
 
 export function PaymentAlertBanner() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [alerts, setAlerts] = useState<PaymentAlert[]>([]);
@@ -83,7 +85,7 @@ export function PaymentAlertBanner() {
               onClick={() => navigate('/dashboard/billing')}
               className="inline-flex items-center gap-1 text-xs font-medium underline underline-offset-2 hover:opacity-80 transition-opacity whitespace-nowrap"
             >
-              Gestionar pago <ArrowRight className="h-3 w-3" />
+              {t('dashboard.paymentAlert.managePayment')} <ArrowRight className="h-3 w-3" />
             </button>
           </div>
           <button

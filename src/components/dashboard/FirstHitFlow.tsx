@@ -32,6 +32,8 @@ import type { IbsSignature } from '@/types/dashboard'
 import {
   CREATOR_ROLES, WORK_TYPES as WIZARD_WORK_TYPES, type Creator,
 } from '@/components/dashboard/register/types'
+import { useTranslation } from 'react-i18next'
+import { useCreatorRoleLabels, useWorkTypeLabels } from '@/components/dashboard/register/useWizardLabels'
 
 // ── Géneros musicales ──────────────────────────────────────────────
 const GENRES = [
@@ -59,6 +61,7 @@ function StepHeader({
   isDone: boolean
   onClick: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <button
       onClick={onClick}
@@ -86,7 +89,7 @@ function StepHeader({
           <span className={`text-xs font-bold uppercase tracking-wider ${
             isActive ? 'text-primary' : 'text-muted-foreground'
           }`}>
-            Paso {number}
+            {t('dashboard.firstHit.step')} {number}
           </span>
           <Icon className={`h-3.5 w-3.5 ${iconColor}`} />
         </div>
@@ -101,7 +104,7 @@ function StepHeader({
       {/* Indicador */}
       {isDone && !isActive && (
         <Badge variant="outline" className="text-emerald-500 border-emerald-500/30">
-          ✓ Hecho
+          {t('dashboard.firstHit.done')}
         </Badge>
       )}
       {isActive && (
@@ -115,9 +118,12 @@ function StepHeader({
 // COMPONENTE PRINCIPAL
 // ══════════════════════════════════════════════════════════════════
 export function FirstHitFlow() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const navigate  = useNavigate()
   const { hasEnough } = useCredits()
+  const creatorRoleLabels = useCreatorRoleLabels()
+  const workTypeLabels = useWorkTypeLabels()
 
   // Paso activo: 1 | 2 | 3 | 'done'
   const [activeStep, setActiveStep]   = useState<1 | 2 | 3 | 'done'>(1)
@@ -141,11 +147,11 @@ export function FirstHitFlow() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      toast.error('Describe el estilo de tu canción')
+      toast.error(t('dashboard.firstHit.describeError'))
       return
     }
     if (!hasEnough(FEATURE_COSTS.generate_audio)) {
-      toast.error('No tienes créditos suficientes para generar audio')
+      toast.error(t('dashboard.firstHit.noCreditsAudio'))
       return
     }
     setGenerating(true)
@@ -156,7 +162,7 @@ export function FirstHitFlow() {
         'spend-credits',
         { body: { feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` } }
       )
-      if (spendErr || spend?.error) throw new Error(spend?.message || 'Error al gastar créditos')
+      if (spendErr || spend?.error) throw new Error(spend?.message || t('dashboard.firstHit.creditSpendError'))
 
       // Construir prompt completo
       let fullPrompt = prompt
@@ -167,16 +173,16 @@ export function FirstHitFlow() {
         body: { prompt: fullPrompt, duration, cfgScale: 7 },
       })
       if (error || data?.error === 'rate_limit_exceeded') {
-        throw new Error(data?.message || error?.message || 'Error al generar')
+        throw new Error(data?.message || error?.message || t('dashboard.firstHit.audioGenError'))
       }
       if (data?.audio) {
         const url = `data:${data.format || 'audio/mpeg'};base64,${data.audio}`
         setAudioUrl(url)
         setAudioTitle(prompt.slice(0, 50))
-        toast.success('¡Audio generado! Escúchalo y si te gusta, regístralo.')
+        toast.success(t('dashboard.firstHit.audioGenerated'))
       }
     } catch (err: any) {
-      setGenError(err.message || 'Error al generar el audio')
+      setGenError(err.message || t('dashboard.firstHit.audioGenError'))
     }
     setGenerating(false)
   }
@@ -324,7 +330,7 @@ export function FirstHitFlow() {
     if (!uploadFile && audioUrl) {
       setRegistering(true)
       uploadFile = await convertToFile(audioUrl)
-      if (!uploadFile) { setRegError('Error al procesar el audio'); setRegistering(false); return }
+      if (!uploadFile) { setRegError(t('dashboard.firstHit.audioGenError')); setRegistering(false); return }
     }
     if (!uploadFile || !selectedSig) return
     setRegistering(true)
@@ -338,16 +344,16 @@ export function FirstHitFlow() {
         creators,
       })
       if (res.ibsError || res.status === 'failed') {
-        setRegError(res.ibsError || 'Error en el registro')
+        setRegError(res.ibsError || t('dashboard.firstHit.regError'))
       } else {
         setRegId(res.registrationId)
         setRegDone(true)
         markDone(2)
-        toast.success('¡Obra registrada en blockchain!')
+        toast.success(t('dashboard.firstHit.registeredBlockchain'))
         setTimeout(() => setActiveStep(3), 1500)
       }
     } catch (err: any) {
-      setRegError(err.message || 'Error al registrar')
+      setRegError(err.message || t('dashboard.firstHit.regError'))
     }
     setRegistering(false)
   }
@@ -365,9 +371,9 @@ export function FirstHitFlow() {
   useEffect(() => {
     if (activeStep === 3 && regAuthor) setPromoArtist(regAuthor)
     if (activeStep === 3 && regTitle)  {
-      setPromoDesc(`Mi nueva canción: ${regTitle}`)
+      setPromoDesc(`${t('dashboard.firstHit.workTitle')}: ${regTitle}`)
     }
-  }, [activeStep])
+  }, [activeStep, regAuthor, regTitle, t])
 
   const handlePromote = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -382,7 +388,7 @@ export function FirstHitFlow() {
       markDone(3)
       setActiveStep('done')
     } catch (err: any) {
-      toast.error(err.message || 'Error al enviar la solicitud')
+      toast.error(err.message || t('dashboard.firstHit.promoRequestError'))
     }
     setPromoting(false)
   }
@@ -407,10 +413,10 @@ export function FirstHitFlow() {
           {/* Mensaje */}
           <div className="space-y-3">
             <h2 className="text-2xl font-bold tracking-tight">
-              ¡Felicidades! ¡Lo has conseguido! 🎵🚀
+              {t('dashboard.firstHit.congratsTitle')}
             </h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Tu canción está protegida y lista para sonar.
+              {t('dashboard.firstHit.congratsDesc')}
               <br /><br />
               En <strong>2–3 días</strong> tu canción aterrizará frente a{' '}
               <strong>+100.000 fans</strong> que están a punto de descubrirte. 😎
@@ -421,7 +427,7 @@ export function FirstHitFlow() {
           <div className="rounded-xl border border-border/40 bg-muted/30 p-5 text-left space-y-3">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <Share2 className="h-4 w-4 text-violet-400" />
-              <p>Siguiente nivel: distribución profesional</p>
+              <p>{t('dashboard.firstHit.nextLevel')}</p>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Publica en <strong>+220 plataformas</strong> — Spotify,
@@ -437,7 +443,7 @@ export function FirstHitFlow() {
               className="w-full"
               onClick={() => window.open('https://dist.musicdibs.com/', '_blank', 'noopener')}
             >
-              Distribuir en +220 plataformas
+              {t('dashboard.firstHit.distributeBtn')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -448,7 +454,7 @@ export function FirstHitFlow() {
             className="text-xs text-muted-foreground"
             onClick={() => navigate('/dashboard')}
           >
-            Ir a mi panel →
+            {t('dashboard.firstHit.goToDashboard')}
           </Button>
         </div>
       </div>
@@ -468,17 +474,17 @@ export function FirstHitFlow() {
         <div className="text-center space-y-4">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-400 ring-1 ring-violet-500/20">
             <Sparkles className="h-3 w-3" />
-            PARA ARTISTAS INDEPENDIENTES
+            {t('dashboard.firstHit.forIndependentArtists')}
           </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
-            ¡Lanza ya tu primera{' '}
+            {t('dashboard.firstHit.heroTitle1')}
             <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-              canción
+              {t('dashboard.firstHit.heroTitleHighlight')}
             </span>
-            {' '}al mundo!
+            {' '}{t('dashboard.firstHit.heroTitle2')}
           </h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto leading-relaxed">
-            Sigue los 3 pasos. Cada uno desbloquea el siguiente.
+            {t('dashboard.firstHit.heroSubtitle')}
           </p>
         </div>
 
@@ -492,8 +498,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={1} icon={Sparkles} iconColor="text-violet-400"
-            label="Crea tu canción"
-            sublabel="¿Aún no tienes canciones? Pierde el miedo y crea tu primer tema con nuestra IA."
+            label={t('dashboard.firstHit.step1Label')}
+            sublabel={t('dashboard.firstHit.step1Sublabel')}
             isActive={activeStep === 1}
             isDone={doneSteps.has(1)}
             onClick={() => !doneSteps.has(1) && setActiveStep(1)}
@@ -504,13 +510,13 @@ export function FirstHitFlow() {
               {/* Prompt */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Describe tu canción y/o pega tu letra y describe el estilo
+                  {t('dashboard.firstHit.describePrompt')}
                   <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Textarea
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)}
-                  placeholder="Ej: canción pop energética sobre el verano, con guitarra acústica y voz femenina..."
+                  placeholder={t('dashboard.firstHit.promptPlaceholder')}
                   className="text-sm min-h-[80px] resize-none"
                   maxLength={300}
                 />
@@ -523,11 +529,11 @@ export function FirstHitFlow() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">
-                    Género (opcional)
+                    {t('dashboard.firstHit.genreOptional')}
                   </Label>
                   <Select value={genre} onValueChange={setGenre}>
                     <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Género" />
+                      <SelectValue placeholder={t('dashboard.firstHit.genreOptional')} />
                     </SelectTrigger>
                     <SelectContent>
                       {GENRES.map(g => (
@@ -538,11 +544,11 @@ export function FirstHitFlow() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">
-                    Mood (opcional)
+                    {t('dashboard.firstHit.moodOptional')}
                   </Label>
                   <Select value={mood} onValueChange={setMood}>
                     <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Mood" />
+                      <SelectValue placeholder={t('dashboard.firstHit.moodOptional')} />
                     </SelectTrigger>
                     <SelectContent>
                       {MOODS.map(m => (
@@ -556,7 +562,7 @@ export function FirstHitFlow() {
               {/* Duración */}
               <div className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground">
-                  Duración: {duration}s
+                  {t('dashboard.firstHit.duration', { n: duration })}
                 </Label>
                 <input
                   type="range" min={5} max={90} step={5}
@@ -592,7 +598,7 @@ export function FirstHitFlow() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{audioTitle}</p>
                     <p className="text-xs text-muted-foreground">
-                      Audio generado con IA · {duration}s
+                      {t('dashboard.firstHit.aiGenerated', { n: duration })}
                     </p>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -607,8 +613,8 @@ export function FirstHitFlow() {
                   disabled={generating || !prompt.trim()}
                 >
                   {generating
-                    ? <><Loader2 className="h-4 w-4 animate-spin" />Generando…</>
-                    : <><Sparkles className="h-4 w-4" />Generar con IA</>
+                    ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.generating')}</>
+                    : <><Sparkles className="h-4 w-4" />{t('dashboard.firstHit.generateAI')}</>
                   }
                 </Button>
                 <Button
@@ -616,13 +622,13 @@ export function FirstHitFlow() {
                   onClick={handleStep1Next}
                 >
                   <Music2 className="h-4 w-4" />
-                  Ya tengo mi canción — Registrar →
+                  {t('dashboard.firstHit.alreadyHaveSong')}
                 </Button>
               </div>
 
               {audioUrl && (
                 <Button className="w-full gap-2" onClick={handleStep1Next}>
-                  Me gusta — Registrar esta canción →
+                  {t('dashboard.firstHit.likeItRegister')}
                 </Button>
               )}
             </div>
@@ -639,8 +645,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={2} icon={Shield} iconColor="text-blue-400"
-            label="Registra tu canción"
-            sublabel="¿Ya tienes una canción? ¡Regístrala para que no te la plagien!"
+            label={t('dashboard.firstHit.step2Label')}
+            sublabel={t('dashboard.firstHit.step2Sublabel')}
             isActive={activeStep === 2}
             isDone={doneSteps.has(1) || doneSteps.has(2)}
             onClick={() => !doneSteps.has(2) && setActiveStep(2)}
@@ -653,9 +659,8 @@ export function FirstHitFlow() {
                 <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 flex gap-2 text-xs text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
-                    <strong>Sin registro no hay protección.</strong>{' '}
-                    Antes de promocionar tu canción, regístrala aquí.
-                    Así tienes prueba legal de que eres el creador original.
+                    <strong>{t('dashboard.firstHit.noProtection')}</strong>{' '}
+                    {t('dashboard.firstHit.noProtectionDesc')}
                   </span>
                 </div>
               )}
@@ -665,9 +670,9 @@ export function FirstHitFlow() {
                   <div className="h-14 w-14 rounded-full bg-emerald-500/15 flex items-center justify-center">
                     <CheckCircle2 className="h-7 w-7 text-emerald-500" />
                   </div>
-                  <p className="font-semibold">¡Obra registrada en blockchain!</p>
+                  <p className="font-semibold">{t('dashboard.firstHit.registeredBlockchain')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Pasando al paso 3…
+                    {t('dashboard.firstHit.goingToStep3')}
                   </p>
                 </div>
               ) : (
@@ -676,17 +681,17 @@ export function FirstHitFlow() {
                   <div className="space-y-1.5">
                     <Label className="text-xs flex items-center gap-1.5">
                       <Key className="h-3 w-3" />
-                      Identidad digital (firma)
+                      {t('dashboard.firstHit.digitalIdentity')}
                     </Label>
                     {loadingSigs ? (
                       <div className="flex items-center gap-2 text-xs text-muted-foreground p-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Cargando firmas…
+                        {t('dashboard.firstHit.loadingSignatures')}
                       </div>
                     ) : activeSignatures.length > 0 ? (
                       <Select value={selectedSig} onValueChange={setSelectedSig}>
                         <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="Seleccionar firma" />
+                          <SelectValue placeholder={t('dashboard.firstHit.selectSignature')} />
                         </SelectTrigger>
                         <SelectContent>
                           {activeSignatures.map((s: IbsSignature) => (
@@ -699,11 +704,11 @@ export function FirstHitFlow() {
                     ) : (
                       <div className="space-y-2 p-3 rounded-xl border border-dashed border-amber-400/50 bg-amber-50/50 dark:bg-amber-900/10">
                         <p className="text-xs text-amber-700 dark:text-amber-400">
-                          Necesitas una identidad digital para firmar tu obra.
+                          {t('dashboard.firstHit.needIdentity')}
                         </p>
                         <div className="flex gap-2">
                           <Input
-                            placeholder="Tu nombre artístico"
+                            placeholder={t('dashboard.firstHit.artistNamePlaceholder')}
                             value={newSigName}
                             onChange={e => setNewSigName(e.target.value)}
                             className="h-8 text-xs flex-1"
@@ -713,7 +718,7 @@ export function FirstHitFlow() {
                             onClick={handleCreateSig}>
                             {creatingSig
                               ? <Loader2 className="h-3 w-3 animate-spin" />
-                              : 'Crear'
+                              : t('dashboard.firstHit.create')
                             }
                           </Button>
                         </div>
@@ -721,7 +726,7 @@ export function FirstHitFlow() {
                           <a href={kycUrl} target="_blank" rel="noopener noreferrer"
                              className="flex items-center gap-1 text-xs text-primary hover:underline">
                             <LinkIcon className="h-3 w-3" />
-                            Completar verificación KYC
+                            {t('dashboard.firstHit.completeKyc')}
                           </a>
                         )}
                         {signatures.filter(
@@ -730,7 +735,7 @@ export function FirstHitFlow() {
                           <Button type="button" variant="ghost" size="sm"
                             className="h-7 text-xs" onClick={loadSigs}>
                             <RefreshCw className="h-3 w-3 mr-1" />
-                            Actualizar estado
+                            {t('dashboard.firstHit.refreshStatus')}
                           </Button>
                         )}
                       </div>
@@ -740,19 +745,19 @@ export function FirstHitFlow() {
                   {/* Título */}
                   <div className="space-y-1.5">
                     <Label className="text-xs">
-                      Título de la obra
+                      {t('dashboard.firstHit.workTitle')}
                       <span className="text-destructive ml-1">*</span>
                     </Label>
                     <Input value={regTitle}
                       onChange={e => setRegTitle(e.target.value)}
                       required className="h-9 text-sm"
-                      placeholder="Nombre de tu canción" />
+                      placeholder={t('dashboard.firstHit.songNamePlaceholder')} />
                   </div>
 
                   {/* Tipo + Autor en fila */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Tipo de obra</Label>
+                      <Label className="text-xs">{t('dashboard.firstHit.workType')}</Label>
                       <Select value={regType} onValueChange={setRegType}>
                         <SelectTrigger className="h-9 text-sm">
                           <SelectValue />
@@ -760,26 +765,25 @@ export function FirstHitFlow() {
                         <SelectContent>
                           {WIZARD_WORK_TYPES.map(t => (
                             <SelectItem key={t.value} value={t.value}>
-                              {t.label}
+                              {workTypeLabels[t.value] || t.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Autor / titular</Label>
+                      <Label className="text-xs">{t('dashboard.firstHit.authorHolder')}</Label>
                       <Input value={regAuthor}
                         onChange={e => setRegAuthor(e.target.value)}
                         required className="h-9 text-sm"
-                        placeholder="Tu nombre" />
+                        placeholder={t('dashboard.firstHit.yourName')} />
                     </div>
                   </div>
 
                   {/* Descripción */}
                   <div className="space-y-1.5">
                     <Label className="text-xs">
-                      Descripción
-                      <span className="text-muted-foreground ml-1">(opcional)</span>
+                      {t('dashboard.firstHit.descriptionOptional')}
                     </Label>
                     <Textarea value={regDesc}
                       onChange={e => setRegDesc(e.target.value)}
@@ -789,7 +793,7 @@ export function FirstHitFlow() {
                   {/* ── Creadores ────────────────────────────────────── */}
                   <div className="space-y-3 pt-2">
                     <Label className="text-xs font-semibold">
-                      Creadores de la obra
+                      {t('dashboard.firstHit.creators')}
                     </Label>
 
                     <div className="space-y-3">
@@ -798,7 +802,7 @@ export function FirstHitFlow() {
                           <CardContent className="p-4 space-y-3">
                             <div className="flex items-center justify-between">
                               <p className="text-sm font-medium text-muted-foreground">
-                                Creador {idx + 1}
+                                {t('dashboard.firstHit.creatorN', { n: idx + 1 })}
                               </p>
                               {creators.length > 1 && (
                                 <Button variant="ghost" size="icon"
@@ -812,18 +816,17 @@ export function FirstHitFlow() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div className="space-y-1">
                                 <Label className="text-xs">
-                                  Nombre completo
+                                  {t('dashboard.firstHit.fullName')}
                                   <span className="text-destructive ml-1">*</span>
                                 </Label>
                                 <Input value={c.name}
                                   onChange={e => updateCreator(c.id, { name: e.target.value })}
-                                  placeholder="Nombre del creador"
+                                  placeholder={t('dashboard.firstHit.creatorNamePlaceholder')}
                                   className="h-9 text-sm" />
                               </div>
                               <div className="space-y-1">
                                 <Label className="text-xs">
-                                  Email
-                                  <span className="text-muted-foreground ml-1">(opcional)</span>
+                                  {t('dashboard.firstHit.emailOptional')}
                                 </Label>
                                 <Input value={c.email}
                                   onChange={e => updateCreator(c.id, { email: e.target.value })}
@@ -834,7 +837,7 @@ export function FirstHitFlow() {
 
                             <div className="space-y-1.5">
                               <Label className="text-xs">
-                                Roles
+                                {t('dashboard.firstHit.roles')}
                                 <span className="text-destructive ml-1">*</span>
                               </Label>
                               <div className="flex flex-wrap gap-1.5">
@@ -846,7 +849,7 @@ export function FirstHitFlow() {
                                       c.roles.includes(r.value) && 'bg-primary hover:bg-primary/90'
                                     )}
                                     onClick={() => toggleCreatorRole(c.id, r.value)}>
-                                    {r.label}
+                                    {creatorRoleLabels[r.value] || r.label}
                                   </Badge>
                                 ))}
                               </div>
@@ -854,8 +857,7 @@ export function FirstHitFlow() {
 
                             <div className="space-y-1">
                               <Label className="text-xs">
-                                % de derechos
-                                <span className="text-muted-foreground ml-1">(opcional)</span>
+                                {t('dashboard.firstHit.rightsPercent')}
                               </Label>
                               <Input type="number" min={0} max={100}
                                 value={c.percentage ?? ''}
@@ -873,36 +875,36 @@ export function FirstHitFlow() {
                     {/* Añadir creador + total % */}
                     <div className="flex items-center justify-between">
                       <Button type="button" variant="outline" size="sm" onClick={addCreator}>
-                        <Plus className="h-3.5 w-3.5 mr-1" /> Añadir creador
+                        <Plus className="h-3.5 w-3.5 mr-1" /> {t('dashboard.firstHit.addCreator')}
                       </Button>
                       {usesPercentages && (
                         <p className={cn('text-sm font-medium',
                           totalPct === 100 ? 'text-emerald-600' : 'text-amber-600')}>
-                          Total derechos: {totalPct}%
+                          {t('dashboard.firstHit.totalRights', { n: totalPct })}
                         </p>
                       )}
                     </div>
 
                     {usesPercentages && totalPct !== 100 && (
                       <p className="text-xs text-destructive">
-                        Los porcentajes deben sumar 100%.
+                        {t('dashboard.firstHit.pctMustSum100')}
                       </p>
                     )}
                   </div>
 
                   {/* Archivo */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Archivo de la obra</Label>
+                    <Label className="text-xs">{t('dashboard.firstHit.workFile')}</Label>
                     {audioUrl && !regFile ? (
                       <div className="flex items-center gap-2 rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
                         <Music2 className="h-4 w-4 text-violet-400" />
                         <span className="text-xs flex-1 truncate">
-                          Audio generado con IA (listo para registrar)
+                          {t('dashboard.firstHit.aiAudioReady')}
                         </span>
                         <button type="button"
                           className="text-xs text-muted-foreground hover:text-foreground"
                           onClick={() => fileRef.current?.click()}>
-                          Cambiar
+                          {t('dashboard.firstHit.change')}
                         </button>
                       </div>
                     ) : (
@@ -912,7 +914,7 @@ export function FirstHitFlow() {
                       >
                         <FileUp className="h-4 w-4 text-muted-foreground" />
                         <span className="text-xs text-muted-foreground truncate">
-                          {regFile ? regFile.name : 'Seleccionar archivo'}
+                          {regFile ? regFile.name : t('dashboard.verify.selectFile')}
                         </span>
                       </div>
                     )}
@@ -926,7 +928,7 @@ export function FirstHitFlow() {
                       onCheckedChange={v => setOwnership(!!v)} />
                     <Label htmlFor="own"
                       className="text-xs leading-tight cursor-pointer">
-                      Declaro ser el titular legítimo de esta obra
+                      {t('dashboard.firstHit.ownershipDeclaration')}
                     </Label>
                   </div>
 
@@ -944,8 +946,8 @@ export function FirstHitFlow() {
                       !creatorsValid
                     }>
                     {registering
-                      ? <><Loader2 className="h-4 w-4 animate-spin" />Registrando en blockchain…</>
-                      : <><Shield className="h-4 w-4" />Registrar mi obra</>
+                      ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.registeringBlockchain')}</>
+                      : <><Shield className="h-4 w-4" />{t('dashboard.firstHit.registerWork')}</>
                     }
                   </Button>
 
@@ -954,23 +956,21 @@ export function FirstHitFlow() {
                     <button type="button"
                       className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
                       onClick={() => setSkipWarning(true)}>
-                      Saltar registro por ahora →
+                      {t('dashboard.firstHit.skipRegister')}
                     </button>
                   ) : (
                     <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2">
                       <p className="text-xs text-destructive font-medium flex items-center gap-1.5">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        ⚠️ Riesgo de plagio sin registro
+                        {t('dashboard.firstHit.plagiarismRisk')}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Si promocionas tu canción sin registrarla primero,
-                        cualquier persona podría apropiarse de ella.
-                        Sin registro no tienes prueba legal de autoría.
+                        {t('dashboard.firstHit.plagiarismRiskDesc')}
                       </p>
                       <div className="flex gap-2">
                         <Button size="sm" className="flex-1 text-xs h-8"
                           onClick={() => setSkipWarning(false)}>
-                          Registrar primero (recomendado)
+                          {t('dashboard.firstHit.registerFirst')}
                         </Button>
                         <Button variant="outline" size="sm"
                           className="flex-1 text-xs h-8 text-muted-foreground"
@@ -979,7 +979,7 @@ export function FirstHitFlow() {
                             setActiveStep(3)
                             setSkipWarning(false)
                           }}>
-                          Saltar de todos modos
+                          {t('dashboard.firstHit.skipAnyway')}
                         </Button>
                       </div>
                     </div>
@@ -1000,8 +1000,8 @@ export function FirstHitFlow() {
         }`}>
           <StepHeader
             number={3} icon={Megaphone} iconColor="text-pink-400"
-            label="Promociona tu canción"
-            sublabel="¡Que se entere el mundo! Comparte con +100k seguidores (Instagram & TikTok) de nuestras redes sociales."
+            label={t('dashboard.firstHit.step3Label')}
+            sublabel={t('dashboard.firstHit.step3Sublabel')}
             isActive={activeStep === 3}
             isDone={doneSteps.has(2) || doneSteps.has(3)}
             onClick={() => !doneSteps.has(3) && setActiveStep(3)}
@@ -1011,7 +1011,7 @@ export function FirstHitFlow() {
             <div className="px-5 pb-6 border-t border-border/40 pt-4">
               <div className="mb-4 space-y-1">
                 <p className="text-sm font-medium">
-                  Publicamos tu canción en nuestras redes sociales
+                  {t('dashboard.firstHit.promoTitle')}
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Más de <strong>100.000 seguidores reales</strong> entre
@@ -1024,17 +1024,17 @@ export function FirstHitFlow() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">
-                      Nombre artístico
+                      {t('dashboard.firstHit.artistName')}
                       <span className="text-destructive ml-1">*</span>
                     </Label>
                     <Input value={promoArtist}
                       onChange={e => setPromoArtist(e.target.value)}
                       required className="h-9 text-sm"
-                      placeholder="Tu nombre artístico" />
+                      placeholder={t('dashboard.firstHit.artistNamePromoPlaceholder')} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs">
-                      Link principal
+                      {t('dashboard.firstHit.mainLink')}
                       <span className="text-destructive ml-1">*</span>
                     </Label>
                     <Input value={promoLink}
@@ -1046,35 +1046,34 @@ export function FirstHitFlow() {
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">
-                    Sobre tu canción
+                      {t('dashboard.firstHit.aboutSong')}
                     <span className="text-destructive ml-1">*</span>
                   </Label>
                   <Textarea value={promoDesc}
                     onChange={e => setPromoDesc(e.target.value)}
                     required rows={2} className="text-sm resize-none"
-                    placeholder="Cuéntanos de qué va tu canción y qué la hace especial" />
+                    placeholder={t('dashboard.firstHit.aboutSongPlaceholder')} />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">
-                    Objetivo de la promoción
+                    {t('dashboard.firstHit.promoGoal')}
                     <span className="text-destructive ml-1">*</span>
                   </Label>
                   <Input value={promoGoal}
                     onChange={e => setPromoGoal(e.target.value)}
                     required className="h-9 text-sm"
-                    placeholder="Ganar seguidores, visibilidad, streams..." />
+                    placeholder={t('dashboard.firstHit.promoGoalPlaceholder')} />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs">
-                    Tus redes sociales
-                    <span className="text-muted-foreground ml-1">(opcional)</span>
+                    {t('dashboard.firstHit.yourSocials')}
                   </Label>
                   <Input value={promoSocial}
                     onChange={e => setPromoSocial(e.target.value)}
                     className="h-9 text-sm"
-                    placeholder="@tuartista en Instagram, TikTok..." />
+                    placeholder={t('dashboard.firstHit.yourSocialsPlaceholder')} />
                 </div>
 
                 <div className="flex items-start gap-2">
@@ -1082,23 +1081,22 @@ export function FirstHitFlow() {
                     onCheckedChange={v => setPromoConsent(!!v)} />
                   <Label htmlFor="promo-consent"
                     className="text-xs leading-tight cursor-pointer">
-                    Confirmo que tengo los derechos sobre esta canción
-                    y autorizo a MusicDibs a publicarla en sus redes sociales
+                    {t('dashboard.firstHit.promoConsent')}
                   </Label>
                 </div>
 
                 <Button type="submit" className="w-full gap-2"
                   disabled={promoting || !promoConsent || !promoArtist || !promoLink || !promoDesc || !promoGoal}>
                   {promoting
-                    ? <><Loader2 className="h-4 w-4 animate-spin" />Enviando solicitud…</>
-                    : <><Megaphone className="h-4 w-4" />¡Quiero promocionarme!</>
+                    ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.sendingRequest')}</>
+                    : <><Megaphone className="h-4 w-4" />{t('dashboard.firstHit.wantPromotion')}</>
                   }
                 </Button>
 
                 <button type="button"
                   className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
                   onClick={() => { markDone(3); setActiveStep('done') }}>
-                  Saltar por ahora — ver pantalla final →
+                  {t('dashboard.firstHit.skipPromo')}
                 </button>
               </form>
             </div>
@@ -1113,7 +1111,7 @@ export function FirstHitFlow() {
             className="text-xs text-muted-foreground"
             onClick={() => navigate('/dashboard')}
           >
-            Ya tengo obras — ir directamente al panel
+            {t('dashboard.firstHit.goToPanel')}
           </Button>
         </div>
 
