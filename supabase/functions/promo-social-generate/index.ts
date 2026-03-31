@@ -44,8 +44,8 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
   return { work, aiGen, lyrics };
 }
 
-async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string) {
-  const [genRes, lyricsRes] = await Promise.all([
+async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string, authorOverride?: string) {
+  const [genRes, lyricsRes, profileRes] = await Promise.all([
     supabase
       .from('ai_generations')
       .select('prompt, genre, mood')
@@ -58,15 +58,25 @@ async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId:
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20),
+    // Fetch default artist profile name as fallback author
+    supabase
+      .from('user_artist_profiles')
+      .select('name')
+      .eq('user_id', userId)
+      .eq('is_default', true)
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const gen = genRes.data;
   if (!gen) return null;
 
+  const artistName = authorOverride || profileRes.data?.name || null;
+
   // Build a work-like object from the AI generation
   const work = {
     title: gen.prompt || 'AI Song',
-    author: null,
+    author: artistName,
     description: [gen.genre, gen.mood].filter(Boolean).join(' · ') || null,
     type: 'audio',
     certificate_url: null,

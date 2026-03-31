@@ -218,6 +218,7 @@ export function PromoteWorks() {
     const body: Record<string, any> = { tone: selectedTone, language: userLang };
     if (work?.source === 'ai_studio') {
       body.ai_generation_id = workId;
+      if (work.author) body.author = work.author;
     } else {
       body.work_id = workId;
     }
