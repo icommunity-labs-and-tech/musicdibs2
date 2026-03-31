@@ -343,7 +343,7 @@ const AIStudioEdit = () => {
           } else if (st?.errored) {
             stopPolling();
             setEnhanceStatus("error");
-            setEnhanceError(t('aiEdit.enhanceError', { defaultValue: 'Auphonic no pudo procesar el audio. Intenta con otro archivo.' }));
+            setEnhanceError(t('aiEdit.enhanceError', { defaultValue: 'No se pudo procesar el audio. Intenta con otro archivo.' }));
             setIsEnhancing(false);
           }
         } catch { /* continuar polling */ }
