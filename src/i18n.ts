@@ -532,7 +532,7 @@ const resources = {
           verifyRegistration: 'Verificar registro',
           verifyIdentity: 'Verificar identidad',
           promoteWork: 'Promocionar obra',
-          artistProfiles: 'Mis Artistas',
+          artistProfiles: 'Mis Artistas Virtuales',
           voiceCloning: 'Clonación de Voz',
           profile: 'Perfil',
           plansCredits: 'Planes y créditos',
