@@ -605,7 +605,7 @@ function PromoDetailDialog({
                 </Badge>
                 {work.author && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    Artista: {work.author}
+                    {t('dashboard.promote.artist')}: {work.author}
                   </Badge>
                 )}
               </div>
