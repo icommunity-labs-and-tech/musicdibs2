@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,43 +8,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-
-const PLANS = [
-  {
-    id: 'annual',
-    name: 'Anual',
-    credits: 120,
-    price: '59,90 €',
-    period: '/año',
-    popular: true,
-    icon: Calendar,
-    description: '120 créd/año',
-    perCredit: '0,50 €/créd',
-    rank: 2, // higher = better plan
-  },
-  {
-    id: 'monthly',
-    name: 'Mensual',
-    credits: 3,
-    price: '6,90 €',
-    period: '/mes',
-    icon: Clock,
-    description: '3 créd/mes',
-    perCredit: '2,30 €/créd',
-    rank: 1,
-  },
-  {
-    id: 'individual',
-    name: 'Individual',
-    credits: 1,
-    price: '11,90 €',
-    period: '',
-    icon: FileText,
-    description: '1 crédito',
-    perCredit: '11,90 €/créd',
-    rank: 0,
-  },
-];
+import { useTranslation } from 'react-i18next';
 
 const PROFILE_PLAN_TO_ID: Record<string, string> = {
   Annual: 'annual',
@@ -52,34 +16,38 @@ const PROFILE_PLAN_TO_ID: Record<string, string> = {
   Free: '',
 };
 
-function getButtonConfig(planId: string, currentPlanId: string | null) {
+function getButtonConfig(
+  planId: string,
+  currentPlanId: string | null,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
   if (planId === 'individual') {
     if (currentPlanId && currentPlanId !== '') {
-      return { label: 'Cancelar renovación', variant: 'outline' as const, icon: null, disabled: false };
+      return { label: t('dashboard.creditStore.cancelRenewal'), variant: 'outline' as const, icon: null, disabled: false };
     }
-    return { label: 'Comprar', variant: 'outline' as const, icon: null, disabled: false };
+    return { label: t('dashboard.creditStore.buy'), variant: 'outline' as const, icon: null, disabled: false };
   }
 
   if (!currentPlanId || currentPlanId === '') {
-    // No subscription — show subscribe
-    return { label: 'Suscribirse', variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
+    return { label: t('dashboard.creditStore.subscribe'), variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
   }
 
   if (currentPlanId === planId) {
-    return { label: 'Tu plan', variant: 'secondary' as const, icon: null, disabled: true };
+    return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
   }
 
-  const currentRank = PLANS.find(p => p.id === currentPlanId)?.rank ?? 0;
-  const targetRank = PLANS.find(p => p.id === planId)?.rank ?? 0;
+  const currentRank = currentPlanId === 'annual' ? 2 : currentPlanId === 'monthly' ? 1 : 0;
+  const targetRank = planId === 'annual' ? 2 : planId === 'monthly' ? 1 : 0;
 
   if (targetRank > currentRank) {
-    return { label: 'Upgrade', variant: 'default' as const, icon: ArrowUp, disabled: false };
+    return { label: t('dashboard.creditStore.upgrade'), variant: 'default' as const, icon: ArrowUp, disabled: false };
   } else {
-    return { label: 'Downgrade', variant: 'outline' as const, icon: ArrowDown, disabled: false };
+    return { label: t('dashboard.creditStore.downgrade'), variant: 'outline' as const, icon: ArrowDown, disabled: false };
   }
 }
 
 export function CreditStore({ compact }: { compact?: boolean }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -87,6 +55,39 @@ export function CreditStore({ compact }: { compact?: boolean }) {
   const { user } = useAuth();
   const paymentStatus = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
+  const plans = useMemo(() => ([
+    {
+      id: 'annual',
+      name: t('dashboard.creditStore.annual'),
+      credits: 120,
+      price: '59,90 €',
+      period: t('dashboard.creditStore.perYear'),
+      popular: true,
+      icon: Calendar,
+      description: t('dashboard.creditStore.creditsPerYear'),
+      rank: 2,
+    },
+    {
+      id: 'monthly',
+      name: t('dashboard.creditStore.monthly'),
+      credits: 3,
+      price: '6,90 €',
+      period: t('dashboard.creditStore.perMonth'),
+      icon: Clock,
+      description: t('dashboard.creditStore.creditsPerMonth'),
+      rank: 1,
+    },
+    {
+      id: 'individual',
+      name: t('dashboard.creditStore.individual'),
+      credits: 1,
+      price: '11,90 €',
+      period: '',
+      icon: FileText,
+      description: t('dashboard.creditStore.oneCredit'),
+      rank: 0,
+    },
+  ]), [t]);
 
   // Verify and fulfill payment when returning from Stripe checkout
   useEffect(() => {
@@ -96,10 +97,10 @@ export function CreditStore({ compact }: { compact?: boolean }) {
     }).then(({ data, error }) => {
       if (error) console.error('Verify payment error:', error);
       else if (data?.fulfilled && !data?.already) {
-        toast.success(`¡${data.credits} crédito(s) añadido(s)!`);
+        toast.success(t('dashboard.creditStore.nCredits', { n: data.credits }));
       }
     });
-  }, [paymentStatus, sessionId, user]);
+  }, [paymentStatus, sessionId, t, user]);
 
   useEffect(() => {
     if (!user) return;
@@ -144,14 +145,14 @@ export function CreditStore({ compact }: { compact?: boolean }) {
 
       // If already on this plan
       if (data?.already_subscribed) {
-        toast.info(data.message || 'Ya estás suscrito a este plan.');
+        toast.info(data.message || t('dashboard.creditStore.alreadySubscribed'));
         setLoading(null);
         return;
       }
 
       // If renewal cancellation was requested (annual/monthly -> individual)
       if (data?.cancelled_to_individual) {
-        toast.success(data.message || 'Renovación cancelada correctamente');
+        toast.success(data.message || t('dashboard.creditStore.renewalCancelled'));
         if (data?.plan) {
           setCurrentPlanId(PROFILE_PLAN_TO_ID[data.plan] ?? currentPlanId);
         }
@@ -161,7 +162,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
 
       // If plan was switched/reactivated server-side
       if (data?.switched) {
-        toast.success(data.message || 'Plan cambiado correctamente');
+        toast.success(data.message || t('dashboard.creditStore.planChanged'));
         const resolvedPlanId = data?.plan ? (PROFILE_PLAN_TO_ID[data.plan] ?? planId) : planId;
         setCurrentPlanId(resolvedPlanId);
         setLoading(null);
@@ -172,7 +173,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
         window.open(data.url, '_blank');
       }
     } catch (err: any) {
-      const msg = err?.message || 'Error al procesar la compra';
+      const msg = err?.message || t('dashboard.creditStore.purchaseError');
       setError(msg);
       console.error('Checkout error:', err);
     }
@@ -184,13 +185,13 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       <Card className="border-border/40 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4 text-primary" /> Créditos
+            <ShoppingBag className="h-4 w-4 text-primary" /> {t('dashboard.creditStore.credits')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {paymentStatus === 'success' && (
             <div className="flex items-center gap-2 text-emerald-600 text-xs">
-              <CheckCircle2 className="h-4 w-4" /> ¡Pago completado! Créditos en camino.
+              <CheckCircle2 className="h-4 w-4" /> {t('dashboard.creditStore.paymentSuccess')}
             </div>
           )}
           {error && (
@@ -199,9 +200,9 @@ export function CreditStore({ compact }: { compact?: boolean }) {
             </div>
           )}
           <div className="space-y-2">
-            {PLANS.map((plan) => {
+            {plans.map((plan) => {
               const Icon = plan.icon;
-              const btn = getButtonConfig(plan.id, currentPlanId);
+              const btn = getButtonConfig(plan.id, currentPlanId, t);
               const BtnIcon = btn.icon;
               return (
                 <div
@@ -220,16 +221,16 @@ export function CreditStore({ compact }: { compact?: boolean }) {
                       <span className="text-sm font-medium">{plan.name}</span>
                       {currentPlanId === plan.id && (
                         <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary">
-                          Activo
+                          {t('dashboard.creditStore.active')}
                         </Badge>
                       )}
                       {plan.popular && currentPlanId !== plan.id && (
                         <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5">
-                          <Sparkles className="h-2.5 w-2.5" /> Top
+                          <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.creditStore.top')}
                         </Badge>
                       )}
                     </div>
-                    <span className="text-xs text-muted-foreground">{plan.description} · {plan.perCredit}</span>
+                    <span className="text-xs text-muted-foreground">{plan.description}</span>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-bold">{plan.price}<span className="text-xs font-normal text-muted-foreground">{plan.period}</span></div>
@@ -255,7 +256,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
             })}
           </div>
           <p className="text-[10px] text-muted-foreground text-center">
-            Pagos seguros con Stripe. Créditos no consumidos se pierden al finalizar el periodo.
+            {t('dashboard.creditStore.stripeNote')}
           </p>
         </CardContent>
       </Card>
@@ -270,8 +271,8 @@ export function CreditStore({ compact }: { compact?: boolean }) {
           <CardContent className="flex items-center gap-3 py-4">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
             <div>
-              <p className="text-sm font-medium">¡Pago completado!</p>
-              <p className="text-xs text-muted-foreground">Tus créditos se añadirán en unos momentos.</p>
+                <p className="text-sm font-medium">{t('dashboard.creditStore.paymentSuccessFull')}</p>
+                <p className="text-xs text-muted-foreground">{t('dashboard.creditStore.creditsAdding')}</p>
             </div>
           </CardContent>
         </Card>
@@ -285,9 +286,9 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {PLANS.map((plan) => {
+        {plans.map((plan) => {
           const Icon = plan.icon;
-          const btn = getButtonConfig(plan.id, currentPlanId);
+          const btn = getButtonConfig(plan.id, currentPlanId, t);
           const BtnIcon = btn.icon;
           const isActive = currentPlanId === plan.id;
           return (
@@ -303,12 +304,12 @@ export function CreditStore({ compact }: { compact?: boolean }) {
             >
               {isActive && (
                 <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
-                  <CheckCircle2 className="h-3 w-3" /> Tu plan
+                  <CheckCircle2 className="h-3 w-3" /> {t('dashboard.creditStore.yourPlan')}
                 </Badge>
               )}
               {plan.popular && !isActive && (
                 <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1">
-                  <Sparkles className="h-3 w-3" /> Mejor valor
+                  <Sparkles className="h-3 w-3" /> {t('dashboard.creditStore.bestValue')}
                 </Badge>
               )}
               <CardHeader className="pb-1 pt-5">
@@ -320,13 +321,12 @@ export function CreditStore({ compact }: { compact?: boolean }) {
               <CardContent className="space-y-3">
                 <div>
                   <span className="text-2xl font-bold">{plan.credits}</span>
-                  <span className="text-sm text-muted-foreground ml-1">créditos</span>
+                  <span className="text-sm text-muted-foreground ml-1">{t('dashboard.creditChart.credits')}</span>
                 </div>
                 <p className="text-lg font-semibold">
                   {plan.price}
                   <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{plan.perCredit}</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{plan.description}</p>
                 <Button
                   className="w-full"
@@ -354,7 +354,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
         <CardContent className="py-3">
           <p className="text-xs text-muted-foreground text-center">
             <ShoppingBag className="h-3.5 w-3.5 inline mr-1" />
-            Los pagos se procesan de forma segura con Stripe. Los créditos de suscripciones se renuevan automáticamente y los no consumidos se pierden al finalizar el periodo.
+            {t('dashboard.creditStore.stripeNoteFull')}
           </p>
         </CardContent>
       </Card>

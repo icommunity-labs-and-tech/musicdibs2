@@ -14,6 +14,7 @@ import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -52,15 +53,8 @@ const PAGE_SIZE = 5;
 const MAX_FREE_REGENS = 3;
 const REGEN_CREDIT_COST = 5;
 
-const STATUS_MAP: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
-  generating: { label: 'Generando...', color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Loader2 },
-  assets_ready: { label: 'Assets listos', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: ImageIcon },
-  email_sent: { label: 'Email enviado', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
-  completed: { label: 'Completado', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
-  failed: { label: 'Error', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: AlertCircle },
-};
-
 export function PromoteWorks() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { credits, hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
@@ -76,6 +70,13 @@ export function PromoteWorks() {
   const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
   const [page, setPage] = useState(0);
   const [detailWorkId, setDetailWorkId] = useState<string | null>(null);
+  const statusMap: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
+    generating: { label: t('dashboard.promote.generating'), color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Loader2 },
+    assets_ready: { label: t('dashboard.promote.assetsReady'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: ImageIcon },
+    email_sent: { label: t('dashboard.promote.emailSent'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
+    completed: { label: t('dashboard.promote.completed'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', icon: CheckCircle2 },
+    failed: { label: t('dashboard.promote.error'), color: 'bg-destructive/10 text-destructive border-destructive/20', icon: AlertCircle },
+  };
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -137,15 +138,15 @@ export function PromoteWorks() {
         if (p.status !== 'generating') {
           setPolling(null);
           if (p.status === 'completed' || p.status === 'assets_ready') {
-            toast.success('¡Promoción generada! Revisa tus assets y tu email.');
+            toast.success(t('dashboard.promote.promoGenerated'));
           } else if (p.status === 'failed') {
-            toast.error(`Error: ${p.error_detail || 'Fallo desconocido'}`);
+            toast.error(`${t('dashboard.promote.error')}: ${p.error_detail || t('dashboard.promote.unknownError')}`);
           }
         }
       }
     }, 4000);
     return () => clearInterval(interval);
-  }, [polling]);
+  }, [polling, t]);
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
@@ -156,7 +157,7 @@ export function PromoteWorks() {
       if (error) throw new Error(error.message);
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
-          toast.error('No tienes créditos suficientes (25 necesarios).');
+          toast.error(t('dashboard.promote.insufficientCredits'));
         } else {
           throw new Error(data.error);
         }
@@ -176,9 +177,9 @@ export function PromoteWorks() {
       };
       setPromos(prev => [newPromo, ...prev]);
       setPolling(data.promo_id);
-      toast.info('Generando promoción... esto tardará ~30 segundos.');
+      toast.info(t('dashboard.promote.generatingInfo'));
     } catch (err: any) {
-      toast.error(err.message || 'Error al lanzar la promoción');
+      toast.error(err.message || t('dashboard.promote.launchError'));
     } finally {
       setLaunching(null);
     }
@@ -194,7 +195,7 @@ export function PromoteWorks() {
       if (error) throw new Error(error.message);
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
-          toast.error('No tienes créditos suficientes.');
+          toast.error(t('dashboard.promote.regenInsufficient'));
           return;
         }
         throw new Error(data.error);
@@ -204,9 +205,9 @@ export function PromoteWorks() {
       }
       setPolling(promoId);
       const label = type === 'copies' ? 'copies' : 'imagen';
-      toast.info(paid ? `Regenerando ${label}... (${REGEN_CREDIT_COST} créditos)` : `Regenerando ${label}... sin coste.`);
+      toast.info(paid ? t('dashboard.promote.regeneratingPaid', { label, cost: REGEN_CREDIT_COST }) : t('dashboard.promote.regenerating', { label }));
     } catch (err: any) {
-      toast.error(err.message || 'Error al regenerar');
+      toast.error(err.message || t('dashboard.promote.regenError'));
     } finally {
       setRegenerating(null);
     }
@@ -215,7 +216,7 @@ export function PromoteWorks() {
   const copyToClipboard = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
-    toast.success('Copiado al portapapeles');
+    toast.success(t('dashboard.promote.copiedToClipboard'));
     setTimeout(() => setCopiedField(''), 2000);
   };
 
@@ -236,10 +237,11 @@ export function PromoteWorks() {
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
             <Megaphone className="h-4 w-4 text-primary" /> Promoción en Redes Sociales
+            <Megaphone className="h-4 w-4 text-primary" /> {t('dashboard.promote.title')}
           </CardTitle>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
-            Cada promoción consume {FEATURE_COSTS.promote_work} créditos · Imagen + 3 copies + email
+            {t('dashboard.promote.costNote', { cost: FEATURE_COSTS.promote_work })}
           </p>
         </div>
         <button onClick={loadData} className="text-muted-foreground hover:text-foreground transition-colors">
@@ -249,7 +251,7 @@ export function PromoteWorks() {
       <CardContent className="px-0 pb-0">
         {noCredits && (
           <div className="px-6 pb-3">
-            <NoCreditsAlert message={`Necesitas al menos ${FEATURE_COSTS.promote_work} créditos para promocionar una obra.`} />
+            <NoCreditsAlert message={t('dashboard.promote.insufficientCredits')} />
           </div>
         )}
 
@@ -260,24 +262,24 @@ export function PromoteWorks() {
         ) : works.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm px-6 pb-4">
             <Music className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            No tienes obras registradas todavía. Registra tu primera obra para promocionarla.
+            {t('dashboard.promote.noWorks')}
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               {/* Table header */}
               <div className="hidden sm:grid sm:grid-cols-[1fr_100px_80px_1fr] gap-4 items-center px-6 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <span>Obra</span>
-                <span>Estado</span>
-                <span>Promos</span>
-                <span>Acciones</span>
+                <span>{t('dashboard.promote.work')}</span>
+                <span>{t('dashboard.promote.status')}</span>
+                <span>{t('dashboard.promote.promos')}</span>
+                <span>{t('dashboard.promote.actions')}</span>
               </div>
               <div className="divide-y divide-border/20">
                 {pageData.map(work => {
                   const promo = getLatestPromo(work.id);
                   const promoCount = getPromoCount(work.id);
                   const isGenerating = promo?.status === 'generating';
-                  const statusInfo = promo ? STATUS_MAP[promo.status] : null;
+                  const statusInfo = promo ? statusMap[promo.status] : null;
                   const meta = aiMetaMap[work.id];
 
                   return (
@@ -316,7 +318,7 @@ export function PromoteWorks() {
                             {statusInfo.label}
                           </Badge>
                         ) : (
-                          <span className="text-xs text-muted-foreground">Sin promo</span>
+                          <span className="text-xs text-muted-foreground">{t('dashboard.promote.noPromo')}</span>
                         )}
                       </div>
 
@@ -345,7 +347,7 @@ export function PromoteWorks() {
                           ) : (
                             <>
                               <Megaphone className="h-3 w-3 mr-1" />
-                              {promoCount > 0 ? 'Nueva' : 'Promocionar'}
+                              {promoCount > 0 ? t('dashboard.promote.new') : t('dashboard.promote.promote')}
                             </>
                           )}
                         </Button>
@@ -356,7 +358,7 @@ export function PromoteWorks() {
                             className="h-7 text-xs"
                             onClick={() => setDetailWorkId(work.id)}
                           >
-                            <ExternalLink className="h-3 w-3 mr-1" /> Ver assets
+                            <ExternalLink className="h-3 w-3 mr-1" /> {t('dashboard.promote.viewAssets')}
                           </Button>
                         )}
                       </div>
@@ -370,7 +372,7 @@ export function PromoteWorks() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-6 py-3 border-t border-border/30">
                 <p className="text-xs text-muted-foreground">
-                  {works.length} obra{works.length !== 1 ? 's' : ''} · Página {page + 1} de {totalPages}
+                  {t('dashboard.promote.worksCount', { n: works.length, page: page + 1, total: totalPages })}
                 </p>
                 <div className="flex items-center gap-1">
                   <Button
@@ -399,7 +401,7 @@ export function PromoteWorks() {
             {credits !== null && (
               <div className="px-6 py-2 border-t border-border/30">
                 <p className="text-xs text-muted-foreground">
-                  Créditos disponibles: <span className="font-medium">{credits}</span>
+                  {t('dashboard.promote.availableCredits')} <span className="font-medium">{credits}</span>
                 </p>
               </div>
             )}
