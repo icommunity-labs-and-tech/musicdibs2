@@ -32,6 +32,7 @@ interface ArtistProfile {
 const ArtistProfilesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [profiles, setProfiles] = useState<ArtistProfile[]>([]);
