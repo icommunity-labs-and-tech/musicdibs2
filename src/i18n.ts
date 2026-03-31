@@ -1014,7 +1014,7 @@ const resources = {
           verifyRegistration: 'Verify registration',
           verifyIdentity: 'Verify identity',
           promoteWork: 'Promote work',
-          artistProfiles: 'My Artists',
+          artistProfiles: 'My Virtual Artists',
           voiceCloning: 'Voice Cloning',
           profile: 'Profile',
           plansCredits: 'Plans & credits',
