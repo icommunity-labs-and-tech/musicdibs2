@@ -172,8 +172,6 @@ export function workCertifiedEmail(data: {
   };
 }
 
-// ─── 4. Payment Failure Notification ────────────────────────────────────────
-
 // ─── 4. KYC Verification In Process ─────────────────────────────────────────
 
 export function kycInProcessEmail(data: { name: string }) {
@@ -267,5 +265,33 @@ export function paymentFailedEmail(data: {
     subject: `⚠️ Fallo en el cobro de tu suscripción — MusicDibs`,
     html: wrap("⚠️", "Fallo en el cobro", body),
     text: `Hola ${name}, no hemos podido procesar el cobro de tu suscripción. ${description}. Actualiza tu método de pago: https://musicdibs.com/dashboard/billing`,
+  };
+}
+
+// ─── 8. Premium Promo Published ─────────────────────────────────────────────
+
+export function premiumPromoPublishedEmail(data: {
+  name: string;
+  artistName: string;
+  songTitle: string;
+}) {
+  const safeName = escapeHtml(data.name);
+  const safeArtist = escapeHtml(data.artistName);
+  const safeSong = escapeHtml(data.songTitle);
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, ¡tu Promo Premium ha sido publicada! 🎉</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.12));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Artista", safeArtist)}
+      ${infoRow("Canción", safeSong)}
+      ${infoRow("Estado", "🚀 Publicada")}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">Tu vídeo personalizado ya está visible en nuestros canales de TikTok e Instagram con más de 350.000 seguidores.</p>
+    ${cta("https://musicdibs.com/dashboard/promote", "Ver mis promociones →")}`;
+
+  return {
+    subject: `🚀 ¡Tu Promo Premium ha sido publicada! — ${safeSong}`,
+    html: wrap("👑", "¡Promo Premium publicada!", body),
+    text: `Hola ${data.name}, tu Promo Premium para "${data.songTitle}" por ${data.artistName} ha sido publicada en nuestros canales. Panel: https://musicdibs.com/dashboard/promote`,
   };
 }
