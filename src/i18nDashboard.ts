@@ -951,6 +951,9 @@ const pt: typeof es = {
       registerNew: 'Registrar uma nova obra',
       registerNewDesc: 'Inicie o processo de registro e proteção da sua obra passo a passo.',
       goToRegister: 'Ir ao registro',
+      distributeWork: 'Distribua sua música',
+      distributeWorkDesc: 'Leve sua música para todas as plataformas digitais: Spotify, Apple Music, Amazon e mais.',
+      goToDistribute: 'Ir para distribuição',
     },
     billing: {
       title: 'Faturamento',
