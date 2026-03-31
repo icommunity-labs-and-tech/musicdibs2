@@ -91,6 +91,8 @@ export function PromoteWorks() {
   const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
   const [page, setPage] = useState(0);
   const [detailWorkId, setDetailWorkId] = useState<string | null>(null);
+  const [selectedTone, setSelectedTone] = useState<string>('urban');
+  const userLang = LANG_MAP[i18n.resolvedLanguage || 'es'] || 'español';
   const statusMap: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
     generating: { label: t('dashboard.promote.generating'), color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Loader2 },
     assets_ready: { label: t('dashboard.promote.assetsReady'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: ImageIcon },
