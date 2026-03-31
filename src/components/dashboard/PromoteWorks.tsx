@@ -597,7 +597,7 @@ function PromoDetailDialog({
                 )}
                 {meta?.mood && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    <Palette className="h-3 w-3" /> Mood: {meta.mood}
+                    <Palette className="h-3 w-3" /> {t('dashboard.promote.mood')}: {meta.mood}
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-[11px] gap-1">
