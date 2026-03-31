@@ -106,7 +106,7 @@ export function PromoteWorks() {
     if (!user) return;
     setLoadingWorks(true);
 
-    const [worksRes, promosRes, genRes] = await Promise.all([
+    const [worksRes, promosRes, genRes, profileRes] = await Promise.all([
       supabase
         .from('works')
         .select('id, title, author, type, status, description, checker_url, distributed_at')
@@ -124,7 +124,16 @@ export function PromoteWorks() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase
+        .from('user_artist_profiles')
+        .select('name')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
+        .limit(1)
+        .maybeSingle(),
     ]);
+
+    const defaultArtistName = profileRes.data?.name || null;
 
     const registeredWorks: Work[] = (worksRes.data || []).map((w: any) => ({
       ...w,
@@ -138,7 +147,7 @@ export function PromoteWorks() {
       .map((g: any) => ({
         id: g.id,
         title: g.prompt,
-        author: null,
+        author: defaultArtistName,
         type: 'audio',
         status: 'ai_generated',
         description: [g.genre, g.mood].filter(Boolean).join(' · ') || null,
