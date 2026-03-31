@@ -160,6 +160,8 @@ export function PromoteWorks() {
         setPromos(prev => prev.map(x => x.id === p.id ? p : x));
         if (p.status !== 'generating') {
           setPolling(null);
+          setRegenerating(null);
+          setLaunching(null);
           if (p.status === 'completed' || p.status === 'assets_ready') {
             toast.success(t('dashboard.promote.promoGenerated'));
           } else if (p.status === 'failed') {
