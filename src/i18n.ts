@@ -1032,8 +1032,9 @@ const resources = {
           admin: 'Administration',
           panelGuide: 'Panel guide',
           logout: 'Log out',
-          new: 'NEW',
-        },
+           new: 'NEW',
+           premiumPromos: 'Premium Promos',
+         },
         registerWork: {
           title: 'Register work',
           noCreditsMsg: 'You don\'t have enough credits to register a work.',
