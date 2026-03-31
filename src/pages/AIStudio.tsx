@@ -13,7 +13,7 @@ const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const { t } = useTranslation();
 
-  const modules = [
+  const mainModules = [
     {
       titleKey: "aiStudio.modules.createMusic.title",
       descKey: "aiStudio.modules.createMusic.desc",
@@ -45,6 +45,19 @@ const AIStudio = () => {
       color: "from-amber-500 to-orange-500"
     },
     {
+      titleKey: "aiStudio.modules.singYourSong.title",
+      descKey: "aiStudio.modules.singYourSong.desc",
+      icon: Mic,
+      href: "/ai-studio/vocal",
+      available: true,
+      costsCredits: true,
+      featureKey: 'generate_audio' as const,
+      color: "from-violet-500 to-purple-600"
+    }
+  ];
+
+  const promoModules = [
+    {
       titleKey: "aiStudio.modules.createVideoclips.title",
       descKey: "aiStudio.modules.createVideoclips.desc",
       icon: Video,
@@ -64,16 +77,6 @@ const AIStudio = () => {
       featureKey: 'generate_cover' as const,
       color: "from-emerald-500 to-teal-500"
     },
-    {
-      titleKey: "aiStudio.modules.singYourSong.title",
-      descKey: "aiStudio.modules.singYourSong.desc",
-      icon: Mic,
-      href: "/ai-studio/vocal",
-      available: true,
-      costsCredits: true,
-      featureKey: 'generate_audio' as const,
-      color: "from-violet-500 to-purple-600"
-    }
   ];
 
   return (
