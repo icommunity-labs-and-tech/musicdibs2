@@ -60,7 +60,7 @@ export const DistributionSection = () => {
                     <img src="/lovable-uploads/130ddbf0-73ca-4e46-a7ad-a985a06ddfdf.png" alt="Amazon Music" className="h-8 w-auto object-contain" width={104} height={30} loading="lazy" />
                   </div>
                   <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-16">
-                    <img src="/lovable-uploads/cacf57b3-f050-4740-89ea-541e5f512ed6.png" alt="Deezer" className="h-8 w-auto object-contain" />
+                    <img src="/lovable-uploads/cacf57b3-f050-4740-89ea-541e5f512ed6.png" alt="Deezer" className="h-8 w-auto object-contain" width={104} height={30} loading="lazy" />
                   </div>
                 </div>
 
