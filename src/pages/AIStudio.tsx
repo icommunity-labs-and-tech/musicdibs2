@@ -108,10 +108,15 @@ const AIStudio = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {mainModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
-            const disabled = module.costsCredits && !hasEnough(cost);
+            const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
             return (
-            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'} ${!module.available ? 'opacity-75' : ''}`}>
-              {disabled && (
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-50 grayscale blur-[1px] pointer-events-none' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+              {!module.available && (
+                <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
+                  {t('aiStudio.comingSoon')}
+                </Badge>
+              )}
+              {module.available && !hasEnough(cost) && module.costsCredits && (
                 <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
                   {t('aiStudio.noCredits')}
                 </Badge>
@@ -135,21 +140,10 @@ const AIStudio = () => {
                 )}
               </CardHeader>
               <CardContent>
-                {disabled ? (
-                  <Button asChild className="w-full" variant="default">
-                    <Link to="/dashboard/credits">
-                      <Coins className="w-4 h-4 mr-2" />
-                      {t('aiStudio.buyCredits')}
-                    </Link>
-                  </Button>
-                ) : (
-                <Button asChild className="w-full" variant={module.available ? "default" : "secondary"}>
-                  <Link to={module.href}>
-                    <Zap className="w-4 h-4 mr-2" />
-                    {module.available ? t('aiStudio.startBtn') : t('aiStudio.previewBtn')}
-                  </Link>
+                <Button className="w-full" variant={module.available ? "default" : "secondary"} disabled={disabled}>
+                  <Zap className="w-4 h-4 mr-2" />
+                  {module.available ? t('aiStudio.startBtn') : t('aiStudio.comingSoon')}
                 </Button>
-                )}
               </CardContent>
             </Card>
             );
