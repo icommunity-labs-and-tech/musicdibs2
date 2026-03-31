@@ -569,7 +569,7 @@ function PromoDetailDialog({
           <DialogTitle className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" />
             <div className="min-w-0">
-              <span>Promoción: {work.title}</span>
+              <span>{t('dashboard.promote.promoTitle', { title: work.title })}</span>
               {work.source === 'ai_studio' && (
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {work.author && <span className="text-xs font-normal text-muted-foreground">{work.author}</span>}
