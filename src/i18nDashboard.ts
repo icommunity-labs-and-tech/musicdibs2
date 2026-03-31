@@ -470,6 +470,7 @@ const es = {
     virtualArtists: {
       title: 'Mis Artistas Virtuales',
       description: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.',
+      newArtist: 'Nuevo Artista Virtual',
     },
   },
 };
