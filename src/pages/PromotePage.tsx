@@ -31,14 +31,14 @@ interface PremiumPromo {
 
 type PromoView = 'selector' | 'standard' | 'premium';
 
-const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  submitted: { label: 'Pendiente de revisión', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  under_review: { label: 'En revisión', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  approved: { label: 'Aprobada', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  scheduled: { label: 'Programada', color: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
-  published: { label: 'Publicada', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  rejected: { label: 'Rechazada', color: 'bg-red-500/10 text-red-600 border-red-500/20' },
-};
+const getStatusMap = (t: (key: string, fallback: string) => string): Record<string, { label: string; color: string }> => ({
+  submitted: { label: t('dashboard.premium.statusPending', 'Pendiente de revisión'), color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+  under_review: { label: t('dashboard.premium.statusUnderReview', 'En revisión'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  approved: { label: t('dashboard.premium.statusApproved', 'Aprobada'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  scheduled: { label: t('dashboard.premium.statusScheduled', 'Programada'), color: 'bg-violet-500/10 text-violet-600 border-violet-500/20' },
+  published: { label: t('dashboard.premium.statusPublished', 'Publicada'), color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
+  rejected: { label: t('dashboard.premium.statusRejected', 'Rechazada'), color: 'bg-red-500/10 text-red-600 border-red-500/20' },
+});
 
 export default function PromotePage() {
   const { t, i18n } = useTranslation();
@@ -217,7 +217,8 @@ export default function PromotePage() {
           <h3 className="text-sm font-semibold">{t('dashboard.premium.historyTitle', 'Historial de Promos Premium')}</h3>
           <div className="space-y-2">
             {premiumPromos.map(p => {
-              const st = STATUS_MAP[p.status] || STATUS_MAP.submitted;
+              const statusMap = getStatusMap((k, f) => t(k, { defaultValue: f }));
+              const st = statusMap[p.status] || statusMap.submitted;
               return (
                 <Card key={p.id} className="border-border/30">
                   <CardContent className="p-4 flex items-center justify-between gap-3">
@@ -226,7 +227,7 @@ export default function PromotePage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{p.artist_name} — {p.song_title}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {new Date(p.created_at).toLocaleDateString()} · {p.credits_spent} créditos
+                          {new Date(p.created_at).toLocaleDateString()} · {p.credits_spent} {t('dashboard.premium.creditsLabel', 'créditos')}
                         </p>
                       </div>
                     </div>
