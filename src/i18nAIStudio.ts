@@ -1710,7 +1710,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
     aiVideo: {
       backToStudio: 'Retour à AI MusicDibs Studio',
       title: 'Vidéoclips avec IA',
-      subtitle: 'Générez des clips musicaux avec l'IA',
+      subtitle: "Générez des clips musicaux avec l'IA",
       generationMode: 'Mode de Génération',
       textToVideo: 'Text to Video',
       imageToVideo: 'Image to Video',
