@@ -53,7 +53,7 @@ const PROMO_STYLES = [
 export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { credits, hasEnough, refreshCredits } = useCredits();
+  const { credits, hasEnough } = useCredits();
   const navigate = useNavigate();
   const noCredits = !hasEnough(PREMIUM_COST);
 
