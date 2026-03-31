@@ -601,7 +601,7 @@ function PromoDetailDialog({
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-[11px] gap-1">
-                  <Mic2 className="h-3 w-3" /> Tipo: {work.type}
+                  <Mic2 className="h-3 w-3" /> {t('dashboard.promote.type')}: {work.type}
                 </Badge>
                 {work.author && (
                   <Badge variant="outline" className="text-[11px] gap-1">
