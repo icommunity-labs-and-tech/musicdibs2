@@ -39,7 +39,15 @@
     <!-- Additional SEO -->
     <link rel="canonical" href="https://musicdibs.com/" />
     <meta name="theme-color" content="#6366f1" />
-    
+
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://kzbmthhtbeddcjrucuex.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://kzbmthhtbeddcjrucuex.supabase.co" />
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+    <!-- Preload LCP image so it's discoverable immediately -->
+    <link rel="preload" as="image" href="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" fetchpriority="high" />
+
     <!-- JSON-LD Schema Markup -->
     <script type="application/ld+json">
     {
@@ -67,13 +75,18 @@
     }
     </script>
 
-    <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-518359138"></script>
+    <!-- Google Analytics (GA4) — deferred to after page load -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-518359138');
+      window.addEventListener('load', function() {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-518359138';
+        s.async = true;
+        document.head.appendChild(s);
+      });
     </script>
 </head>
 

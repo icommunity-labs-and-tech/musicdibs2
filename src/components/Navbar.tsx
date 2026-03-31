@@ -121,6 +121,9 @@ export const Navbar = () => {
               src="/lovable-uploads/81d79e1f-fd6f-4e2c-a573-89261bcf3879.png" 
               alt="by iCommunity" 
               className="h-12 w-auto"
+              width={69}
+              height={48}
+              fetchPriority="high"
             />
           </Link>
 
