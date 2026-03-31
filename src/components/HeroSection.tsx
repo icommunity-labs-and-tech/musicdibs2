@@ -18,6 +18,8 @@ export const HeroSection = () => {
         loop
         muted
         playsInline
+        preload="none"
+        poster="/lovable-uploads/8a9c1220-8213-4d45-a928-debd5429a44c.png"
         onError={(e) => console.error("Video failed to load:", e)}
         className="absolute inset-0 w-full h-full object-cover will-change-transform"
         style={{ transform: `translateY(${offset * 0.5}px) scale(1.1)` }}
