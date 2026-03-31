@@ -202,6 +202,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Ocultar senha',
         showPassword: 'Ver senha',
       },
+      whyBadge: { comingSoon: 'Em breve' },
+      artistsAB: { joinFreeToday: '🎵 Entre grátis hoje', startCareer: 'Comece sua carreira', whoTrusts: 'Veja quem confia em nós' },
+      promoBanner: { label: 'Dia dos Namorados' },
+      footerExtra: { web: 'Web', version: 'Versão 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   fr: {
