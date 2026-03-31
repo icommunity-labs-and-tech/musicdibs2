@@ -2321,7 +2321,7 @@ const de: typeof es = {
       availableCredits: 'Verfügbare Credits:',
       promoGenerated: 'Promotion erstellt! Überprüfen Sie Ihre Assets und E-Mail.',
       unknownError: 'Unbekannter Fehler',
-      insufficientCredits: 'Nicht genügend Credits (25 benötigt).',
+      insufficientCredits: 'Nicht genügend Credits (15 benötigt).',
       generatingInfo: 'Promotion wird generiert... ~30 Sekunden.',
       launchError: 'Fehler beim Starten der Promotion',
       regenError: 'Fehler bei der Regenerierung',
