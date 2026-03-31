@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   CheckCircle2,
   Loader2,
@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Circle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface TimelineStep {
   id: string;
@@ -16,40 +17,6 @@ interface TimelineStep {
   description: string;
   icon: React.ElementType;
 }
-
-const STEPS: TimelineStep[] = [
-  {
-    id: 'uploaded',
-    label: 'Archivo subido',
-    description: 'El archivo se ha subido correctamente al almacenamiento seguro.',
-    icon: UploadCloud,
-  },
-  {
-    id: 'sent_to_ibs',
-    label: 'Enviado a iBS',
-    description: 'La evidencia se ha enviado a iCommunity Blockchain Solutions para su certificación.',
-    icon: Link2,
-  },
-  {
-    id: 'certifying',
-    label: 'Certificando en blockchain',
-    description: 'La transacción está siendo procesada en la red blockchain. Esto puede tardar unos minutos.',
-    icon: ShieldCheck,
-  },
-  {
-    id: 'certified',
-    label: 'Certificado',
-    description: 'La obra está certificada de forma inmutable en blockchain. Tienes prueba permanente de tu autoría.',
-    icon: CheckCircle2,
-  },
-];
-
-const FAILED_STEP: TimelineStep = {
-  id: 'failed',
-  label: 'Error en la certificación',
-  description: 'No se pudo completar la certificación. Se ha reembolsado el crédito automáticamente.',
-  icon: XCircle,
-};
 
 type StepStatus = 'done' | 'active' | 'pending' | 'failed';
 
@@ -94,14 +61,6 @@ function getStepStates(
   };
 }
 
-function formatTs(ts?: string) {
-  if (!ts) return null;
-  return new Date(ts).toLocaleString('es-ES', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
-}
-
 function useElapsed(createdAt: string, active: boolean) {
   const [elapsed, setElapsed] = useState('');
 
@@ -122,10 +81,34 @@ function useElapsed(createdAt: string, active: boolean) {
 }
 
 export function WorkTimeline({ workStatus, createdAt, certifiedAt, ibsEvidenceId }: Props) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
   const stepStates = getStepStates(workStatus, createdAt, certifiedAt);
   const isProcessing = workStatus === 'processing';
   const isFailed = workStatus === 'failed';
   const elapsed = useElapsed(createdAt, isProcessing);
+
+  const STEPS: TimelineStep[] = useMemo(() => [
+    { id: 'uploaded', label: t('dashboard.timeline.uploaded'), description: t('dashboard.timeline.uploadedDesc'), icon: UploadCloud },
+    { id: 'sent_to_ibs', label: t('dashboard.timeline.sentToIbs'), description: t('dashboard.timeline.sentToIbsDesc'), icon: Link2 },
+    { id: 'certifying', label: t('dashboard.timeline.certifying'), description: t('dashboard.timeline.certifyingDesc'), icon: ShieldCheck },
+    { id: 'certified', label: t('dashboard.timeline.certified'), description: t('dashboard.timeline.certifiedDesc'), icon: CheckCircle2 },
+  ], [t]);
+
+  const FAILED_STEP: TimelineStep = useMemo(() => ({
+    id: 'failed',
+    label: t('dashboard.timeline.failedLabel'),
+    description: t('dashboard.timeline.failedDesc'),
+    icon: XCircle,
+  }), [t]);
+
+  const formatTs = (ts?: string) => {
+    if (!ts) return null;
+    return new Date(ts).toLocaleString(lang, {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
 
   const steps = isFailed
     ? [...STEPS.slice(0, 2), FAILED_STEP]
@@ -133,25 +116,23 @@ export function WorkTimeline({ workStatus, createdAt, certifiedAt, ibsEvidenceId
 
   return (
     <div className="mt-4 pt-4 border-t border-border/40">
-      {/* Banner de estado activo */}
       {isProcessing && (
         <div className="flex items-center gap-2 rounded-lg bg-amber-500/10 px-3 py-2 mb-4 text-sm text-amber-700">
           <Loader2 className="h-4 w-4 animate-spin shrink-0" />
           <span>
-            Certificando en blockchain
-            {elapsed && <> · {elapsed} transcurridos</>}
-            {' · '}El proceso suele completarse en 1–5 minutos.
+            {t('dashboard.timeline.certifyingBanner')}
+            {elapsed && <> · {t('dashboard.timeline.elapsed', { time: elapsed })}</>}
+            {' · '}{t('dashboard.timeline.etaNote')}
           </span>
         </div>
       )}
       {isFailed && (
         <div className="flex items-center gap-2 rounded-lg bg-destructive/10 px-3 py-2 mb-4 text-sm text-destructive">
           <XCircle className="h-4 w-4 shrink-0" />
-          La certificación ha fallado. El crédito ha sido reembolsado automáticamente.
+          {t('dashboard.timeline.failedBanner')}
         </div>
       )}
 
-      {/* Pasos */}
       <div className="relative ml-1">
         {steps.map((step, idx) => {
           const state = stepStates[step.id] || { status: 'pending' };
@@ -159,23 +140,13 @@ export function WorkTimeline({ workStatus, createdAt, certifiedAt, ibsEvidenceId
 
           return (
             <div key={step.id} className="flex gap-3 pb-4 last:pb-0">
-              {/* Línea vertical + nodo */}
               <div className="flex flex-col items-center">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full shrink-0">
-                  {state.status === 'done' && (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                  )}
-                  {state.status === 'active' && (
-                    <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />
-                  )}
-                  {state.status === 'pending' && (
-                    <Circle className="h-5 w-5 text-muted-foreground/40" />
-                  )}
-                  {state.status === 'failed' && (
-                    <XCircle className="h-5 w-5 text-destructive" />
-                  )}
+                  {state.status === 'done' && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
+                  {state.status === 'active' && <Loader2 className="h-5 w-5 text-amber-500 animate-spin" />}
+                  {state.status === 'pending' && <Circle className="h-5 w-5 text-muted-foreground/40" />}
+                  {state.status === 'failed' && <XCircle className="h-5 w-5 text-destructive" />}
                 </div>
-                {/* Línea conectora */}
                 {!isLast && (
                   <div className={`w-px flex-1 min-h-[16px] ${
                     state.status === 'done' ? 'bg-emerald-500/40' : 'bg-border/60'
@@ -183,7 +154,6 @@ export function WorkTimeline({ workStatus, createdAt, certifiedAt, ibsEvidenceId
                 )}
               </div>
 
-              {/* Contenido del paso */}
               <div className="pt-0.5 pb-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-sm font-medium ${
@@ -204,7 +174,6 @@ export function WorkTimeline({ workStatus, createdAt, certifiedAt, ibsEvidenceId
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {step.description}
                 </p>
-                {/* Evidence ID para el paso de iBS */}
                 {step.id === 'sent_to_ibs' && ibsEvidenceId && (
                   <code className="text-[10px] bg-muted/60 px-1.5 py-0.5 rounded font-mono text-foreground/70 mt-1 inline-block">
                     {ibsEvidenceId}

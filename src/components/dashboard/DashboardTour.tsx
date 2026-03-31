@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Joyride, { CallBackProps, STATUS, ACTIONS, Step, TooltipRenderProps } from 'react-joyride';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 const TOUR_KEY = 'musicdibs_tour_seen';
 
@@ -9,63 +10,19 @@ function getTourKey(userId: string) {
   return `${TOUR_KEY}_${userId}`;
 }
 
-const steps: Step[] = [
-  {
-    target: 'body',
-    placement: 'center',
-    title: 'Bienvenido a MusicDibs',
-    content:
-      'Este es tu panel de control. Desde aquí tienes una visión general y puedes acceder a todas las herramientas para músicos.\n\nTe mostramos rápidamente cómo funciona.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="account-summary"]',
-    title: 'Resumen de la cuenta',
-    content:
-      'Aquí puedes ver un resumen de tu actividad:\n\n• Obras registradas\n• Registros pendientes\n• Créditos disponibles\n\nLos créditos son los que utilizas para usar cada herramienta: registros, promociones, distribución, creación con IA MusicDibs Studio.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="register-work"]',
-    title: 'Registrar obra',
-    content:
-      'Aquí puedes registrar una nueva obra.\nSolo tienes que introducir los datos y subir el archivo original.\n\nCada registro utiliza 1 crédito y genera una prueba de autoría verificable.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="credit-store"]',
-    title: 'Créditos',
-    content:
-      'Los créditos te permiten usar todas las herramientas de la plataforma. Cada herramienta utiliza una cantidad de créditos diferente.\n\nPuedes comprar créditos individuales o usar una suscripción para reducir el coste por registro.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="verify-registration"]',
-    title: 'Verificar registro',
-    content: 'Esta herramienta permite comprobar si una obra ya ha sido registrada en MusicDibs.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="recent-registrations"]',
-    title: 'Registros recientes',
-    content: 'Aquí puedes ver tus últimas obras registradas y acceder a su certificado.',
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="ai-studio"]',
-    title: 'AI MusicDibs Studio',
-    content:
-      'Aquí encontrarás herramientas de IA para inspirarte, generar ideas musicales, videoclips o mejorar composiciones.',
-    disableBeacon: true,
-  },
-  {
-    target: 'body',
-    placement: 'center',
-    title: 'Todo listo',
-    content: 'Ahora ya sabes cómo usar el panel de MusicDibs.\n\nPuedes empezar registrando tu primera obra.',
-    disableBeacon: true,
-  },
-];
+function useSteps(): Step[] {
+  const { t } = useTranslation();
+  return useMemo(() => [
+    { target: 'body', placement: 'center' as const, title: t('dashboard.tour.welcome'), content: t('dashboard.tour.welcomeContent'), disableBeacon: true },
+    { target: '[data-tour="account-summary"]', title: t('dashboard.tour.accountTitle'), content: t('dashboard.tour.accountContent'), disableBeacon: true },
+    { target: '[data-tour="register-work"]', title: t('dashboard.tour.registerTitle'), content: t('dashboard.tour.registerContent'), disableBeacon: true },
+    { target: '[data-tour="credit-store"]', title: t('dashboard.tour.creditsTitle'), content: t('dashboard.tour.creditsContent'), disableBeacon: true },
+    { target: '[data-tour="verify-registration"]', title: t('dashboard.tour.verifyTitle'), content: t('dashboard.tour.verifyContent'), disableBeacon: true },
+    { target: '[data-tour="recent-registrations"]', title: t('dashboard.tour.recentTitle'), content: t('dashboard.tour.recentContent'), disableBeacon: true },
+    { target: '[data-tour="ai-studio"]', title: t('dashboard.tour.aiStudioTitle'), content: t('dashboard.tour.aiStudioContent'), disableBeacon: true },
+    { target: 'body', placement: 'center' as const, title: t('dashboard.tour.doneTitle'), content: t('dashboard.tour.doneContent'), disableBeacon: true },
+  ], [t]);
+}
 
 function CustomTooltip({
   continuous,
@@ -79,6 +36,7 @@ function CustomTooltip({
   size,
   skipProps,
 }: TooltipRenderProps) {
+  const { t } = useTranslation();
   return (
     <div
       {...tooltipProps}
@@ -109,11 +67,11 @@ function CustomTooltip({
         <div className="flex items-center gap-2">
           {index === 0 ? (
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" {...skipProps}>
-              Saltar tutorial
+              {t('dashboard.tour.skip')}
             </Button>
           ) : (
             <Button variant="ghost" size="sm" className="text-xs" {...backProps}>
-              Atrás
+              {t('dashboard.tour.back')}
             </Button>
           )}
 
@@ -123,7 +81,7 @@ function CustomTooltip({
               className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
               {...closeProps}
             >
-              Empezar
+              {t('dashboard.tour.start')}
             </Button>
           ) : (
             <Button
@@ -131,7 +89,7 @@ function CustomTooltip({
               className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
               {...primaryProps}
             >
-              Siguiente
+              {t('dashboard.tour.next')}
             </Button>
           )}
         </div>
@@ -144,18 +102,17 @@ export function DashboardTour() {
   const { user } = useAuth();
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const steps = useSteps();
 
   useEffect(() => {
     if (!user) return;
     const seen = localStorage.getItem(getTourKey(user.id));
     if (!seen) {
-      // Small delay to let dashboard render
       const timer = setTimeout(() => setRun(true), 600);
       return () => clearTimeout(timer);
     }
   }, [user]);
 
-  // Listen for manual restart
   useEffect(() => {
     const handler = () => {
       setStepIndex(0);
