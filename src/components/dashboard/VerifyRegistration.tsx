@@ -26,15 +26,16 @@ export function VerifyRegistration() {
 
   return (
     <Card className="border-border/40 shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-          <Search className="h-4 w-4 text-primary" /> {t('dashboard.verify.title')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">
-          {t('dashboard.verify.description')}
-        </p>
+      <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <Search className="h-6 w-6 text-primary" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold">{t('dashboard.verify.title')}</h3>
+          <p className="text-sm text-muted-foreground">
+            {t('dashboard.verify.description')}
+          </p>
+        </div>
         <div
           className="flex items-center gap-2 rounded-md border border-dashed border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
           onClick={() => fileRef.current?.click()}
