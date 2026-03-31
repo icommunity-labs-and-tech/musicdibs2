@@ -132,6 +132,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Hide password',
         showPassword: 'Show password',
       },
+      whyBadge: { comingSoon: 'Coming soon' },
+      artistsAB: { joinFreeToday: '🎵 Join free today', startCareer: 'Start your career', whoTrusts: 'See who trusts us' },
+      promoBanner: { label: "Valentine's Day" },
+      footerExtra: { web: 'Web', version: 'Version 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   'pt-BR': {
