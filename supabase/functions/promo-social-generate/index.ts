@@ -302,7 +302,7 @@ serve(async (req) => {
       });
     }
 
-    const { work_id, ai_generation_id, tone, language } = await req.json();
+    const { work_id, ai_generation_id, tone, language, author } = await req.json();
     const itemId = work_id || ai_generation_id;
     if (!itemId) {
       return new Response(JSON.stringify({ error: 'work_id or ai_generation_id required' }), {
