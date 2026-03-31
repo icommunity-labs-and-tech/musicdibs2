@@ -718,13 +718,14 @@ function RegenButton({
   onRegenerate: (paid: boolean) => void;
   onBuyCredits: () => void;
 }) {
+  const { t } = useTranslation();
   const canAffordPaid = (credits ?? 0) >= REGEN_CREDIT_COST;
 
   if (isFree) {
     return (
       <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(false)}>
         {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
-        Regenerar {label} (gratis · {freeRemaining})
+        {t('dashboard.promote.regenFree', { label, n: freeRemaining })}
       </Button>
     );
   }
@@ -732,13 +733,13 @@ function RegenButton({
     return (
       <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(true)}>
         {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CreditCard className="h-3 w-3 mr-1" />}
-        Regenerar {label} ({REGEN_CREDIT_COST} créditos)
+        {t('dashboard.promote.regenPaid', { label, cost: REGEN_CREDIT_COST })}
       </Button>
     );
   }
   return (
     <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" onClick={onBuyCredits}>
-      <ShoppingCart className="h-3 w-3 mr-1" /> Comprar créditos
+      <ShoppingCart className="h-3 w-3 mr-1" /> {t('dashboard.promote.buyCredits')}
     </Button>
   );
 }
