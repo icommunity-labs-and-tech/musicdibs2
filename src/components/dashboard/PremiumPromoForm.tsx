@@ -115,7 +115,6 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
-      refreshCredits();
       setShowSuccess(true);
       toast.success(t('dashboard.premium.requestSent'));
     } catch (err: any) {
