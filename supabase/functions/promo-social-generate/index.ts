@@ -44,6 +44,45 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
   return { work, aiGen, lyrics };
 }
 
+async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string) {
+  const [genRes, lyricsRes] = await Promise.all([
+    supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood')
+      .eq('id', aiGenId)
+      .eq('user_id', userId)
+      .single(),
+    supabase
+      .from('lyrics_generations')
+      .select('lyrics, genre, mood, theme, style, description')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ]);
+
+  const gen = genRes.data;
+  if (!gen) return null;
+
+  // Build a work-like object from the AI generation
+  const work = {
+    title: gen.prompt || 'AI Song',
+    author: null,
+    description: [gen.genre, gen.mood].filter(Boolean).join(' · ') || null,
+    type: 'audio',
+    certificate_url: null,
+    checker_url: null,
+  };
+
+  const aiGen = { prompt: gen.prompt, genre: gen.genre, mood: gen.mood };
+
+  // Try to match lyrics
+  const lyrics = lyricsRes.data?.find((l: any) =>
+    gen.prompt && l.description && l.description.toLowerCase().includes(gen.prompt.toLowerCase())
+  ) || lyricsRes.data?.[0] || null;
+
+  return { work, aiGen, lyrics };
+}
+
 function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   const parts = [
     `Create a professional promotional artwork for the song "${work.title}" by ${work.author || 'artist'}.`,
@@ -253,9 +292,10 @@ serve(async (req) => {
       });
     }
 
-    const { work_id, tone, language } = await req.json();
-    if (!work_id) {
-      return new Response(JSON.stringify({ error: 'work_id required' }), {
+    const { work_id, ai_generation_id, tone, language } = await req.json();
+    const itemId = work_id || ai_generation_id;
+    if (!itemId) {
+      return new Response(JSON.stringify({ error: 'work_id or ai_generation_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -274,10 +314,12 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation + lyrics metadata
-    const meta = await fetchWorkMetadata(supabase, work_id, user.id);
+    // Fetch metadata — from works table or ai_generations table
+    const meta = ai_generation_id
+      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id)
+      : await fetchWorkMetadata(supabase, work_id, user.id);
     if (!meta) {
-      return new Response(JSON.stringify({ error: 'Work not found' }), {
+      return new Response(JSON.stringify({ error: 'Item not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -301,7 +343,7 @@ serve(async (req) => {
       .from('social_promotions')
       .insert({
         user_id: user.id,
-        work_id,
+        work_id: itemId,
         status: 'generating',
         credits_spent: CREDITS_COST,
       })

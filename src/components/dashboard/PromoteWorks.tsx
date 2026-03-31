@@ -31,6 +31,7 @@ interface Work {
   description: string | null;
   checker_url: string | null;
   distributed_at: string | null;
+  source: 'registered' | 'ai_studio';
 }
 
 interface AiGenMeta {
@@ -119,27 +120,56 @@ export function PromoteWorks() {
         .order('created_at', { ascending: false }),
       supabase
         .from('ai_generations')
-        .select('prompt, genre, mood')
+        .select('id, prompt, genre, mood, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50),
     ]);
 
-    if (worksRes.data) {
-      setWorks(worksRes.data as Work[]);
-      if (genRes.data) {
-        const metaMap: Record<string, AiGenMeta> = {};
-        for (const w of worksRes.data) {
-          const match = genRes.data.find((g: any) =>
-            w.title && g.prompt?.toLowerCase().includes(w.title.toLowerCase())
-          );
-          if (match) {
-            metaMap[w.id] = { prompt: match.prompt, genre: match.genre, mood: match.mood };
-          }
+    const registeredWorks: Work[] = (worksRes.data || []).map((w: any) => ({
+      ...w,
+      source: 'registered' as const,
+    }));
+
+    // Build AI generation entries, deduplicating against registered works
+    const registeredTitles = new Set(registeredWorks.map(w => w.title?.toLowerCase()));
+    const aiWorks: Work[] = (genRes.data || [])
+      .filter((g: any) => g.prompt && !registeredTitles.has(g.prompt.toLowerCase()))
+      .map((g: any) => ({
+        id: g.id,
+        title: g.prompt,
+        author: null,
+        type: 'audio',
+        status: 'ai_generated',
+        description: [g.genre, g.mood].filter(Boolean).join(' · ') || null,
+        checker_url: null,
+        distributed_at: null,
+        source: 'ai_studio' as const,
+      }));
+
+    const allWorks = [...registeredWorks, ...aiWorks];
+    setWorks(allWorks);
+
+    // Build AI meta map for registered works
+    if (genRes.data) {
+      const metaMap: Record<string, AiGenMeta> = {};
+      for (const w of registeredWorks) {
+        const match = genRes.data.find((g: any) =>
+          w.title && g.prompt?.toLowerCase().includes(w.title.toLowerCase())
+        );
+        if (match) {
+          metaMap[w.id] = { prompt: match.prompt, genre: match.genre, mood: match.mood };
         }
-        setAiMetaMap(metaMap);
       }
+      // For AI studio works, always populate meta
+      for (const g of genRes.data as any[]) {
+        if (!registeredTitles.has(g.prompt?.toLowerCase())) {
+          metaMap[g.id] = { prompt: g.prompt, genre: g.genre, mood: g.mood };
+        }
+      }
+      setAiMetaMap(metaMap);
     }
+
     if (promosRes.data) setPromos(promosRes.data as unknown as SocialPromo[]);
     setLoadingWorks(false);
   }, [user]);
@@ -175,10 +205,15 @@ export function PromoteWorks() {
 
   const handleLaunch = async (workId: string) => {
     setLaunching(workId);
+    const work = works.find(w => w.id === workId);
+    const body: Record<string, any> = { tone: selectedTone, language: userLang };
+    if (work?.source === 'ai_studio') {
+      body.ai_generation_id = workId;
+    } else {
+      body.work_id = workId;
+    }
     try {
-      const { data, error } = await supabase.functions.invoke('promo-social-generate', {
-        body: { work_id: workId, tone: selectedTone, language: userLang },
-      });
+      const { data, error } = await supabase.functions.invoke('promo-social-generate', { body });
       if (error) throw new Error(error.message);
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
@@ -339,7 +374,14 @@ export function PromoteWorks() {
                     >
                       {/* Obra */}
                       <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{work.title}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium truncate">{work.title}</p>
+                          {work.source === 'ai_studio' && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 shrink-0 bg-primary/10 text-primary border-primary/20">
+                              <Sparkles className="h-2.5 w-2.5" /> AI Studio
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           {work.author && <span className="truncate">{work.author}</span>}
                           {work.author && <span>·</span>}
