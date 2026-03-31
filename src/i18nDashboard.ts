@@ -2359,6 +2359,10 @@ const it: typeof es = {
       etaNote: 'Il processo si completa generalmente in 1–5 minuti.',
       failedBanner: 'La certificazione è fallita. Il credito è stato automaticamente rimborsato.',
     },
+    virtualArtists: {
+      title: 'I miei Artisti Virtuali',
+      description: 'Salva la configurazione vocale e di stile dei tuoi artisti per creare canzoni coerenti.',
+    },
   },
 };
 
