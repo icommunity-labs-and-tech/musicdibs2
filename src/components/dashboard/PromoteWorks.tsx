@@ -611,7 +611,7 @@ function PromoDetailDialog({
               </div>
               {work.description && (
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Descripción:</span> {work.description}
+                  <span className="font-medium">{t('dashboard.promote.description')}:</span> {work.description}
                 </p>
               )}
               {meta?.prompt && (
