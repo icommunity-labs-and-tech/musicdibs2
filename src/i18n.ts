@@ -1326,8 +1326,9 @@ const resources = {
           admin: 'Administração',
           panelGuide: 'Guia do painel',
           logout: 'Sair',
-          new: 'NOVO',
-        },
+           new: 'NOVO',
+           premiumPromos: 'Promos Premium',
+         },
         registerWork: {
           title: 'Registrar obra',
           noCreditsMsg: 'Você não tem créditos suficientes para registrar uma obra.',
