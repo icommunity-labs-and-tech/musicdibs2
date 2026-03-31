@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, ChevronLeft, ChevronRight,
-  CreditCard, ShoppingCart, Info, Tag, Palette, Mic2,
+  CreditCard, ShoppingCart, Info, Tag, Palette, Mic2, Globe,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
@@ -18,6 +18,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 
 interface Work {
   id: string;
