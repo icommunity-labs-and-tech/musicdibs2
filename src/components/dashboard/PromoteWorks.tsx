@@ -233,9 +233,9 @@ export function PromoteWorks() {
       toast.info(paid ? t('dashboard.promote.regeneratingPaid', { label, cost: REGEN_CREDIT_COST }) : t('dashboard.promote.regenerating', { label }));
     } catch (err: any) {
       toast.error(err.message || t('dashboard.promote.regenError'));
-    } finally {
       setRegenerating(null);
     }
+    // Note: regenerating stays set until polling completes — cleared in the poll effect
   };
 
   const copyToClipboard = (text: string, field: string) => {
