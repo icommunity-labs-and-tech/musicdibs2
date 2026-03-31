@@ -1154,9 +1154,9 @@ const AIStudioVideo = () => {
                 <ul className="space-y-2 text-xs text-muted-foreground">
                   <li>• {t('aiVideo.info1', { defaultValue: 'La generación tarda entre 30s y 2 minutos' })}</li>
                   <li>• {t('aiVideo.info2', { defaultValue: 'Resolución de salida: 720p' })}</li>
-                  <li>• {t('aiVideo.info3', { defaultValue: 'Modelo: Runway Gen-4 Turbo' })}</li>
+                  <li>• {t('aiVideo.info3', { defaultValue: 'Modelo de IA de última generación' })}</li>
                   <li>• {t('aiVideo.info4', { defaultValue: 'Los prompts en inglés dan mejores resultados' })}</li>
-                  <li>• {t('aiVideo.info5', { defaultValue: 'Cada generación consume créditos de tu cuenta Runway' })}</li>
+                  <li>• {t('aiVideo.info5', { defaultValue: 'Cada generación consume créditos de tu cuenta' })}</li>
                   <li>• {t('aiVideo.info6', { defaultValue: 'Puedes fusionar audio de AI Studio con el vídeo directamente en tu navegador' })}</li>
                 </ul>
               </CardContent>
