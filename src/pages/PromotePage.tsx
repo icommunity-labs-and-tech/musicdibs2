@@ -217,7 +217,8 @@ export default function PromotePage() {
           <h3 className="text-sm font-semibold">{t('dashboard.premium.historyTitle', 'Historial de Promos Premium')}</h3>
           <div className="space-y-2">
             {premiumPromos.map(p => {
-              const st = STATUS_MAP[p.status] || STATUS_MAP.submitted;
+              const statusMap = getStatusMap((k, f) => t(k, { defaultValue: f }));
+              const st = statusMap[p.status] || statusMap.submitted;
               return (
                 <Card key={p.id} className="border-border/30">
                   <CardContent className="p-4 flex items-center justify-between gap-3">
@@ -226,7 +227,7 @@ export default function PromotePage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{p.artist_name} — {p.song_title}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {new Date(p.created_at).toLocaleDateString()} · {p.credits_spent} créditos
+                          {new Date(p.created_at).toLocaleDateString()} · {p.credits_spent} {t('dashboard.premium.creditsLabel', 'créditos')}
                         </p>
                       </div>
                     </div>
