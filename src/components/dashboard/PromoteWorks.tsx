@@ -683,7 +683,7 @@ function PromoDetailDialog({
                 />
               )}
               <RegenButton
-                label="copies"
+                label={t('dashboard.promote.copiesLabel')}
                 isFree={isFree}
                 freeRemaining={freeRemaining}
                 credits={credits}
