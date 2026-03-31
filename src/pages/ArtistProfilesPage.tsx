@@ -240,7 +240,7 @@ const ArtistProfilesPage = () => {
         {!showForm && (
           <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
-            Nuevo perfil
+            {t('dashboard.virtualArtists.newArtist', { defaultValue: 'Nuevo Artista Virtual' })}
           </Button>
         )}
       </div>

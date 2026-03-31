@@ -470,6 +470,7 @@ const es = {
     virtualArtists: {
       title: 'Mis Artistas Virtuales',
       description: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.',
+      newArtist: 'Nuevo Artista Virtual',
     },
   },
 };
@@ -943,6 +944,7 @@ const en: typeof es = {
     virtualArtists: {
       title: 'My Virtual Artists',
       description: 'Save your artists\' voice and style settings to create consistent songs.',
+      newArtist: 'New Virtual Artist',
     },
   },
 };
@@ -1416,6 +1418,7 @@ const pt: typeof es = {
     virtualArtists: {
       title: 'Meus Artistas Virtuais',
       description: 'Salve a configuração de voz e estilo dos seus artistas para criar músicas consistentes.',
+      newArtist: 'Novo Artista Virtual',
     },
   },
 };
@@ -1889,6 +1892,7 @@ const fr: typeof es = {
     virtualArtists: {
       title: 'Mes Artistes Virtuels',
       description: 'Enregistrez la configuration vocale et stylistique de vos artistes pour créer des chansons cohérentes.',
+      newArtist: 'Nouvel Artiste Virtuel',
     },
   },
 };
@@ -2362,6 +2366,7 @@ const it: typeof es = {
     virtualArtists: {
       title: 'I miei Artisti Virtuali',
       description: 'Salva la configurazione vocale e di stile dei tuoi artisti per creare canzoni coerenti.',
+      newArtist: 'Nuovo Artista Virtuale',
     },
   },
 };
@@ -2835,6 +2840,7 @@ const de: typeof es = {
     virtualArtists: {
       title: 'Meine virtuellen Künstler',
       description: 'Speichere die Stimm- und Stileinstellungen deiner Künstler, um konsistente Songs zu erstellen.',
+      newArtist: 'Neuer virtueller Künstler',
     },
   },
 };
