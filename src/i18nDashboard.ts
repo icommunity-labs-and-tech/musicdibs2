@@ -940,6 +940,10 @@ const en: typeof es = {
       etaNote: 'The process usually completes in 1–5 minutes.',
       failedBanner: 'Certification failed. The credit has been automatically refunded.',
     },
+    virtualArtists: {
+      title: 'My Virtual Artists',
+      description: 'Save your artists\' voice and style settings to create consistent songs.',
+    },
   },
 };
 
