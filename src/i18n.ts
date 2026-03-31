@@ -2050,8 +2050,9 @@ const resources = {
           admin: 'Verwaltung',
           panelGuide: 'Panel-Anleitung',
           logout: 'Abmelden',
-          new: 'NEU',
-        },
+           new: 'NEU',
+           premiumPromos: 'Premium-Promos',
+         },
         registerWork: {
           title: 'Werk registrieren',
           noCreditsMsg: 'Du hast nicht genug Credits, um ein Werk zu registrieren.',
