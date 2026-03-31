@@ -311,7 +311,7 @@ serve(async (req) => {
     }
 
     // Verify credits
-    const CREDITS_COST = 25;
+    const CREDITS_COST = 15;
     const { data: profile } = await supabase
       .from('profiles')
       .select('available_credits, display_name')

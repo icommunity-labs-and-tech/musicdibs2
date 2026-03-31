@@ -679,6 +679,57 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_social_promotions: {
+        Row: {
+          artist_name: string
+          created_at: string
+          credits_spent: number
+          description: string
+          external_link: string | null
+          id: string
+          promo_message: string | null
+          promo_style: string | null
+          song_title: string
+          status: string
+          team_notes: string | null
+          updated_at: string
+          user_id: string
+          work_id: string
+        }
+        Insert: {
+          artist_name: string
+          created_at?: string
+          credits_spent?: number
+          description: string
+          external_link?: string | null
+          id?: string
+          promo_message?: string | null
+          promo_style?: string | null
+          song_title: string
+          status?: string
+          team_notes?: string | null
+          updated_at?: string
+          user_id: string
+          work_id: string
+        }
+        Update: {
+          artist_name?: string
+          created_at?: string
+          credits_spent?: number
+          description?: string
+          external_link?: string | null
+          id?: string
+          promo_message?: string | null
+          promo_style?: string | null
+          song_title?: string
+          status?: string
+          team_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          work_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           available_credits: number
