@@ -105,19 +105,40 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation metadata
-    const [workRes, genRes] = await Promise.all([
+    // Fetch work + AI generation + default artist profile metadata
+    const [workRes, genRes, profileRes] = await Promise.all([
       supabase.from('works').select('title, author, description, type')
         .eq('id', promo.work_id).eq('user_id', user.id).single(),
       supabase.from('ai_generations').select('prompt, genre, mood')
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('user_artist_profiles').select('name')
+        .eq('user_id', user.id).eq('is_default', true).limit(1).maybeSingle(),
     ]);
 
-    const work = workRes.data;
+    let work = workRes.data;
+    if (!work) {
+      // Try ai_generations if not found in works
+      const aiGenDirect = await supabase.from('ai_generations').select('prompt, genre, mood')
+        .eq('id', promo.work_id).eq('user_id', user.id).single();
+      if (aiGenDirect.data) {
+        work = {
+          title: aiGenDirect.data.prompt || 'AI Song',
+          author: profileRes.data?.name || null,
+          description: [aiGenDirect.data.genre, aiGenDirect.data.mood].filter(Boolean).join(' · ') || null,
+          type: 'audio',
+        };
+      }
+    }
+
     if (!work) {
       return new Response(JSON.stringify({ error: 'Work not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // Use default artist profile name if work has no author
+    if (!work.author && profileRes.data?.name) {
+      work.author = profileRes.data.name;
     }
 
     const aiGen = genRes.data?.find((g: any) =>

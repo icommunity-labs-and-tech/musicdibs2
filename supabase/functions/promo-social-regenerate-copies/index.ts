@@ -105,21 +105,43 @@ serve(async (req) => {
       });
     }
 
-    // Fetch work + AI generation + lyrics metadata
-    const [workRes, genRes, lyricsRes] = await Promise.all([
+    // Fetch work + AI generation + lyrics + default artist profile metadata
+    const [workRes, genRes, lyricsRes, profileRes] = await Promise.all([
       supabase.from('works').select('title, author, description, type, checker_url')
         .eq('id', promo.work_id).eq('user_id', user.id).single(),
       supabase.from('ai_generations').select('prompt, genre, mood')
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
       supabase.from('lyrics_generations').select('lyrics, genre, mood, theme, style, description')
         .eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('user_artist_profiles').select('name')
+        .eq('user_id', user.id).eq('is_default', true).limit(1).maybeSingle(),
     ]);
 
-    const work = workRes.data;
+    // If work not found in works table, try ai_generations
+    let work = workRes.data;
+    if (!work) {
+      const aiGenDirect = await supabase.from('ai_generations').select('prompt, genre, mood')
+        .eq('id', promo.work_id).eq('user_id', user.id).single();
+      if (aiGenDirect.data) {
+        work = {
+          title: aiGenDirect.data.prompt || 'AI Song',
+          author: profileRes.data?.name || null,
+          description: [aiGenDirect.data.genre, aiGenDirect.data.mood].filter(Boolean).join(' · ') || null,
+          type: 'audio',
+          checker_url: null,
+        };
+      }
+    }
+
     if (!work) {
       return new Response(JSON.stringify({ error: 'Work not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    // If work has no author, use default artist profile name
+    if (!work.author && profileRes.data?.name) {
+      work.author = profileRes.data.name;
     }
 
     const aiGen = genRes.data?.find((g: any) =>

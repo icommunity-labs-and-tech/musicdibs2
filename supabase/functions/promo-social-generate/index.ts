@@ -44,8 +44,8 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
   return { work, aiGen, lyrics };
 }
 
-async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string) {
-  const [genRes, lyricsRes] = await Promise.all([
+async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string, authorOverride?: string) {
+  const [genRes, lyricsRes, profileRes] = await Promise.all([
     supabase
       .from('ai_generations')
       .select('prompt, genre, mood')
@@ -58,15 +58,25 @@ async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId:
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20),
+    // Fetch default artist profile name as fallback author
+    supabase
+      .from('user_artist_profiles')
+      .select('name')
+      .eq('user_id', userId)
+      .eq('is_default', true)
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const gen = genRes.data;
   if (!gen) return null;
 
+  const artistName = authorOverride || profileRes.data?.name || null;
+
   // Build a work-like object from the AI generation
   const work = {
     title: gen.prompt || 'AI Song',
-    author: null,
+    author: artistName,
     description: [gen.genre, gen.mood].filter(Boolean).join(' · ') || null,
     type: 'audio',
     certificate_url: null,
@@ -292,7 +302,7 @@ serve(async (req) => {
       });
     }
 
-    const { work_id, ai_generation_id, tone, language } = await req.json();
+    const { work_id, ai_generation_id, tone, language, author } = await req.json();
     const itemId = work_id || ai_generation_id;
     if (!itemId) {
       return new Response(JSON.stringify({ error: 'work_id or ai_generation_id required' }), {
@@ -316,7 +326,7 @@ serve(async (req) => {
 
     // Fetch metadata — from works table or ai_generations table
     const meta = ai_generation_id
-      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id)
+      ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id, author)
       : await fetchWorkMetadata(supabase, work_id, user.id);
     if (!meta) {
       return new Response(JSON.stringify({ error: 'Item not found' }), {
