@@ -2112,6 +2112,9 @@ const it: typeof es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies in {{lang}}',
+      generatedWithAI: 'Generata con AI MusicDibs Studio',
+      imageLabel: 'immagine',
+      copiesLabel: 'copy',
     },
     promoSelector: {
       title: 'Promuovi la tua musica',
