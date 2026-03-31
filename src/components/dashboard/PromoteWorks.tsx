@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   Megaphone, Loader2, CheckCircle2, AlertCircle, Music, Copy, ExternalLink,
   Image as ImageIcon, Instagram, Clock, Sparkles, RefreshCw, ChevronLeft, ChevronRight,
-  CreditCard, ShoppingCart, Info, Tag, Palette, Mic2,
+  CreditCard, ShoppingCart, Info, Tag, Palette, Mic2, Globe,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
@@ -18,6 +18,9 @@ import { useTranslation } from 'react-i18next';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 
 interface Work {
   id: string;
@@ -53,8 +56,26 @@ const PAGE_SIZE = 5;
 const MAX_FREE_REGENS = 3;
 const REGEN_CREDIT_COST = 5;
 
+const TONE_OPTIONS = [
+  { value: 'urban', labelKey: 'dashboard.promote.toneUrban' },
+  { value: 'romantic', labelKey: 'dashboard.promote.toneRomantic' },
+  { value: 'indie', labelKey: 'dashboard.promote.toneIndie' },
+  { value: 'electronic', labelKey: 'dashboard.promote.toneElectronic' },
+  { value: 'pop', labelKey: 'dashboard.promote.tonePop' },
+  { value: 'rock', labelKey: 'dashboard.promote.toneRock' },
+] as const;
+
+const LANG_MAP: Record<string, string> = {
+  es: 'español',
+  en: 'English',
+  'pt-BR': 'português brasileiro',
+  fr: 'français',
+  it: 'italiano',
+  de: 'Deutsch',
+};
+
 export function PromoteWorks() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { credits, hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
@@ -70,6 +91,8 @@ export function PromoteWorks() {
   const [aiMetaMap, setAiMetaMap] = useState<Record<string, AiGenMeta>>({});
   const [page, setPage] = useState(0);
   const [detailWorkId, setDetailWorkId] = useState<string | null>(null);
+  const [selectedTone, setSelectedTone] = useState<string>('urban');
+  const userLang = LANG_MAP[i18n.resolvedLanguage || 'es'] || 'español';
   const statusMap: Record<string, { label: string; color: string; icon: typeof Loader2 }> = {
     generating: { label: t('dashboard.promote.generating'), color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20', icon: Loader2 },
     assets_ready: { label: t('dashboard.promote.assetsReady'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: ImageIcon },
@@ -152,7 +175,7 @@ export function PromoteWorks() {
     setLaunching(workId);
     try {
       const { data, error } = await supabase.functions.invoke('promo-social-generate', {
-        body: { work_id: workId },
+        body: { work_id: workId, tone: selectedTone, language: userLang },
       });
       if (error) throw new Error(error.message);
       if (data?.error) {
@@ -190,7 +213,7 @@ export function PromoteWorks() {
     const fnName = type === 'copies' ? 'promo-social-regenerate-copies' : 'promo-social-regenerate-image';
     try {
       const { data, error } = await supabase.functions.invoke(fnName, {
-        body: { promo_id: promoId, paid },
+        body: { promo_id: promoId, paid, tone: selectedTone, language: userLang },
       });
       if (error) throw new Error(error.message);
       if (data?.error) {
@@ -253,6 +276,30 @@ export function PromoteWorks() {
             <NoCreditsAlert message={t('dashboard.promote.insufficientCredits')} />
           </div>
         )}
+
+        {/* Tone selector */}
+        <div className="px-6 pb-3 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">{t('dashboard.promote.toneLabel')}</span>
+            <Select value={selectedTone} onValueChange={setSelectedTone}>
+              <SelectTrigger className="h-7 w-[140px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TONE_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {t(opt.labelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Globe className="h-3.5 w-3.5" />
+            {t('dashboard.promote.languageNote', { lang: userLang })}
+          </div>
+        </div>
 
         {loadingWorks ? (
           <div className="flex items-center justify-center py-12">

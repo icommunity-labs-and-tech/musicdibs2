@@ -67,7 +67,9 @@ function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   return parts.join(' ');
 }
 
-function buildCopiesPrompt(work: any, aiGen: any, lyrics: any): string {
+function buildCopiesPrompt(work: any, aiGen: any, lyrics: any, tone?: string, language?: string): string {
+  const lang = language || 'español';
+  const toneDesc = tone ? getToneDescription(tone) : 'auténtico y emocional';
   const lines = [
     `Eres un copywriter de élite especializado en marketing musical viral. Tu trabajo es crear copies que generen HYPE real, que hagan que la gente quiera escuchar la canción YA.`,
     '',
@@ -92,6 +94,7 @@ function buildCopiesPrompt(work: any, aiGen: any, lyrics: any): string {
 
   lines.push('');
   lines.push(`## Instrucciones de estilo`);
+  lines.push(`- TONO: ${toneDesc}. Adapta el lenguaje y las referencias culturales a este estilo musical.`);
   lines.push(`- Los copies deben ser IMPACTANTES, emocionales y generar urgencia por escuchar la canción`);
   lines.push(`- Usa lenguaje que conecte emocionalmente, no corporativo ni genérico`);
   lines.push(`- Si tienes la letra, usa fragmentos o referencias a ella para crear copies más auténticos y personales`);
@@ -107,8 +110,20 @@ function buildCopiesPrompt(work: any, aiGen: any, lyrics: any): string {
   "tiktok": "Copy para TikTok: máx 200 chars, tono joven, viral, conversacional. 4-6 hashtags trending de música. Debe sonar como algo que diría un fan, no una marca."
 }`);
   lines.push('');
-  lines.push(`Idioma: español. Tono: auténtico, apasionado, generador de hype.`);
+  lines.push(`IMPORTANTE: Genera los copies en ${lang}. Tono: ${toneDesc}, apasionado, generador de hype.`);
   return lines.join('\n');
+}
+
+function getToneDescription(tone: string): string {
+  const tones: Record<string, string> = {
+    urban: 'urbano, callejero, con flow y actitud. Usa jerga urbana moderna, referencias al trap/reggaeton/hip-hop',
+    romantic: 'romántico, emotivo, sensual. Evoca sentimientos profundos, usa metáforas de amor y conexión',
+    indie: 'indie, alternativo, artístico. Tono introspectivo, poético, con referencias culturales sofisticadas',
+    electronic: 'electrónico, futurista, energético. Vocabulario de club/rave/festival, vibes nocturnas',
+    pop: 'pop, fresco, mainstream, pegadizo. Lenguaje accesible, positivo, que enganche a todo el mundo',
+    rock: 'rock, rebelde, con actitud. Energía cruda, referencias a guitarra, escenario y libertad',
+  };
+  return tones[tone] || 'auténtico y emocional';
 }
 
 const IMAGE_MODELS = [
@@ -238,7 +253,7 @@ serve(async (req) => {
       });
     }
 
-    const { work_id } = await req.json();
+    const { work_id, tone, language } = await req.json();
     if (!work_id) {
       return new Response(JSON.stringify({ error: 'work_id required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -305,7 +320,7 @@ serve(async (req) => {
     (async () => {
       try {
         // ── 1. Generate copies with Gemini 2.5 Pro (parallel) ──
-        const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics);
+        const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics, tone, language);
         const copiesPromise = generateCopiesWithAI(copiesPrompt, LOVABLE_API_KEY);
 
         // ── 2. Generate image (parallel) ──
