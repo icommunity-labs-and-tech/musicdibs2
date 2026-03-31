@@ -75,7 +75,7 @@ const LANG_MAP: Record<string, string> = {
 };
 
 export function PromoteWorks() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { credits, hasEnough } = useCredits();
   const noCredits = !hasEnough(FEATURE_COSTS.promote_work);
