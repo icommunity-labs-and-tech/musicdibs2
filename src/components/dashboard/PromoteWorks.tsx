@@ -277,6 +277,30 @@ export function PromoteWorks() {
           </div>
         )}
 
+        {/* Tone selector */}
+        <div className="px-6 pb-3 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">{t('dashboard.promote.toneLabel')}</span>
+            <Select value={selectedTone} onValueChange={setSelectedTone}>
+              <SelectTrigger className="h-7 w-[140px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TONE_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                    {t(opt.labelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Globe className="h-3.5 w-3.5" />
+            {t('dashboard.promote.languageNote', { lang: userLang })}
+          </div>
+        </div>
+
         {loadingWorks ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
