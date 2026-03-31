@@ -56,6 +56,24 @@ const PAGE_SIZE = 5;
 const MAX_FREE_REGENS = 3;
 const REGEN_CREDIT_COST = 5;
 
+const TONE_OPTIONS = [
+  { value: 'urban', labelKey: 'dashboard.promote.toneUrban' },
+  { value: 'romantic', labelKey: 'dashboard.promote.toneRomantic' },
+  { value: 'indie', labelKey: 'dashboard.promote.toneIndie' },
+  { value: 'electronic', labelKey: 'dashboard.promote.toneElectronic' },
+  { value: 'pop', labelKey: 'dashboard.promote.tonePop' },
+  { value: 'rock', labelKey: 'dashboard.promote.toneRock' },
+] as const;
+
+const LANG_MAP: Record<string, string> = {
+  es: 'español',
+  en: 'English',
+  'pt-BR': 'português brasileiro',
+  fr: 'français',
+  it: 'italiano',
+  de: 'Deutsch',
+};
+
 export function PromoteWorks() {
   const { t } = useTranslation();
   const { user } = useAuth();
