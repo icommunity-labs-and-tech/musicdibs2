@@ -1818,8 +1818,9 @@ const resources = {
           admin: 'Amministrazione',
           panelGuide: 'Guida del pannello',
           logout: 'Esci',
-          new: 'NUOVO',
-        },
+           new: 'NUOVO',
+           premiumPromos: 'Promo Premium',
+         },
         registerWork: {
           title: 'Registra opera',
           noCreditsMsg: 'Non hai crediti sufficienti per registrare un\'opera.',
