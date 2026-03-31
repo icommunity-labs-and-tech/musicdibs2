@@ -236,8 +236,7 @@ export function PromoteWorks() {
       <CardHeader className="flex-row items-center justify-between pb-2">
         <div className="space-y-1">
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-            <Megaphone className="h-4 w-4 text-primary" /> Promoción en Redes Sociales
-            <Megaphone className="h-4 w-4 text-primary" /> {t('dashboard.promote.title')}
+            <Megaphone className="h-4 w-4 text-primary" /> Promociona en tus RRSS
           </CardTitle>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
