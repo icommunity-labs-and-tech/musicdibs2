@@ -697,8 +697,8 @@ function PromoDetailDialog({
           {/* Regen counter */}
           <p className="text-[11px] text-muted-foreground/70 text-center">
             {isFree
-              ? `${freeRemaining} regeneración${freeRemaining !== 1 ? 'es' : ''} gratuita${freeRemaining !== 1 ? 's' : ''} restante${freeRemaining !== 1 ? 's' : ''}`
-              : `Regeneraciones gratuitas agotadas · ${REGEN_CREDIT_COST} créditos por regeneración`}
+              ? t('dashboard.promote.freeRegens', { n: freeRemaining })
+              : t('dashboard.promote.noFreeRegens', { cost: REGEN_CREDIT_COST })}
           </p>
         </div>
       </DialogContent>
