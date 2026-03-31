@@ -1,4 +1,4 @@
-export const pagesTranslations: Record<string, { translation: { verify: any; managerBanner: any; userLogin: any } }> = {
+export const pagesTranslations: Record<string, { translation: { verify: any; managerBanner: any; userLogin: any; whyBadge: any; artistsAB: any; promoBanner: any; footerExtra: any; calcStreams: any } }> = {
   es: {
     translation: {
       verify: {
@@ -62,6 +62,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Ocultar contraseña',
         showPassword: 'Ver contraseña',
       },
+      whyBadge: { comingSoon: 'Próximamente' },
+      artistsAB: { joinFreeToday: '🎵 Únete gratis hoy', startCareer: 'Comienza tu carrera', whoTrusts: 'Mira quién confía en nosotros' },
+      promoBanner: { label: 'San Valentín' },
+      footerExtra: { web: 'Web', version: 'Versión 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   en: {
@@ -127,6 +132,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Hide password',
         showPassword: 'Show password',
       },
+      whyBadge: { comingSoon: 'Coming soon' },
+      artistsAB: { joinFreeToday: '🎵 Join free today', startCareer: 'Start your career', whoTrusts: 'See who trusts us' },
+      promoBanner: { label: "Valentine's Day" },
+      footerExtra: { web: 'Web', version: 'Version 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   'pt-BR': {
@@ -192,6 +202,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Ocultar senha',
         showPassword: 'Ver senha',
       },
+      whyBadge: { comingSoon: 'Em breve' },
+      artistsAB: { joinFreeToday: '🎵 Entre grátis hoje', startCareer: 'Comece sua carreira', whoTrusts: 'Veja quem confia em nós' },
+      promoBanner: { label: 'Dia dos Namorados' },
+      footerExtra: { web: 'Web', version: 'Versão 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   fr: {
@@ -257,6 +272,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Masquer le mot de passe',
         showPassword: 'Afficher le mot de passe',
       },
+      whyBadge: { comingSoon: 'Bientôt disponible' },
+      artistsAB: { joinFreeToday: '🎵 Rejoins gratuitement', startCareer: 'Lance ta carrière', whoTrusts: 'Découvrez qui nous fait confiance' },
+      promoBanner: { label: 'Saint-Valentin' },
+      footerExtra: { web: 'Web', version: 'Version 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   it: {
@@ -322,6 +342,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Nascondi password',
         showPassword: 'Mostra password',
       },
+      whyBadge: { comingSoon: 'Prossimamente' },
+      artistsAB: { joinFreeToday: '🎵 Unisciti gratis oggi', startCareer: 'Inizia la tua carriera', whoTrusts: 'Scopri chi si fida di noi' },
+      promoBanner: { label: 'San Valentino' },
+      footerExtra: { web: 'Web', version: 'Versione 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   de: {
@@ -387,6 +412,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Passwort verbergen',
         showPassword: 'Passwort anzeigen',
       },
+      whyBadge: { comingSoon: 'Demnächst verfügbar' },
+      artistsAB: { joinFreeToday: '🎵 Kostenlos beitreten', startCareer: 'Starte deine Karriere', whoTrusts: 'Schau wer uns vertraut' },
+      promoBanner: { label: 'Valentinstag' },
+      footerExtra: { web: 'Web', version: 'Version 1.3.0' },
+      calcStreams: { unit: 'Streams' },
     },
   },
 };

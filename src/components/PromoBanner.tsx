@@ -8,7 +8,7 @@ export const PromoBanner = () => {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
         <div className="flex items-center gap-2">
           <span className="text-lg">💖</span>
-          <span className="text-xs font-bold tracking-widest uppercase text-white">San Valentín</span>
+          <span className="text-xs font-bold tracking-widest uppercase text-white">{t("promoBanner.label")}</span>
           <span className="text-white/50">|</span>
           <span className="text-sm font-bold text-white">{t("promoBanner.text")}</span>
         </div>

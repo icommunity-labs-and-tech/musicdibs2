@@ -59,7 +59,7 @@ const Footer = () => {
 
           {/* Block 2 - Web */}
           <div className="space-y-3">
-            <h3 className="text-xl font-semibold text-white mb-4">Web</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">{t('footerExtra.web')}</h3>
             <button onClick={() => scrollToSection('pricing-section')} className="block text-white/80 hover:text-white transition-colors text-left">
               {t('nav.pricing')}
             </button>
@@ -135,7 +135,7 @@ const Footer = () => {
         {/* Bottom Section */}
         <div className="border-t border-white/20 pt-6">
           <div className="text-white/60 text-sm text-center">
-            Versión 1.3.0
+            {t('footerExtra.version')}
           </div>
         </div>
       </div>
