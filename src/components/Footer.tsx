@@ -50,6 +50,9 @@ const Footer = () => {
                 src="/lovable-uploads/eca60bb5-0409-4e18-bc0a-0e93aeabee3d.png" 
                 alt="iCommunity Logo" 
                 className="h-16 w-auto"
+                width={231}
+                height={64}
+                loading="lazy"
               />
             </a>
           </div>

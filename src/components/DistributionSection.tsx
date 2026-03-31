@@ -91,7 +91,7 @@ export const DistributionSection = () => {
                     <img src="/lovable-uploads/ff17291e-4f59-4201-8e1b-8964a98b22f6.png" alt="Instagram Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
                   </div>
                   <div className="w-32 h-40 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300">
-                    <img src="/lovable-uploads/6a1dd10b-22a7-4382-990a-94d322fcae13.png" alt="TikTok Promotion" className="w-full h-full object-cover" />
+                    <img src="/lovable-uploads/6a1dd10b-22a7-4382-990a-94d322fcae13.png" alt="TikTok Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
                   </div>
                 </div>
 
