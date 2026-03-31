@@ -640,7 +640,7 @@ function PromoDetailDialog({
                   <ExternalLink className="h-3 w-3" /> {t('dashboard.promote.openImage')}
                 </a>
                 <RegenButton
-                  label="imagen"
+                  label={t('dashboard.promote.imageLabel')}
                   isFree={isFree}
                   freeRemaining={freeRemaining}
                   credits={credits}
