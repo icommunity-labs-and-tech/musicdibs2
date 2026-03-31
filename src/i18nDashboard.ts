@@ -248,6 +248,9 @@ const es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies en {{lang}}',
+      generatedWithAI: 'Generada con AI MusicDibs Studio',
+      imageLabel: 'imagen',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promociona tu música',
