@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -117,6 +118,8 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+  const [audioProgress, setAudioProgress] = useState<Map<string, { current: number; duration: number }>>(new Map());
+  const progressIntervalRef = useRef<number | null>(null);
 
   // ── Filter state ──
   const [filterFavorites, setFilterFavorites] = useState(false);
@@ -419,21 +422,56 @@ const AIStudioCreate = () => {
   };
 
   // ── Playback ──
+  const startProgressTracking = (id: string, audio: HTMLAudioElement) => {
+    if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
+    const tick = () => {
+      setAudioProgress(prev => {
+        const next = new Map(prev);
+        next.set(id, { current: audio.currentTime, duration: audio.duration || 0 });
+        return next;
+      });
+      if (!audio.paused) progressIntervalRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+  };
+
+  const seekAudio = (id: string, value: number[]) => {
+    const audio = audioElements.get(id);
+    if (audio) {
+      audio.currentTime = value[0];
+      setAudioProgress(prev => {
+        const next = new Map(prev);
+        next.set(id, { current: value[0], duration: audio.duration || 0 });
+        return next;
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   const togglePlay = (result: GenerationResult) => {
     const existingAudio = audioElements.get(result.id);
     if (playingId === result.id && existingAudio) {
       existingAudio.pause();
+      if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
       setPlayingId(null);
     } else {
       audioElements.forEach(audio => audio.pause());
+      if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
       let audio = existingAudio;
       if (!audio) {
         audio = new Audio(result.audioUrl);
-        audio.onended = () => setPlayingId(null);
+        audio.onended = () => { setPlayingId(null); if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current); };
         setAudioElements(prev => new Map(prev).set(result.id, audio!));
       }
       audio.play();
       setPlayingId(result.id);
+      startProgressTracking(result.id, audio);
     }
   };
 
@@ -1993,9 +2031,22 @@ const AIStudioCreate = () => {
                             </Button>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate mb-1">{result.prompt}</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                <span>{result.duration}s</span>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                                  {formatTime(audioProgress.get(result.id)?.current ?? 0)}
+                                </span>
+                                <Slider
+                                  value={[audioProgress.get(result.id)?.current ?? 0]}
+                                  max={audioProgress.get(result.id)?.duration || result.duration || 30}
+                                  step={0.1}
+                                  onValueChange={(v) => seekAudio(result.id, v)}
+                                  className="flex-1"
+                                />
+                                <span className="text-[10px] tabular-nums text-muted-foreground w-8 shrink-0">
+                                  {formatTime(audioProgress.get(result.id)?.duration || result.duration || 0)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                 {result.genre && <Badge variant="secondary" className="text-xs">{result.genre}</Badge>}
                                 {result.mood && <Badge variant="secondary" className="text-xs">{result.mood}</Badge>}
                               </div>
