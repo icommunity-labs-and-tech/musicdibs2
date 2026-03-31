@@ -75,14 +75,16 @@ const Index = () => {
       <Navbar />
       <HeroSection />
       <ArtistsBanner />
-      <WhyChooseSection />
-      <DistributionSection />
-      <TestimonialsSection />
-      <RoyaltiesCalculator />
-      <PricingSection />
-      <ManagerBannerSection />
-      <TutorialSection />
-      <Footer />
+      <Suspense fallback={null}>
+        <WhyChooseSection />
+        <DistributionSection />
+        <TestimonialsSection />
+        <RoyaltiesCalculator />
+        <PricingSection />
+        <ManagerBannerSection />
+        <TutorialSection />
+        <Footer />
+      </Suspense>
     </div>
   );
 };
