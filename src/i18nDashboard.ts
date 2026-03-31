@@ -467,6 +467,10 @@ const es = {
       etaNote: 'El proceso suele completarse en 1–5 minutos.',
       failedBanner: 'La certificación ha fallado. El crédito ha sido reembolsado automáticamente.',
     },
+    virtualArtists: {
+      title: 'Mis Artistas Virtuales',
+      description: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.',
+    },
   },
 };
 
@@ -935,6 +939,10 @@ const en: typeof es = {
       elapsed: '{{time}} elapsed',
       etaNote: 'The process usually completes in 1–5 minutes.',
       failedBanner: 'Certification failed. The credit has been automatically refunded.',
+    },
+    virtualArtists: {
+      title: 'My Virtual Artists',
+      description: 'Save your artists\' voice and style settings to create consistent songs.',
     },
   },
 };
@@ -1405,6 +1413,10 @@ const pt: typeof es = {
       etaNote: 'O processo geralmente é concluído em 1–5 minutos.',
       failedBanner: 'A certificação falhou. O crédito foi reembolsado automaticamente.',
     },
+    virtualArtists: {
+      title: 'Meus Artistas Virtuais',
+      description: 'Salve a configuração de voz e estilo dos seus artistas para criar músicas consistentes.',
+    },
   },
 };
 
@@ -1873,6 +1885,10 @@ const fr: typeof es = {
       elapsed: '{{time}} écoulés',
       etaNote: 'Le processus se termine généralement en 1 à 5 minutes.',
       failedBanner: "La certification a échoué. Le crédit a été automatiquement remboursé.",
+    },
+    virtualArtists: {
+      title: 'Mes Artistes Virtuels',
+      description: 'Enregistrez la configuration vocale et stylistique de vos artistes pour créer des chansons cohérentes.',
     },
   },
 };
@@ -2343,6 +2359,10 @@ const it: typeof es = {
       etaNote: 'Il processo si completa generalmente in 1–5 minuti.',
       failedBanner: 'La certificazione è fallita. Il credito è stato automaticamente rimborsato.',
     },
+    virtualArtists: {
+      title: 'I miei Artisti Virtuali',
+      description: 'Salva la configurazione vocale e di stile dei tuoi artisti per creare canzoni coerenti.',
+    },
   },
 };
 
@@ -2811,6 +2831,10 @@ const de: typeof es = {
       elapsed: '{{time}} vergangen',
       etaNote: 'Der Vorgang wird normalerweise in 1–5 Minuten abgeschlossen.',
       failedBanner: 'Die Zertifizierung ist fehlgeschlagen. Der Credit wurde automatisch erstattet.',
+    },
+    virtualArtists: {
+      title: 'Meine virtuellen Künstler',
+      description: 'Speichere die Stimm- und Stileinstellungen deiner Künstler, um konsistente Songs zu erstellen.',
     },
   },
 };

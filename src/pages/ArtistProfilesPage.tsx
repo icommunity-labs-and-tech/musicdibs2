@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ interface ArtistProfile {
 const ArtistProfilesPage = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [profiles, setProfiles] = useState<ArtistProfile[]>([]);
@@ -230,9 +232,9 @@ const ArtistProfilesPage = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Mis Perfiles de Artista</h1>
+          <h1 className="text-2xl font-bold">{t('dashboard.virtualArtists.title', { defaultValue: 'Mis Artistas Virtuales' })}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.
+            {t('dashboard.virtualArtists.description', { defaultValue: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' })}
           </p>
         </div>
         {!showForm && (
