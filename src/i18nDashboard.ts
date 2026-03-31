@@ -248,6 +248,9 @@ const es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies en {{lang}}',
+      generatedWithAI: 'Generada con AI MusicDibs Studio',
+      imageLabel: 'imagen',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promociona tu música',
@@ -711,6 +714,9 @@ const en: typeof es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies in {{lang}}',
+      generatedWithAI: 'Generated with AI MusicDibs Studio',
+      imageLabel: 'image',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promote your music',
@@ -1174,6 +1180,9 @@ const pt: typeof es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies em {{lang}}',
+      generatedWithAI: 'Gerada com AI MusicDibs Studio',
+      imageLabel: 'imagem',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promova sua música',
@@ -1637,6 +1646,9 @@ const fr: typeof es = {
       toneMetal: 'Métal',
       toneFolk: 'Folk',
       languageNote: 'Copies en {{lang}}',
+      generatedWithAI: 'Générée avec AI MusicDibs Studio',
+      imageLabel: 'image',
+      copiesLabel: 'copies',
     },
     promoSelector: {
       title: 'Promouvez votre musique',
@@ -2100,6 +2112,9 @@ const it: typeof es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Copies in {{lang}}',
+      generatedWithAI: 'Generata con AI MusicDibs Studio',
+      imageLabel: 'immagine',
+      copiesLabel: 'copy',
     },
     promoSelector: {
       title: 'Promuovi la tua musica',
@@ -2563,6 +2578,9 @@ const de: typeof es = {
       toneMetal: 'Metal',
       toneFolk: 'Folk',
       languageNote: 'Texte auf {{lang}}',
+      generatedWithAI: 'Erstellt mit AI MusicDibs Studio',
+      imageLabel: 'Bild',
+      copiesLabel: 'Texte',
     },
     promoSelector: {
       title: 'Bewerben Sie Ihre Musik',

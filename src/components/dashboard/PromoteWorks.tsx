@@ -399,7 +399,7 @@ export function PromoteWorks() {
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {work.author && <span className="text-xs text-muted-foreground truncate">{work.author}</span>}
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 shrink-0 bg-primary/10 text-primary border-primary/20">
-                              <Sparkles className="h-2.5 w-2.5" /> Generada con AI MusicDibs Studio
+                              <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.promote.generatedWithAI')}
                             </Badge>
                           </div>
                         )}
@@ -555,6 +555,7 @@ function PromoDetailDialog({
   onRegenerate: (promoId: string, type: 'copies' | 'image', paid: boolean) => void;
   onBuyCredits: () => void;
 }) {
+  const { t } = useTranslation();
   if (!work || !promo) return null;
 
   const regenCount = promo.regeneration_count ?? 0;
@@ -568,12 +569,12 @@ function PromoDetailDialog({
           <DialogTitle className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" />
             <div className="min-w-0">
-              <span>Promoción: {work.title}</span>
+              <span>{t('dashboard.promote.promoTitle', { title: work.title })}</span>
               {work.source === 'ai_studio' && (
                 <div className="flex items-center gap-1.5 mt-0.5">
                   {work.author && <span className="text-xs font-normal text-muted-foreground">{work.author}</span>}
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary/10 text-primary border-primary/20 font-normal">
-                    <Sparkles className="h-2.5 w-2.5" /> Generada con AI MusicDibs Studio
+                    <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.promote.generatedWithAI')}
                   </Badge>
                 </div>
               )}
@@ -586,36 +587,36 @@ function PromoDetailDialog({
           {(meta || work.description) && (
             <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                Metadatos usados
+                {t('dashboard.promote.metadataUsed')}
               </p>
               <div className="flex flex-wrap gap-2">
                 {meta?.genre && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    <Tag className="h-3 w-3" /> Género: {meta.genre}
+                    <Tag className="h-3 w-3" /> {t('dashboard.promote.genre')}: {meta.genre}
                   </Badge>
                 )}
                 {meta?.mood && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    <Palette className="h-3 w-3" /> Mood: {meta.mood}
+                    <Palette className="h-3 w-3" /> {t('dashboard.promote.mood')}: {meta.mood}
                   </Badge>
                 )}
                 <Badge variant="outline" className="text-[11px] gap-1">
-                  <Mic2 className="h-3 w-3" /> Tipo: {work.type}
+                  <Mic2 className="h-3 w-3" /> {t('dashboard.promote.type')}: {work.type}
                 </Badge>
                 {work.author && (
                   <Badge variant="outline" className="text-[11px] gap-1">
-                    Artista: {work.author}
+                    {t('dashboard.promote.artist')}: {work.author}
                   </Badge>
                 )}
               </div>
               {work.description && (
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Descripción:</span> {work.description}
+                  <span className="font-medium">{t('dashboard.promote.description')}:</span> {work.description}
                 </p>
               )}
               {meta?.prompt && (
                 <p className="text-xs text-muted-foreground">
-                  <span className="font-medium">Prompt IA:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
+                  <span className="font-medium">{t('dashboard.promote.aiPrompt')}:</span> {meta.prompt.length > 200 ? meta.prompt.slice(0, 200) + '…' : meta.prompt}
                 </p>
               )}
             </div>
@@ -636,10 +637,10 @@ function PromoDetailDialog({
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-1 text-xs text-primary hover:underline"
                 >
-                  <ExternalLink className="h-3 w-3" /> Abrir imagen
+                  <ExternalLink className="h-3 w-3" /> {t('dashboard.promote.openImage')}
                 </a>
                 <RegenButton
-                  label="imagen"
+                  label={t('dashboard.promote.imageLabel')}
                   isFree={isFree}
                   freeRemaining={freeRemaining}
                   credits={credits}
@@ -682,7 +683,7 @@ function PromoDetailDialog({
                 />
               )}
               <RegenButton
-                label="copies"
+                label={t('dashboard.promote.copiesLabel')}
                 isFree={isFree}
                 freeRemaining={freeRemaining}
                 credits={credits}
@@ -696,8 +697,8 @@ function PromoDetailDialog({
           {/* Regen counter */}
           <p className="text-[11px] text-muted-foreground/70 text-center">
             {isFree
-              ? `${freeRemaining} regeneración${freeRemaining !== 1 ? 'es' : ''} gratuita${freeRemaining !== 1 ? 's' : ''} restante${freeRemaining !== 1 ? 's' : ''}`
-              : `Regeneraciones gratuitas agotadas · ${REGEN_CREDIT_COST} créditos por regeneración`}
+              ? t('dashboard.promote.freeRegens', { n: freeRemaining })
+              : t('dashboard.promote.noFreeRegens', { cost: REGEN_CREDIT_COST })}
           </p>
         </div>
       </DialogContent>
@@ -717,13 +718,14 @@ function RegenButton({
   onRegenerate: (paid: boolean) => void;
   onBuyCredits: () => void;
 }) {
+  const { t } = useTranslation();
   const canAffordPaid = (credits ?? 0) >= REGEN_CREDIT_COST;
 
   if (isFree) {
     return (
       <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(false)}>
         {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
-        Regenerar {label} (gratis · {freeRemaining})
+        {t('dashboard.promote.regenFree', { label, n: freeRemaining })}
       </Button>
     );
   }
@@ -731,13 +733,13 @@ function RegenButton({
     return (
       <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" disabled={isLoading} onClick={() => onRegenerate(true)}>
         {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <CreditCard className="h-3 w-3 mr-1" />}
-        Regenerar {label} ({REGEN_CREDIT_COST} créditos)
+        {t('dashboard.promote.regenPaid', { label, cost: REGEN_CREDIT_COST })}
       </Button>
     );
   }
   return (
     <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hover:text-primary" onClick={onBuyCredits}>
-      <ShoppingCart className="h-3 w-3 mr-1" /> Comprar créditos
+      <ShoppingCart className="h-3 w-3 mr-1" /> {t('dashboard.promote.buyCredits')}
     </Button>
   );
 }
@@ -753,6 +755,7 @@ function CopyBlock({
   copiedField: string;
   onCopy: (text: string, field: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
       <div className="flex items-center justify-between mb-1.5">
@@ -765,9 +768,9 @@ function CopyBlock({
           className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors"
         >
           {copiedField === fieldId ? (
-            <><CheckCircle2 className="h-3 w-3" /> Copiado</>
+            <><CheckCircle2 className="h-3 w-3" /> {t('dashboard.promote.copied')}</>
           ) : (
-            <><Copy className="h-3 w-3" /> Copiar</>
+            <><Copy className="h-3 w-3" /> {t('dashboard.promote.copy')}</>
           )}
         </button>
       </div>
