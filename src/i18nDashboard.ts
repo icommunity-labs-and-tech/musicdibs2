@@ -2832,6 +2832,10 @@ const de: typeof es = {
       etaNote: 'Der Vorgang wird normalerweise in 1–5 Minuten abgeschlossen.',
       failedBanner: 'Die Zertifizierung ist fehlgeschlagen. Der Credit wurde automatisch erstattet.',
     },
+    virtualArtists: {
+      title: 'Meine virtuellen Künstler',
+      description: 'Speichere die Stimm- und Stileinstellungen deiner Künstler, um konsistente Songs zu erstellen.',
+    },
   },
 };
 
