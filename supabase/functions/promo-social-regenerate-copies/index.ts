@@ -130,7 +130,18 @@ serve(async (req) => {
       work.title && l.description?.toLowerCase().includes(work.title.toLowerCase())
     ) || lyricsRes.data?.[0] || null;
 
-    // Build enriched prompt
+    // Build enriched prompt with tone and language
+    const tones: Record<string, string> = {
+      urban: 'urbano, callejero, con flow y actitud. Usa jerga urbana moderna, referencias al trap/reggaeton/hip-hop',
+      romantic: 'romántico, emotivo, sensual. Evoca sentimientos profundos, usa metáforas de amor y conexión',
+      indie: 'indie, alternativo, artístico. Tono introspectivo, poético, con referencias culturales sofisticadas',
+      electronic: 'electrónico, futurista, energético. Vocabulario de club/rave/festival, vibes nocturnas',
+      pop: 'pop, fresco, mainstream, pegadizo. Lenguaje accesible, positivo, que enganche a todo el mundo',
+      rock: 'rock, rebelde, con actitud. Energía cruda, referencias a guitarra, escenario y libertad',
+    };
+    const toneDesc = tone ? (tones[tone] || 'auténtico y emocional') : 'auténtico y emocional';
+    const lang = language || 'español';
+
     const lines = [
       `Eres un copywriter de élite especializado en marketing musical viral. Genera copies COMPLETAMENTE NUEVOS y con un enfoque DIFERENTE al anterior.`,
       '',
@@ -153,6 +164,7 @@ serve(async (req) => {
 
     lines.push('');
     lines.push(`## Instrucciones de estilo`);
+    lines.push(`- TONO: ${toneDesc}. Adapta el lenguaje y las referencias culturales a este estilo musical.`);
     lines.push(`- Copies IMPACTANTES, emocionales, que generen urgencia por escuchar`);
     lines.push(`- Lenguaje auténtico, no corporativo ni genérico`);
     lines.push(`- Si tienes la letra, usa fragmentos o referencias para copies más personales`);
@@ -168,7 +180,7 @@ serve(async (req) => {
   "tiktok": "Copy para TikTok: máx 200 chars, tono joven, viral, conversacional. 4-6 hashtags trending."
 }`);
     lines.push('');
-    lines.push(`Idioma: español. Tono: auténtico, apasionado, generador de hype.`);
+    lines.push(`IMPORTANTE: Genera los copies en ${lang}. Tono: ${toneDesc}, apasionado, generador de hype.`);
 
     // Mark as regenerating
     await supabase.from('social_promotions').update({
