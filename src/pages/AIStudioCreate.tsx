@@ -422,21 +422,56 @@ const AIStudioCreate = () => {
   };
 
   // ── Playback ──
+  const startProgressTracking = (id: string, audio: HTMLAudioElement) => {
+    if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
+    const tick = () => {
+      setAudioProgress(prev => {
+        const next = new Map(prev);
+        next.set(id, { current: audio.currentTime, duration: audio.duration || 0 });
+        return next;
+      });
+      if (!audio.paused) progressIntervalRef.current = requestAnimationFrame(tick);
+    };
+    tick();
+  };
+
+  const seekAudio = (id: string, value: number[]) => {
+    const audio = audioElements.get(id);
+    if (audio) {
+      audio.currentTime = value[0];
+      setAudioProgress(prev => {
+        const next = new Map(prev);
+        next.set(id, { current: value[0], duration: audio.duration || 0 });
+        return next;
+      });
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
   const togglePlay = (result: GenerationResult) => {
     const existingAudio = audioElements.get(result.id);
     if (playingId === result.id && existingAudio) {
       existingAudio.pause();
+      if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
       setPlayingId(null);
     } else {
       audioElements.forEach(audio => audio.pause());
+      if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
       let audio = existingAudio;
       if (!audio) {
         audio = new Audio(result.audioUrl);
-        audio.onended = () => setPlayingId(null);
+        audio.onended = () => { setPlayingId(null); if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current); };
         setAudioElements(prev => new Map(prev).set(result.id, audio!));
       }
       audio.play();
       setPlayingId(result.id);
+      startProgressTracking(result.id, audio);
     }
   };
 
