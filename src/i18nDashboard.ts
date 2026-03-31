@@ -2840,6 +2840,7 @@ const de: typeof es = {
     virtualArtists: {
       title: 'Meine virtuellen Künstler',
       description: 'Speichere die Stimm- und Stileinstellungen deiner Künstler, um konsistente Songs zu erstellen.',
+      newArtist: 'Neuer virtueller Künstler',
     },
   },
 };
