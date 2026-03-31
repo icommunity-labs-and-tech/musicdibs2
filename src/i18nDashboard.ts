@@ -1515,7 +1515,7 @@ const fr: typeof es = {
       availableCredits: 'Crédits disponibles :',
       promoGenerated: 'Promotion générée ! Vérifiez vos assets et votre email.',
       unknownError: 'Erreur inconnue',
-      insufficientCredits: 'Crédits insuffisants (25 nécessaires).',
+      insufficientCredits: 'Crédits insuffisants (15 nécessaires).',
       generatingInfo: 'Génération de la promotion... ~30 secondes.',
       launchError: 'Erreur lors du lancement de la promotion',
       regenError: 'Erreur lors de la régénération',
