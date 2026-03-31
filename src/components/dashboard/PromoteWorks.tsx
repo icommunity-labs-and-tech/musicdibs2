@@ -555,6 +555,7 @@ function PromoDetailDialog({
   onRegenerate: (promoId: string, type: 'copies' | 'image', paid: boolean) => void;
   onBuyCredits: () => void;
 }) {
+  const { t } = useTranslation();
   if (!work || !promo) return null;
 
   const regenCount = promo.regeneration_count ?? 0;
