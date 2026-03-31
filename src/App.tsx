@@ -58,6 +58,7 @@ const AdminCreditsPage = lazy(() => import("./pages/AdminCreditsPage"));
 const AdminWorksPage = lazy(() => import("./pages/AdminWorksPage"));
 const AdminMetricsPage = lazy(() => import("./pages/AdminMetricsPage"));
 const AdminSystemPage = lazy(() => import("./pages/AdminSystemPage"));
+const AdminPremiumPromosPage = lazy(() => import("./pages/AdminPremiumPromosPage"));
 const ManagerDashboard = lazy(() => import("./pages/ManagerDashboard"));
 const ManagerArtists = lazy(() => import("./pages/ManagerArtists"));
 const ManagerArtistNew = lazy(() => import("./pages/ManagerArtistNew"));
@@ -125,6 +126,7 @@ const App = () => (
                 <Route path="admin/works" element={<Suspense fallback={null}><AdminGuard><AdminWorksPage /></AdminGuard></Suspense>} />
                 <Route path="admin/metrics" element={<Suspense fallback={null}><AdminGuard><AdminMetricsPage /></AdminGuard></Suspense>} />
                 <Route path="admin/system" element={<Suspense fallback={null}><AdminGuard><AdminSystemPage /></AdminGuard></Suspense>} />
+                <Route path="admin/premium-promos" element={<Suspense fallback={null}><AdminGuard><AdminPremiumPromosPage /></AdminGuard></Suspense>} />
                 <Route path="manager" element={<Suspense fallback={null}><ManagerGuard><ManagerDashboard /></ManagerGuard></Suspense>} />
                 <Route path="manager/artists" element={<Suspense fallback={null}><ManagerGuard><ManagerArtists /></ManagerGuard></Suspense>} />
                 <Route path="manager/artists/new" element={<Suspense fallback={null}><ManagerGuard><ManagerArtistNew /></ManagerGuard></Suspense>} />
