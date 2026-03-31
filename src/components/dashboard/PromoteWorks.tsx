@@ -755,6 +755,7 @@ function CopyBlock({
   copiedField: string;
   onCopy: (text: string, field: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
       <div className="flex items-center justify-between mb-1.5">
@@ -767,9 +768,9 @@ function CopyBlock({
           className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors"
         >
           {copiedField === fieldId ? (
-            <><CheckCircle2 className="h-3 w-3" /> Copiado</>
+            <><CheckCircle2 className="h-3 w-3" /> {t('dashboard.promote.copied')}</>
           ) : (
-            <><Copy className="h-3 w-3" /> Copiar</>
+            <><Copy className="h-3 w-3" /> {t('dashboard.promote.copy')}</>
           )}
         </button>
       </div>
