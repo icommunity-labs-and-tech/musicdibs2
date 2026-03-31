@@ -609,6 +609,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Próximamente',
+        promoGroupTitle: 'Genera material promocional',
         modules: {
           createMusic: { title: 'Crea Música', desc: 'Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.' },
           editModify: { title: 'Edita y Modifica', desc: 'Modifica pistas existentes, crea variaciones o aplica inpainting para rellenar secciones.' },
