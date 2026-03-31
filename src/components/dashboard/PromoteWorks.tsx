@@ -213,7 +213,7 @@ export function PromoteWorks() {
     const fnName = type === 'copies' ? 'promo-social-regenerate-copies' : 'promo-social-regenerate-image';
     try {
       const { data, error } = await supabase.functions.invoke(fnName, {
-        body: { promo_id: promoId, paid },
+        body: { promo_id: promoId, paid, tone: selectedTone, language: userLang },
       });
       if (error) throw new Error(error.message);
       if (data?.error) {
