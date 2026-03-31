@@ -67,7 +67,9 @@ function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   return parts.join(' ');
 }
 
-function buildCopiesPrompt(work: any, aiGen: any, lyrics: any): string {
+function buildCopiesPrompt(work: any, aiGen: any, lyrics: any, tone?: string, language?: string): string {
+  const lang = language || 'español';
+  const toneDesc = tone ? getToneDescription(tone) : 'auténtico y emocional';
   const lines = [
     `Eres un copywriter de élite especializado en marketing musical viral. Tu trabajo es crear copies que generen HYPE real, que hagan que la gente quiera escuchar la canción YA.`,
     '',
