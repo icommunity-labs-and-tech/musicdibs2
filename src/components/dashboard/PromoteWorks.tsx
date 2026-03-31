@@ -384,17 +384,17 @@ export function PromoteWorks() {
                     >
                       {/* Obra */}
                       <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium truncate">{work.title}</p>
-                          {work.source === 'ai_studio' && (
+                        <p className="text-sm font-medium truncate">{work.title}</p>
+                        {work.source === 'ai_studio' && (
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {work.author && <span className="text-xs text-muted-foreground truncate">{work.author}</span>}
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 shrink-0 bg-primary/10 text-primary border-primary/20">
-                              <Sparkles className="h-2.5 w-2.5" /> AI Studio
+                              <Sparkles className="h-2.5 w-2.5" /> Generada con AI MusicDibs Studio
                             </Badge>
-                          )}
-                        </div>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          {work.author && <span className="truncate">{work.author}</span>}
-                          {work.author && <span>·</span>}
+                          {work.source !== 'ai_studio' && work.author && <><span className="truncate">{work.author}</span><span>·</span></>}
                           <span className="capitalize">{work.type}</span>
                           {meta && (
                             <>
