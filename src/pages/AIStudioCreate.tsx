@@ -2031,9 +2031,22 @@ const AIStudioCreate = () => {
                             </Button>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate mb-1">{result.prompt}</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                <span>{result.duration}s</span>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] tabular-nums text-muted-foreground w-8 text-right shrink-0">
+                                  {formatTime(audioProgress.get(result.id)?.current ?? 0)}
+                                </span>
+                                <Slider
+                                  value={[audioProgress.get(result.id)?.current ?? 0]}
+                                  max={audioProgress.get(result.id)?.duration || result.duration || 30}
+                                  step={0.1}
+                                  onValueChange={(v) => seekAudio(result.id, v)}
+                                  className="flex-1"
+                                />
+                                <span className="text-[10px] tabular-nums text-muted-foreground w-8 shrink-0">
+                                  {formatTime(audioProgress.get(result.id)?.duration || result.duration || 0)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                 {result.genre && <Badge variant="secondary" className="text-xs">{result.genre}</Badge>}
                                 {result.mood && <Badge variant="secondary" className="text-xs">{result.mood}</Badge>}
                               </div>
