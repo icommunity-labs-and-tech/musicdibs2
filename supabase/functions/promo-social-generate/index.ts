@@ -110,8 +110,20 @@ function buildCopiesPrompt(work: any, aiGen: any, lyrics: any, tone?: string, la
   "tiktok": "Copy para TikTok: máx 200 chars, tono joven, viral, conversacional. 4-6 hashtags trending de música. Debe sonar como algo que diría un fan, no una marca."
 }`);
   lines.push('');
-  lines.push(`Idioma: español. Tono: auténtico, apasionado, generador de hype.`);
+  lines.push(`IMPORTANTE: Genera los copies en ${lang}. Tono: ${toneDesc}, apasionado, generador de hype.`);
   return lines.join('\n');
+}
+
+function getToneDescription(tone: string): string {
+  const tones: Record<string, string> = {
+    urban: 'urbano, callejero, con flow y actitud. Usa jerga urbana moderna, referencias al trap/reggaeton/hip-hop',
+    romantic: 'romántico, emotivo, sensual. Evoca sentimientos profundos, usa metáforas de amor y conexión',
+    indie: 'indie, alternativo, artístico. Tono introspectivo, poético, con referencias culturales sofisticadas',
+    electronic: 'electrónico, futurista, energético. Vocabulario de club/rave/festival, vibes nocturnas',
+    pop: 'pop, fresco, mainstream, pegadizo. Lenguaje accesible, positivo, que enganche a todo el mundo',
+    rock: 'rock, rebelde, con actitud. Energía cruda, referencias a guitarra, escenario y libertad',
+  };
+  return tones[tone] || 'auténtico y emocional';
 }
 
 const IMAGE_MODELS = [
