@@ -13,6 +13,9 @@ const es = {
       registerNew: 'Registrar una nueva obra',
       registerNewDesc: 'Inicia el proceso de registro y protección de tu obra paso a paso.',
       goToRegister: 'Ir al registro',
+      distributeWork: 'Distribuir tu música',
+      distributeWorkDesc: 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.',
+      goToDistribute: 'Ir a distribución',
     },
     billing: {
       title: 'Facturación',
