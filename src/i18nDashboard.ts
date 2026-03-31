@@ -1918,7 +1918,7 @@ const it: typeof es = {
       availableCredits: 'Crediti disponibili:',
       promoGenerated: 'Promozione generata! Controlla i tuoi asset e la tua email.',
       unknownError: 'Errore sconosciuto',
-      insufficientCredits: 'Crediti insufficienti (25 necessari).',
+      insufficientCredits: 'Crediti insufficienti (15 necessari).',
       generatingInfo: 'Generazione promozione... ~30 secondi.',
       launchError: 'Errore nel lancio della promozione',
       regenError: 'Errore nella rigenerazione',
