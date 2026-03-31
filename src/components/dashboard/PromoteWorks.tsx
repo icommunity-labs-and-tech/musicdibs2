@@ -205,9 +205,9 @@ export function PromoteWorks() {
       toast.info(t('dashboard.promote.generatingInfo'));
     } catch (err: any) {
       toast.error(err.message || t('dashboard.promote.launchError'));
-    } finally {
       setLaunching(null);
     }
+    // Note: launching stays set until polling completes — cleared in the poll effect
   };
 
   const handleRegenerate = async (promoId: string, type: 'copies' | 'image', paid: boolean) => {
