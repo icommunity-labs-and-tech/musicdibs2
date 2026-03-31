@@ -44,7 +44,7 @@ export function DashboardSidebar() {
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
     { title: tr('dashboard.sidebar.promoteWork', 'Promocionar obra'), url: '/dashboard/promote', icon: Megaphone },
-    { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
+    { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
     { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
     { title: tr('dashboard.sidebar.verifyRegistration', 'Verificar registro'), url: '/dashboard/verify', icon: Search },
     { title: tr('dashboard.sidebar.verifyIdentity', 'Verificar identidad'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
