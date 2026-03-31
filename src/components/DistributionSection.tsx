@@ -51,7 +51,7 @@ export const DistributionSection = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-20">
-                    <img src="/lovable-uploads/af219155-433f-402d-a220-28088ee5c7ea.png" alt="Spotify" className="h-12 w-auto object-contain" />
+                    <img src="/lovable-uploads/af219155-433f-402d-a220-28088ee5c7ea.png" alt="Spotify" className="h-12 w-auto object-contain" width={90} height={46} loading="lazy" />
                   </div>
                   <div className="bg-white/10 rounded-xl p-4 flex items-center justify-center h-16">
                     <img src="/lovable-uploads/3b78a760-1f1a-49bc-9d35-4d2df3b0abe5.png" alt="Apple Music" className="h-8 w-auto object-contain" />
