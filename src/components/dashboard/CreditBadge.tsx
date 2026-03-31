@@ -3,6 +3,7 @@ import { Coins, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   HoverCard,
   HoverCardContent,
@@ -19,6 +20,8 @@ interface RecentTransaction {
 
 export function CreditBadge() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
   const [credits, setCredits] = useState<number | null>(null);
   const [recent, setRecent] = useState<RecentTransaction[]>([]);
 
@@ -74,7 +77,7 @@ export function CreditBadge() {
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
   };
 
   return (
@@ -86,7 +89,7 @@ export function CreditBadge() {
               ? 'bg-destructive/15 text-destructive hover:bg-destructive/25 animate-pulse'
               : 'bg-primary/10 text-primary hover:bg-primary/20'
           }`}
-          title="Créditos disponibles"
+          title={t('dashboard.creditBadge.tooltip')}
         >
           <Coins className="h-3.5 w-3.5" />
           <span className="tabular-nums">{credits}</span>
@@ -101,15 +104,15 @@ export function CreditBadge() {
       <HoverCardContent align="end" className="w-72 p-0">
         <div className="p-3 border-b border-border">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">Saldo actual</span>
+            <span className="text-xs text-muted-foreground">{t('dashboard.creditBadge.currentBalance')}</span>
             <span className="text-lg font-bold tabular-nums text-foreground">{credits}</span>
           </div>
         </div>
 
         <div className="p-3 space-y-2">
-          <span className="text-xs font-medium text-muted-foreground">Últimos movimientos</span>
+          <span className="text-xs font-medium text-muted-foreground">{t('dashboard.creditBadge.recentMovements')}</span>
           {recent.length === 0 ? (
-            <p className="text-xs text-muted-foreground/70">Sin movimientos recientes</p>
+            <p className="text-xs text-muted-foreground/70">{t('dashboard.creditBadge.noMovements')}</p>
           ) : (
             <ul className="space-y-1.5">
               {recent.map((tx) => (
@@ -131,7 +134,7 @@ export function CreditBadge() {
             to="/dashboard/credits"
             className="flex items-center justify-center gap-1.5 w-full rounded-md bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium py-1.5 transition-colors"
           >
-            Comprar créditos <ArrowRight className="h-3 w-3" />
+            {t('dashboard.creditBadge.buyCredits')} <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </HoverCardContent>

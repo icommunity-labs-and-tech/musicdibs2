@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, FileText, CreditCard } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DayData {
   date: string;
@@ -13,22 +14,24 @@ interface DayData {
   credits: number;
 }
 
-const chartConfig = {
-  registrations: {
-    label: 'Registros',
-    color: 'hsl(var(--primary))',
-  },
-  credits: {
-    label: 'Créditos usados',
-    color: 'hsl(var(--accent))',
-  },
-};
-
 export function ActivityChart() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.resolvedLanguage || 'es';
   const [data, setData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(true);
   const [totals, setTotals] = useState({ registrations: 0, credits: 0 });
+
+  const chartConfig = {
+    registrations: {
+      label: t('dashboard.activity.registrations'),
+      color: 'hsl(var(--primary))',
+    },
+    credits: {
+      label: t('dashboard.activity.creditsUsed'),
+      color: 'hsl(var(--accent))',
+    },
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -38,14 +41,12 @@ export function ActivityChart() {
       const now = new Date();
       const daysAgo = new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000);
 
-      // Fetch works created in the last 14 days
       const { data: works } = await supabase
         .from('works')
         .select('created_at')
         .eq('user_id', user.id)
         .gte('created_at', daysAgo.toISOString());
 
-      // Fetch credit transactions (usage) in the last 14 days
       const { data: transactions } = await supabase
         .from('credit_transactions')
         .select('created_at, amount')
@@ -53,7 +54,6 @@ export function ActivityChart() {
         .eq('type', 'usage')
         .gte('created_at', daysAgo.toISOString());
 
-      // Build day-by-day data
       const dayMap: Record<string, DayData> = {};
       for (let i = 0; i < 14; i++) {
         const d = new Date(now.getTime() - (13 - i) * 24 * 60 * 60 * 1000);
@@ -85,7 +85,7 @@ export function ActivityChart() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    return d.toLocaleDateString(lang, { day: 'numeric', month: 'short' });
   };
 
   if (loading) {
@@ -106,29 +106,27 @@ export function ActivityChart() {
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
-          Actividad (últimos 14 días)
+          {t('dashboard.activity.title')}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Summary stats */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/10">
             <FileText className="h-4 w-4 text-primary" />
             <div>
-              <p className="text-xs text-muted-foreground">Registros</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.activity.registrationsLabel')}</p>
               <p className="text-lg font-semibold text-foreground">{totals.registrations}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-accent/10">
             <CreditCard className="h-4 w-4 text-accent-foreground" />
             <div>
-              <p className="text-xs text-muted-foreground">Créditos</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.activity.creditsLabel')}</p>
               <p className="text-lg font-semibold text-foreground">{totals.credits}</p>
             </div>
           </div>
         </div>
 
-        {/* Chart */}
         <ChartContainer config={chartConfig} className="h-[140px] w-full">
           <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
