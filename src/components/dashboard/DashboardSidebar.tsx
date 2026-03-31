@@ -41,12 +41,12 @@ export function DashboardSidebar() {
   const mainItems = useMemo(() => [
     { title: tr('dashboard.sidebar.launchHit', 'Lanza tu primer hit 🚀'), url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
     { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
+    { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
     { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
     { title: tr('dashboard.sidebar.verifyRegistration', 'Verificar registro'), url: '/dashboard/verify', icon: Search },
     { title: tr('dashboard.sidebar.verifyIdentity', 'Verificar identidad'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
     { title: tr('dashboard.sidebar.promoteWork', 'Promocionar obra'), url: '/dashboard/promote', icon: Megaphone },
-    { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
     { title: tr('dashboard.sidebar.voiceCloning', 'Clonación de Voz'), url: '/dashboard/voice-cloning', icon: Mic, hideForManager: true },
   ], [i18n.resolvedLanguage, t]);
