@@ -175,7 +175,7 @@ export function PromoteWorks() {
     setLaunching(workId);
     try {
       const { data, error } = await supabase.functions.invoke('promo-social-generate', {
-        body: { work_id: workId },
+        body: { work_id: workId, tone: selectedTone, language: userLang },
       });
       if (error) throw new Error(error.message);
       if (data?.error) {
