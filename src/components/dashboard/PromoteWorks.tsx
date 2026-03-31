@@ -399,7 +399,7 @@ export function PromoteWorks() {
                           <div className="flex items-center gap-1.5 mt-0.5">
                             {work.author && <span className="text-xs text-muted-foreground truncate">{work.author}</span>}
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 shrink-0 bg-primary/10 text-primary border-primary/20">
-                              <Sparkles className="h-2.5 w-2.5" /> Generada con AI MusicDibs Studio
+                              <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.promote.generatedWithAI')}
                             </Badge>
                           </div>
                         )}
