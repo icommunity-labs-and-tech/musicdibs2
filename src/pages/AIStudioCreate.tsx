@@ -118,6 +118,8 @@ const AIStudioCreate = () => {
   const [results, setResults] = useState<GenerationResult[]>([]);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
+  const [audioProgress, setAudioProgress] = useState<Map<string, { current: number; duration: number }>>(new Map());
+  const progressIntervalRef = useRef<number | null>(null);
 
   // ── Filter state ──
   const [filterFavorites, setFilterFavorites] = useState(false);
