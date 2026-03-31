@@ -557,7 +557,17 @@ function PromoDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-primary" />
-            Promoción: {work.title}
+            <div className="min-w-0">
+              <span>Promoción: {work.title}</span>
+              {work.source === 'ai_studio' && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  {work.author && <span className="text-xs font-normal text-muted-foreground">{work.author}</span>}
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary/10 text-primary border-primary/20 font-normal">
+                    <Sparkles className="h-2.5 w-2.5" /> Generada con AI MusicDibs Studio
+                  </Badge>
+                </div>
+              )}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
