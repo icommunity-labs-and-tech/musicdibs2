@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
-import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { CreditStore } from '@/components/dashboard/CreditStore';
 import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
@@ -162,8 +161,8 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Full-width Promote Works */}
-      <PromoteWorks />
+
+      {/* Full-width Recent Registrations */}
 
       {/* Full-width Recent Registrations */}
       <div data-tour="recent-registrations">
