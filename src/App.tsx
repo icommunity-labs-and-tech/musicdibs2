@@ -80,8 +80,10 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
-          <ChatWidget />
-          <SocialProofPopup />
+          <Suspense fallback={null}>
+            <ChatWidget />
+            <SocialProofPopup />
+          </Suspense>
           <Suspense fallback={null}>
             <Routes>
               <Route path="/" element={<Index />} />
