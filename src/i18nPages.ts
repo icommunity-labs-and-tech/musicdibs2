@@ -342,6 +342,11 @@ export const pagesTranslations: Record<string, { translation: { verify: any; man
         hidePassword: 'Nascondi password',
         showPassword: 'Mostra password',
       },
+      whyBadge: { comingSoon: 'Prossimamente' },
+      artistsAB: { joinFreeToday: '🎵 Unisciti gratis oggi', startCareer: 'Inizia la tua carriera', whoTrusts: 'Scopri chi si fida di noi' },
+      promoBanner: { label: 'San Valentino' },
+      footerExtra: { web: 'Web', version: 'Versione 1.3.0' },
+      calcStreams: { unit: 'streams' },
     },
   },
   de: {
