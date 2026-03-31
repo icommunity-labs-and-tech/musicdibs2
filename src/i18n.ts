@@ -2028,7 +2028,7 @@ const resources = {
           verifyRegistration: 'Registrierung prüfen',
           verifyIdentity: 'Identität verifizieren',
           promoteWork: 'Werk bewerben',
-          artistProfiles: 'Meine Künstler',
+          artistProfiles: 'Meine virtuellen Künstler',
           voiceCloning: 'Stimmklonung',
           profile: 'Profil',
           plansCredits: 'Pläne & Credits',
