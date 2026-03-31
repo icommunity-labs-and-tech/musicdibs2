@@ -467,6 +467,10 @@ const es = {
       etaNote: 'El proceso suele completarse en 1–5 minutos.',
       failedBanner: 'La certificación ha fallado. El crédito ha sido reembolsado automáticamente.',
     },
+    virtualArtists: {
+      title: 'Mis Artistas Virtuales',
+      description: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.',
+    },
   },
 };
 
