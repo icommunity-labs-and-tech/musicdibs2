@@ -44,6 +44,45 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
   return { work, aiGen, lyrics };
 }
 
+async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId: string) {
+  const [genRes, lyricsRes] = await Promise.all([
+    supabase
+      .from('ai_generations')
+      .select('prompt, genre, mood')
+      .eq('id', aiGenId)
+      .eq('user_id', userId)
+      .single(),
+    supabase
+      .from('lyrics_generations')
+      .select('lyrics, genre, mood, theme, style, description')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ]);
+
+  const gen = genRes.data;
+  if (!gen) return null;
+
+  // Build a work-like object from the AI generation
+  const work = {
+    title: gen.prompt || 'AI Song',
+    author: null,
+    description: [gen.genre, gen.mood].filter(Boolean).join(' · ') || null,
+    type: 'audio',
+    certificate_url: null,
+    checker_url: null,
+  };
+
+  const aiGen = { prompt: gen.prompt, genre: gen.genre, mood: gen.mood };
+
+  // Try to match lyrics
+  const lyrics = lyricsRes.data?.find((l: any) =>
+    gen.prompt && l.description && l.description.toLowerCase().includes(gen.prompt.toLowerCase())
+  ) || lyricsRes.data?.[0] || null;
+
+  return { work, aiGen, lyrics };
+}
+
 function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   const parts = [
     `Create a professional promotional artwork for the song "${work.title}" by ${work.author || 'artist'}.`,
