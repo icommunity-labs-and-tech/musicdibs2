@@ -5,14 +5,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
-const FEATURE_MAP: Record<string, { label: string; color: string }> = {
-  register_work:  { label: 'Registro de obra',   color: '#431884' },
-  promote_work:   { label: 'Promoción',           color: '#3A50B0' },
-  generate_audio: { label: 'Generar audio',       color: '#5972C2' },
-  edit_audio:     { label: 'Editar audio',         color: '#7BB3F0' },
-  generate_video: { label: 'Generar vídeo',       color: '#8090D0' },
-  other:          { label: 'Otros',               color: '#94A3B8' },
+const FEATURE_MAP: Record<string, { labelKey: string; color: string }> = {
+  register_work:  { labelKey: 'dashboard.creditChart.registerWork', color: '#431884' },
+  promote_work:   { labelKey: 'dashboard.creditChart.promotion', color: '#3A50B0' },
+  generate_audio: { labelKey: 'dashboard.creditChart.generateAudio', color: '#5972C2' },
+  edit_audio:     { labelKey: 'dashboard.creditChart.editAudio', color: '#7BB3F0' },
+  generate_video: { labelKey: 'dashboard.creditChart.generateVideo', color: '#8090D0' },
+  other:          { labelKey: 'dashboard.creditChart.other', color: '#94A3B8' },
 };
 
 function parseFeature(description: string | null): string {
@@ -34,13 +35,14 @@ interface ChartEntry {
 }
 
 function CustomTooltip({ active, payload }: any) {
+  const { t } = useTranslation();
   if (!active || !payload?.length) return null;
   const { name, value } = payload[0].payload;
   return (
     <div className="rounded-lg border bg-popover px-3 py-2 text-sm shadow-md">
       <p className="font-medium text-foreground">{name}</p>
       <p className="text-muted-foreground">
-        {value} crédito{value !== 1 ? 's' : ''}
+        {t('dashboard.creditChart.nCredits', { n: value })}
       </p>
     </div>
   );
@@ -68,6 +70,7 @@ function CustomLegend({ data, total }: { data: ChartEntry[]; total: number }) {
 }
 
 export function CreditUsageChart() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [data, setData]       = useState<ChartEntry[]>([]);
   const [total, setTotal]     = useState(0);
@@ -110,7 +113,7 @@ export function CreditUsageChart() {
       const entries: ChartEntry[] = Object.entries(counts)
         .map(([feature, value]) => ({
           feature,
-          name:  FEATURE_MAP[feature]?.label  || 'Otros',
+          name: t(FEATURE_MAP[feature]?.labelKey || 'dashboard.creditChart.other'),
           color: FEATURE_MAP[feature]?.color  || '#94A3B8',
           value,
         }))
@@ -122,12 +125,12 @@ export function CreditUsageChart() {
       setLoading(false);
     };
     load();
-  }, [user, period]);
+  }, [user, period, t, i18n.resolvedLanguage]);
 
   const periodLabel = {
-    '30':  'Últimos 30 días',
-    '90':  'Últimos 90 días',
-    'all': 'Todo el tiempo',
+    '30':  t('dashboard.creditChart.last30'),
+    '90':  t('dashboard.creditChart.last90'),
+    'all': t('dashboard.creditChart.allTime'),
   }[period];
 
   if (loading) {
@@ -148,7 +151,7 @@ export function CreditUsageChart() {
       <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-primary" />
-          Uso de créditos por categoría
+          {t('dashboard.creditChart.title')}
         </CardTitle>
 
         <div className="flex rounded-lg border border-border/60 overflow-hidden text-xs">
@@ -162,7 +165,7 @@ export function CreditUsageChart() {
                   : 'text-muted-foreground hover:bg-muted'
               }`}
             >
-              {p === '30' ? '30d' : p === '90' ? '90d' : 'Todo'}
+                {p === '30' ? t('dashboard.creditChart.d30') : p === '90' ? t('dashboard.creditChart.d90') : t('dashboard.creditChart.all')}
             </button>
           ))}
         </div>
@@ -171,7 +174,7 @@ export function CreditUsageChart() {
       <CardContent>
         {data.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            No hay consumo de créditos en {periodLabel.toLowerCase()}.
+            {t('dashboard.creditChart.noUsage', { period: periodLabel.toLowerCase() })}
           </p>
         ) : (
           <>
@@ -198,7 +201,7 @@ export function CreditUsageChart() {
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-2xl font-bold text-foreground">{total}</span>
-                  <span className="text-xs text-muted-foreground">créditos</span>
+                  <span className="text-xs text-muted-foreground">{t('dashboard.creditChart.credits')}</span>
                 </div>
               </div>
 
@@ -208,7 +211,7 @@ export function CreditUsageChart() {
             </div>
 
             <p className="mt-4 text-xs text-muted-foreground text-center">
-              {periodLabel} · Solo consumos (no incluye compras ni reembolsos)
+              {t('dashboard.creditChart.periodNote', { period: periodLabel })}
             </p>
           </>
         )}
