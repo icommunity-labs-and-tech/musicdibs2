@@ -2536,8 +2536,13 @@ allLangs.forEach((lang) => {
   if (dashboardFull) {
     translation.dashboard = {
       ...(translation.dashboard || {}),
-      ...dashboardFull,
+    ...dashboardFull,
     };
+  }
+
+  const pagesRoot = pagesTranslations[lang]?.translation;
+  if (pagesRoot) {
+    Object.assign(translation, pagesRoot);
   }
 });
 
