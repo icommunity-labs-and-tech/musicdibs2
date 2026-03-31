@@ -6,6 +6,7 @@ import { faqTranslations } from './i18nFaq';
 import { aiStudioTranslations } from './i18nAIStudio';
 import { wizardTranslations } from './i18nWizard';
 import { dashboardTranslations } from './i18nDashboard';
+import { pagesTranslations } from './i18nPages';
 
 // Spanish-speaking country codes (ISO 3166-1 alpha-2 mapped via navigator.language)
 const SPANISH_LANG_TAGS = [
@@ -2535,8 +2536,13 @@ allLangs.forEach((lang) => {
   if (dashboardFull) {
     translation.dashboard = {
       ...(translation.dashboard || {}),
-      ...dashboardFull,
+    ...dashboardFull,
     };
+  }
+
+  const pagesRoot = pagesTranslations[lang]?.translation;
+  if (pagesRoot) {
+    Object.assign(translation, pagesRoot);
   }
 });
 
