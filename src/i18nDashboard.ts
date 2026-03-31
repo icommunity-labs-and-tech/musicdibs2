@@ -1886,6 +1886,10 @@ const fr: typeof es = {
       etaNote: 'Le processus se termine généralement en 1 à 5 minutes.',
       failedBanner: "La certification a échoué. Le crédit a été automatiquement remboursé.",
     },
+    virtualArtists: {
+      title: 'Mes Artistes Virtuels',
+      description: 'Enregistrez la configuration vocale et stylistique de vos artistes pour créer des chansons cohérentes.',
+    },
   },
 };
 
