@@ -30,8 +30,8 @@ const ArtistsBanner = () => {
     id: 'artists_cta_join',
     variants: [
       { text: t("artists.join_now"), className: '' },
-      { text: '🎵 Únete gratis hoy', className: '' },
-      { text: 'Comienza tu carrera', className: 'bg-yellow-400 text-black hover:bg-yellow-300' },
+      { text: t('artistsAB.joinFreeToday'), className: '' },
+      { text: t('artistsAB.startCareer'), className: 'bg-yellow-400 text-black hover:bg-yellow-300' },
     ],
   });
 
