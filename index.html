@@ -82,6 +82,13 @@
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-518359138');
+      // Defer GA script load to after page interactive
+      window.addEventListener('load', function() {
+        var s = document.createElement('script');
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-518359138';
+        s.async = true;
+        document.head.appendChild(s);
+      });
     </script>
 </head>
 

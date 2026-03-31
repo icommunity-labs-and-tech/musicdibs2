@@ -116,7 +116,7 @@ const Footer = () => {
                 </svg>
               </a>
               <a href="https://www.instagram.com/musicdibs/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
-                <img src="/lovable-uploads/08188aae-4d50-4395-aeb1-8a4b2f6c6c6a.png" alt="Instagram" className="w-5 h-5" />
+                <img src="/lovable-uploads/08188aae-4d50-4395-aeb1-8a4b2f6c6c6a.png" alt="Instagram" className="w-5 h-5" width={20} height={20} loading="lazy" />
               </a>
               <a href="https://www.tiktok.com/@musicdibs_" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
