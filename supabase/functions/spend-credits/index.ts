@@ -10,7 +10,8 @@ const corsHeaders = {
 // ── Server-side cost configuration ─────────────────────────
 const FEATURE_COSTS: Record<string, number> = {
   register_work: 1,
-  promote_work: 25,
+  promote_work: 15,
+  promote_premium: 30,
   generate_audio: 2,
   generate_audio_song: 3,
   edit_audio: 2,
