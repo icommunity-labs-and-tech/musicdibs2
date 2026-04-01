@@ -2764,6 +2764,8 @@ const de: typeof es = {
       statusUncollectible: 'Uneinbringlich',
       viewInvoice: 'Rechnung anzeigen',
       downloadPdf: 'PDF herunterladen',
+      typeSubscription: 'Abonnement',
+      typeOneTime: 'Einzelkauf',
     },
     profile: {
       title: 'Profil',
