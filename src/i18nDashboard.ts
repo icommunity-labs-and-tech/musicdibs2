@@ -2863,6 +2863,8 @@ const de: typeof es = {
       planChanged: 'Plan erfolgreich geändert',
       purchaseError: 'Fehler bei der Kaufabwicklung',
       nCredits: '{{n}} Credits',
+      cancelled: 'Gekündigt',
+      reactivate: 'Reaktivieren',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
