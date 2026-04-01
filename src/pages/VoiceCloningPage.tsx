@@ -311,6 +311,34 @@ const VoiceCloningPage = () => {
                   <p className="text-xs text-muted-foreground mt-1">
                     Creada el {new Date(clone.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
+                  {/* Audio player */}
+                  {clone.sample_url && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => togglePlay(clone)}
+                      >
+                        {playingId === clone.id
+                          ? <Pause className="h-3.5 w-3.5" />
+                          : <Play className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Slider
+                        value={[playingId === clone.id ? currentTime : 0]}
+                        max={playingId === clone.id && duration > 0 ? duration : 100}
+                        step={0.1}
+                        onValueChange={handleSeek}
+                        className="flex-1"
+                        disabled={playingId !== clone.id}
+                      />
+                      <span className="text-[10px] text-muted-foreground tabular-nums w-16 text-right shrink-0">
+                        {playingId === clone.id
+                          ? `${formatTime(currentTime)} / ${formatTime(duration)}`
+                          : '0:00'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/artist-profiles')} className="gap-1.5">
