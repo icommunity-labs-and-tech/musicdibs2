@@ -10,7 +10,7 @@ import { differenceInDays } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-export function AccountSummary({ onSummaryLoaded, subscriptionEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null }) {
+export function AccountSummary({ onSummaryLoaded, subscriptionEnd, cancelAtPeriodEnd }: { onSummaryLoaded?: (s: DashboardSummary) => void; subscriptionEnd?: string | null; cancelAtPeriodEnd?: boolean }) {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
