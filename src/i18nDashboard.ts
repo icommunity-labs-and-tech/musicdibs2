@@ -169,6 +169,7 @@ const es = {
       topupRequiresSubscription: 'Las recargas están disponibles solo para suscriptores. Suscríbete para desbloquear packs de créditos a mejor precio.',
       subscribersOnly: 'Solo suscriptores',
       seeSubscriptions: 'Ver suscripciones',
+      subscribersBenefits: 'Accede a recargas con hasta un 40% de descuento por crédito y nunca te quedes sin registros.',
     },
     creditHistory: {
       title: 'Historial de créditos',
