@@ -294,12 +294,15 @@ serve(async (req) => {
       lineItems.push({ price: plan.signupFeePriceId, quantity: 1 });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: lineItems,
       mode: plan.mode,
       automatic_tax: { enabled: true },
+      billing_address_collection: "required",
+      tax_id_collection: { enabled: true },
+      consent_collection: { terms_of_service: "required" },
       success_url: `${req.headers.get("origin")}/dashboard/credits?payment=success&plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/dashboard/credits?payment=canceled`,
       metadata: {
@@ -307,7 +310,14 @@ serve(async (req) => {
         plan_id: planId,
         credits: String(plan.credits),
       },
-    });
+    };
+
+    // For one-time payments, enable invoice creation so Stripe generates a proper invoice with number
+    if (plan.mode === "payment") {
+      sessionParams.invoice_creation = { enabled: true };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     // Guardar stripe_customer_id en profiles si aún no lo tiene
     const resolvedCustomerId = session.customer as string | undefined;
