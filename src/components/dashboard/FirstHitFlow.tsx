@@ -1109,7 +1109,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
             variant="ghost"
             size="sm"
             className="text-xs text-muted-foreground"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => onSkip ? onSkip() : navigate('/dashboard')}
           >
             {t('dashboard.firstHit.goToPanel')}
           </Button>
