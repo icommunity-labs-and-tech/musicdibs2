@@ -24,6 +24,7 @@ interface Invoice {
   hosted_invoice_url: string | null;
   invoice_pdf: string | null;
   description: string | null;
+  payment_type?: 'subscription' | 'one_time';
 }
 
 function formatCurrency(amount: number, currency: string) {
