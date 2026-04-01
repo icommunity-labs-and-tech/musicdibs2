@@ -2,11 +2,13 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
-import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle, FileText, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
 import { verifyFile } from "@/services/dashboardApi";
 import type { VerificationResult } from "@/types/dashboard";
+import { generateCertificate, CertificateData } from "@/lib/generateCertificate";
+import { toast } from "sonner";
 
 const Verify = () => {
   const { t, i18n } = useTranslation();
