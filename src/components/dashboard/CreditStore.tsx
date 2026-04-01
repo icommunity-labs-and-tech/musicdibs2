@@ -50,12 +50,13 @@ function getButtonConfig(
   }
 }
 
-export function CreditStore({ compact }: { compact?: boolean }) {
+export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { compact?: boolean; cancelAtPeriodEnd?: boolean }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
   const { user } = useAuth();
   const paymentStatus = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
