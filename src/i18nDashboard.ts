@@ -1146,7 +1146,7 @@ const pt: typeof es = {
       status: 'Status',
       date: 'Data',
       actions: 'Ações',
-      certificate: 'Certificado',
+      certificate: 'Ver Registro',
       processing: 'Em processamento',
       registered: 'Registrado',
       failed: 'Falhou',
