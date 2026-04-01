@@ -2289,6 +2289,7 @@ const it: typeof es = {
       expiresIn: 'Il tuo abbonamento scade tra {{days}} giorno/i',
       renewal: 'Rinnovo: {{date}}',
       renewalWarning: 'Il tuo abbonamento si rinnoverà automaticamente. Verifica che il tuo metodo di pagamento sia ancora valido.',
+      cancelledRenewal: 'Rinnovo annullato · Attivo fino al {{date}}',
     },
     creditStore: {
       credits: 'Crediti',
