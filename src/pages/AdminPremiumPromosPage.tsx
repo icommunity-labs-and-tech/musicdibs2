@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
-import { supabase } from '@/integrations/supabase/client';
+
 import { toast } from 'sonner';
 import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
 import { format } from 'date-fns';
