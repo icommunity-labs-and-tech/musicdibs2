@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 5;
 
 export function RecentRegistrations() {
   const { t, i18n } = useTranslation();
@@ -69,7 +69,7 @@ export function RecentRegistrations() {
           <>
             <div className="overflow-x-auto">
               {/* Header */}
-              <div className="hidden sm:grid sm:grid-cols-[1fr_100px_100px_1fr] gap-4 items-center px-6 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="hidden sm:grid sm:grid-cols-[1fr_80px_80px_auto] gap-2 items-center px-4 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <span>{t('dashboard.recentReg.work')}</span>
                 <span>{t('dashboard.recentReg.status')}</span>
                 <span>{t('dashboard.recentReg.date')}</span>
@@ -79,13 +79,13 @@ export function RecentRegistrations() {
                 {pageData.map(reg => {
                   const sc = statusConfig[reg.status] || statusConfig.processing;
                   return (
-                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_1fr] gap-2 sm:gap-4 items-center px-6 py-3 hover:bg-muted/50 transition-colors">
+                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_auto] gap-1 sm:gap-2 items-center px-4 py-2 hover:bg-muted/50 transition-colors">
                       {/* Title */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FileText className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileText className="h-3 w-3 text-primary" />
                         </div>
-                        <p className="text-sm font-medium truncate">{reg.title}</p>
+                        <p className="text-xs font-medium truncate">{reg.title}</p>
                       </div>
 
                       {/* Status */}
@@ -145,7 +145,7 @@ export function RecentRegistrations() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3 border-t border-border/30">
+              <div className="flex items-center justify-between px-4 py-2 border-t border-border/30">
                 <span className="text-xs text-muted-foreground">
                   {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, data.length)} {t('dashboard.recentReg.of')} {data.length}
                 </span>
