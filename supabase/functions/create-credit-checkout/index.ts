@@ -66,6 +66,19 @@ serve(async (req) => {
     const plan = PLANS[planId];
     if (!plan) throw new Error(`Invalid plan: ${planId}`);
 
+    // Block top-ups for users without an active subscription
+    const TOPUP_PLANS = ["topup_10", "topup_25", "topup_50", "topup_100", "topup_200"];
+    if (TOPUP_PLANS.includes(planId)) {
+      const customers2 = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers2.data.length) {
+        const subs = await stripe.subscriptions.list({ customer: customers2.data[0].id, status: "all", limit: 10 });
+        const activeSub = subs.data.find(s => ["active","trialing","past_due","unpaid"].includes(s.status) && !s.cancel_at_period_end);
+        if (!activeSub) throw new Error("Top-ups require an active subscription. Please subscribe first.");
+      } else {
+        throw new Error("Top-ups require an active subscription. Please subscribe first.");
+      }
+    }
+
     // Get or create Stripe customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId = customers.data[0]?.id;

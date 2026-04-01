@@ -166,6 +166,7 @@ const es = {
       noSignupFee: 'Sin cuota de inscripción · Cancela cuando quieras',
       creditsAdded: '✅ {{n}} créditos añadidos a tu cuenta',
       paymentError: 'Error al procesar el pago',
+      topupRequiresSubscription: 'Los top-ups están disponibles solo para suscriptores. Suscríbete a un plan para recargar créditos.',
     },
     creditHistory: {
       title: 'Historial de créditos',
@@ -723,6 +724,7 @@ const en: typeof es = {
       noSignupFee: 'No signup fee · Cancel anytime',
       creditsAdded: '✅ {{n}} credits added to your account',
       paymentError: 'Error processing payment',
+      topupRequiresSubscription: 'Top-ups are only available for subscribers. Subscribe to a plan to top up credits.',
     },
     creditHistory: {
       title: 'Credit history',
@@ -1280,6 +1282,7 @@ const pt: typeof es = {
       noSignupFee: 'Sem taxa de inscrição · Cancele quando quiser',
       creditsAdded: '✅ {{n}} créditos adicionados à sua conta',
       paymentError: 'Erro ao processar o pagamento',
+      topupRequiresSubscription: 'Os top-ups estão disponíveis apenas para assinantes. Assine um plano para recarregar créditos.',
     },
     creditHistory: {
       title: 'Histórico de créditos',
@@ -1837,6 +1840,7 @@ const fr: typeof es = {
       noSignupFee: "Sans frais d'inscription · Annulez quand vous voulez",
       creditsAdded: '✅ {{n}} crédits ajoutés à votre compte',
       paymentError: 'Erreur lors du traitement du paiement',
+      topupRequiresSubscription: 'Les top-ups sont disponibles uniquement pour les abonnés. Abonnez-vous pour recharger des crédits.',
     },
     creditHistory: {
       title: 'Historique des crédits',
@@ -2394,6 +2398,7 @@ const it: typeof es = {
       noSignupFee: 'Nessuna quota di iscrizione · Annulla quando vuoi',
       creditsAdded: '✅ {{n}} crediti aggiunti al tuo account',
       paymentError: "Errore nell'elaborazione del pagamento",
+      topupRequiresSubscription: 'I top-up sono disponibili solo per gli abbonati. Abbonati a un piano per ricaricare crediti.',
     },
     creditHistory: {
       title: 'Storico crediti',
@@ -2951,6 +2956,7 @@ const de: typeof es = {
       noSignupFee: 'Keine Anmeldegebühr · Jederzeit kündbar',
       creditsAdded: '✅ {{n}} Credits Ihrem Konto hinzugefügt',
       paymentError: 'Fehler bei der Zahlungsverarbeitung',
+      topupRequiresSubscription: 'Top-ups sind nur für Abonnenten verfügbar. Abonnieren Sie einen Plan, um Credits aufzuladen.',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
