@@ -687,6 +687,7 @@ export type Database = {
           description: string
           external_link: string | null
           id: string
+          media_file_path: string | null
           promo_message: string | null
           promo_style: string | null
           song_title: string
@@ -703,6 +704,7 @@ export type Database = {
           description: string
           external_link?: string | null
           id?: string
+          media_file_path?: string | null
           promo_message?: string | null
           promo_style?: string | null
           song_title: string
@@ -719,6 +721,7 @@ export type Database = {
           description?: string
           external_link?: string | null
           id?: string
+          media_file_path?: string | null
           promo_message?: string | null
           promo_style?: string | null
           song_title?: string
