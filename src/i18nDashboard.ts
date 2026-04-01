@@ -664,7 +664,7 @@ const en: typeof es = {
       status: 'Status',
       date: 'Date',
       actions: 'Actions',
-      certificate: 'Certificate',
+      certificate: 'View Registration',
       processing: 'Processing',
       registered: 'Registered',
       failed: 'Failed',
