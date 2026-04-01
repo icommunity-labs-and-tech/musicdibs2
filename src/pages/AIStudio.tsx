@@ -117,6 +117,11 @@ const AIStudio = () => {
                   {t('aiStudio.comingSoon')}
                 </Badge>
               )}
+              {module.available && !module.costsCredits && (
+                <Badge className="absolute top-3 right-3 z-10 text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white border-0">
+                  {t('aiStudio.free', 'Gratis')}
+                </Badge>
+              )}
               {module.available && !hasEnough(cost) && module.costsCredits && (
                 <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
                   {t('aiStudio.noCredits')}
