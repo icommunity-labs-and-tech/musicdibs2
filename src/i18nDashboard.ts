@@ -2110,7 +2110,7 @@ const it: typeof es = {
       status: 'Stato',
       date: 'Data',
       actions: 'Azioni',
-      certificate: 'Certificato',
+      certificate: 'Vedi Registrazione',
       processing: 'In elaborazione',
       registered: 'Registrato',
       failed: 'Fallito',
