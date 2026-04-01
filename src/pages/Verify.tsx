@@ -2,17 +2,20 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useState, useRef } from "react";
-import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Upload, ShieldCheck, FileSearch, AlertCircle, CheckCircle2, XCircle, FileText, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
 import { verifyFile } from "@/services/dashboardApi";
 import type { VerificationResult } from "@/types/dashboard";
+import { generateCertificate, CertificateData } from "@/lib/generateCertificate";
+import { toast } from "sonner";
 
 const Verify = () => {
   const { t, i18n } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -38,6 +41,45 @@ const Verify = () => {
       setResult({ found: false });
     }
     setVerifying(false);
+  };
+
+  const handleDownloadCertificate = async () => {
+    if (!result || !result.found || !result.blockchainHash || !result.ibsEvidenceId) return;
+    setGenerating(true);
+    try {
+      const network = result.blockchainNetwork || 'Polygon';
+      const checkerNetwork = ['fantom_opera_mainnet', 'fantom', 'opera'].includes(network.toLowerCase())
+        ? 'opera'
+        : network.toLowerCase();
+
+      const certData: CertificateData = {
+        title: result.title || '',
+        filename: file?.name || `${result.title}.mp3`,
+        filesize: file ? `${file.size.toLocaleString(locale)} bytes` : t('dashboard.certificate.notAvailable'),
+        fileType: result.workType || t('dashboard.certificate.fileTypeFallback'),
+        description: result.description || undefined,
+        authorName: result.author || t('dashboard.certificate.notAvailable'),
+        certifiedAt: new Date(result.registeredAt!).toLocaleDateString(locale, {
+          day: '2-digit', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+        }),
+        network,
+        txHash: result.blockchainHash,
+        fingerprint: result.blockchainHash,
+        algorithm: 'base64 SHA-512',
+        checkerUrl: result.certificateUrl ||
+          `https://checker.icommunitylabs.com/check/${checkerNetwork}/${result.blockchainHash}`,
+        ibsUrl: `https://app.icommunitylabs.com/evidences/${result.ibsEvidenceId}`,
+        evidenceId: result.ibsEvidenceId,
+      };
+      await generateCertificate(certData);
+      toast.success(t('dashboard.certificate.downloadSuccess'));
+    } catch (e) {
+      console.error(e);
+      toast.error(t('dashboard.certificate.generateError'));
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const locale = i18n.language === 'pt-BR' ? 'pt-BR' : i18n.language?.split('-')[0] || 'es';
@@ -151,15 +193,17 @@ const Verify = () => {
                       date: new Date(result.registeredAt!).toLocaleDateString(locale),
                     })}
                   </p>
-                  {result.certificateUrl && (
-                    <a
-                      href={result.certificateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                  {result.blockchainHash && result.ibsEvidenceId && (
+                    <button
+                      onClick={handleDownloadCertificate}
+                      disabled={generating}
+                      className="inline-flex items-center gap-1.5 text-sm text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-50"
                     >
-                      <ExternalLink className="w-4 h-4" /> {t('verify.viewCert')}
-                    </a>
+                      {generating
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('dashboard.certificate.generating')}</>
+                        : <><FileText className="w-4 h-4" /> {t('dashboard.certificate.pdfLabel')}</>
+                      }
+                    </button>
                   )}
                 </div>
               </div>

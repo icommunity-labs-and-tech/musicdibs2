@@ -78,7 +78,7 @@ serve(async (req) => {
     if (fileHash) {
       const bySha256 = await supabaseAdmin
         .from("works")
-        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network, ibs_evidence_id, description, type, author")
         .eq("file_hash", fileHash)
         .eq("status", "registered")
         .limit(1);
@@ -89,7 +89,7 @@ serve(async (req) => {
     if ((!works || works.length === 0) && !error && fileHashSha512Base64) {
       const byIbsChecksum = await supabaseAdmin
         .from("works")
-        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network, ibs_evidence_id, description, type, author")
         .eq("ibs_payload_checksum", fileHashSha512Base64)
         .eq("status", "registered")
         .limit(1);
@@ -114,6 +114,10 @@ serve(async (req) => {
           certificateUrl: w.certificate_url || w.checker_url,
           blockchainHash: w.blockchain_hash,
           blockchainNetwork: w.blockchain_network,
+          ibsEvidenceId: w.ibs_evidence_id,
+          description: w.description,
+          workType: w.type,
+          author: w.author,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

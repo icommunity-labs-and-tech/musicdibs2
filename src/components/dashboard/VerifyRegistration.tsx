@@ -2,15 +2,19 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, CheckCircle2, XCircle, FileUp, ExternalLink } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, XCircle, FileUp, FileText } from 'lucide-react';
 import { verifyFile } from '@/services/dashboardApi';
 import type { VerificationResult } from '@/types/dashboard';
+import { generateCertificate, CertificateData } from '@/lib/generateCertificate';
+import { toast } from 'sonner';
 
 export function VerifyRegistration() {
   const { t, i18n } = useTranslation();
   const lang = i18n.resolvedLanguage || 'es';
+  const locale = i18n.resolvedLanguage === 'pt-BR' ? 'pt-BR' : (i18n.resolvedLanguage || i18n.language || 'es');
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -22,6 +26,45 @@ export function VerifyRegistration() {
       setResult(res);
     } catch { setResult({ found: false }); }
     setLoading(false);
+  };
+
+  const handleDownloadCertificate = async () => {
+    if (!result || !result.found || !result.blockchainHash || !result.ibsEvidenceId) return;
+    setGenerating(true);
+    try {
+      const network = result.blockchainNetwork || 'Polygon';
+      const checkerNetwork = ['fantom_opera_mainnet', 'fantom', 'opera'].includes(network.toLowerCase())
+        ? 'opera'
+        : network.toLowerCase();
+
+      const certData: CertificateData = {
+        title: result.title || '',
+        filename: file?.name || `${result.title}.mp3`,
+        filesize: file ? `${file.size.toLocaleString(locale)} bytes` : t('dashboard.certificate.notAvailable'),
+        fileType: result.workType || t('dashboard.certificate.fileTypeFallback'),
+        description: result.description || undefined,
+        authorName: result.author || t('dashboard.certificate.notAvailable'),
+        certifiedAt: new Date(result.registeredAt!).toLocaleDateString(locale, {
+          day: '2-digit', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+        }),
+        network,
+        txHash: result.blockchainHash,
+        fingerprint: result.blockchainHash,
+        algorithm: 'base64 SHA-512',
+        checkerUrl: result.certificateUrl ||
+          `https://checker.icommunitylabs.com/check/${checkerNetwork}/${result.blockchainHash}`,
+        ibsUrl: `https://app.icommunitylabs.com/evidences/${result.ibsEvidenceId}`,
+        evidenceId: result.ibsEvidenceId,
+      };
+      await generateCertificate(certData);
+      toast.success(t('dashboard.certificate.downloadSuccess'));
+    } catch (e) {
+      console.error(e);
+      toast.error(t('dashboard.certificate.generateError'));
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -61,11 +104,20 @@ export function VerifyRegistration() {
                 <span className="font-medium">{result.title}</span> — {t('dashboard.verify.registeredOn')}{' '}
                 {new Date(result.registeredAt!).toLocaleDateString(lang)}
               </p>
-              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" asChild>
-                <a href={result.certificateUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-3.5 w-3.5" /> {t('dashboard.verify.viewCertificate')}
-                </a>
-              </Button>
+              {result.blockchainHash && result.ibsEvidenceId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full gap-1.5 text-xs"
+                  onClick={handleDownloadCertificate}
+                  disabled={generating}
+                >
+                  {generating
+                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('dashboard.certificate.generating')}</>
+                    : <><FileText className="h-3.5 w-3.5" /> {t('dashboard.certificate.pdfLabel')}</>
+                  }
+                </Button>
+              )}
             </div>
           ) : (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4">
