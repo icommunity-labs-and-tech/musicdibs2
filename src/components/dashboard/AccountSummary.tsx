@@ -107,8 +107,8 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd, cancelAtPerio
               <div className={`mt-3 flex items-center gap-1.5 text-xs justify-center ${cancelAtPeriodEnd ? 'text-destructive font-medium' : expiringSoon ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
                 {cancelAtPeriodEnd || expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
                 <span>
-                  {cancelAtPeriodEnd
-                    ? t('dashboard.account.cancelledRenewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }), defaultValue: `Renovación cancelada · Activo hasta ${endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}` })
+                   {cancelAtPeriodEnd
+                    ? t('dashboard.account.cancelledRenewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })
                     : expiringSoon
                       ? t('dashboard.account.expiresIn', { days: daysLeft })
                       : t('dashboard.account.renewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}
