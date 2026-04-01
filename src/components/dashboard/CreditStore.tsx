@@ -283,6 +283,18 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               );
             })}
           </div>
+          {currentPlanId && currentPlanId !== '' && !cancelAtPeriodEnd && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-muted-foreground hover:text-destructive"
+              onClick={handleCancelRenewal}
+              disabled={loading !== null}
+            >
+              {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              {t('dashboard.creditStore.cancelRenewal', { defaultValue: 'Cancelar renovación' })}
+            </Button>
+          )}
           <p className="text-[10px] text-muted-foreground text-center">
             {t('dashboard.creditStore.stripeNote')}
           </p>
