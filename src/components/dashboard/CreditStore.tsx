@@ -211,7 +211,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                 <FileText className="h-4 w-4 text-primary shrink-0" />
                 <div>
                   <p className="text-sm font-medium">1 crédito individual</p>
-                  <p className="text-xs text-muted-foreground">Para un registro puntual sin compromiso</p>
+                  <p className="text-xs text-muted-foreground">Registro puntual</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
