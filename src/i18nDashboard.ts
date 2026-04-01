@@ -1852,6 +1852,7 @@ const fr: typeof es = {
       topupRequiresSubscription: 'Les top-ups sont disponibles uniquement pour les abonnés. Abonnez-vous pour débloquer des packs de crédits à meilleur prix.',
       subscribersOnly: 'Abonnés uniquement',
       seeSubscriptions: 'Voir les abonnements',
+      subscribersBenefits: 'Accédez à des recharges avec jusqu\'à 40% de réduction par crédit et ne manquez jamais d\'enregistrements.',
     },
     creditHistory: {
       title: 'Historique des crédits',
