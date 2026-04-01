@@ -2406,7 +2406,9 @@ const it: typeof es = {
       noSignupFee: 'Nessuna quota di iscrizione · Annulla quando vuoi',
       creditsAdded: '✅ {{n}} crediti aggiunti al tuo account',
       paymentError: "Errore nell'elaborazione del pagamento",
-      topupRequiresSubscription: 'I top-up sono disponibili solo per gli abbonati. Abbonati a un piano per ricaricare crediti.',
+      topupRequiresSubscription: 'I top-up sono disponibili solo per gli abbonati. Abbonati per sbloccare pacchetti di crediti a prezzo migliore.',
+      subscribersOnly: 'Solo abbonati',
+      seeSubscriptions: 'Vedi abbonamenti',
     },
     creditHistory: {
       title: 'Storico crediti',
