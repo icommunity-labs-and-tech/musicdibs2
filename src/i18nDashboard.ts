@@ -2320,6 +2320,8 @@ const it: typeof es = {
       planChanged: 'Piano cambiato con successo',
       purchaseError: "Errore nell'elaborazione dell'acquisto",
       nCredits: '{{n}} crediti',
+      cancelled: 'Annullato',
+      reactivate: 'Riattiva',
     },
     creditHistory: {
       title: 'Storico crediti',
