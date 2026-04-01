@@ -141,9 +141,7 @@ export default function PromotePage() {
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Megaphone className="h-5 w-5 text-primary" />
               </div>
-              <Badge variant="secondary" className="text-[11px] gap-1">
-                <Sparkles className="h-3 w-3" /> {FEATURE_COSTS.promote_work} {t('dashboard.promoSelector.credits')}
-              </Badge>
+              <PricingLink />
             </div>
             <div>
               <h3 className="text-sm font-semibold group-hover:text-primary transition-colors">
