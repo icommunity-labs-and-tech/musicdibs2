@@ -69,7 +69,7 @@ export function RecentRegistrations() {
           <>
             <div className="overflow-x-auto">
               {/* Header */}
-              <div className="hidden sm:grid sm:grid-cols-[1fr_100px_100px_1fr] gap-4 items-center px-6 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="hidden sm:grid sm:grid-cols-[1fr_80px_80px_auto] gap-2 items-center px-4 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <span>{t('dashboard.recentReg.work')}</span>
                 <span>{t('dashboard.recentReg.status')}</span>
                 <span>{t('dashboard.recentReg.date')}</span>
@@ -79,7 +79,7 @@ export function RecentRegistrations() {
                 {pageData.map(reg => {
                   const sc = statusConfig[reg.status] || statusConfig.processing;
                   return (
-                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_100px_100px_1fr] gap-2 sm:gap-4 items-center px-6 py-3 hover:bg-muted/50 transition-colors">
+                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_auto] gap-1 sm:gap-2 items-center px-4 py-2 hover:bg-muted/50 transition-colors">
                       {/* Title */}
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
