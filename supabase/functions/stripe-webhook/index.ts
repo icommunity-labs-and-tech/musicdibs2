@@ -9,12 +9,22 @@ const corsHeaders = {
 };
 
 const PRICE_CREDITS: Record<string, number> = {
-  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120, // annual
-  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,   // monthly
+  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120,  // annual (legacy)
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": 100,  // annual_100
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": 200,  // annual_200
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": 300,  // annual_300
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": 500,  // annual_500
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": 1000, // annual_1000
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,    // monthly
 };
 
 const PRICE_PLAN: Record<string, string> = {
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "Annual",
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": "Annual",
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": "Annual",
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": "Annual",
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "Annual",
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "Annual",
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
 };
 
