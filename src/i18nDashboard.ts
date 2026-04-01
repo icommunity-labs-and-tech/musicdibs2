@@ -1840,6 +1840,7 @@ const fr: typeof es = {
       noSignupFee: "Sans frais d'inscription · Annulez quand vous voulez",
       creditsAdded: '✅ {{n}} crédits ajoutés à votre compte',
       paymentError: 'Erreur lors du traitement du paiement',
+      topupRequiresSubscription: 'Les top-ups sont disponibles uniquement pour les abonnés. Abonnez-vous pour recharger des crédits.',
     },
     creditHistory: {
       title: 'Historique des crédits',
