@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2, Download, Eye, FileText } from 'lucide-react';
+import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2, Download, Eye, FileText, RefreshCw, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ interface Invoice {
   hosted_invoice_url: string | null;
   invoice_pdf: string | null;
   description: string | null;
+  payment_type?: 'subscription' | 'one_time';
 }
 
 function formatCurrency(amount: number, currency: string) {
@@ -268,12 +269,21 @@ export default function BillingPage() {
                     return (
                       <TableRow key={inv.id}>
                         <TableCell className="font-medium text-xs">
-                          {inv.number || inv.id.slice(0, 12)}
-                          {inv.description && (
-                            <span className="block text-muted-foreground font-normal truncate max-w-[180px]">
-                              {inv.description}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5">
+                            {inv.payment_type === 'one_time' ? (
+                              <Coins className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                            ) : (
+                              <RefreshCw className="h-3.5 w-3.5 text-primary shrink-0" />
+                            )}
+                            <div>
+                              {inv.number || inv.id.slice(0, 12)}
+                              {inv.description && (
+                                <span className="block text-muted-foreground font-normal truncate max-w-[180px]">
+                                  {inv.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {formatDate(inv.created, lang)}

@@ -49,6 +49,8 @@ const es = {
       statusUncollectible: 'Incobrable',
       viewInvoice: 'Ver factura',
       downloadPdf: 'Descargar PDF',
+      typeSubscription: 'Suscripción',
+      typeOneTime: 'Compra única',
     },
     profile: {
       title: 'Perfil',
@@ -117,6 +119,7 @@ const es = {
       expiresIn: 'Tu suscripción expira en {{days}} día(s)',
       renewal: 'Renovación: {{date}}',
       renewalWarning: 'Tu suscripción se renovará automáticamente. Comprueba que tu método de pago sigue vigente para evitar interrupciones.',
+      cancelledRenewal: 'Renovación cancelada · Activo hasta {{date}}',
     },
     creditStore: {
       credits: 'Créditos',
@@ -147,6 +150,8 @@ const es = {
       planChanged: 'Plan cambiado correctamente',
       purchaseError: 'Error al procesar la compra',
       nCredits: '{{n}} créditos',
+      cancelled: 'Cancelado',
+      reactivate: 'Reactivar',
     },
     creditHistory: {
       title: 'Historial de créditos',
@@ -587,6 +592,8 @@ const en: typeof es = {
       statusUncollectible: 'Uncollectible',
       viewInvoice: 'View invoice',
       downloadPdf: 'Download PDF',
+      typeSubscription: 'Subscription',
+      typeOneTime: 'One-time purchase',
     },
     profile: {
       title: 'Profile',
@@ -655,6 +662,7 @@ const en: typeof es = {
       expiresIn: 'Your subscription expires in {{days}} day(s)',
       renewal: 'Renewal: {{date}}',
       renewalWarning: 'Your subscription will renew automatically. Make sure your payment method is up to date to avoid interruptions.',
+      cancelledRenewal: 'Renewal cancelled · Active until {{date}}',
     },
     creditStore: {
       credits: 'Credits',
@@ -685,6 +693,8 @@ const en: typeof es = {
       planChanged: 'Plan changed successfully',
       purchaseError: 'Error processing purchase',
       nCredits: '{{n}} credits',
+      cancelled: 'Cancelled',
+      reactivate: 'Reactivate',
     },
     creditHistory: {
       title: 'Credit history',
@@ -1125,6 +1135,8 @@ const pt: typeof es = {
       statusUncollectible: 'Incobrável',
       viewInvoice: 'Ver fatura',
       downloadPdf: 'Baixar PDF',
+      typeSubscription: 'Assinatura',
+      typeOneTime: 'Compra única',
     },
     profile: {
       title: 'Perfil',
@@ -1193,6 +1205,7 @@ const pt: typeof es = {
       expiresIn: 'Sua assinatura expira em {{days}} dia(s)',
       renewal: 'Renovação: {{date}}',
       renewalWarning: 'Sua assinatura será renovada automaticamente. Verifique se seu método de pagamento está atualizado.',
+      cancelledRenewal: 'Renovação cancelada · Ativo até {{date}}',
     },
     creditStore: {
       credits: 'Créditos',
@@ -1223,6 +1236,8 @@ const pt: typeof es = {
       planChanged: 'Plano alterado com sucesso',
       purchaseError: 'Erro ao processar a compra',
       nCredits: '{{n}} créditos',
+      cancelled: 'Cancelado',
+      reactivate: 'Reativar',
     },
     creditHistory: {
       title: 'Histórico de créditos',
@@ -1663,6 +1678,8 @@ const fr: typeof es = {
       statusUncollectible: 'Irrécouvrable',
       viewInvoice: 'Voir la facture',
       downloadPdf: 'Télécharger PDF',
+      typeSubscription: 'Abonnement',
+      typeOneTime: 'Achat unique',
     },
     profile: {
       title: 'Profil',
@@ -1731,6 +1748,7 @@ const fr: typeof es = {
       expiresIn: 'Votre abonnement expire dans {{days}} jour(s)',
       renewal: 'Renouvellement : {{date}}',
       renewalWarning: 'Votre abonnement sera renouvelé automatiquement. Vérifiez que votre moyen de paiement est toujours valide.',
+      cancelledRenewal: 'Renouvellement annulé · Actif jusqu\'au {{date}}',
     },
     creditStore: {
       credits: 'Crédits',
@@ -1761,6 +1779,8 @@ const fr: typeof es = {
       planChanged: 'Plan modifié avec succès',
       purchaseError: "Erreur lors du traitement de l'achat",
       nCredits: '{{n}} crédits',
+      cancelled: 'Annulé',
+      reactivate: 'Réactiver',
     },
     creditHistory: {
       title: 'Historique des crédits',
@@ -2201,6 +2221,8 @@ const it: typeof es = {
       statusUncollectible: 'Non riscuotibile',
       viewInvoice: 'Vedi fattura',
       downloadPdf: 'Scarica PDF',
+      typeSubscription: 'Abbonamento',
+      typeOneTime: 'Acquisto singolo',
     },
     profile: {
       title: 'Profilo',
@@ -2269,6 +2291,7 @@ const it: typeof es = {
       expiresIn: 'Il tuo abbonamento scade tra {{days}} giorno/i',
       renewal: 'Rinnovo: {{date}}',
       renewalWarning: 'Il tuo abbonamento si rinnoverà automaticamente. Verifica che il tuo metodo di pagamento sia ancora valido.',
+      cancelledRenewal: 'Rinnovo annullato · Attivo fino al {{date}}',
     },
     creditStore: {
       credits: 'Crediti',
@@ -2299,6 +2322,8 @@ const it: typeof es = {
       planChanged: 'Piano cambiato con successo',
       purchaseError: "Errore nell'elaborazione dell'acquisto",
       nCredits: '{{n}} crediti',
+      cancelled: 'Annullato',
+      reactivate: 'Riattiva',
     },
     creditHistory: {
       title: 'Storico crediti',
@@ -2739,6 +2764,8 @@ const de: typeof es = {
       statusUncollectible: 'Uneinbringlich',
       viewInvoice: 'Rechnung anzeigen',
       downloadPdf: 'PDF herunterladen',
+      typeSubscription: 'Abonnement',
+      typeOneTime: 'Einzelkauf',
     },
     profile: {
       title: 'Profil',
@@ -2807,6 +2834,7 @@ const de: typeof es = {
       expiresIn: 'Ihr Abonnement läuft in {{days}} Tag(en) ab',
       renewal: 'Verlängerung: {{date}}',
       renewalWarning: 'Ihr Abonnement wird automatisch verlängert. Stellen Sie sicher, dass Ihre Zahlungsmethode aktuell ist.',
+      cancelledRenewal: 'Verlängerung gekündigt · Aktiv bis {{date}}',
     },
     creditStore: {
       credits: 'Credits',
@@ -2837,6 +2865,8 @@ const de: typeof es = {
       planChanged: 'Plan erfolgreich geändert',
       purchaseError: 'Fehler bei der Kaufabwicklung',
       nCredits: '{{n}} Credits',
+      cancelled: 'Gekündigt',
+      reactivate: 'Reaktivieren',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
