@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,8 @@ const TOPUP_OPTIONS = [
 ];
 
 export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { compact?: boolean; cancelAtPeriodEnd?: boolean }) {
+  const { t } = useTranslation();
+  const cs = 'dashboard.creditStore';
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -46,7 +49,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
   useEffect(() => {
     if (paymentStatus !== 'success' || !sessionId || !user) return;
     supabase.functions.invoke('verify-payment', { body: { sessionId } }).then(({ data }) => {
-      if (data?.fulfilled && !data?.already) toast.success(`✅ ${data.credits} créditos añadidos a tu cuenta`);
+      if (data?.fulfilled && !data?.already) toast.success(t(`${cs}.creditsAdded`, { n: data.credits }));
     });
   }, [paymentStatus, sessionId, user]);
 
@@ -75,7 +78,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
       if (data?.switched || data?.reactivated) { toast.success(data.message); if (data.reactivated) setCancelAtPeriodEnd(false); return; }
       if (data?.url) window.open(data.url, '_blank');
     } catch (err: any) {
-      setError(err?.message || 'Error al procesar el pago');
+      setError(err?.message || t(`${cs}.paymentError`));
     } finally {
       setLoading(null);
     }
@@ -85,9 +88,9 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
     setLoading('cancel');
     try {
       const { data } = await supabase.functions.invoke('create-credit-checkout', { body: { action: 'cancel_renewal' } });
-      toast.success(data?.message || 'Renovación cancelada');
+      toast.success(data?.message || t(`${cs}.renewalCancelled`));
       setCancelAtPeriodEnd(true);
-    } catch { setError('Error al cancelar'); }
+    } catch { setError(t(`${cs}.purchaseError`)); }
     setLoading(null);
   };
 
@@ -102,8 +105,8 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
           <CardContent className="flex items-center gap-3 py-4">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
             <div>
-              <p className="text-sm font-medium">¡Pago completado!</p>
-              <p className="text-xs text-muted-foreground">Tus créditos se están añadiendo a tu cuenta.</p>
+              <p className="text-sm font-medium">{t(`${cs}.paymentSuccessFull`)}</p>
+              <p className="text-xs text-muted-foreground">{t(`${cs}.creditsAdding`)}</p>
             </div>
           </CardContent>
         </Card>
@@ -118,30 +121,30 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
 
       {/* SUSCRIPCIONES */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Suscripciones</h3>
+        <h3 className="text-lg font-semibold">{t(`${cs}.subscriptions`)}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
 
           {/* PLAN ANUAL con selector */}
           <Card className={`border-border/40 shadow-sm relative ${isAnnualActive && !cancelAtPeriodEnd ? 'ring-2 ring-primary bg-primary/5' : 'ring-1 ring-primary/40'}`}>
             {isAnnualActive && !cancelAtPeriodEnd && (
               <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
-                <CheckCircle2 className="h-3 w-3" /> Tu plan
+                <CheckCircle2 className="h-3 w-3" /> {t(`${cs}.yourPlan`)}
               </Badge>
             )}
             {!isAnnualActive && (
               <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1">
-                <Sparkles className="h-3 w-3" /> Mejor valor
+                <Sparkles className="h-3 w-3" /> {t(`${cs}.bestValue`)}
               </Badge>
             )}
             <CardHeader className="pb-1 pt-5">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base font-semibold">Plan Anual</CardTitle>
+                <CardTitle className="text-base font-semibold">{t(`${cs}.annualPlan`)}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Selecciona tu capacidad anual:</p>
+                <p className="text-xs text-muted-foreground mb-1">{t(`${cs}.selectCapacity`)}</p>
                 <Select value={selectedAnnual} onValueChange={setSelectedAnnual}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -149,7 +152,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                   <SelectContent>
                     {ANNUAL_OPTIONS.map(o => (
                       <SelectItem key={o.planId} value={o.planId}>
-                        {o.credits} créditos — {o.price}/año ({o.pricePerCredit}/créd.)
+                        {t(`${cs}.nCredits`, { n: o.credits })} — {o.price}{t(`${cs}.perYear`)} ({o.pricePerCredit}/cr.)
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -157,12 +160,12 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               </div>
               <div>
                 <span className="text-2xl font-bold">{selectedAnnualOption.credits}</span>
-                <span className="text-sm text-muted-foreground ml-1">créditos/año</span>
+                <span className="text-sm text-muted-foreground ml-1">{t(`${cs}.creditsPerYear`)}</span>
               </div>
-              <p className="text-lg font-semibold">{selectedAnnualOption.price}<span className="text-sm font-normal text-muted-foreground">/año</span></p>
-              <p className="text-xs text-muted-foreground">{selectedAnnualOption.pricePerCredit} por crédito · Renovación automática anual</p>
+              <p className="text-lg font-semibold">{selectedAnnualOption.price}<span className="text-sm font-normal text-muted-foreground">{t(`${cs}.perYear`)}</span></p>
+              <p className="text-xs text-muted-foreground">{selectedAnnualOption.pricePerCredit} {t(`${cs}.perCredit`)} · {t(`${cs}.autoRenewalAnnual`)}</p>
               <Button className="w-full" onClick={() => handleBuy(selectedAnnual)} disabled={loading !== null}>
-                {loading === selectedAnnual ? <Loader2 className="h-4 w-4 animate-spin" /> : isAnnualActive ? 'Cambiar capacidad' : 'Suscribirse'}
+                {loading === selectedAnnual ? <Loader2 className="h-4 w-4 animate-spin" /> : isAnnualActive ? t(`${cs}.changeCapacity`) : t(`${cs}.subscribe`)}
               </Button>
             </CardContent>
           </Card>
@@ -171,24 +174,24 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
           <Card className={`border-border/40 shadow-sm relative ${isMonthlyActive && !cancelAtPeriodEnd ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
             {isMonthlyActive && !cancelAtPeriodEnd && (
               <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
-                <CheckCircle2 className="h-3 w-3" /> Tu plan
+                <CheckCircle2 className="h-3 w-3" /> {t(`${cs}.yourPlan`)}
               </Badge>
             )}
             <CardHeader className="pb-1 pt-5">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" />
-                <CardTitle className="text-base font-semibold">Plan Mensual</CardTitle>
+                <CardTitle className="text-base font-semibold">{t(`${cs}.monthlyPlan`)}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
                 <span className="text-2xl font-bold">8</span>
-                <span className="text-sm text-muted-foreground ml-1">créditos/mes</span>
+                <span className="text-sm text-muted-foreground ml-1">{t(`${cs}.creditsPerMonth`)}</span>
               </div>
-              <p className="text-lg font-semibold">6,90 €<span className="text-sm font-normal text-muted-foreground">/mes</span></p>
-              <p className="text-xs text-muted-foreground">0,86 € por crédito · Sin cuota de inscripción · Cancela cuando quieras</p>
+              <p className="text-lg font-semibold">6,90 €<span className="text-sm font-normal text-muted-foreground">{t(`${cs}.perMonth`)}</span></p>
+              <p className="text-xs text-muted-foreground">0,86 € {t(`${cs}.perCredit`)} · {t(`${cs}.noSignupFee`)}</p>
               <Button className="w-full" variant="outline" onClick={() => handleBuy('monthly')} disabled={loading !== null || (isMonthlyActive && !cancelAtPeriodEnd)}>
-                {loading === 'monthly' ? <Loader2 className="h-4 w-4 animate-spin" /> : isMonthlyActive && !cancelAtPeriodEnd ? 'Tu plan actual' : 'Suscribirse'}
+                {loading === 'monthly' ? <Loader2 className="h-4 w-4 animate-spin" /> : isMonthlyActive && !cancelAtPeriodEnd ? t(`${cs}.currentPlan`) : t(`${cs}.subscribe`)}
               </Button>
             </CardContent>
           </Card>
@@ -199,7 +202,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
       <Collapsible>
         <CollapsibleTrigger asChild>
           <button className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-card px-4 py-3 text-left shadow-sm hover:bg-muted/50 transition-colors">
-            <h3 className="text-sm font-semibold">Pago único — sin suscripción</h3>
+            <h3 className="text-sm font-semibold">{t(`${cs}.oneTimePayment`)}</h3>
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
           </button>
         </CollapsibleTrigger>
@@ -210,14 +213,14 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               <div className="flex items-center gap-3">
                 <FileText className="h-4 w-4 text-primary shrink-0" />
                 <div>
-                  <p className="text-sm font-medium">1 crédito</p>
-                  <p className="text-xs text-muted-foreground">Registro puntual</p>
+                  <p className="text-sm font-medium">{t(`${cs}.oneCredit`)}</p>
+                  <p className="text-xs text-muted-foreground">{t(`${cs}.punctualRegistration`)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <p className="text-sm font-bold">11 €</p>
                 <Button size="sm" variant="outline" onClick={() => handleBuy('individual')} disabled={loading !== null}>
-                  {loading === 'individual' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Comprar'}
+                  {loading === 'individual' ? <Loader2 className="h-3 w-3 animate-spin" /> : t(`${cs}.buy`)}
                 </Button>
               </div>
             </CardContent>
@@ -230,14 +233,14 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                 <div className="flex items-center gap-3">
                   <Zap className="h-4 w-4 text-primary shrink-0" />
                   <div>
-                    <p className="text-sm font-medium">Top-up {topup.credits} créditos</p>
-                    <p className="text-xs text-muted-foreground">{topup.pricePerCredit} por crédito</p>
+                    <p className="text-sm font-medium">{t(`${cs}.topup`)} {t(`${cs}.nCredits`, { n: topup.credits })}</p>
+                    <p className="text-xs text-muted-foreground">{topup.pricePerCredit} {t(`${cs}.perCredit`)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="text-sm font-bold">{topup.price}</p>
                   <Button size="sm" variant="outline" onClick={() => handleBuy(topup.planId)} disabled={loading !== null}>
-                    {loading === topup.planId ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Comprar'}
+                    {loading === topup.planId ? <Loader2 className="h-3 w-3 animate-spin" /> : t(`${cs}.buy`)}
                   </Button>
                 </div>
               </CardContent>
@@ -250,7 +253,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
       {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
         <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={handleCancelRenewal} disabled={loading !== null}>
           {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-          Cancelar renovación automática
+          {t(`${cs}.cancelRenewal`)}
         </Button>
       )}
 
@@ -258,7 +261,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         <CardContent className="py-3">
           <p className="text-xs text-muted-foreground text-center">
             <ShoppingBag className="h-3.5 w-3.5 inline mr-1" />
-            Pago seguro procesado por Stripe · Los créditos no caducan con suscripción activa
+            {t(`${cs}.stripeNote`)}
           </p>
         </CardContent>
       </Card>
