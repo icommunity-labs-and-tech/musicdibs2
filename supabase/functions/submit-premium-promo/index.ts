@@ -79,7 +79,6 @@ serve(async (req) => {
     // Send notification email to marketing
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (RESEND_API_KEY) {
-      const styleName = promo_style ? escapeHtml(promo_style) : '—';
       const html = `<!DOCTYPE html>
 <html lang="es">
 <head><meta charset="UTF-8" /></head>
@@ -97,11 +96,9 @@ serve(async (req) => {
             <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Artista</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(artist_name)}</td></tr>
             <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Canción</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(song_title)}</td></tr>
             <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Email</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(user.email || '—')}</td></tr>
-            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Estilo</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${styleName}</td></tr>
-            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Descripción</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(description)}</td></tr>
-            ${promo_message ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Mensaje promo</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(promo_message)}</td></tr>` : ''}
-            ${external_link ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Enlace</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);"><a href="${escapeHtml(external_link)}" style="color:#a855f7;">${escapeHtml(external_link)}</a></td></tr>` : ''}
-            ${team_notes ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:140px;">Notas</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;">${escapeHtml(team_notes)}</td></tr>` : ''}
+            <tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Letra</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(description.length > 200 ? description.slice(0, 200) + '…' : description)}</td></tr>
+            ${external_link ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;border-bottom:1px solid rgba(245,158,11,0.15);width:140px;">Enlaces / Notas</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;border-bottom:1px solid rgba(245,158,11,0.15);">${escapeHtml(external_link)}</td></tr>` : ''}
+            ${media_file_path ? `<tr><td style="padding:8px 0;color:#9ca3af;font-size:13px;width:140px;">Archivo adjunto</td><td style="padding:8px 0;color:#f3f4f6;font-size:13px;font-weight:600;">Sí (ver en panel admin)</td></tr>` : ''}
           </table>
           <p style="margin:16px 0 0;color:#9ca3af;font-size:12px;text-align:center;">ID: ${promo.id} · Créditos: ${promo.credits_spent}</p>
         </td></tr>
