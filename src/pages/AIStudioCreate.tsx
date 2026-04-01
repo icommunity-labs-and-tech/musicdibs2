@@ -1041,7 +1041,7 @@ const AIStudioCreate = () => {
                         >
                           <Headphones className="h-4 w-4" />
                            {t('aiCreate.instrumentalBase')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio} {t('aiCreate.credits')}</Badge>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.instrumentalBase')}</Badge>
                         </button>
                       </div>
 
