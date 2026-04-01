@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { X, Music, ShieldCheck } from "lucide-react";
 
 interface NotificationData {
@@ -107,12 +108,17 @@ const CITIES_BY_LANG: Record<string, string[]> = {
 
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
+const APP_ROUTE_PREFIXES = ["/dashboard", "/admin", "/manager", "/ia-studio", "/ai-studio"];
+
 const SocialProofPopup = () => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [data, setData] = useState<NotificationData | null>(null);
   const [dismissed, setDismissed] = useState(false);
+
+  const isAppRoute = APP_ROUTE_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   const lang = i18n.resolvedLanguage || i18n.language || "es";
   const langKey = lang.startsWith("pt") ? "pt-BR" : NAMES_BY_LANG[lang] ? lang : "en";
@@ -142,17 +148,14 @@ const SocialProofPopup = () => {
   };
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || isAppRoute) return;
 
-    // First appearance after 15s
     const initialTimer = setTimeout(() => {
       setData(generateNotification());
       setVisible(true);
-      // Auto-hide after 6s
       setTimeout(() => dismiss(), 6000);
     }, 15000);
 
-    // Then every 30-60s
     const interval = setInterval(
       () => {
         if (dismissed) return;
@@ -168,9 +171,9 @@ const SocialProofPopup = () => {
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
-  }, [dismissed, generateNotification]);
+  }, [dismissed, generateNotification, isAppRoute]);
 
-  if (!visible || !data || dismissed) return null;
+  if (!visible || !data || dismissed || isAppRoute) return null;
 
   const actionIcon = data.action === "distributed" ? Music : ShieldCheck;
   const ActionIcon = actionIcon;
