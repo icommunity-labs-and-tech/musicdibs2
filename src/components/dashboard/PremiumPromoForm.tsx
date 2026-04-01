@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   Crown, Loader2, CheckCircle2, Sparkles, Video, Users, Clock,
-  Instagram, Music, ArrowLeft,
+  Instagram, Music, ArrowLeft, Upload, FileText, X, Import,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
@@ -33,23 +33,23 @@ interface Work {
   source: 'registered' | 'ai_studio';
 }
 
+interface LyricsItem {
+  id: string;
+  lyrics: string;
+  description: string | null;
+  theme: string | null;
+  genre: string | null;
+  mood: string | null;
+  created_at: string;
+}
+
 interface PremiumPromoFormProps {
   works: Work[];
   onBack: () => void;
 }
 
 const PREMIUM_COST = FEATURE_COSTS.promote_premium;
-
-const PROMO_STYLES = [
-  { value: 'cinematic', label: 'Cinemático' },
-  { value: 'urban', label: 'Urbano / Street' },
-  { value: 'minimal', label: 'Minimalista' },
-  { value: 'colorful', label: 'Colorido / Vibrante' },
-  { value: 'dark', label: 'Oscuro / Misterioso' },
-  { value: 'retro', label: 'Retro / Vintage' },
-  { value: 'futuristic', label: 'Futurista' },
-  { value: 'other', label: 'Otro' },
-];
+const ACCEPTED_MEDIA = 'audio/*,video/*';
 
 export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const { t } = useTranslation();
@@ -61,13 +61,29 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const [selectedWorkId, setSelectedWorkId] = useState('');
   const [artistName, setArtistName] = useState('');
   const [songTitle, setSongTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [promoStyle, setPromoStyle] = useState('');
-  const [promoMessage, setPromoMessage] = useState('');
-  const [externalLink, setExternalLink] = useState('');
-  const [teamNotes, setTeamNotes] = useState('');
+  const [lyrics, setLyrics] = useState('');
+  const [linksAndNotes, setLinksAndNotes] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Lyrics import
+  const [showLyricsImport, setShowLyricsImport] = useState(false);
+  const [savedLyrics, setSavedLyrics] = useState<LyricsItem[]>([]);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
+
+  const loadSavedLyrics = useCallback(async () => {
+    if (!user) return;
+    setLoadingLyrics(true);
+    const { data } = await supabase
+      .from('lyrics_generations' as any)
+      .select('id, lyrics, description, theme, genre, mood, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    setSavedLyrics((data as any as LyricsItem[]) || []);
+    setLoadingLyrics(false);
+  }, [user]);
 
   // Auto-fill when work is selected
   const handleWorkSelect = (workId: string) => {
@@ -79,8 +95,24 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
     }
   };
 
+  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error(t('dashboard.premium.fileTooLarge', 'Archivo demasiado grande (máx. 50 MB)'));
+      return;
+    }
+    setMediaFile(file);
+  };
+
+  const handleImportLyrics = (item: LyricsItem) => {
+    setLyrics(item.lyrics);
+    setShowLyricsImport(false);
+    toast.success(t('dashboard.premium.lyricsImported', 'Letra importada'));
+  };
+
   const handleSubmit = async () => {
-    if (!user || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !description.trim()) {
+    if (!user || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !lyrics.trim()) {
       toast.error(t('dashboard.premium.fillRequired'));
       return;
     }
@@ -99,17 +131,28 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       }
       if (spendData?.error) throw new Error(spendData.error);
 
+      // Upload media file if present
+      let mediaFilePath: string | null = null;
+      if (mediaFile) {
+        const ext = mediaFile.name.split('.').pop() || 'bin';
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('premium-promo-media')
+          .upload(path, mediaFile);
+        if (uploadError) throw new Error(uploadError.message);
+        mediaFilePath = path;
+      }
+
       // Insert premium request via edge function
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
         body: {
           work_id: selectedWorkId,
           artist_name: artistName.trim(),
           song_title: songTitle.trim(),
-          description: description.trim(),
-          promo_style: promoStyle || null,
-          promo_message: promoMessage.trim() || null,
-          external_link: externalLink.trim() || null,
-          team_notes: teamNotes.trim() || null,
+          description: lyrics.trim(),
+          external_link: linksAndNotes.trim() || null,
+          team_notes: null,
+          media_file_path: mediaFilePath,
         },
       });
 
@@ -148,177 +191,211 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   }
 
   return (
-    <Card className="border-border/40 shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-            <Crown className="h-4 w-4 text-amber-500" />
-            {t('dashboard.premium.formTitle')}
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onBack} className="h-7 text-xs">
-            <ArrowLeft className="h-3 w-3 mr-1" /> {t('dashboard.premium.back')}
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          {t('dashboard.premium.formDesc')}
-        </p>
-      </CardHeader>
-
-      <CardContent className="space-y-5">
-        {/* Info banner */}
-        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
-            <Crown className="h-4 w-4" /> {t('dashboard.premium.whatIncluded')}
+    <>
+      <Card className="border-border/40 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
+              <Crown className="h-4 w-4 text-amber-500" />
+              {t('dashboard.premium.formTitle')}
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={onBack} className="h-7 text-xs">
+              <ArrowLeft className="h-3 w-3 mr-1" /> {t('dashboard.premium.back')}
+            </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Video className="h-3.5 w-3.5 text-amber-500/70" />
-              {t('dashboard.premium.includesVideo')}
-            </div>
-            <div className="flex items-center gap-2">
-              <Instagram className="h-3.5 w-3.5 text-amber-500/70" />
-              {t('dashboard.premium.includesChannels')}
-            </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5 text-amber-500/70" />
-              {t('dashboard.premium.includesAudience')}
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-amber-500/70" />
-              {t('dashboard.premium.includesManual')}
-            </div>
-          </div>
-          <p className="text-[11px] text-muted-foreground/70 mt-1">
-            {t('dashboard.premium.manualNote')}
+          <p className="text-xs text-muted-foreground mt-1">
+            {t('dashboard.premium.formDesc')}
           </p>
-        </div>
+        </CardHeader>
 
-        {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits')} />}
-
-        {/* Form fields */}
-        <div className="space-y-4">
-          {/* Work selector */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.selectWork')} *</Label>
-            <Select value={selectedWorkId} onValueChange={handleWorkSelect}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('dashboard.premium.selectWorkPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {works.map(w => (
-                  <SelectItem key={w.id} value={w.id}>
-                    <div className="flex items-center gap-2">
-                      <Music className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="truncate">{w.title}</span>
-                      {w.source === 'ai_studio' && (
-                        <Badge variant="secondary" className="text-[9px] px-1 py-0">
-                          <Sparkles className="h-2 w-2" /> AI
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <CardContent className="space-y-5">
+          {/* Info banner */}
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+              <Crown className="h-4 w-4" /> {t('dashboard.premium.whatIncluded')}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Video className="h-3.5 w-3.5 text-amber-500/70" />
+                {t('dashboard.premium.includesVideo')}
+              </div>
+              <div className="flex items-center gap-2">
+                <Instagram className="h-3.5 w-3.5 text-amber-500/70" />
+                {t('dashboard.premium.includesChannels')}
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-3.5 w-3.5 text-amber-500/70" />
+                {t('dashboard.premium.includesAudience')}
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-amber-500/70" />
+                {t('dashboard.premium.includesManual')}
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground/70 mt-1">
+              {t('dashboard.premium.manualNote')}
+            </p>
           </div>
 
-          {/* Artist + Song title row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits')} />}
+
+          {/* Form fields */}
+          <div className="space-y-4">
+            {/* Work selector */}
             <div className="space-y-1.5">
-              <Label className="text-sm">{t('dashboard.premium.artistName')} *</Label>
-              <Input
-                value={artistName}
-                onChange={e => setArtistName(e.target.value)}
-                placeholder={t('dashboard.premium.artistPlaceholder')}
+              <Label className="text-sm">{t('dashboard.premium.selectWork')} *</Label>
+              <Select value={selectedWorkId} onValueChange={handleWorkSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('dashboard.premium.selectWorkPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {works.map(w => (
+                    <SelectItem key={w.id} value={w.id}>
+                      <div className="flex items-center gap-2">
+                        <Music className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="truncate">{w.title}</span>
+                        {w.source === 'ai_studio' && (
+                          <Badge variant="secondary" className="text-[9px] px-1 py-0">
+                            <Sparkles className="h-2 w-2" /> AI
+                          </Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Artist + Song title row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t('dashboard.premium.artistName')} *</Label>
+                <Input
+                  value={artistName}
+                  onChange={e => setArtistName(e.target.value)}
+                  placeholder={t('dashboard.premium.artistPlaceholder')}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t('dashboard.premium.songTitle')} *</Label>
+                <Input
+                  value={songTitle}
+                  onChange={e => setSongTitle(e.target.value)}
+                  placeholder={t('dashboard.premium.songPlaceholder')}
+                />
+              </div>
+            </div>
+
+            {/* Lyrics */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm">{t('dashboard.premium.lyricsLabel')} *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 text-[11px] gap-1 text-primary"
+                  onClick={() => { setShowLyricsImport(true); loadSavedLyrics(); }}
+                >
+                  <Import className="h-3 w-3" /> {t('dashboard.premium.importLyrics')}
+                </Button>
+              </div>
+              <Textarea
+                value={lyrics}
+                onChange={e => setLyrics(e.target.value)}
+                placeholder={t('dashboard.premium.lyricsPlaceholder')}
+                rows={6}
               />
             </div>
+
+            {/* Media file upload */}
             <div className="space-y-1.5">
-              <Label className="text-sm">{t('dashboard.premium.songTitle')} *</Label>
-              <Input
-                value={songTitle}
-                onChange={e => setSongTitle(e.target.value)}
-                placeholder={t('dashboard.premium.songPlaceholder')}
+              <Label className="text-sm">{t('dashboard.premium.mediaUpload')}</Label>
+              <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.mediaUploadHint')}</p>
+              {mediaFile ? (
+                <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
+                  <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate flex-1">{mediaFile.name}</span>
+                  <span className="text-[10px] text-muted-foreground shrink-0">
+                    {(mediaFile.size / (1024 * 1024)).toFixed(1)} MB
+                  </span>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setMediaFile(null)}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <label className="flex items-center justify-center gap-2 cursor-pointer rounded-md border border-dashed border-border/60 p-4 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
+                  <Upload className="h-4 w-4" />
+                  {t('dashboard.premium.mediaUploadCta')}
+                  <input type="file" accept={ACCEPTED_MEDIA} className="hidden" onChange={handleMediaChange} />
+                </label>
+              )}
+            </div>
+
+            {/* Links and Notes (merged) */}
+            <div className="space-y-1.5">
+              <Label className="text-sm">{t('dashboard.premium.linksAndNotes')}</Label>
+              <Textarea
+                value={linksAndNotes}
+                onChange={e => setLinksAndNotes(e.target.value)}
+                placeholder={t('dashboard.premium.linksAndNotesPlaceholder')}
+                rows={3}
               />
             </div>
           </div>
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.songDescription')} *</Label>
-            <Textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder={t('dashboard.premium.descriptionPlaceholder')}
-              rows={3}
-            />
+          {/* Submit */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30">
+            <PricingLink />
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting || noCredits || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !lyrics.trim()}
+              className="gap-2"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Crown className="h-4 w-4" />
+              )}
+              {t('dashboard.premium.submit')}
+            </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Style */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.videoStyle')}</Label>
-            <Select value={promoStyle} onValueChange={setPromoStyle}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('dashboard.premium.stylePlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {PROMO_STYLES.map(s => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Promo message */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.promoMessage')}</Label>
-            <Textarea
-              value={promoMessage}
-              onChange={e => setPromoMessage(e.target.value)}
-              placeholder={t('dashboard.premium.messagePlaceholder')}
-              rows={2}
-            />
-          </div>
-
-          {/* External link */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.releaseLink')}</Label>
-            <Input
-              value={externalLink}
-              onChange={e => setExternalLink(e.target.value)}
-              placeholder="https://open.spotify.com/..."
-              type="url"
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label className="text-sm">{t('dashboard.premium.notes')}</Label>
-            <Textarea
-              value={teamNotes}
-              onChange={e => setTeamNotes(e.target.value)}
-              placeholder={t('dashboard.premium.notesPlaceholder')}
-              rows={2}
-            />
-          </div>
-        </div>
-
-        {/* Submit */}
-        <div className="flex items-center justify-between pt-2 border-t border-border/30">
-          <PricingLink />
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || noCredits || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !description.trim()}
-            className="gap-2"
-          >
-            {submitting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Crown className="h-4 w-4" />
-            )}
-            {t('dashboard.premium.submit')}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Lyrics Import Dialog */}
+      <Dialog open={showLyricsImport} onOpenChange={setShowLyricsImport}>
+        <DialogContent className="max-w-lg max-h-[70vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-4 w-4" /> {t('dashboard.premium.importLyricsTitle')}
+            </DialogTitle>
+            <DialogDescription>{t('dashboard.premium.importLyricsDesc')}</DialogDescription>
+          </DialogHeader>
+          {loadingLyrics ? (
+            <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          ) : savedLyrics.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">{t('dashboard.premium.noSavedLyrics')}</p>
+          ) : (
+            <div className="space-y-2">
+              {savedLyrics.map(l => (
+                <button
+                  key={l.id}
+                  className="w-full text-left rounded-lg border border-border/40 p-3 hover:border-primary/40 hover:bg-accent/30 transition-colors space-y-1"
+                  onClick={() => handleImportLyrics(l)}
+                >
+                  <p className="text-sm font-medium truncate">{l.description || l.theme || l.lyrics.slice(0, 60)}</p>
+                  <p className="text-[11px] text-muted-foreground line-clamp-2">{l.lyrics.slice(0, 120)}…</p>
+                  <div className="flex gap-2 mt-1">
+                    {l.genre && <Badge variant="outline" className="text-[9px] px-1 py-0">{l.genre}</Badge>}
+                    {l.mood && <Badge variant="outline" className="text-[9px] px-1 py-0">{l.mood}</Badge>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
