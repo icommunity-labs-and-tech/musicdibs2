@@ -56,11 +56,12 @@ export default function AdminPremiumPromosPage() {
 
   const downloadMedia = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('premium-promo-media')
-        .createSignedUrl(filePath, 300);
-      if (error) throw error;
-      window.open(data.signedUrl, '_blank');
+      const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: filePath });
+      if (res?.signed_url) {
+        window.open(res.signed_url, '_blank');
+      } else {
+        throw new Error('No se pudo obtener la URL del archivo');
+      }
     } catch (e: any) { toast.error('Error descargando archivo: ' + e.message); }
   };
 
