@@ -118,6 +118,11 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         const plan = data?.subscription_plan ?? 'Free';
         setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
       });
+    // Also check cancel_at_period_end from Stripe
+    supabase.functions.invoke('check-subscription').then(({ data }) => {
+      if (data?.cancel_at_period_end) setCancelAtPeriodEnd(true);
+      else setCancelAtPeriodEnd(false);
+    });
   }, [user]);
 
   // Listen for realtime profile changes to update current plan
