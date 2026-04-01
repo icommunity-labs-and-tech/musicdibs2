@@ -113,63 +113,68 @@ export default function DashboardHome() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Col 1: Account Summary */}
-        <div data-tour="account-summary">
-          <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
+        {/* Col 1: Account Summary + Verify */}
+        <div className="space-y-4">
+          <div data-tour="account-summary">
+            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
+          </div>
+          <div data-tour="verify-registration">
+            <VerifyRegistration />
+          </div>
         </div>
 
         {/* Col 2: Register CTA */}
-        <div data-tour="register-work">
-          <Card className="border-border/40 shadow-sm h-full">
-            <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Upload className="h-6 w-6 text-primary" />
+        <div className="space-y-4">
+          <div data-tour="register-work">
+            <Card className="border-border/40 shadow-sm">
+              <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Upload className="h-6 w-6 text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold">{t('dashboard.home.registerNew')}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('dashboard.home.registerNewDesc')}
+                  </p>
+                </div>
+                <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                  {t('dashboard.home.goToRegister')}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+          <Card className="border-border/40 shadow-sm">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+                <Share2 className="h-6 w-6 text-blue-500" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">{t('dashboard.home.registerNew')}</h3>
+                <h3 className="text-base font-semibold">{t('dashboard.home.distributeWork')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.home.registerNewDesc')}
+                  {t('dashboard.home.distributeWorkDesc')}
                 </p>
               </div>
-              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
-                {t('dashboard.home.goToRegister')}
+              <Button variant="blue" className="w-full" asChild>
+                <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
+                  {t('dashboard.home.goToDistribute')}
+                </a>
               </Button>
             </CardContent>
           </Card>
         </div>
 
         {/* Col 3: Credit Store */}
-        <div data-tour="credit-store">
-          <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
+        <div className="space-y-4">
+          <div data-tour="credit-store">
+            <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
+          </div>
         </div>
       </div>
 
-      {/* Row 2: Verify + Distribute side by side */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div data-tour="verify-registration">
-          <VerifyRegistration />
-        </div>
-        <Card className="border-border/40 shadow-sm">
-          <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
-              <Share2 className="h-6 w-6 text-blue-500" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-base font-semibold">{t('dashboard.home.distributeWork')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('dashboard.home.distributeWorkDesc')}
-              </p>
-            </div>
-            <Button variant="blue" className="w-full" asChild>
-              <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
-                {t('dashboard.home.goToDistribute')}
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Row 3: Recent Registrations full-width */}
+      {/* Full-width Recent Registrations */}
+
+      {/* Full-width Recent Registrations */}
       <div data-tour="recent-registrations">
         <RecentRegistrations />
       </div>
