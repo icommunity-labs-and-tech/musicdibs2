@@ -245,6 +245,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
         creatorsLabel: 'Creators ({{count}})',
         creditInfo: 'This registration will consume <strong>{{cost}} credit</strong>.',
         creditInfoVersion: ' This version will be linked to the original work in your catalog.',
+        registrationNote: 'Credits will be deducted from your account upon registration.',
         registering: 'Registering...',
         registerVersion: 'Register version',
         registerWork: 'Register work',
