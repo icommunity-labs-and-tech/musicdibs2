@@ -182,7 +182,7 @@ const es = {
       status: 'Estado',
       date: 'Fecha',
       actions: 'Acciones',
-      certificate: 'Certificado',
+      certificate: 'Ver Registro',
       processing: 'En proceso',
       registered: 'Registrado',
       failed: 'Fallido',
