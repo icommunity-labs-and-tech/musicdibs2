@@ -2221,6 +2221,8 @@ const it: typeof es = {
       statusUncollectible: 'Non riscuotibile',
       viewInvoice: 'Vedi fattura',
       downloadPdf: 'Scarica PDF',
+      typeSubscription: 'Abbonamento',
+      typeOneTime: 'Acquisto singolo',
     },
     profile: {
       title: 'Profilo',
