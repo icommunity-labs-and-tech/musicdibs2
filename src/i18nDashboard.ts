@@ -1678,6 +1678,8 @@ const fr: typeof es = {
       statusUncollectible: 'Irrécouvrable',
       viewInvoice: 'Voir la facture',
       downloadPdf: 'Télécharger PDF',
+      typeSubscription: 'Abonnement',
+      typeOneTime: 'Achat unique',
     },
     profile: {
       title: 'Profil',
