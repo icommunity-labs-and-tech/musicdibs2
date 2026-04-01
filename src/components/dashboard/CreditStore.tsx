@@ -231,8 +231,8 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{plan.name}</span>
                       {currentPlanId === plan.id && (
-                        <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary">
-                          {t('dashboard.creditStore.active')}
+                        <Badge variant={cancelAtPeriodEnd ? "outline" : "default"} className={`text-[10px] px-1.5 py-0 gap-0.5 ${cancelAtPeriodEnd ? 'border-destructive text-destructive' : 'bg-primary'}`}>
+                          {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.active')}
                         </Badge>
                       )}
                       {plan.popular && currentPlanId !== plan.id && (
