@@ -49,7 +49,12 @@ interface PremiumPromoFormProps {
 }
 
 const PREMIUM_COST = FEATURE_COSTS.promote_premium;
-const ACCEPTED_MEDIA = 'audio/*,video/*';
+const ACCEPTED_MEDIA = 'audio/*,video/mp4,video/quicktime,.mp4,.mov';
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/quicktime'];
+const ACCEPTED_VIDEO_EXTS = ['.mp4', '.mov'];
+const MAX_VIDEO_DURATION_SECS = 90;
+const MIN_VIDEO_WIDTH = 600;
+const MIN_VIDEO_HEIGHT = 600;
 
 export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const { t } = useTranslation();
