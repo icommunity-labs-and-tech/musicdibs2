@@ -63,126 +63,65 @@ serve(async (req) => {
       // no body
     }
 
+    if (!customerId) {
+      return new Response(
+        JSON.stringify({ invoices: [], has_more: false }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const mapped: any[] = [];
     const seenIds = new Set<string>();
 
-    // 1. Fetch invoices (from subscriptions) if customer exists
-    if (customerId) {
-      const invoices = await stripe.invoices.list({ customer: customerId, limit });
+    // 1. Fetch invoices (subscriptions + invoice_creation from one-time payments)
+    const invoices = await stripe.invoices.list({ customer: customerId, limit });
 
-      for (const inv of invoices.data) {
-        seenIds.add(inv.id);
-        if (inv.charge) seenIds.add(typeof inv.charge === "string" ? inv.charge : inv.charge.id);
-        mapped.push({
-          id: inv.id,
-          number: inv.number,
-          status: inv.status,
-          amount_due: inv.amount_due,
-          amount_paid: inv.amount_paid,
-          currency: inv.currency,
-          created: inv.created,
-          period_start: inv.period_start,
-          period_end: inv.period_end,
-          hosted_invoice_url: inv.hosted_invoice_url,
-          invoice_pdf: inv.invoice_pdf,
-          description: inv.description || inv.lines?.data?.[0]?.description || null,
-          payment_type: "subscription",
-        });
-      }
-
-      // 2. Fetch one-time charges for customer
-      const charges = await stripe.charges.list({ customer: customerId, limit });
-
-      for (const ch of charges.data) {
-        if (seenIds.has(ch.id)) continue;
-        if (ch.status !== "succeeded" && ch.status !== "failed") continue;
-        seenIds.add(ch.id);
-
-        mapped.push({
-          id: ch.id,
-          number: null,
-          status: ch.status === "succeeded" ? "paid" : "failed",
-          amount_due: ch.amount,
-          amount_paid: ch.status === "succeeded" ? ch.amount : 0,
-          currency: ch.currency,
-          created: ch.created,
-          period_start: ch.created,
-          period_end: ch.created,
-          hosted_invoice_url: ch.receipt_url || null,
-          invoice_pdf: ch.receipt_url || null,
-          receipt_url: ch.receipt_url || null,
-          description: ch.description || (ch.metadata?.plan_id ? `Compra ${ch.metadata.plan_id}` : "Pago único"),
-          payment_type: "one_time",
-        });
-      }
+    for (const inv of invoices.data) {
+      seenIds.add(inv.id);
+      if (inv.charge) seenIds.add(typeof inv.charge === "string" ? inv.charge : inv.charge.id);
+      mapped.push({
+        id: inv.id,
+        number: inv.number,
+        status: inv.status,
+        amount_due: inv.amount_due,
+        amount_paid: inv.amount_paid,
+        currency: inv.currency,
+        created: inv.created,
+        period_start: inv.period_start,
+        period_end: inv.period_end,
+        hosted_invoice_url: inv.hosted_invoice_url,
+        invoice_pdf: inv.invoice_pdf,
+        description: inv.description || inv.lines?.data?.[0]?.description || null,
+        payment_type: inv.subscription ? "subscription" : "one_time",
+      });
     }
 
-    // 3. Search for payment-mode checkout sessions by user_id in metadata
-    // This catches payments made without a Stripe customer association
-    try {
-      const sessions = await stripe.checkout.sessions.search({
-        query: `metadata["user_id"]:"${user.id}" AND mode:"payment" AND status:"complete"`,
-        limit,
+    // 2. Fetch one-time charges not covered by invoices
+    const charges = await stripe.charges.list({ customer: customerId, limit });
+
+    for (const ch of charges.data) {
+      if (seenIds.has(ch.id)) continue;
+      // Skip if associated invoice already captured
+      if (ch.invoice && seenIds.has(typeof ch.invoice === "string" ? ch.invoice : ch.invoice.id)) continue;
+      if (ch.status !== "succeeded" && ch.status !== "failed") continue;
+      seenIds.add(ch.id);
+
+      mapped.push({
+        id: ch.id,
+        number: null,
+        status: ch.status === "succeeded" ? "paid" : "failed",
+        amount_due: ch.amount,
+        amount_paid: ch.status === "succeeded" ? ch.amount : 0,
+        currency: ch.currency,
+        created: ch.created,
+        period_start: ch.created,
+        period_end: ch.created,
+        hosted_invoice_url: ch.receipt_url || null,
+        invoice_pdf: ch.receipt_url || null,
+        receipt_url: ch.receipt_url || null,
+        description: ch.description || (ch.metadata?.plan_id ? `Compra ${ch.metadata.plan_id}` : "Pago único"),
+        payment_type: "one_time",
       });
-
-      for (const session of sessions.data) {
-        const piId = typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id;
-        
-        if (!piId || seenIds.has(piId)) continue;
-
-        try {
-          const pi = await stripe.paymentIntents.retrieve(piId);
-          const chargeId = typeof pi.latest_charge === "string"
-            ? pi.latest_charge
-            : pi.latest_charge?.id;
-
-          if (chargeId && seenIds.has(chargeId)) continue;
-          if (chargeId) seenIds.add(chargeId);
-          seenIds.add(piId);
-
-          let receiptUrl: string | null = null;
-          let amount = pi.amount || 0;
-          let currency = pi.currency || "eur";
-          let created = pi.created;
-
-          if (chargeId) {
-            try {
-              const charge = await stripe.charges.retrieve(chargeId);
-              receiptUrl = charge.receipt_url || null;
-              amount = charge.amount;
-              currency = charge.currency;
-              created = charge.created;
-            } catch { /* ignore */ }
-          }
-
-          const desc = session.metadata?.plan_id
-            ? `Compra ${session.metadata.plan_id}`
-            : "Pago único";
-
-          mapped.push({
-            id: chargeId || piId,
-            number: null,
-            status: pi.status === "succeeded" ? "paid" : "failed",
-            amount_due: amount,
-            amount_paid: pi.status === "succeeded" ? amount : 0,
-            currency,
-            created,
-            period_start: created,
-            period_end: created,
-            hosted_invoice_url: receiptUrl,
-            invoice_pdf: receiptUrl,
-            receipt_url: receiptUrl,
-            description: desc,
-            payment_type: "one_time",
-          });
-        } catch {
-          // Skip this session if PI retrieval fails
-        }
-      }
-    } catch (searchErr) {
-      console.error("[LIST-INVOICES] Checkout search error:", searchErr);
     }
 
     // Sort by date descending
