@@ -58,6 +58,11 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
   const { user } = useAuth();
+
+  // Sync external prop
+  useEffect(() => {
+    if (externalCancel !== undefined) setCancelAtPeriodEnd(externalCancel);
+  }, [externalCancel]);
   const paymentStatus = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
   const plans = useMemo(() => ([
