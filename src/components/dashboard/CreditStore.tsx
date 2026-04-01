@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle, Zap } from 'lucide-react';
+import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle, Zap, ChevronDown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -195,10 +196,14 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
       </div>
 
       {/* PAGO ÚNICO */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Pago único — sin suscripción</h3>
-        <div className="space-y-2">
-
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <button className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-card px-4 py-3 text-left shadow-sm hover:bg-muted/50 transition-colors">
+            <h3 className="text-sm font-semibold">Pago único — sin suscripción</h3>
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-2 pt-2">
           {/* INDIVIDUAL */}
           <Card className="border-border/40 shadow-sm">
             <CardContent className="flex items-center justify-between py-3">
@@ -238,8 +243,8 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               </CardContent>
             </Card>
           ))}
-        </div>
-      </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Cancelar renovación */}
       {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
