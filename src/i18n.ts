@@ -1094,6 +1094,7 @@ const resources = {
         creditPerUse: 'credit per use',
         creditsPerUse: 'credits per use',
         comingSoon: 'Coming soon',
+        free: 'Free',
         promoGroupTitle: 'Generate promotional material',
         modules: {
           createMusic: { title: 'Create Music', desc: 'Generate original music from scratch using AI. Describe the style, mood and characteristics you want.' },
