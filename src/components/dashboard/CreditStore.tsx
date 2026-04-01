@@ -227,26 +227,30 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
             </CardContent>
           </Card>
 
-          {/* TOP-UPS */}
-          {TOPUP_OPTIONS.map(topup => (
-            <Card key={topup.planId} className="border-border/40 shadow-sm">
-              <CardContent className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-3">
-                  <Zap className="h-4 w-4 text-primary shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium">{t(`${cs}.topup`)} {t(`${cs}.nCredits`, { n: topup.credits })}</p>
-                    <p className="text-xs text-muted-foreground">{topup.pricePerCredit} {t(`${cs}.perCredit`)}</p>
+          {/* TOP-UPS — solo con suscripción activa */}
+          {hasActiveSubscription ? (
+            TOPUP_OPTIONS.map(topup => (
+              <Card key={topup.planId} className="border-border/40 shadow-sm">
+                <CardContent className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <Zap className="h-4 w-4 text-primary shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{t(`${cs}.topup`)} {t(`${cs}.nCredits`, { n: topup.credits })}</p>
+                      <p className="text-xs text-muted-foreground">{topup.pricePerCredit} {t(`${cs}.perCredit`)}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-sm font-bold">{topup.price}</p>
-                  <Button size="sm" variant="outline" onClick={() => handleBuy(topup.planId)} disabled={loading !== null}>
-                    {loading === topup.planId ? <Loader2 className="h-3 w-3 animate-spin" /> : t(`${cs}.buy`)}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-bold">{topup.price}</p>
+                    <Button size="sm" variant="outline" onClick={() => handleBuy(topup.planId)} disabled={loading !== null}>
+                      {loading === topup.planId ? <Loader2 className="h-3 w-3 animate-spin" /> : t(`${cs}.buy`)}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground px-2 py-1">{t(`${cs}.topupRequiresSubscription`)}</p>
+          )}
         </CollapsibleContent>
       </Collapsible>
 
