@@ -398,6 +398,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
         creatorsLabel: 'Criadores ({{count}})',
         creditInfo: 'Este registro consumirá <strong>{{cost}} crédito</strong>.',
         creditInfoVersion: ' Esta versão será vinculada à obra original no seu catálogo.',
+        registrationNote: 'Os créditos serão descontados da sua conta ao confirmar o registro.',
         registering: 'Registrando...',
         registerVersion: 'Registrar versão',
         registerWork: 'Registrar obra',
