@@ -1746,6 +1746,7 @@ const fr: typeof es = {
       expiresIn: 'Votre abonnement expire dans {{days}} jour(s)',
       renewal: 'Renouvellement : {{date}}',
       renewalWarning: 'Votre abonnement sera renouvelé automatiquement. Vérifiez que votre moyen de paiement est toujours valide.',
+      cancelledRenewal: 'Renouvellement annulé · Actif jusqu\'au {{date}}',
     },
     creditStore: {
       credits: 'Crédits',
