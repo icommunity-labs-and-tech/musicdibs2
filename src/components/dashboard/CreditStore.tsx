@@ -297,7 +297,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               disabled={loading !== null}
             >
               {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              {t('dashboard.creditStore.cancelRenewal', { defaultValue: 'Cancelar renovación' })}
+              {t('dashboard.creditStore.cancelRenewal')}
             </Button>
           )}
           <p className="text-[10px] text-muted-foreground text-center">
