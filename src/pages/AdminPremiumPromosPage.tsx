@@ -144,18 +144,18 @@ export default function AdminPremiumPromosPage() {
           </DialogHeader>
           {selected && (
             <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-[120px_1fr] gap-y-2">
+              <div className="grid grid-cols-[140px_1fr] gap-y-2">
                 <span className="text-muted-foreground">Artista</span><span className="font-medium">{selected.artist_name}</span>
                 <span className="text-muted-foreground">Canción</span><span className="font-medium">{selected.song_title}</span>
                 <span className="text-muted-foreground">Email</span><span>{selected.user_email || '—'}</span>
-                <span className="text-muted-foreground">Estado</span><span>{statusBadge(selected.status)}</span>
-                <span className="text-muted-foreground">Créditos</span><span>{selected.credits_spent}</span>
                 <span className="text-muted-foreground">Fecha</span><span>{format(new Date(selected.created_at), 'dd/MM/yyyy HH:mm')}</span>
-                <span className="text-muted-foreground">Descripción</span><span>{selected.description}</span>
-                {selected.promo_style && <><span className="text-muted-foreground">Estilo</span><span>{selected.promo_style}</span></>}
-                {selected.promo_message && <><span className="text-muted-foreground">Mensaje</span><span>{selected.promo_message}</span></>}
-                {selected.external_link && <><span className="text-muted-foreground">Enlace</span><a href={selected.external_link} target="_blank" rel="noopener noreferrer" className="text-primary underline">{selected.external_link}</a></>}
-                {selected.team_notes && <><span className="text-muted-foreground">Notas</span><span>{selected.team_notes}</span></>}
+                <span className="text-muted-foreground">Descripción</span><span className="whitespace-pre-wrap">{selected.description}</span>
+                <span className="text-muted-foreground">Estilo visual</span><span>{selected.promo_style || '—'}</span>
+                <span className="text-muted-foreground">Mensaje promo</span><span className="whitespace-pre-wrap">{selected.promo_message || '—'}</span>
+                <span className="text-muted-foreground">Enlace externo</span>
+                <span>{selected.external_link ? <a href={selected.external_link} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{selected.external_link}</a> : '—'}</span>
+                <span className="text-muted-foreground">Notas del artista</span><span className="whitespace-pre-wrap">{selected.team_notes || '—'}</span>
+                <span className="text-muted-foreground">Obra (ID)</span><span className="text-xs text-muted-foreground break-all">{selected.work_id}</span>
               </div>
             </div>
           )}
