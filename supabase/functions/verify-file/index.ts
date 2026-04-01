@@ -114,6 +114,10 @@ serve(async (req) => {
           certificateUrl: w.certificate_url || w.checker_url,
           blockchainHash: w.blockchain_hash,
           blockchainNetwork: w.blockchain_network,
+          ibsEvidenceId: w.ibs_evidence_id,
+          description: w.description,
+          workType: w.type,
+          author: w.author,
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

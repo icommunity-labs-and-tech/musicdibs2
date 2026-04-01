@@ -57,6 +57,10 @@ export interface VerificationResult {
   certificateUrl?: string;
   blockchainHash?: string;
   blockchainNetwork?: string;
+  ibsEvidenceId?: string;
+  description?: string;
+  workType?: string;
+  author?: string;
 }
 
 export interface RecentRegistration {
