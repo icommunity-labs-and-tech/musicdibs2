@@ -97,6 +97,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
   const selectedAnnualOption = ANNUAL_OPTIONS.find(o => o.planId === selectedAnnual)!;
   const isAnnualActive = currentPlanId?.startsWith('annual');
   const isMonthlyActive = currentPlanId === 'monthly';
+  const hasActiveSubscription = (isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd;
 
   return (
     <div className="space-y-6">
