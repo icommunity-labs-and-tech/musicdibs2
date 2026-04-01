@@ -113,16 +113,13 @@ export default function DashboardHome() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Col 1: Account Summary + Verify + Recent Registrations */}
+        {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
           <div data-tour="account-summary">
             <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
           <div data-tour="verify-registration">
             <VerifyRegistration />
-          </div>
-          <div data-tour="recent-registrations">
-            <RecentRegistrations />
           </div>
         </div>
 
@@ -171,6 +168,11 @@ export default function DashboardHome() {
           <div data-tour="credit-store">
             <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
+        </div>
+
+        {/* Recent Registrations spanning cols 1-2 */}
+        <div className="md:col-span-2" data-tour="recent-registrations">
+          <RecentRegistrations />
         </div>
       </div>
     </div>
