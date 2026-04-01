@@ -22,7 +22,11 @@ export default function DashboardHome() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [hasWorks, setHasWorks] = useState<boolean | null>(null);
-  const [skipFirstHit, setSkipFirstHit] = useState(false);
+  const storageKey = user ? `musicdibs_skip_first_hit_${user.id}` : null;
+  const [skipFirstHit, setSkipFirstHit] = useState(() => {
+    if (!storageKey) return false;
+    return localStorage.getItem(storageKey) === '1';
+  });
 
   useEffect(() => {
     if (!user) return;
