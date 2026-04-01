@@ -179,9 +179,7 @@ export default function PromotePage() {
               <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
                 <Crown className="h-5 w-5 text-amber-500" />
               </div>
-              <Badge className="text-[11px] gap-1 bg-amber-500/10 text-amber-600 border-amber-500/20">
-                <Crown className="h-3 w-3" /> {FEATURE_COSTS.promote_premium} {t('dashboard.promoSelector.credits')}
-              </Badge>
+              <PricingLink />
             </div>
             <div>
               <h3 className="text-sm font-semibold group-hover:text-amber-600 transition-colors">
