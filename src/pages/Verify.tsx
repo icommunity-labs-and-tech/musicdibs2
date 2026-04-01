@@ -193,15 +193,17 @@ const Verify = () => {
                       date: new Date(result.registeredAt!).toLocaleDateString(locale),
                     })}
                   </p>
-                  {result.certificateUrl && (
-                    <a
-                      href={result.certificateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                  {result.blockchainHash && result.ibsEvidenceId && (
+                    <button
+                      onClick={handleDownloadCertificate}
+                      disabled={generating}
+                      className="inline-flex items-center gap-1.5 text-sm text-pink-400 hover:text-pink-300 transition-colors disabled:opacity-50"
                     >
-                      <ExternalLink className="w-4 h-4" /> {t('verify.viewCert')}
-                    </a>
+                      {generating
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> {t('dashboard.certificate.generating')}</>
+                        : <><FileText className="w-4 h-4" /> {t('dashboard.certificate.pdfLabel')}</>
+                      }
+                    </button>
                   )}
                 </div>
               </div>
