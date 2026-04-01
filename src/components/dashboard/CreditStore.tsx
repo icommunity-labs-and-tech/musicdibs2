@@ -19,20 +19,24 @@ const PROFILE_PLAN_TO_ID: Record<string, string> = {
 function getButtonConfig(
   planId: string,
   currentPlanId: string | null,
+  cancelAtPeriodEnd: boolean,
   t: (key: string, options?: Record<string, unknown>) => string,
 ) {
+  // Individual is always a simple purchase
   if (planId === 'individual') {
-    if (currentPlanId && currentPlanId !== '') {
-      return { label: t('dashboard.creditStore.cancelRenewal'), variant: 'outline' as const, icon: null, disabled: false };
-    }
     return { label: t('dashboard.creditStore.buy'), variant: 'outline' as const, icon: null, disabled: false };
   }
 
+  // No active subscription → subscribe
   if (!currentPlanId || currentPlanId === '') {
     return { label: t('dashboard.creditStore.subscribe'), variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
   }
 
   if (currentPlanId === planId) {
+    if (cancelAtPeriodEnd) {
+      // Renewal was cancelled → allow reactivation
+      return { label: t('dashboard.creditStore.reactivate', { defaultValue: 'Reactivar' }), variant: 'default' as const, icon: null, disabled: false };
+    }
     return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
   }
 
@@ -46,13 +50,19 @@ function getButtonConfig(
   }
 }
 
-export function CreditStore({ compact }: { compact?: boolean }) {
+export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { compact?: boolean; cancelAtPeriodEnd?: boolean }) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
   const { user } = useAuth();
+
+  // Sync external prop
+  useEffect(() => {
+    if (externalCancel !== undefined) setCancelAtPeriodEnd(externalCancel);
+  }, [externalCancel]);
   const paymentStatus = searchParams.get('payment');
   const sessionId = searchParams.get('session_id');
   const plans = useMemo(() => ([
@@ -113,6 +123,11 @@ export function CreditStore({ compact }: { compact?: boolean }) {
         const plan = data?.subscription_plan ?? 'Free';
         setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
       });
+    // Also check cancel_at_period_end from Stripe
+    supabase.functions.invoke('check-subscription').then(({ data }) => {
+      if (data?.cancel_at_period_end) setCancelAtPeriodEnd(true);
+      else setCancelAtPeriodEnd(false);
+    });
   }, [user]);
 
   // Listen for realtime profile changes to update current plan
@@ -132,6 +147,23 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  const handleCancelRenewal = async () => {
+    setLoading('cancel');
+    setError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { action: 'cancel_renewal' },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || 'Renovación cancelada');
+      setCancelAtPeriodEnd(true);
+    } catch (err: any) {
+      setError(err?.message || 'Error');
+    }
+    setLoading(null);
+  };
 
   const handleBuy = async (planId: string) => {
     setLoading(planId);
@@ -165,6 +197,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
         toast.success(data.message || t('dashboard.creditStore.planChanged'));
         const resolvedPlanId = data?.plan ? (PROFILE_PLAN_TO_ID[data.plan] ?? planId) : planId;
         setCurrentPlanId(resolvedPlanId);
+        if (data?.reactivated) setCancelAtPeriodEnd(false);
         setLoading(null);
         return;
       }
@@ -202,7 +235,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
           <div className="space-y-2">
             {plans.map((plan) => {
               const Icon = plan.icon;
-              const btn = getButtonConfig(plan.id, currentPlanId, t);
+              const btn = getButtonConfig(plan.id, currentPlanId, cancelAtPeriodEnd, t);
               const BtnIcon = btn.icon;
               return (
                 <div
@@ -220,8 +253,8 @@ export function CreditStore({ compact }: { compact?: boolean }) {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{plan.name}</span>
                       {currentPlanId === plan.id && (
-                        <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5 bg-primary">
-                          {t('dashboard.creditStore.active')}
+                        <Badge variant={cancelAtPeriodEnd ? "outline" : "default"} className={`text-[10px] px-1.5 py-0 gap-0.5 ${cancelAtPeriodEnd ? 'border-destructive text-destructive' : 'bg-primary'}`}>
+                          {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.active')}
                         </Badge>
                       )}
                       {plan.popular && currentPlanId !== plan.id && (
@@ -255,6 +288,18 @@ export function CreditStore({ compact }: { compact?: boolean }) {
               );
             })}
           </div>
+          {currentPlanId && currentPlanId !== '' && !cancelAtPeriodEnd && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-muted-foreground hover:text-destructive"
+              onClick={handleCancelRenewal}
+              disabled={loading !== null}
+            >
+              {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              {t('dashboard.creditStore.cancelRenewal', { defaultValue: 'Cancelar renovación' })}
+            </Button>
+          )}
           <p className="text-[10px] text-muted-foreground text-center">
             {t('dashboard.creditStore.stripeNote')}
           </p>
@@ -288,7 +333,7 @@ export function CreditStore({ compact }: { compact?: boolean }) {
       <div className="grid gap-4 sm:grid-cols-3">
         {plans.map((plan) => {
           const Icon = plan.icon;
-          const btn = getButtonConfig(plan.id, currentPlanId, t);
+          const btn = getButtonConfig(plan.id, currentPlanId, cancelAtPeriodEnd, t);
           const BtnIcon = btn.icon;
           const isActive = currentPlanId === plan.id;
           return (
@@ -303,8 +348,8 @@ export function CreditStore({ compact }: { compact?: boolean }) {
               }`}
             >
               {isActive && (
-                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
-                  <CheckCircle2 className="h-3 w-3" /> {t('dashboard.creditStore.yourPlan')}
+                <Badge className={`absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 ${cancelAtPeriodEnd ? 'bg-destructive' : 'bg-primary'}`}>
+                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.yourPlan')}
                 </Badge>
               )}
               {plan.popular && !isActive && (

@@ -21,6 +21,7 @@ export default function DashboardHome() {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [hasWorks, setHasWorks] = useState<boolean | null>(null);
   const storageKey = user ? `musicdibs_skip_first_hit_${user.id}` : null;
   const [skipFirstHit, setSkipFirstHit] = useState(() => {
@@ -35,6 +36,7 @@ export default function DashboardHome() {
         if (error) console.error('[check-subscription]', error);
         else {
           setSubscriptionEnd(data?.subscription_end ?? null);
+          setCancelAtPeriodEnd(data?.cancel_at_period_end === true);
         }
       });
     };
@@ -114,7 +116,7 @@ export default function DashboardHome() {
         {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
           <div data-tour="account-summary">
-            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
+            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
           <div data-tour="verify-registration">
             <VerifyRegistration />
@@ -164,7 +166,7 @@ export default function DashboardHome() {
         {/* Col 3: Credit Store */}
         <div className="space-y-4">
           <div data-tour="credit-store">
-            <CreditStore compact />
+            <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
         </div>
       </div>
