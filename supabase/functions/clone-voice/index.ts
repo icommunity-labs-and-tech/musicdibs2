@@ -64,9 +64,9 @@ serve(async (req) => {
     }
 
     // Validar formato
-    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/m4a'];
-    if (!allowedTypes.includes(audioFile.type) && !audioFile.name.match(/\.(mp3|wav|m4a|mp4)$/i)) {
-      return new Response(JSON.stringify({ error: 'Invalid audio format. Use MP3, WAV or M4A.' }), {
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/m4a', 'audio/webm', 'audio/ogg', 'audio/aac', 'audio/flac', 'audio/x-m4a', 'video/webm'];
+    if (!allowedTypes.includes(audioFile.type) && !audioFile.name.match(/\.(mp3|wav|m4a|mp4|webm|ogg|aac|flac)$/i)) {
+      return new Response(JSON.stringify({ error: 'Invalid audio format. Use MP3, WAV, M4A or WebM.' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
