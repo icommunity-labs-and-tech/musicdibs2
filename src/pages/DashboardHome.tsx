@@ -123,7 +123,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Col 2: Register CTA */}
+        {/* Col 2: Register CTA + Distribute */}
         <div className="space-y-4">
           <div data-tour="register-work">
             <Card className="border-border/40 shadow-sm">
@@ -171,10 +171,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-
-      {/* Full-width Recent Registrations */}
-
-      {/* Full-width Recent Registrations */}
+      {/* Recent Registrations — compact, inside grid */}
       <div data-tour="recent-registrations">
         <RecentRegistrations />
       </div>
