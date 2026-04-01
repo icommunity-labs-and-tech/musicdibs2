@@ -174,10 +174,15 @@ const AIStudio = () => {
           <div className="grid md:grid-cols-2 gap-6">
             {promoModules.map((module) => {
               const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
-              const disabled = module.costsCredits && !hasEnough(cost);
+              const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
               return (
-              <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
-                {disabled && (
+              <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+                {!module.available && (
+                  <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
+                    {t('aiStudio.comingSoon')}
+                  </Badge>
+                )}
+                {module.available && !hasEnough(cost) && module.costsCredits && (
                   <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
                     {t('aiStudio.noCredits')}
                   </Badge>
@@ -187,14 +192,24 @@ const AIStudio = () => {
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
                     <module.icon className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle>{t(module.titleKey)}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    {t(module.titleKey)}
+                    {!module.available && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">{t('aiStudio.comingSoon')}</span>
+                    )}
+                  </CardTitle>
                   <CardDescription>{t(module.descKey)}</CardDescription>
                   {module.costsCredits && cost > 0 && (
                     <span className="mt-1"><PricingLink /></span>
                   )}
                 </CardHeader>
                 <CardContent>
-                  {disabled ? (
+                  {!module.available ? (
+                    <Button className="w-full" variant="secondary" disabled>
+                      <Zap className="w-4 h-4 mr-2" />
+                      {t('aiStudio.comingSoon')}
+                    </Button>
+                  ) : disabled ? (
                     <Button asChild className="w-full" variant="default">
                       <Link to="/dashboard/credits">
                         <Coins className="w-4 h-4 mr-2" />
