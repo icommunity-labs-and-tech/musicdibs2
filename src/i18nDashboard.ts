@@ -2832,6 +2832,7 @@ const de: typeof es = {
       expiresIn: 'Ihr Abonnement läuft in {{days}} Tag(en) ab',
       renewal: 'Verlängerung: {{date}}',
       renewalWarning: 'Ihr Abonnement wird automatisch verlängert. Stellen Sie sicher, dass Ihre Zahlungsmethode aktuell ist.',
+      cancelledRenewal: 'Verlängerung gekündigt · Aktiv bis {{date}}',
     },
     creditStore: {
       credits: 'Credits',
