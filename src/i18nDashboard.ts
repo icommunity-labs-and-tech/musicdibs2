@@ -2974,6 +2974,7 @@ const de: typeof es = {
       topupRequiresSubscription: 'Top-ups sind nur für Abonnenten verfügbar. Abonnieren Sie, um Kreditpakete zu einem besseren Preis freizuschalten.',
       subscribersOnly: 'Nur für Abonnenten',
       seeSubscriptions: 'Abonnements ansehen',
+      subscribersBenefits: 'Erhalten Sie Aufladungen mit bis zu 40% Rabatt pro Credit und gehen Sie nie ohne Registrierungen aus.',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
