@@ -1,323 +1,108 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ShoppingBag, Loader2, CheckCircle2, Sparkles, Calendar, Clock, FileText, AlertCircle, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
 
-const PROFILE_PLAN_TO_ID: Record<string, string> = {
-  Annual: 'annual',
-  Monthly: 'monthly',
-  Free: '',
-};
+const ANNUAL_OPTIONS = [
+  { planId: 'annual_100',  credits: 100,  price: '59,90 €',  pricePerCredit: '0,60 €' },
+  { planId: 'annual_200',  credits: 200,  price: '109,90 €', pricePerCredit: '0,55 €' },
+  { planId: 'annual_300',  credits: 300,  price: '149,90 €', pricePerCredit: '0,50 €' },
+  { planId: 'annual_500',  credits: 500,  price: '229,90 €', pricePerCredit: '0,46 €' },
+  { planId: 'annual_1000', credits: 1000, price: '399,90 €', pricePerCredit: '0,40 €' },
+];
 
-function getButtonConfig(
-  planId: string,
-  currentPlanId: string | null,
-  cancelAtPeriodEnd: boolean,
-  t: (key: string, options?: Record<string, unknown>) => string,
-) {
-  // Individual is always a simple purchase
-  if (planId === 'individual') {
-    return { label: t('dashboard.creditStore.buy'), variant: 'outline' as const, icon: null, disabled: false };
-  }
-
-  // No active subscription → subscribe
-  if (!currentPlanId || currentPlanId === '') {
-    return { label: t('dashboard.creditStore.subscribe'), variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
-  }
-
-  if (currentPlanId === planId) {
-    if (cancelAtPeriodEnd) {
-      // Renewal was cancelled → allow reactivation
-      return { label: t('dashboard.creditStore.reactivate'), variant: 'default' as const, icon: null, disabled: false };
-    }
-    return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
-  }
-
-  const currentRank = currentPlanId === 'annual' ? 2 : currentPlanId === 'monthly' ? 1 : 0;
-  const targetRank = planId === 'annual' ? 2 : planId === 'monthly' ? 1 : 0;
-
-  if (targetRank > currentRank) {
-    return { label: t('dashboard.creditStore.upgrade'), variant: 'default' as const, icon: ArrowUp, disabled: false };
-  } else {
-    return { label: t('dashboard.creditStore.downgrade'), variant: 'outline' as const, icon: ArrowDown, disabled: false };
-  }
-}
+const TOPUP_OPTIONS = [
+  { planId: 'topup_10',  credits: 10,  price: '9 €',   pricePerCredit: '0,90 €' },
+  { planId: 'topup_25',  credits: 25,  price: '19 €',  pricePerCredit: '0,76 €' },
+  { planId: 'topup_50',  credits: 50,  price: '35 €',  pricePerCredit: '0,70 €' },
+  { planId: 'topup_100', credits: 100, price: '65 €',  pricePerCredit: '0,65 €' },
+  { planId: 'topup_200', credits: 200, price: '119 €', pricePerCredit: '0,60 €' },
+];
 
 export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { compact?: boolean; cancelAtPeriodEnd?: boolean }) {
-  const { t } = useTranslation();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
+  const [selectedAnnual, setSelectedAnnual] = useState('annual_100');
   const { user } = useAuth();
 
-  // Sync external prop
+  const paymentStatus = searchParams.get('payment');
+  const sessionId = searchParams.get('session_id');
+
   useEffect(() => {
     if (externalCancel !== undefined) setCancelAtPeriodEnd(externalCancel);
   }, [externalCancel]);
-  const paymentStatus = searchParams.get('payment');
-  const sessionId = searchParams.get('session_id');
-  const plans = useMemo(() => ([
-    {
-      id: 'annual',
-      name: t('dashboard.creditStore.annual'),
-      credits: 120,
-      price: '59,90 €',
-      period: t('dashboard.creditStore.perYear'),
-      popular: true,
-      icon: Calendar,
-      description: t('dashboard.creditStore.creditsPerYear'),
-      rank: 2,
-    },
-    {
-      id: 'monthly',
-      name: t('dashboard.creditStore.monthly'),
-      credits: 3,
-      price: '6,90 €',
-      period: t('dashboard.creditStore.perMonth'),
-      icon: Clock,
-      description: t('dashboard.creditStore.creditsPerMonth'),
-      rank: 1,
-    },
-    {
-      id: 'individual',
-      name: t('dashboard.creditStore.individual'),
-      credits: 1,
-      price: '11,90 €',
-      period: '',
-      icon: FileText,
-      description: t('dashboard.creditStore.oneCredit'),
-      rank: 0,
-    },
-  ]), [t]);
 
-  // Verify and fulfill payment when returning from Stripe checkout
   useEffect(() => {
     if (paymentStatus !== 'success' || !sessionId || !user) return;
-    supabase.functions.invoke('verify-payment', {
-      body: { sessionId },
-    }).then(({ data, error }) => {
-      if (error) console.error('Verify payment error:', error);
-      else if (data?.fulfilled && !data?.already) {
-        toast.success(t('dashboard.creditStore.nCredits', { n: data.credits }));
-      }
+    supabase.functions.invoke('verify-payment', { body: { sessionId } }).then(({ data }) => {
+      if (data?.fulfilled && !data?.already) toast.success(`✅ ${data.credits} créditos añadidos a tu cuenta`);
     });
-  }, [paymentStatus, sessionId, t, user]);
+  }, [paymentStatus, sessionId, user]);
 
   useEffect(() => {
     if (!user) return;
-    supabase
-      .from('profiles')
-      .select('subscription_plan')
-      .eq('user_id', user.id)
-      .single()
+    supabase.from('profiles').select('subscription_plan').eq('user_id', user.id).single()
       .then(({ data }) => {
         const plan = data?.subscription_plan ?? 'Free';
-        setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
+        if (plan === 'Annual') setCurrentPlanId('annual_100');
+        else if (plan === 'Monthly') setCurrentPlanId('monthly');
+        else setCurrentPlanId('');
       });
-    // Also check cancel_at_period_end from Stripe
     supabase.functions.invoke('check-subscription').then(({ data }) => {
       if (data?.cancel_at_period_end) setCancelAtPeriodEnd(true);
-      else setCancelAtPeriodEnd(false);
     });
   }, [user]);
-
-  // Listen for realtime profile changes to update current plan
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('credit-store-plan')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'profiles',
-        filter: `user_id=eq.${user.id}`,
-      }, (payload: any) => {
-        const plan = payload.new?.subscription_plan ?? 'Free';
-        setCurrentPlanId(PROFILE_PLAN_TO_ID[plan] ?? '');
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
-
-  const handleCancelRenewal = async () => {
-    setLoading('cancel');
-    setError(null);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('create-credit-checkout', {
-        body: { action: 'cancel_renewal' },
-      });
-      if (fnError) throw fnError;
-      if (data?.error) throw new Error(data.error);
-      toast.success(data?.message || 'Renovación cancelada');
-      setCancelAtPeriodEnd(true);
-    } catch (err: any) {
-      setError(err?.message || 'Error');
-    }
-    setLoading(null);
-  };
 
   const handleBuy = async (planId: string) => {
     setLoading(planId);
     setError(null);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('create-credit-checkout', {
-        body: { planId },
-      });
+      const { data, error: fnError } = await supabase.functions.invoke('create-credit-checkout', { body: { planId } });
       if (fnError) throw fnError;
       if (data?.error) throw new Error(data.error);
-
-      // If already on this plan
-      if (data?.already_subscribed) {
-        toast.info(data.message || t('dashboard.creditStore.alreadySubscribed'));
-        setLoading(null);
-        return;
-      }
-
-      // If renewal cancellation was requested (annual/monthly -> individual)
-      if (data?.cancelled_to_individual) {
-        toast.success(data.message || t('dashboard.creditStore.renewalCancelled'));
-        if (data?.plan) {
-          setCurrentPlanId(PROFILE_PLAN_TO_ID[data.plan] ?? currentPlanId);
-        }
-        setLoading(null);
-        return;
-      }
-
-      // If plan was switched/reactivated server-side
-      if (data?.switched) {
-        toast.success(data.message || t('dashboard.creditStore.planChanged'));
-        const resolvedPlanId = data?.plan ? (PROFILE_PLAN_TO_ID[data.plan] ?? planId) : planId;
-        setCurrentPlanId(resolvedPlanId);
-        if (data?.reactivated) setCancelAtPeriodEnd(false);
-        setLoading(null);
-        return;
-      }
-
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      if (data?.already_subscribed) { toast.info(data.message); return; }
+      if (data?.switched || data?.reactivated) { toast.success(data.message); if (data.reactivated) setCancelAtPeriodEnd(false); return; }
+      if (data?.url) window.open(data.url, '_blank');
     } catch (err: any) {
-      const msg = err?.message || t('dashboard.creditStore.purchaseError');
-      setError(msg);
-      console.error('Checkout error:', err);
+      setError(err?.message || 'Error al procesar el pago');
+    } finally {
+      setLoading(null);
     }
+  };
+
+  const handleCancelRenewal = async () => {
+    setLoading('cancel');
+    try {
+      const { data } = await supabase.functions.invoke('create-credit-checkout', { body: { action: 'cancel_renewal' } });
+      toast.success(data?.message || 'Renovación cancelada');
+      setCancelAtPeriodEnd(true);
+    } catch { setError('Error al cancelar'); }
     setLoading(null);
   };
 
-  if (compact) {
-    return (
-      <Card className="border-border/40 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
-            <ShoppingBag className="h-4 w-4 text-primary" /> {t('dashboard.creditStore.credits')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {paymentStatus === 'success' && (
-            <div className="flex items-center gap-2 text-emerald-600 text-xs">
-              <CheckCircle2 className="h-4 w-4" /> {t('dashboard.creditStore.paymentSuccess')}
-            </div>
-          )}
-          {error && (
-            <div className="flex items-center gap-2 text-xs text-destructive">
-              <AlertCircle className="h-3.5 w-3.5" /> {error}
-            </div>
-          )}
-          <div className="space-y-2">
-            {plans.map((plan) => {
-              const Icon = plan.icon;
-              const btn = getButtonConfig(plan.id, currentPlanId, cancelAtPeriodEnd, t);
-              const BtnIcon = btn.icon;
-              return (
-                <div
-                  key={plan.id}
-                  className={`flex items-center gap-3 rounded-lg border p-3 ${
-                    currentPlanId === plan.id
-                      ? 'border-primary bg-primary/10'
-                      : plan.popular
-                        ? 'border-primary/40 bg-primary/5'
-                        : 'border-border/40'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 text-primary shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{plan.name}</span>
-                      {currentPlanId === plan.id && (
-                        <Badge variant={cancelAtPeriodEnd ? "outline" : "default"} className={`text-[10px] px-1.5 py-0 gap-0.5 ${cancelAtPeriodEnd ? 'border-destructive text-destructive' : 'bg-primary'}`}>
-                          {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled') : t('dashboard.creditStore.active')}
-                        </Badge>
-                      )}
-                      {plan.popular && currentPlanId !== plan.id && (
-                        <Badge variant="default" className="text-[10px] px-1.5 py-0 gap-0.5">
-                          <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.creditStore.top')}
-                        </Badge>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground">{plan.description}</span>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-sm font-bold">{plan.price}<span className="text-xs font-normal text-muted-foreground">{plan.period}</span></div>
-                    <Button
-                      variant={btn.variant}
-                      size="sm"
-                      className="h-7 text-xs mt-1"
-                      onClick={() => handleBuy(plan.id)}
-                      disabled={loading !== null || btn.disabled}
-                    >
-                      {loading === plan.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <>
-                          {BtnIcon && <BtnIcon className="h-3 w-3 mr-1" />}
-                          {btn.label}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {currentPlanId && currentPlanId !== '' && !cancelAtPeriodEnd && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs text-muted-foreground hover:text-destructive"
-              onClick={handleCancelRenewal}
-              disabled={loading !== null}
-            >
-              {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              {t('dashboard.creditStore.cancelRenewal')}
-            </Button>
-          )}
-          <p className="text-[10px] text-muted-foreground text-center">
-            {t('dashboard.creditStore.stripeNote')}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const selectedAnnualOption = ANNUAL_OPTIONS.find(o => o.planId === selectedAnnual)!;
+  const isAnnualActive = currentPlanId?.startsWith('annual');
+  const isMonthlyActive = currentPlanId === 'monthly';
 
-  // Full layout (used in dedicated credits page)
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {paymentStatus === 'success' && (
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardContent className="flex items-center gap-3 py-4">
             <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
             <div>
-                <p className="text-sm font-medium">{t('dashboard.creditStore.paymentSuccessFull')}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.creditStore.creditsAdding')}</p>
+              <p className="text-sm font-medium">¡Pago completado!</p>
+              <p className="text-xs text-muted-foreground">Tus créditos se están añadiendo a tu cuenta.</p>
             </div>
           </CardContent>
         </Card>
@@ -330,76 +115,145 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        {plans.map((plan) => {
-          const Icon = plan.icon;
-          const btn = getButtonConfig(plan.id, currentPlanId, cancelAtPeriodEnd, t);
-          const BtnIcon = btn.icon;
-          const isActive = currentPlanId === plan.id;
-          return (
-            <Card
-              key={plan.id}
-              className={`border-border/40 shadow-sm relative ${
-                isActive
-                  ? 'ring-2 ring-primary bg-primary/5'
-                  : plan.popular
-                    ? 'ring-1 ring-primary/40'
-                    : ''
-              }`}
-            >
-              {isActive && (
-                <Badge className={`absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 ${cancelAtPeriodEnd ? 'bg-destructive' : 'bg-primary'}`}>
-                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled') : t('dashboard.creditStore.yourPlan')}
-                </Badge>
-              )}
-              {plan.popular && !isActive && (
-                <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1">
-                  <Sparkles className="h-3 w-3" /> {t('dashboard.creditStore.bestValue')}
-                </Badge>
-              )}
-              <CardHeader className="pb-1 pt-5">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 text-primary" />
-                  <CardTitle className="text-base font-semibold">{plan.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
+      {/* SUSCRIPCIONES */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Suscripciones</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+
+          {/* PLAN ANUAL con selector */}
+          <Card className={`border-border/40 shadow-sm relative ${isAnnualActive && !cancelAtPeriodEnd ? 'ring-2 ring-primary bg-primary/5' : 'ring-1 ring-primary/40'}`}>
+            {isAnnualActive && !cancelAtPeriodEnd && (
+              <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
+                <CheckCircle2 className="h-3 w-3" /> Tu plan
+              </Badge>
+            )}
+            {!isAnnualActive && (
+              <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1">
+                <Sparkles className="h-3 w-3" /> Mejor valor
+              </Badge>
+            )}
+            <CardHeader className="pb-1 pt-5">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base font-semibold">Plan Anual</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Selecciona tu capacidad anual:</p>
+                <Select value={selectedAnnual} onValueChange={setSelectedAnnual}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ANNUAL_OPTIONS.map(o => (
+                      <SelectItem key={o.planId} value={o.planId}>
+                        {o.credits} créditos — {o.price}/año ({o.pricePerCredit}/créd.)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <span className="text-2xl font-bold">{selectedAnnualOption.credits}</span>
+                <span className="text-sm text-muted-foreground ml-1">créditos/año</span>
+              </div>
+              <p className="text-lg font-semibold">{selectedAnnualOption.price}<span className="text-sm font-normal text-muted-foreground">/año</span></p>
+              <p className="text-xs text-muted-foreground">{selectedAnnualOption.pricePerCredit} por crédito · Renovación automática anual</p>
+              <Button className="w-full" onClick={() => handleBuy(selectedAnnual)} disabled={loading !== null}>
+                {loading === selectedAnnual ? <Loader2 className="h-4 w-4 animate-spin" /> : isAnnualActive ? 'Cambiar capacidad' : 'Suscribirse'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* PLAN MENSUAL */}
+          <Card className={`border-border/40 shadow-sm relative ${isMonthlyActive && !cancelAtPeriodEnd ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
+            {isMonthlyActive && !cancelAtPeriodEnd && (
+              <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 bg-primary">
+                <CheckCircle2 className="h-3 w-3" /> Tu plan
+              </Badge>
+            )}
+            <CardHeader className="pb-1 pt-5">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" />
+                <CardTitle className="text-base font-semibold">Plan Mensual</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <span className="text-2xl font-bold">8</span>
+                <span className="text-sm text-muted-foreground ml-1">créditos/mes</span>
+              </div>
+              <p className="text-lg font-semibold">6,90 €<span className="text-sm font-normal text-muted-foreground">/mes</span></p>
+              <p className="text-xs text-muted-foreground">0,86 € por crédito · Sin cuota de inscripción · Cancela cuando quieras</p>
+              <Button className="w-full" variant="outline" onClick={() => handleBuy('monthly')} disabled={loading !== null || (isMonthlyActive && !cancelAtPeriodEnd)}>
+                {loading === 'monthly' ? <Loader2 className="h-4 w-4 animate-spin" /> : isMonthlyActive && !cancelAtPeriodEnd ? 'Tu plan actual' : 'Suscribirse'}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* PAGO ÚNICO */}
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold">Pago único — sin suscripción</h3>
+        <div className="space-y-2">
+
+          {/* INDIVIDUAL */}
+          <Card className="border-border/40 shadow-sm">
+            <CardContent className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-3">
+                <FileText className="h-4 w-4 text-primary shrink-0" />
                 <div>
-                  <span className="text-2xl font-bold">{plan.credits}</span>
-                  <span className="text-sm text-muted-foreground ml-1">{t('dashboard.creditChart.credits')}</span>
+                  <p className="text-sm font-medium">1 crédito individual</p>
+                  <p className="text-xs text-muted-foreground">Para un registro puntual sin compromiso</p>
                 </div>
-                <p className="text-lg font-semibold">
-                  {plan.price}
-                  <span className="text-sm font-normal text-muted-foreground">{plan.period}</span>
-                </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{plan.description}</p>
-                <Button
-                  className="w-full"
-                  variant={btn.variant}
-                  size="sm"
-                  onClick={() => handleBuy(plan.id)}
-                  disabled={loading !== null || btn.disabled}
-                >
-                  {loading === plan.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <>
-                      {BtnIcon && <BtnIcon className="h-3.5 w-3.5 mr-1" />}
-                      {btn.label}
-                    </>
-                  )}
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-bold">11 €</p>
+                <Button size="sm" variant="outline" onClick={() => handleBuy('individual')} disabled={loading !== null}>
+                  {loading === 'individual' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Comprar'}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* TOP-UPS */}
+          {TOPUP_OPTIONS.map(topup => (
+            <Card key={topup.planId} className="border-border/40 shadow-sm">
+              <CardContent className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  <Zap className="h-4 w-4 text-primary shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium">Top-up {topup.credits} créditos</p>
+                    <p className="text-xs text-muted-foreground">{topup.pricePerCredit} por crédito</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm font-bold">{topup.price}</p>
+                  <Button size="sm" variant="outline" onClick={() => handleBuy(topup.planId)} disabled={loading !== null}>
+                    {loading === topup.planId ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Comprar'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-          );
-        })}
+          ))}
+        </div>
       </div>
+
+      {/* Cancelar renovación */}
+      {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
+        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={handleCancelRenewal} disabled={loading !== null}>
+          {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+          Cancelar renovación automática
+        </Button>
+      )}
 
       <Card className="border-border/40 shadow-sm">
         <CardContent className="py-3">
           <p className="text-xs text-muted-foreground text-center">
             <ShoppingBag className="h-3.5 w-3.5 inline mr-1" />
-            {t('dashboard.creditStore.stripeNoteFull')}
+            Pago seguro procesado por Stripe · Los créditos no caducan con suscripción activa
           </p>
         </CardContent>
       </Card>

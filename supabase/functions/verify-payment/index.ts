@@ -58,8 +58,13 @@ serve(async (req) => {
       throw new Error("Session does not belong to this user");
     }
 
-    const credits = parseInt(session.metadata?.credits || "0", 10);
     const planId = session.metadata?.plan_id || "unknown";
+    const CREDITS_MAP: Record<string, number> = {
+      annual_100: 100, annual_200: 200, annual_300: 300, annual_500: 500, annual_1000: 1000,
+      monthly: 8, individual: 1,
+      topup_10: 10, topup_25: 25, topup_50: 50, topup_100: 100, topup_200: 200,
+    };
+    const credits = CREDITS_MAP[planId] ?? (session.metadata?.credits ? parseInt(session.metadata.credits, 10) : 0);
 
     if (credits <= 0) {
       return new Response(JSON.stringify({ fulfilled: false, reason: "no_credits" }), {
