@@ -269,12 +269,21 @@ export default function BillingPage() {
                     return (
                       <TableRow key={inv.id}>
                         <TableCell className="font-medium text-xs">
-                          {inv.number || inv.id.slice(0, 12)}
-                          {inv.description && (
-                            <span className="block text-muted-foreground font-normal truncate max-w-[180px]">
-                              {inv.description}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5">
+                            {inv.payment_type === 'one_time' ? (
+                              <Coins className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                            ) : (
+                              <RefreshCw className="h-3.5 w-3.5 text-primary shrink-0" />
+                            )}
+                            <div>
+                              {inv.number || inv.id.slice(0, 12)}
+                              {inv.description && (
+                                <span className="block text-muted-foreground font-normal truncate max-w-[180px]">
+                                  {inv.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                           {formatDate(inv.created, lang)}
