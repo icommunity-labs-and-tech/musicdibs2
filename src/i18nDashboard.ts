@@ -2592,7 +2592,7 @@ const de: typeof es = {
       status: 'Status',
       date: 'Datum',
       actions: 'Aktionen',
-      certificate: 'Zertifikat',
+      certificate: 'Registrierung ansehen',
       processing: 'In Bearbeitung',
       registered: 'Registriert',
       failed: 'Fehlgeschlagen',
