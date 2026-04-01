@@ -730,6 +730,7 @@ const en: typeof es = {
       topupRequiresSubscription: 'Top-ups are only available for subscribers. Subscribe to unlock credit packs at a better price.',
       subscribersOnly: 'Subscribers only',
       seeSubscriptions: 'See subscriptions',
+      subscribersBenefits: 'Get top-ups at up to 40% off per credit and never run out of registrations.',
     },
     creditHistory: {
       title: 'Credit history',
