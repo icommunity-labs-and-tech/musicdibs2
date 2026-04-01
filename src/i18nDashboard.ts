@@ -166,6 +166,7 @@ const es = {
       noSignupFee: 'Sin cuota de inscripción · Cancela cuando quieras',
       creditsAdded: '✅ {{n}} créditos añadidos a tu cuenta',
       paymentError: 'Error al procesar el pago',
+      topupRequiresSubscription: 'Los top-ups están disponibles solo para suscriptores. Suscríbete a un plan para recargar créditos.',
     },
     creditHistory: {
       title: 'Historial de créditos',
