@@ -145,7 +145,7 @@ export function RecentRegistrations() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-3 border-t border-border/30">
+              <div className="flex items-center justify-between px-4 py-2 border-t border-border/30">
                 <span className="text-xs text-muted-foreground">
                   {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, data.length)} {t('dashboard.recentReg.of')} {data.length}
                 </span>
