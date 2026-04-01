@@ -58,8 +58,8 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError) throw new Error(`Authentication error: ${JSON.stringify(userError)}`);
 
     const user = userData.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
