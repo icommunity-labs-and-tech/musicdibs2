@@ -35,7 +35,7 @@ function getButtonConfig(
   if (currentPlanId === planId) {
     if (cancelAtPeriodEnd) {
       // Renewal was cancelled → allow reactivation
-      return { label: t('dashboard.creditStore.reactivate', { defaultValue: 'Reactivar' }), variant: 'default' as const, icon: null, disabled: false };
+      return { label: t('dashboard.creditStore.reactivate'), variant: 'default' as const, icon: null, disabled: false };
     }
     return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
   }
@@ -254,7 +254,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                       <span className="text-sm font-medium">{plan.name}</span>
                       {currentPlanId === plan.id && (
                         <Badge variant={cancelAtPeriodEnd ? "outline" : "default"} className={`text-[10px] px-1.5 py-0 gap-0.5 ${cancelAtPeriodEnd ? 'border-destructive text-destructive' : 'bg-primary'}`}>
-                          {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.active')}
+                          {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled') : t('dashboard.creditStore.active')}
                         </Badge>
                       )}
                       {plan.popular && currentPlanId !== plan.id && (
@@ -297,7 +297,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               disabled={loading !== null}
             >
               {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              {t('dashboard.creditStore.cancelRenewal', { defaultValue: 'Cancelar renovación' })}
+              {t('dashboard.creditStore.cancelRenewal')}
             </Button>
           )}
           <p className="text-[10px] text-muted-foreground text-center">
@@ -349,7 +349,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
             >
               {isActive && (
                 <Badge className={`absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 ${cancelAtPeriodEnd ? 'bg-destructive' : 'bg-primary'}`}>
-                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.yourPlan')}
+                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled') : t('dashboard.creditStore.yourPlan')}
                 </Badge>
               )}
               {plan.popular && !isActive && (

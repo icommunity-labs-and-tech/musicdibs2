@@ -31,7 +31,6 @@ serve(async (req) => {
 
     const user = userData.user;
 
-    // Get stripe_customer_id from profile
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -56,22 +55,24 @@ serve(async (req) => {
       }
     }
 
-    // Parse optional params
     let limit = 20;
     try {
       const body = await req.json();
       if (body.limit) limit = Math.min(body.limit, 100);
     } catch {
-      // no body, use defaults
+      // no body
     }
 
     const mapped: any[] = [];
+    const seenIds = new Set<string>();
 
     // 1. Fetch invoices (from subscriptions) if customer exists
     if (customerId) {
       const invoices = await stripe.invoices.list({ customer: customerId, limit });
 
       for (const inv of invoices.data) {
+        seenIds.add(inv.id);
+        if (inv.charge) seenIds.add(typeof inv.charge === "string" ? inv.charge : inv.charge.id);
         mapped.push({
           id: inv.id,
           number: inv.number,
@@ -89,22 +90,13 @@ serve(async (req) => {
         });
       }
 
-      // 2. Fetch one-time charges associated with customer
+      // 2. Fetch one-time charges for customer
       const charges = await stripe.charges.list({ customer: customerId, limit });
 
-      const invoiceChargeIds = new Set(
-        mapped.map((inv: any) => inv.id).filter(Boolean)
-      );
-
-      // Collect charge IDs already represented by invoices
-      const invoicesData = await stripe.invoices.list({ customer: customerId, limit: 100 });
-      const invoiceChargeIdSet = new Set(
-        invoicesData.data.map((inv: any) => inv.charge).filter(Boolean)
-      );
-
       for (const ch of charges.data) {
-        if (invoiceChargeIdSet.has(ch.id)) continue;
+        if (seenIds.has(ch.id)) continue;
         if (ch.status !== "succeeded" && ch.status !== "failed") continue;
+        seenIds.add(ch.id);
 
         mapped.push({
           id: ch.id,
@@ -125,99 +117,77 @@ serve(async (req) => {
       }
     }
 
-    // 3. Also fetch completed checkout sessions by email (catches payments without customer)
-    // This is critical for users who bought credits before having a Stripe customer
-    const checkoutSessions = await stripe.checkout.sessions.list({
-      customer_email: user.email!,
-      status: "complete",
-      limit,
-    });
-
-    // Also check sessions by customer ID
-    let customerSessions: any[] = [];
-    if (customerId) {
-      const csSessions = await stripe.checkout.sessions.list({
-        customer: customerId,
-        status: "complete",
+    // 3. Search for payment-mode checkout sessions by user_id in metadata
+    // This catches payments made without a Stripe customer association
+    try {
+      const sessions = await stripe.checkout.sessions.search({
+        query: `metadata["user_id"]:"${user.id}" AND mode:"payment" AND status:"complete"`,
         limit,
       });
-      customerSessions = csSessions.data;
-    }
 
-    // Merge sessions, dedup by ID
-    const allSessions = [...checkoutSessions.data];
-    const sessionIds = new Set(allSessions.map(s => s.id));
-    for (const cs of customerSessions) {
-      if (!sessionIds.has(cs.id)) {
-        allSessions.push(cs);
-        sessionIds.add(cs.id);
-      }
-    }
+      for (const session of sessions.data) {
+        const piId = typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id;
+        
+        if (!piId || seenIds.has(piId)) continue;
 
-    // Existing mapped IDs to avoid duplicates
-    const existingIds = new Set(mapped.map((m: any) => m.id));
+        try {
+          const pi = await stripe.paymentIntents.retrieve(piId);
+          const chargeId = typeof pi.latest_charge === "string"
+            ? pi.latest_charge
+            : pi.latest_charge?.id;
 
-    for (const session of allSessions) {
-      if (session.mode !== "payment") continue;
-      if (!session.payment_intent) continue;
+          if (chargeId && seenIds.has(chargeId)) continue;
+          if (chargeId) seenIds.add(chargeId);
+          seenIds.add(piId);
 
-      // Skip if we already have this via invoices/charges
-      const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+          let receiptUrl: string | null = null;
+          let amount = pi.amount || 0;
+          let currency = pi.currency || "eur";
+          let created = pi.created;
 
-      // Fetch the payment intent to get receipt_url from charge
-      let receiptUrl: string | null = null;
-      let chargeAmount = session.amount_total || 0;
-      let chargeCurrency = session.currency || "eur";
-      let chargeCreated = Math.floor(new Date(session.created * 1000).getTime() / 1000);
-      let chargeStatus: string = "paid";
+          if (chargeId) {
+            try {
+              const charge = await stripe.charges.retrieve(chargeId);
+              receiptUrl = charge.receipt_url || null;
+              amount = charge.amount;
+              currency = charge.currency;
+              created = charge.created;
+            } catch { /* ignore */ }
+          }
 
-      try {
-        const pi = await stripe.paymentIntents.retrieve(piId);
-        // Check if this charge is already in our mapped list
-        if (pi.latest_charge) {
-          const chargeId = typeof pi.latest_charge === "string" ? pi.latest_charge : pi.latest_charge.id;
-          if (existingIds.has(chargeId)) continue;
-          existingIds.add(chargeId);
+          const desc = session.metadata?.plan_id
+            ? `Compra ${session.metadata.plan_id}`
+            : "Pago único";
 
-          // Fetch charge for receipt_url
-          const charge = await stripe.charges.retrieve(chargeId);
-          receiptUrl = charge.receipt_url || null;
-          chargeAmount = charge.amount;
-          chargeCurrency = charge.currency;
-          chargeCreated = charge.created;
-          chargeStatus = charge.status === "succeeded" ? "paid" : "failed";
+          mapped.push({
+            id: chargeId || piId,
+            number: null,
+            status: pi.status === "succeeded" ? "paid" : "failed",
+            amount_due: amount,
+            amount_paid: pi.status === "succeeded" ? amount : 0,
+            currency,
+            created,
+            period_start: created,
+            period_end: created,
+            hosted_invoice_url: receiptUrl,
+            invoice_pdf: receiptUrl,
+            receipt_url: receiptUrl,
+            description: desc,
+            payment_type: "one_time",
+          });
+        } catch {
+          // Skip this session if PI retrieval fails
         }
-      } catch {
-        // If we can't fetch PI, skip
-        continue;
       }
-
-      const desc = session.metadata?.plan_id
-        ? `Compra ${session.metadata.plan_id}`
-        : "Pago único";
-
-      mapped.push({
-        id: piId,
-        number: null,
-        status: chargeStatus,
-        amount_due: chargeAmount,
-        amount_paid: chargeStatus === "paid" ? chargeAmount : 0,
-        currency: chargeCurrency,
-        created: chargeCreated,
-        period_start: chargeCreated,
-        period_end: chargeCreated,
-        hosted_invoice_url: receiptUrl,
-        invoice_pdf: receiptUrl,
-        receipt_url: receiptUrl,
-        description: desc,
-        payment_type: "one_time",
-      });
+    } catch (searchErr) {
+      console.error("[LIST-INVOICES] Checkout search error:", searchErr);
     }
 
     // Sort by date descending
     mapped.sort((a: any, b: any) => b.created - a.created);
 
-    // Trim to limit
     const trimmed = mapped.slice(0, limit);
 
     return new Response(
