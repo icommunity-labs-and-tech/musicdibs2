@@ -1628,7 +1628,7 @@ const fr: typeof es = {
       status: 'Statut',
       date: 'Date',
       actions: 'Actions',
-      certificate: 'Certificat',
+      certificate: 'Voir l\'enregistrement',
       processing: 'En cours',
       registered: 'Enregistré',
       failed: 'Échoué',
