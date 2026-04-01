@@ -109,7 +109,9 @@ serve(async (req) => {
     });
 
     // For subscription plans, update the plan name
-    const planMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
+    const ANNUAL_PLAN_IDS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
+    const planMap: Record<string, string> = { monthly: "Monthly" };
+    if (ANNUAL_PLAN_IDS.includes(planId)) planMap[planId] = "Annual";
     const planName = planMap[planId];
     if (planName) {
       await supabaseAdmin.from("profiles").update({ subscription_plan: planName }).eq("user_id", user.id);
