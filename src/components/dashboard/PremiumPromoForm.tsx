@@ -22,6 +22,7 @@ import { useCredits } from '@/hooks/useCredits';
 import { useAuth } from '@/hooks/useAuth';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { toast } from 'sonner';
 
 interface Work {
@@ -303,10 +304,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
 
         {/* Submit */}
         <div className="flex items-center justify-between pt-2 border-t border-border/30">
-          <p className="text-xs text-muted-foreground">
-            {t('dashboard.premium.cost', { cost: PREMIUM_COST })}
-            {credits !== null && <> · {t('dashboard.promote.availableCredits')} <span className="font-medium">{credits}</span></>}
-          </p>
+          <PricingLink />
           <Button
             onClick={handleSubmit}
             disabled={submitting || noCredits || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !description.trim()}

@@ -31,6 +31,7 @@ import type { GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 
 const VIDEO_STYLE_KEYS = [
   { id: "cinematic", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
@@ -810,6 +811,7 @@ const AIStudioVideo = () => {
                   )}
                 </Button>
                 )}
+                <PricingLink className="block text-center mt-1" />
 
                 {error && (
                   <Alert variant="destructive">
@@ -1156,7 +1158,7 @@ const AIStudioVideo = () => {
                   <li>• {t('aiVideo.info2', { defaultValue: 'Resolución de salida: 720p' })}</li>
                   <li>• {t('aiVideo.info3', { defaultValue: 'Modelo de IA de última generación' })}</li>
                   <li>• {t('aiVideo.info4', { defaultValue: 'Los prompts en inglés dan mejores resultados' })}</li>
-                  <li>• {t('aiVideo.info5', { defaultValue: 'Cada generación consume créditos de tu cuenta' })}</li>
+                  
                   <li>• {t('aiVideo.info6', { defaultValue: 'Puedes fusionar audio de AI Studio con el vídeo directamente en tu navegador' })}</li>
                 </ul>
               </CardContent>

@@ -25,6 +25,7 @@ import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStud
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 
 const AIStudioEdit = () => {
   const { t } = useTranslation();
@@ -608,9 +609,7 @@ const AIStudioEdit = () => {
                   )
                 )}
 
-                <p className="text-[11px] text-center text-muted-foreground">
-                  {t('aiEdit.poweredBy')}
-                </p>
+                <PricingLink className="block text-center" />
               </CardContent>
             </Card>
 
@@ -745,11 +744,12 @@ const AIStudioEdit = () => {
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)} (1 {t('aiShared.creditSingular')})
+                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)}
                     </>
                   )}
                 </Button>
                 )}
+                <PricingLink className="block text-center mt-1" />
               </CardContent>
             </Card>
           </div>

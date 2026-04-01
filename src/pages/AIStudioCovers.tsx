@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { useCredits } from "@/hooks/useCredits"
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert"
 import { FEATURE_COSTS } from "@/lib/featureCosts"
+import { PricingLink } from "@/components/dashboard/PricingPopup"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -347,9 +348,7 @@ const AIStudioCovers = () => {
                   </Button>
                 )}
 
-                <p className="text-[11px] text-muted-foreground text-center">
-                  {t('aiCovers.poweredByFal')}
-                </p>
+                <PricingLink className="block text-center" />
               </CardContent>
             </Card>
           </div>

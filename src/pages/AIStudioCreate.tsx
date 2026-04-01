@@ -36,6 +36,7 @@ import { GENRES, MOODS, type GenerationResult } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 
 // ── Music tab constants ──
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -1027,7 +1028,7 @@ const AIStudioCreate = () => {
                         >
                           <Mic className="h-4 w-4" />
                            {t('aiCreate.songWithVoice')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} {t('aiCreate.credits')}</Badge>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.songWithVoice')}</Badge>
                         </button>
                         <button
                           onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedLanguage(''); }}
@@ -1040,7 +1041,7 @@ const AIStudioCreate = () => {
                         >
                           <Headphones className="h-4 w-4" />
                            {t('aiCreate.instrumentalBase')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio} {t('aiCreate.credits')}</Badge>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.instrumentalBase')}</Badge>
                         </button>
                       </div>
 
@@ -1572,6 +1573,7 @@ const AIStudioCreate = () => {
                       {!hasEnough(currentCost) ? (
                         <NoCreditsAlert message={`Necesitas ${currentCost} créditos para generar ${mode === 'song' ? 'una canción' : 'un instrumental'}.`} />
                       ) : (
+                        <>
                         <Button
                           onClick={handleGenerate}
                           disabled={isGenerating || !prompt.trim()}
@@ -1580,10 +1582,12 @@ const AIStudioCreate = () => {
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
                            {mode === 'song'
-                             ? `${t('aiCreate.generateBtn')} ${t('aiCreate.songWithVoice')} — ${FEATURE_COSTS.generate_audio_song} ${t('aiCreate.credits')}`
-                             : `${t('aiCreate.generateBtn')} ${t('aiCreate.instrumentalBase')} — ${FEATURE_COSTS.generate_audio} ${t('aiCreate.credits')}`
+                             ? t('aiCreate.generateBtn') + ' ' + t('aiCreate.songWithVoice')
+                             : t('aiCreate.generateBtn') + ' ' + t('aiCreate.instrumentalBase')
                            }
                         </Button>
+                        <PricingLink className="mt-1 block text-center" />
+                        </>
                       )}
                     </CardContent>
                   </Card>

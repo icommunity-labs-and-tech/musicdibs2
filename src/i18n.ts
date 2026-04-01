@@ -2558,6 +2558,139 @@ allLangs.forEach((lang) => {
   }
 });
 
+// ── Credit pricing popup translations ──
+const creditPricingTranslations: Record<string, any> = {
+  es: {
+    creditPricing: {
+      title: 'Precios por operación',
+      viewPrices: 'Ver precios',
+      credit: 'crédito',
+      credits: 'créditos',
+      footer: 'Los créditos se descuentan solo tras una operación exitosa.',
+      features: {
+        register_work: 'Registrar obra',
+        promote_work: 'Promoción estándar',
+        promote_premium: 'Promoción premium',
+        generate_audio: 'Generar instrumental',
+        generate_audio_song: 'Generar canción con voz',
+        edit_audio: 'Editar / crear variación',
+        enhance_audio: 'Mejorar audio (master)',
+        generate_cover: 'Generar portada',
+        generate_video: 'Generar videoclip',
+      },
+    },
+  },
+  en: {
+    creditPricing: {
+      title: 'Pricing per action',
+      viewPrices: 'View pricing',
+      credit: 'credit',
+      credits: 'credits',
+      footer: 'Credits are only deducted after a successful operation.',
+      features: {
+        register_work: 'Register work',
+        promote_work: 'Standard promotion',
+        promote_premium: 'Premium promotion',
+        generate_audio: 'Generate instrumental',
+        generate_audio_song: 'Generate song with vocals',
+        edit_audio: 'Edit / create variation',
+        enhance_audio: 'Enhance audio (master)',
+        generate_cover: 'Generate cover art',
+        generate_video: 'Generate music video',
+      },
+    },
+  },
+  'pt-BR': {
+    creditPricing: {
+      title: 'Preços por operação',
+      viewPrices: 'Ver preços',
+      credit: 'crédito',
+      credits: 'créditos',
+      footer: 'Os créditos são descontados apenas após uma operação bem-sucedida.',
+      features: {
+        register_work: 'Registrar obra',
+        promote_work: 'Promoção padrão',
+        promote_premium: 'Promoção premium',
+        generate_audio: 'Gerar instrumental',
+        generate_audio_song: 'Gerar música com voz',
+        edit_audio: 'Editar / criar variação',
+        enhance_audio: 'Melhorar áudio (master)',
+        generate_cover: 'Gerar capa',
+        generate_video: 'Gerar videoclipe',
+      },
+    },
+  },
+  fr: {
+    creditPricing: {
+      title: 'Tarifs par opération',
+      viewPrices: 'Voir les tarifs',
+      credit: 'crédit',
+      credits: 'crédits',
+      footer: 'Les crédits ne sont déduits qu\'après une opération réussie.',
+      features: {
+        register_work: 'Enregistrer une œuvre',
+        promote_work: 'Promotion standard',
+        promote_premium: 'Promotion premium',
+        generate_audio: 'Générer un instrumental',
+        generate_audio_song: 'Générer une chanson avec voix',
+        edit_audio: 'Éditer / créer une variation',
+        enhance_audio: 'Améliorer l\'audio (master)',
+        generate_cover: 'Générer une pochette',
+        generate_video: 'Générer un clip vidéo',
+      },
+    },
+  },
+  it: {
+    creditPricing: {
+      title: 'Prezzi per operazione',
+      viewPrices: 'Vedi prezzi',
+      credit: 'credito',
+      credits: 'crediti',
+      footer: 'I crediti vengono scalati solo dopo un\'operazione riuscita.',
+      features: {
+        register_work: 'Registrare opera',
+        promote_work: 'Promozione standard',
+        promote_premium: 'Promozione premium',
+        generate_audio: 'Generare strumentale',
+        generate_audio_song: 'Generare canzone con voce',
+        edit_audio: 'Modificare / creare variazione',
+        enhance_audio: 'Migliorare audio (master)',
+        generate_cover: 'Generare copertina',
+        generate_video: 'Generare videoclip',
+      },
+    },
+  },
+  de: {
+    creditPricing: {
+      title: 'Preise pro Aktion',
+      viewPrices: 'Preise anzeigen',
+      credit: 'Credit',
+      credits: 'Credits',
+      footer: 'Credits werden nur nach erfolgreicher Ausführung abgezogen.',
+      features: {
+        register_work: 'Werk registrieren',
+        promote_work: 'Standard-Promotion',
+        promote_premium: 'Premium-Promotion',
+        generate_audio: 'Instrumental generieren',
+        generate_audio_song: 'Song mit Gesang generieren',
+        edit_audio: 'Bearbeiten / Variation erstellen',
+        enhance_audio: 'Audio verbessern (Master)',
+        generate_cover: 'Cover generieren',
+        generate_video: 'Musikvideo generieren',
+      },
+    },
+  },
+};
+
+allLangs.forEach((lang) => {
+  const translation = resources[lang]?.translation as Record<string, any> | undefined;
+  if (!translation) return;
+  const cp = creditPricingTranslations[lang]?.creditPricing;
+  if (cp) {
+    translation.creditPricing = cp;
+  }
+});
+
 // Safety fix: in some locales aiStudio was accidentally nested under privacy
 allLangs.forEach((lang) => {
   const translation = resources[lang]?.translation as Record<string, any> | undefined;

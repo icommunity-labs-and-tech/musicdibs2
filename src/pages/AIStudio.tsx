@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins, Image, Mic } from "lucide-react";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCredits } from "@/hooks/useCredits";
@@ -134,9 +135,7 @@ const AIStudio = () => {
                 </CardTitle>
                 <CardDescription>{t(module.descKey)}</CardDescription>
                 {module.costsCredits && cost > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                    <Coins className="h-3 w-3" /> {cost} {cost > 1 ? t('aiStudio.creditsPerUse') : t('aiStudio.creditPerUse')}
-                  </span>
+                  <span className="mt-1"><PricingLink /></span>
                 )}
               </CardHeader>
               <CardContent>
@@ -191,9 +190,7 @@ const AIStudio = () => {
                   <CardTitle>{t(module.titleKey)}</CardTitle>
                   <CardDescription>{t(module.descKey)}</CardDescription>
                   {module.costsCredits && cost > 0 && (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                      <Coins className="h-3 w-3" /> {cost} {cost > 1 ? t('aiStudio.creditsPerUse') : t('aiStudio.creditPerUse')}
-                    </span>
+                    <span className="mt-1"><PricingLink /></span>
                   )}
                 </CardHeader>
                 <CardContent>

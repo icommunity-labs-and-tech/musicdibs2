@@ -12,6 +12,7 @@ import { useCredits } from '@/hooks/useCredits';
 import { useAuth } from '@/hooks/useAuth';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -320,10 +321,7 @@ export function PromoteWorks() {
           <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
             <Megaphone className="h-4 w-4 text-primary" /> {t('dashboard.promoSelector.standardTitle')}
           </CardTitle>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Sparkles className="h-3 w-3" />
-            {t('dashboard.promote.costNote', { cost: FEATURE_COSTS.promote_work })}
-          </p>
+          <PricingLink />
         </div>
         <button onClick={loadData} className="text-muted-foreground hover:text-foreground transition-colors">
           <RefreshCw className="h-4 w-4" />
