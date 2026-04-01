@@ -117,7 +117,8 @@ serve(async (req) => {
         period_start: ch.created,
         period_end: ch.created,
         hosted_invoice_url: ch.receipt_url || null,
-        invoice_pdf: null,
+        invoice_pdf: ch.receipt_url || null,
+        receipt_url: ch.receipt_url || null,
         description: ch.description || (ch.metadata?.plan_id ? `Compra ${ch.metadata.plan_id}` : "Pago único"),
       });
     }
