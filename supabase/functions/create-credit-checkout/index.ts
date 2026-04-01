@@ -92,46 +92,8 @@ serve(async (req) => {
     const currentPlanName = currentPlanId ? (planNameMap[currentPlanId] || currentPlanId) : "Free";
     const newPlanName = planNameMap[planId] || planId;
 
-    // Individual from an active subscription means "cancel renewal" (annual/monthly -> individual)
-    if (planId === "individual" && currentSub && currentPlanId) {
-      if (currentSub.cancel_at_period_end) {
-        return new Response(JSON.stringify({
-          switched: true,
-          cancelled_to_individual: true,
-          plan: currentPlanName,
-          message: "La renovación ya está cancelada. Tu plan actual seguirá activo hasta fin de periodo.",
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
-
-      logStep("Cancelling renewal (to individual)", { from: currentPlanId });
-      await stripe.subscriptions.update(currentSub.id, {
-        cancel_at_period_end: true,
-      });
-
-      await supabaseAdmin.from("profiles").update({
-        subscription_plan: currentPlanName,
-      }).eq("user_id", user.id);
-
-      await supabaseAdmin.from("credit_transactions").insert({
-        user_id: user.id,
-        amount: 0,
-        type: "plan_change",
-        description: `Cancelación de renovación de plan ${currentPlanName}: el cambio a Individual se aplicará al finalizar el periodo`,
-      });
-
-      return new Response(JSON.stringify({
-        switched: true,
-        cancelled_to_individual: true,
-        plan: currentPlanName,
-        message: `Renovación cancelada. Tu plan ${currentPlanName} seguirá activo hasta fin de periodo.`,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
-    }
+    // Individual is always a one-time purchase, never cancel renewal
+    // (handled separately via customer portal or cancel button)
 
     // Existing subscription + target subscription => upgrade/downgrade or reactivation
     if (plan.mode === "subscription" && currentSub && currentPlanId) {

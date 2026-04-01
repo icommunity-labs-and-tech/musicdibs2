@@ -19,20 +19,24 @@ const PROFILE_PLAN_TO_ID: Record<string, string> = {
 function getButtonConfig(
   planId: string,
   currentPlanId: string | null,
+  cancelAtPeriodEnd: boolean,
   t: (key: string, options?: Record<string, unknown>) => string,
 ) {
+  // Individual is always a simple purchase
   if (planId === 'individual') {
-    if (currentPlanId && currentPlanId !== '') {
-      return { label: t('dashboard.creditStore.cancelRenewal'), variant: 'outline' as const, icon: null, disabled: false };
-    }
     return { label: t('dashboard.creditStore.buy'), variant: 'outline' as const, icon: null, disabled: false };
   }
 
+  // No active subscription → subscribe
   if (!currentPlanId || currentPlanId === '') {
     return { label: t('dashboard.creditStore.subscribe'), variant: planId === 'annual' ? 'default' as const : 'outline' as const, icon: null, disabled: false };
   }
 
   if (currentPlanId === planId) {
+    if (cancelAtPeriodEnd) {
+      // Renewal was cancelled → allow reactivation
+      return { label: t('dashboard.creditStore.reactivate', { defaultValue: 'Reactivar' }), variant: 'default' as const, icon: null, disabled: false };
+    }
     return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
   }
 
