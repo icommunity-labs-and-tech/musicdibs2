@@ -592,6 +592,8 @@ const en: typeof es = {
       statusUncollectible: 'Uncollectible',
       viewInvoice: 'View invoice',
       downloadPdf: 'Download PDF',
+      typeSubscription: 'Subscription',
+      typeOneTime: 'One-time purchase',
     },
     profile: {
       title: 'Profile',
