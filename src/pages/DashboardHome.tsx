@@ -171,9 +171,11 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Recent Registrations — compact, inside grid */}
-      <div data-tour="recent-registrations">
-        <RecentRegistrations />
+      {/* Recent Registrations — 2 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2" data-tour="recent-registrations">
+          <RecentRegistrations />
+        </div>
       </div>
     </div>
   );
