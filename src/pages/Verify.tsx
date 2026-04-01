@@ -72,7 +72,7 @@ const Verify = () => {
         ibsUrl: `https://app.icommunitylabs.com/evidences/${result.ibsEvidenceId}`,
         evidenceId: result.ibsEvidenceId,
       };
-      await generateCertificate(certData);
+      await generateCertificate(certData, locale);
       toast.success(t('dashboard.certificate.downloadSuccess'));
     } catch (e) {
       console.error(e);
