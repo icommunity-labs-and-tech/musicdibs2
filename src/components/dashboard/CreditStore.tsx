@@ -212,7 +212,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
           <div className="space-y-2">
             {plans.map((plan) => {
               const Icon = plan.icon;
-              const btn = getButtonConfig(plan.id, currentPlanId, t);
+              const btn = getButtonConfig(plan.id, currentPlanId, cancelAtPeriodEnd, t);
               const BtnIcon = btn.icon;
               return (
                 <div
