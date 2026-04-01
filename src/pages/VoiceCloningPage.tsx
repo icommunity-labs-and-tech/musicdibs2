@@ -33,6 +33,47 @@ const VoiceCloningPage = () => {
   const [editingCloneName, setEditingCloneName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Audio player state
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const stopPlayback = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setPlayingId(null);
+    setCurrentTime(0);
+    setDuration(0);
+  }, []);
+
+  const togglePlay = useCallback(async (clone: any) => {
+    if (playingId === clone.id) { stopPlayback(); return; }
+    stopPlayback();
+    if (!clone.sample_url) return;
+    const audio = new Audio(clone.sample_url);
+    audioRef.current = audio;
+    audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
+    audio.addEventListener('ended', stopPlayback);
+    const tick = () => { setCurrentTime(audio.currentTime); rafRef.current = requestAnimationFrame(tick); };
+    setPlayingId(clone.id);
+    await audio.play();
+    tick();
+  }, [playingId, stopPlayback]);
+
+  const handleSeek = useCallback((val: number[]) => {
+    if (audioRef.current) { audioRef.current.currentTime = val[0]; setCurrentTime(val[0]); }
+  }, []);
+
+  useEffect(() => () => { stopPlayback(); }, [stopPlayback]);
+
   const loadClones = async () => {
     if (!user) return;
     const { data } = await supabase
@@ -41,7 +82,17 @@ const VoiceCloningPage = () => {
       .eq('user_id', user.id)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
-    setClones(data || []);
+    // Generate signed URLs for samples
+    const withUrls = await Promise.all((data || []).map(async (c: any) => {
+      if (c.sample_storage_path) {
+        const { data: urlData } = await supabase.storage
+          .from('voice-clone-samples')
+          .createSignedUrl(c.sample_storage_path, 3600);
+        return { ...c, sample_url: urlData?.signedUrl || null };
+      }
+      return { ...c, sample_url: null };
+    }));
+    setClones(withUrls);
     setLoading(false);
   };
 
