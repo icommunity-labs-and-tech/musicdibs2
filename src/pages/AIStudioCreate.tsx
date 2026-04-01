@@ -1028,7 +1028,7 @@ const AIStudioCreate = () => {
                         >
                           <Mic className="h-4 w-4" />
                            {t('aiCreate.songWithVoice')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{FEATURE_COSTS.generate_audio_song} {t('aiCreate.credits')}</Badge>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.songWithVoice')}</Badge>
                         </button>
                         <button
                           onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedLanguage(''); }}
