@@ -348,9 +348,7 @@ const AIStudioCovers = () => {
                   </Button>
                 )}
 
-                <p className="text-[11px] text-muted-foreground text-center">
-                  {t('aiCovers.poweredByFal')}
-                </p>
+                <PricingLink className="block text-center" />
               </CardContent>
             </Card>
           </div>

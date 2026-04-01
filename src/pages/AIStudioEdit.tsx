@@ -744,11 +744,12 @@ const AIStudioEdit = () => {
                   ) : (
                     <>
                       <Wand2 className="w-4 h-4 mr-2" />
-                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)} (1 {t('aiShared.creditSingular')})
+                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)}
                     </>
                   )}
                 </Button>
                 )}
+                <PricingLink className="block text-center mt-1" />
               </CardContent>
             </Card>
           </div>

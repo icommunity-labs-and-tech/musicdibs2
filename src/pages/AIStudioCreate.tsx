@@ -1581,10 +1581,11 @@ const AIStudioCreate = () => {
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
                            {mode === 'song'
-                             ? `${t('aiCreate.generateBtn')} ${t('aiCreate.songWithVoice')} — ${FEATURE_COSTS.generate_audio_song} ${t('aiCreate.credits')}`
-                             : `${t('aiCreate.generateBtn')} ${t('aiCreate.instrumentalBase')} — ${FEATURE_COSTS.generate_audio} ${t('aiCreate.credits')}`
+                             ? t('aiCreate.generateBtn') + ' ' + t('aiCreate.songWithVoice')
+                             : t('aiCreate.generateBtn') + ' ' + t('aiCreate.instrumentalBase')
                            }
                         </Button>
+                        <PricingLink className="mt-1 block text-center" />
                       )}
                     </CardContent>
                   </Card>

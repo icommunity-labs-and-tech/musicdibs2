@@ -811,6 +811,7 @@ const AIStudioVideo = () => {
                   )}
                 </Button>
                 )}
+                <PricingLink className="block text-center mt-1" />
 
                 {error && (
                   <Alert variant="destructive">
