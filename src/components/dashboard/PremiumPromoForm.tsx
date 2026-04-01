@@ -356,17 +356,29 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             <div className="space-y-1.5">
               <Label className="text-sm">{t('dashboard.premium.mediaUpload')}</Label>
               <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.mediaUploadHint')}</p>
+              <p className="text-[10px] text-muted-foreground/70">{t('dashboard.premium.videoSpecs')}</p>
               {mediaFile ? (
-                <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
-                  <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate flex-1">{mediaFile.name}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {(mediaFile.size / (1024 * 1024)).toFixed(1)} MB
-                  </span>
-                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setMediaFile(null)}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
+                <>
+                  <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
+                    <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{mediaFile.name}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {(mediaFile.size / (1024 * 1024)).toFixed(1)} MB
+                    </span>
+                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setMediaFile(null); setMediaWarnings([]); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {mediaWarnings.length > 0 && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-1">
+                      {mediaWarnings.map((w, i) => (
+                        <p key={i} className="text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
+                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" /> {w}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
                 <label className="flex items-center justify-center gap-2 cursor-pointer rounded-md border border-dashed border-border/60 p-4 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
                   <Upload className="h-4 w-4" />
