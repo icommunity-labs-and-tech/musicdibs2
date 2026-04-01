@@ -61,7 +61,29 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { planId } = await req.json();
+    const body = await req.json();
+    const { planId, action } = body;
+
+    // Handle cancel_renewal action
+    if (action === "cancel_renewal") {
+      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length === 0) throw new Error("No Stripe customer found");
+      const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "all", limit: 10 });
+      const activeSub = subs.data.find((sub) => ["active", "trialing", "past_due", "unpaid"].includes(sub.status));
+      if (!activeSub) throw new Error("No active subscription to cancel");
+      if (activeSub.cancel_at_period_end) {
+        return new Response(JSON.stringify({ message: "La renovación ya está cancelada." }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      await stripe.subscriptions.update(activeSub.id, { cancel_at_period_end: true });
+      logStep("Renewal cancelled", { subId: activeSub.id });
+      return new Response(JSON.stringify({ message: "Renovación cancelada. Tu plan seguirá activo hasta fin de periodo." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const plan = PLANS[planId];
     if (!plan) throw new Error("Invalid plan");
 
