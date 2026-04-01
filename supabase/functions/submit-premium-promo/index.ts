@@ -41,7 +41,7 @@ serve(async (req) => {
     );
 
     const body = await req.json();
-    const { work_id, artist_name, song_title, description, promo_style, promo_message, external_link, team_notes } = body;
+    const { work_id, artist_name, song_title, description, external_link, team_notes, media_file_path } = body;
 
     if (!work_id || !artist_name || !song_title || !description) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -58,10 +58,11 @@ serve(async (req) => {
         artist_name,
         song_title,
         description,
-        promo_style: promo_style || null,
-        promo_message: promo_message || null,
+        promo_style: null,
+        promo_message: null,
         external_link: external_link || null,
         team_notes: team_notes || null,
+        media_file_path: media_file_path || null,
         status: 'submitted',
         credits_spent: 30,
       })
