@@ -691,6 +691,8 @@ const en: typeof es = {
       planChanged: 'Plan changed successfully',
       purchaseError: 'Error processing purchase',
       nCredits: '{{n}} credits',
+      cancelled: 'Cancelled',
+      reactivate: 'Reactivate',
     },
     creditHistory: {
       title: 'Credit history',
