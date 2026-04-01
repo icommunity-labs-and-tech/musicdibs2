@@ -117,7 +117,7 @@ function StepHeader({
 // ══════════════════════════════════════════════════════════════════
 // COMPONENTE PRINCIPAL
 // ══════════════════════════════════════════════════════════════════
-export function FirstHitFlow() {
+export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const navigate  = useNavigate()
@@ -1109,7 +1109,7 @@ export function FirstHitFlow() {
             variant="ghost"
             size="sm"
             className="text-xs text-muted-foreground"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => onSkip ? onSkip() : navigate('/dashboard')}
           >
             {t('dashboard.firstHit.goToPanel')}
           </Button>
