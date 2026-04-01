@@ -117,6 +117,7 @@ const es = {
       expiresIn: 'Tu suscripción expira en {{days}} día(s)',
       renewal: 'Renovación: {{date}}',
       renewalWarning: 'Tu suscripción se renovará automáticamente. Comprueba que tu método de pago sigue vigente para evitar interrupciones.',
+      cancelledRenewal: 'Renovación cancelada · Activo hasta {{date}}',
     },
     creditStore: {
       credits: 'Créditos',
