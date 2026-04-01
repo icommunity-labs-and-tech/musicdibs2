@@ -609,9 +609,7 @@ const AIStudioEdit = () => {
                   )
                 )}
 
-                <p className="text-[11px] text-center text-muted-foreground">
-                  {t('aiEdit.poweredBy')}
-                </p>
+                <PricingLink className="block text-center" />
               </CardContent>
             </Card>
 
