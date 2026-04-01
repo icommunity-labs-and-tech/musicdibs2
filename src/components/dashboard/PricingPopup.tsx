@@ -31,7 +31,9 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
           </DialogTitle>
         </DialogHeader>
         <div className="divide-y divide-border/40">
-          {PRICING_ROWS.map(({ key, icon: Icon }) => {
+          {[...PRICING_ROWS]
+            .sort((a, b) => (FEATURE_COSTS[a.key as keyof typeof FEATURE_COSTS] ?? 0) - (FEATURE_COSTS[b.key as keyof typeof FEATURE_COSTS] ?? 0))
+            .map(({ key, icon: Icon }) => {
             const cost = FEATURE_COSTS[key as keyof typeof FEATURE_COSTS];
             return (
               <div key={key} className="flex items-center justify-between py-2.5 px-1">
