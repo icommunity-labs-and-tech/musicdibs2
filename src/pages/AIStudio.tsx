@@ -63,7 +63,7 @@ const AIStudio = () => {
       descKey: "aiStudio.modules.createVideoclips.desc",
       icon: Video,
       href: "/ai-studio/video",
-      available: true,
+      available: false,
       costsCredits: true,
       featureKey: 'generate_video' as const,
       color: "from-rose-500 to-red-500"
