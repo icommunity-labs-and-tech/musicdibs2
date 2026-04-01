@@ -1135,6 +1135,8 @@ const pt: typeof es = {
       statusUncollectible: 'Incobrável',
       viewInvoice: 'Ver fatura',
       downloadPdf: 'Baixar PDF',
+      typeSubscription: 'Assinatura',
+      typeOneTime: 'Compra única',
     },
     profile: {
       title: 'Perfil',
