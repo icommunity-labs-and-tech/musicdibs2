@@ -660,6 +660,7 @@ const en: typeof es = {
       expiresIn: 'Your subscription expires in {{days}} day(s)',
       renewal: 'Renewal: {{date}}',
       renewalWarning: 'Your subscription will renew automatically. Make sure your payment method is up to date to avoid interruptions.',
+      cancelledRenewal: 'Renewal cancelled · Active until {{date}}',
     },
     creditStore: {
       credits: 'Credits',
