@@ -15,6 +15,7 @@ const Verify = () => {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<VerificationResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
