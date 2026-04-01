@@ -249,7 +249,20 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
               </Card>
             ))
           ) : (
-            <p className="text-xs text-muted-foreground px-2 py-1">{t(`${cs}.topupRequiresSubscription`)}</p>
+            <Card className="border-dashed border-primary/30 bg-primary/5 shadow-none">
+              <CardContent className="flex flex-col items-center gap-2 py-4 text-center">
+                <div className="flex items-center gap-1.5">
+                  <Lock className="h-4 w-4 text-primary" />
+                  <Badge variant="outline" className="border-primary/40 text-primary text-xs">
+                    {t(`${cs}.subscribersOnly`)}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground max-w-xs">{t(`${cs}.topupRequiresSubscription`)}</p>
+                <Button size="sm" variant="default" className="mt-1" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                  <Sparkles className="h-3 w-3 mr-1" /> {t(`${cs}.seeSubscriptions`)}
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </CollapsibleContent>
       </Collapsible>
