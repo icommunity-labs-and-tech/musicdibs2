@@ -4,7 +4,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
-import { Coins, Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone } from 'lucide-react';
+import { Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone, Coins } from 'lucide-react';
 
 const PRICING_ROWS = [
   { key: 'register_work', icon: Shield },
@@ -27,7 +27,7 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-primary" />
-            {t('pricing.title')}
+            {t('creditPricing.title')}
           </DialogTitle>
         </DialogHeader>
         <div className="divide-y divide-border/40">
@@ -37,17 +37,17 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
               <div key={key} className="flex items-center justify-between py-2.5 px-1">
                 <div className="flex items-center gap-2.5">
                   <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{t(`pricing.features.${key}`)}</span>
+                  <span className="text-sm">{t(`creditPricing.features.${key}`)}</span>
                 </div>
                 <span className="text-sm font-semibold tabular-nums">
-                  {cost} {cost === 1 ? t('pricing.credit') : t('pricing.credits')}
+                  {cost} {cost === 1 ? t('creditPricing.credit') : t('creditPricing.credits')}
                 </span>
               </div>
             );
           })}
         </div>
         <p className="text-[11px] text-muted-foreground text-center pt-2">
-          {t('pricing.footer')}
+          {t('creditPricing.footer')}
         </p>
       </DialogContent>
     </Dialog>
@@ -66,7 +66,7 @@ export function PricingLink({ className }: { className?: string }) {
         onClick={(e) => { e.stopPropagation(); setOpen(true); }}
         className={`text-[11px] text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors ${className ?? ''}`}
       >
-        {t('pricing.viewPrices')}
+        {t('creditPricing.viewPrices')}
       </button>
       <PricingPopup open={open} onOpenChange={setOpen} />
     </>
