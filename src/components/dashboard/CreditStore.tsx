@@ -143,6 +143,23 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
+  const handleCancelRenewal = async () => {
+    setLoading('cancel');
+    setError(null);
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { action: 'cancel_renewal' },
+      });
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || 'Renovación cancelada');
+      setCancelAtPeriodEnd(true);
+    } catch (err: any) {
+      setError(err?.message || 'Error');
+    }
+    setLoading(null);
+  };
+
   const handleBuy = async (planId: string) => {
     setLoading(planId);
     setError(null);
