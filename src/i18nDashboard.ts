@@ -2966,7 +2966,9 @@ const de: typeof es = {
       noSignupFee: 'Keine Anmeldegebühr · Jederzeit kündbar',
       creditsAdded: '✅ {{n}} Credits Ihrem Konto hinzugefügt',
       paymentError: 'Fehler bei der Zahlungsverarbeitung',
-      topupRequiresSubscription: 'Top-ups sind nur für Abonnenten verfügbar. Abonnieren Sie einen Plan, um Credits aufzuladen.',
+      topupRequiresSubscription: 'Top-ups sind nur für Abonnenten verfügbar. Abonnieren Sie, um Kreditpakete zu einem besseren Preis freizuschalten.',
+      subscribersOnly: 'Nur für Abonnenten',
+      seeSubscriptions: 'Abonnements ansehen',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
