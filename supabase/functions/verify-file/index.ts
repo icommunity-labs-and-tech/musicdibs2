@@ -78,7 +78,7 @@ serve(async (req) => {
     if (fileHash) {
       const bySha256 = await supabaseAdmin
         .from("works")
-        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network, ibs_evidence_id, description, type, author")
         .eq("file_hash", fileHash)
         .eq("status", "registered")
         .limit(1);
