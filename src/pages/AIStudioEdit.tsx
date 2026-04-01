@@ -25,6 +25,7 @@ import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStud
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 
 const AIStudioEdit = () => {
   const { t } = useTranslation();
