@@ -302,7 +302,8 @@ serve(async (req) => {
       automatic_tax: { enabled: true },
       billing_address_collection: "required",
       tax_id_collection: { enabled: true },
-      consent_collection: { terms_of_service: "required" },
+      // consent_collection requires terms_of_service_url configured in Stripe dashboard
+      // consent_collection: { terms_of_service: "required" },
       success_url: `${req.headers.get("origin")}/dashboard/credits?payment=success&plan=${planId}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/dashboard/credits?payment=canceled`,
       metadata: {
