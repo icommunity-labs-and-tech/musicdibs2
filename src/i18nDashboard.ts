@@ -1777,6 +1777,8 @@ const fr: typeof es = {
       planChanged: 'Plan modifié avec succès',
       purchaseError: "Erreur lors du traitement de l'achat",
       nCredits: '{{n}} crédits',
+      cancelled: 'Annulé',
+      reactivate: 'Réactiver',
     },
     creditHistory: {
       title: 'Historique des crédits',
