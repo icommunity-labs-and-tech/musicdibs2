@@ -36,6 +36,7 @@ export default function DashboardHome() {
         if (error) console.error('[check-subscription]', error);
         else {
           setSubscriptionEnd(data?.subscription_end ?? null);
+          setCancelAtPeriodEnd(data?.cancel_at_period_end === true);
         }
       });
     };
