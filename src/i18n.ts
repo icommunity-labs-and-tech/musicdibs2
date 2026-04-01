@@ -610,6 +610,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Próximamente',
+        free: 'Gratis',
         promoGroupTitle: 'Genera material promocional',
         modules: {
           createMusic: { title: 'Crea Música', desc: 'Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.' },
@@ -1093,6 +1094,7 @@ const resources = {
         creditPerUse: 'credit per use',
         creditsPerUse: 'credits per use',
         comingSoon: 'Coming soon',
+        free: 'Free',
         promoGroupTitle: 'Generate promotional material',
         modules: {
           createMusic: { title: 'Create Music', desc: 'Generate original music from scratch using AI. Describe the style, mood and characteristics you want.' },
@@ -1387,6 +1389,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Em breve',
+        free: 'Grátis',
         promoGroupTitle: 'Gere material promocional',
         modules: {
           createMusic: { title: 'Crie Música', desc: 'Gere música original do zero usando IA. Descreva o estilo, mood e características que deseja.' },
@@ -1538,6 +1541,7 @@ const resources = {
         creditPerUse: 'crédit par utilisation',
         creditsPerUse: 'crédits par utilisation',
         comingSoon: 'Bientôt disponible',
+        free: 'Gratuit',
         promoGroupTitle: 'Générez du matériel promotionnel',
         modules: {
           createMusic: { title: 'Créez de la Musique', desc: 'Générez de la musique originale à partir de zéro avec l\'IA. Décrivez le style, le mood et les caractéristiques souhaités.' },
@@ -1770,6 +1774,7 @@ const resources = {
         creditPerUse: 'credito per utilizzo',
         creditsPerUse: 'crediti per utilizzo',
         comingSoon: 'Prossimamente',
+        free: 'Gratuito',
         promoGroupTitle: 'Genera materiale promozionale',
         modules: {
           createMusic: { title: 'Crea Musica', desc: 'Genera musica originale da zero usando l\'IA. Descrivi lo stile, il mood e le caratteristiche che desideri.' },
@@ -2002,6 +2007,7 @@ const resources = {
         creditPerUse: 'Credit pro Nutzung',
         creditsPerUse: 'Credits pro Nutzung',
         comingSoon: 'Demnächst',
+        free: 'Kostenlos',
         promoGroupTitle: 'Werbematerial erstellen',
         modules: {
           createMusic: { title: 'Musik erstellen', desc: 'Generiere originelle Musik von Grund auf mit KI. Beschreibe den Stil, die Stimmung und die gewünschten Eigenschaften.' },
