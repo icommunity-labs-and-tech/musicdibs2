@@ -1286,7 +1286,9 @@ const pt: typeof es = {
       noSignupFee: 'Sem taxa de inscrição · Cancele quando quiser',
       creditsAdded: '✅ {{n}} créditos adicionados à sua conta',
       paymentError: 'Erro ao processar o pagamento',
-      topupRequiresSubscription: 'Os top-ups estão disponíveis apenas para assinantes. Assine um plano para recarregar créditos.',
+      topupRequiresSubscription: 'Os top-ups estão disponíveis apenas para assinantes. Assine para desbloquear pacotes de créditos a melhor preço.',
+      subscribersOnly: 'Apenas assinantes',
+      seeSubscriptions: 'Ver assinaturas',
     },
     creditHistory: {
       title: 'Histórico de créditos',
