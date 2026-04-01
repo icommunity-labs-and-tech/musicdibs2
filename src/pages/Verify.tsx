@@ -43,6 +43,45 @@ const Verify = () => {
     setVerifying(false);
   };
 
+  const handleDownloadCertificate = async () => {
+    if (!result || !result.found || !result.blockchainHash || !result.ibsEvidenceId) return;
+    setGenerating(true);
+    try {
+      const network = result.blockchainNetwork || 'Polygon';
+      const checkerNetwork = ['fantom_opera_mainnet', 'fantom', 'opera'].includes(network.toLowerCase())
+        ? 'opera'
+        : network.toLowerCase();
+
+      const certData: CertificateData = {
+        title: result.title || '',
+        filename: file?.name || `${result.title}.mp3`,
+        filesize: file ? `${file.size.toLocaleString(locale)} bytes` : t('dashboard.certificate.notAvailable'),
+        fileType: result.workType || t('dashboard.certificate.fileTypeFallback'),
+        description: result.description || undefined,
+        authorName: result.author || t('dashboard.certificate.notAvailable'),
+        certifiedAt: new Date(result.registeredAt!).toLocaleDateString(locale, {
+          day: '2-digit', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+        }),
+        network,
+        txHash: result.blockchainHash,
+        fingerprint: result.blockchainHash,
+        algorithm: 'base64 SHA-512',
+        checkerUrl: result.certificateUrl ||
+          `https://checker.icommunitylabs.com/check/${checkerNetwork}/${result.blockchainHash}`,
+        ibsUrl: `https://app.icommunitylabs.com/evidences/${result.ibsEvidenceId}`,
+        evidenceId: result.ibsEvidenceId,
+      };
+      await generateCertificate(certData);
+      toast.success(t('dashboard.certificate.downloadSuccess'));
+    } catch (e) {
+      console.error(e);
+      toast.error(t('dashboard.certificate.generateError'));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const locale = i18n.language === 'pt-BR' ? 'pt-BR' : i18n.language?.split('-')[0] || 'es';
 
   const steps = [
