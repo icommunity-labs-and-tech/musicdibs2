@@ -175,6 +175,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         toast.success(data.message || t('dashboard.creditStore.planChanged'));
         const resolvedPlanId = data?.plan ? (PROFILE_PLAN_TO_ID[data.plan] ?? planId) : planId;
         setCurrentPlanId(resolvedPlanId);
+        if (data?.reactivated) setCancelAtPeriodEnd(false);
         setLoading(null);
         return;
       }
