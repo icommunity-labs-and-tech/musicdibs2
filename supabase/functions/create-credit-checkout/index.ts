@@ -18,7 +18,7 @@ const PLANS: Record<string, { priceId: string; credits: number; mode: "subscript
   // Mensual (sin cuota inscripción)
   monthly:     { priceId: "price_1T9SZvF9ZCIiqrz6TWLtfMBs", credits: 8,    mode: "subscription", label: "Mensual 8 créditos" },
   // Pago único individual
-  individual:  { priceId: "price_1T9TnyF9ZCIiqrz6XqgzLo1K", credits: 1,    mode: "payment",       label: "Crédito individual" },
+  individual:  { priceId: "price_1THULsF9ZCIiqrz64SbA3AK6", credits: 1,    mode: "payment",       label: "Crédito individual" },
   // Top-ups
   topup_10:    { priceId: "price_1THT7xF9ZCIiqrz60FfiGbfv", credits: 10,   mode: "payment",       label: "Top-up 10 créditos" },
   topup_25:    { priceId: "price_1THT80F9ZCIiqrz6H31dYDMG", credits: 25,   mode: "payment",       label: "Top-up 25 créditos" },
