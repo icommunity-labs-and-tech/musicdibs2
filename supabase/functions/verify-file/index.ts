@@ -89,7 +89,7 @@ serve(async (req) => {
     if ((!works || works.length === 0) && !error && fileHashSha512Base64) {
       const byIbsChecksum = await supabaseAdmin
         .from("works")
-        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network")
+        .select("id, title, status, created_at, certified_at, certificate_url, checker_url, blockchain_hash, blockchain_network, ibs_evidence_id, description, type, author")
         .eq("ibs_payload_checksum", fileHashSha512Base64)
         .eq("status", "registered")
         .limit(1);
