@@ -5,8 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Crown, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -51,6 +52,16 @@ export default function AdminPremiumPromosPage() {
       load();
       if (selected?.id === promoId) setSelected((prev: any) => ({ ...prev, status: newStatus }));
     } catch (e: any) { toast.error(e.message); }
+  };
+
+  const downloadMedia = async (filePath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('premium-promo-media')
+        .createSignedUrl(filePath, 300);
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch (e: any) { toast.error('Error descargando archivo: ' + e.message); }
   };
 
   return (
@@ -149,12 +160,22 @@ export default function AdminPremiumPromosPage() {
                 <span className="text-muted-foreground">Canción</span><span className="font-medium">{selected.song_title}</span>
                 <span className="text-muted-foreground">Email</span><span>{selected.user_email || '—'}</span>
                 <span className="text-muted-foreground">Fecha</span><span>{format(new Date(selected.created_at), 'dd/MM/yyyy HH:mm')}</span>
-                <span className="text-muted-foreground">Descripción</span><span className="whitespace-pre-wrap">{selected.description}</span>
-                <span className="text-muted-foreground">Estilo visual</span><span>{selected.promo_style || '—'}</span>
-                <span className="text-muted-foreground">Mensaje promo</span><span className="whitespace-pre-wrap">{selected.promo_message || '—'}</span>
-                <span className="text-muted-foreground">Enlace externo</span>
-                <span>{selected.external_link ? <a href={selected.external_link} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{selected.external_link}</a> : '—'}</span>
-                <span className="text-muted-foreground">Notas del artista</span><span className="whitespace-pre-wrap">{selected.team_notes || '—'}</span>
+                <span className="text-muted-foreground">Letra</span><span className="whitespace-pre-wrap max-h-40 overflow-y-auto">{selected.description}</span>
+                <span className="text-muted-foreground">Enlaces / Notas</span>
+                <span className="whitespace-pre-wrap">{selected.external_link || '—'}</span>
+                {selected.media_file_path && (
+                  <>
+                    <span className="text-muted-foreground">Archivo adjunto</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 w-fit"
+                      onClick={() => downloadMedia(selected.media_file_path)}
+                    >
+                      <Download className="h-3.5 w-3.5" /> Descargar
+                    </Button>
+                  </>
+                )}
                 <span className="text-muted-foreground">Obra (ID)</span><span className="text-xs text-muted-foreground break-all">{selected.work_id}</span>
               </div>
             </div>
