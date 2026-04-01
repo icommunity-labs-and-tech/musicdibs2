@@ -101,13 +101,51 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
     }
   };
 
-  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateVideoFile = useCallback((file: File): Promise<string[]> => {
+    return new Promise((resolve) => {
+      const warnings: string[] = [];
+      const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+      const isVideo = file.type.startsWith('video/') || ACCEPTED_VIDEO_EXTS.includes(ext);
+
+      if (!isVideo) { resolve([]); return; }
+
+      // Check format
+      if (!ACCEPTED_VIDEO_TYPES.includes(file.type) && !ACCEPTED_VIDEO_EXTS.includes(ext)) {
+        warnings.push(t('dashboard.premium.videoInvalidFormat', 'Formato no válido. Usa MP4 o MOV.'));
+      }
+
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.onloadedmetadata = () => {
+        if (video.duration > MAX_VIDEO_DURATION_SECS) {
+          warnings.push(t('dashboard.premium.videoTooLong', 'Duración máxima recomendada: {{max}}s. Tu vídeo dura {{dur}}s.', { max: MAX_VIDEO_DURATION_SECS, dur: Math.round(video.duration) }));
+        }
+        if (video.videoWidth < MIN_VIDEO_WIDTH || video.videoHeight < MIN_VIDEO_HEIGHT) {
+          warnings.push(t('dashboard.premium.videoLowRes', 'Resolución mínima recomendada: {{w}}×{{h}}px. Tu vídeo: {{vw}}×{{vh}}px.', { w: MIN_VIDEO_WIDTH, h: MIN_VIDEO_HEIGHT, vw: video.videoWidth, vh: video.videoHeight }));
+        }
+        const ratio = video.videoWidth / video.videoHeight;
+        if (ratio < 0.5 || ratio > 2.0) {
+          warnings.push(t('dashboard.premium.videoBadRatio', 'Aspect ratio inusual. Recomendado: 9:16, 1:1 o 4:5.'));
+        }
+        URL.revokeObjectURL(url);
+        resolve(warnings);
+      };
+      video.onerror = () => { URL.revokeObjectURL(url); resolve(warnings); };
+    });
+  }, [t]);
+
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 50 * 1024 * 1024) {
       toast.error(t('dashboard.premium.fileTooLarge', 'Archivo demasiado grande (máx. 50 MB)'));
       return;
     }
+    setMediaWarnings([]);
+    const warnings = await validateVideoFile(file);
+    setMediaWarnings(warnings);
     setMediaFile(file);
   };
 
