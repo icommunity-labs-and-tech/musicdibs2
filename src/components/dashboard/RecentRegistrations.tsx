@@ -101,7 +101,7 @@ export function RecentRegistrations() {
                       </span>
 
                       {/* Actions — aligned left */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 flex-wrap">
                         {reg.certificateUrl && (
                           <a
                             href={reg.certificateUrl}
