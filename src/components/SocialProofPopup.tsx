@@ -107,12 +107,18 @@ const CITIES_BY_LANG: Record<string, string[]> = {
 
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
+const APP_ROUTE_PREFIXES = ["/dashboard", "/admin", "/manager", "/ia-studio", "/ai-studio"];
+
 const SocialProofPopup = () => {
   const { t, i18n } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [data, setData] = useState<NotificationData | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const pathname = window.location.pathname;
+  const isAppRoute = APP_ROUTE_PREFIXES.some((p) => pathname.startsWith(p));
+
+  if (isAppRoute) return null;
 
   const lang = i18n.resolvedLanguage || i18n.language || "es";
   const langKey = lang.startsWith("pt") ? "pt-BR" : NAMES_BY_LANG[lang] ? lang : "en";
