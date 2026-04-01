@@ -21,6 +21,7 @@ export default function DashboardHome() {
   const { t } = useTranslation();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [hasWorks, setHasWorks] = useState<boolean | null>(null);
   const storageKey = user ? `musicdibs_skip_first_hit_${user.id}` : null;
   const [skipFirstHit, setSkipFirstHit] = useState(() => {
