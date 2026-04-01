@@ -13,7 +13,14 @@ const logStep = (step: string, details?: any) => {
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
+  // Annual plans (tiered by credits)
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "Annual",
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": "Annual",  // annual_100
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": "Annual",  // annual_200
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": "Annual",  // annual_300
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "Annual",  // annual_500
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "Annual",  // annual_1000
+  // Monthly plan
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
 };
 
