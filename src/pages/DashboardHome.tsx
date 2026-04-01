@@ -22,6 +22,7 @@ export default function DashboardHome() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [hasWorks, setHasWorks] = useState<boolean | null>(null);
+  const [skipFirstHit, setSkipFirstHit] = useState(false);
 
   useEffect(() => {
     if (!user) return;
