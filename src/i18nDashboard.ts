@@ -2413,6 +2413,7 @@ const it: typeof es = {
       topupRequiresSubscription: 'I top-up sono disponibili solo per gli abbonati. Abbonati per sbloccare pacchetti di crediti a prezzo migliore.',
       subscribersOnly: 'Solo abbonati',
       seeSubscriptions: 'Vedi abbonamenti',
+      subscribersBenefits: 'Accedi a ricariche con fino al 40% di sconto per credito e non restare mai senza registrazioni.',
     },
     creditHistory: {
       title: 'Storico crediti',
