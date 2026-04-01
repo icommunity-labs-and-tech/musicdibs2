@@ -218,7 +218,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <p className="text-sm font-bold">11 €</p>
+                <p className="text-sm font-bold">7 €</p>
                 <Button size="sm" variant="outline" onClick={() => handleBuy('individual')} disabled={loading !== null}>
                   {loading === 'individual' ? <Loader2 className="h-3 w-3 animate-spin" /> : t(`${cs}.buy`)}
                 </Button>
