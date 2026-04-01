@@ -263,7 +263,7 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
-            <p className="text-xs text-muted-foreground">{t('dashboard.registerWork.creditCost', { cost: FEATURE_COSTS.register_work, plural: FEATURE_COSTS.register_work > 1 ? 's' : '' })}</p>
+            <PricingLink />
             
             {aiAudioUrl && (
               <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/20">

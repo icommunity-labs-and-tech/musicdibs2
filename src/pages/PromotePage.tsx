@@ -223,7 +223,7 @@ export default function PromotePage() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{p.artist_name} — {p.song_title}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          {new Date(p.created_at).toLocaleDateString()} · {p.credits_spent} {t('dashboard.premium.creditsLabel', 'créditos')}
+                          {new Date(p.created_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>

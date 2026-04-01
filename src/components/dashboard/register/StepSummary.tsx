@@ -93,10 +93,8 @@ export function StepSummary({ data, loading, onSubmit, onBack }: StepSummaryProp
 
         <div className="flex items-center gap-2 rounded-lg bg-primary/5 border border-primary/20 p-3">
           <Info className="h-4 w-4 text-primary shrink-0" />
-          <p className="text-sm" dangerouslySetInnerHTML={{
-            __html: t('wizard.summary.creditInfo', { cost: FEATURE_COSTS.register_work }) +
-              (isVersion ? t('wizard.summary.creditInfoVersion') : '')
-          }} />
+          <p className="text-sm">{t('wizard.summary.registrationNote')}</p>
+          <PricingLink />
         </div>
       </div>
 
