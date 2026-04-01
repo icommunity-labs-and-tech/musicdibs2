@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -251,12 +252,21 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
           ) : (
             <Card className="border-dashed border-primary/30 bg-primary/5 shadow-none">
               <CardContent className="flex flex-col items-center gap-2 py-4 text-center">
-                <div className="flex items-center gap-1.5">
-                  <Lock className="h-4 w-4 text-primary" />
-                  <Badge variant="outline" className="border-primary/40 text-primary text-xs">
-                    {t(`${cs}.subscribersOnly`)}
-                  </Badge>
-                </div>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1.5 cursor-help">
+                        <Lock className="h-4 w-4 text-primary" />
+                        <Badge variant="outline" className="border-primary/40 text-primary text-xs">
+                          {t(`${cs}.subscribersOnly`)}
+                        </Badge>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[220px] text-center text-xs">
+                      {t(`${cs}.subscribersBenefits`)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <p className="text-xs text-muted-foreground max-w-xs">{t(`${cs}.topupRequiresSubscription`)}</p>
                 <Button size="sm" variant="default" className="mt-1" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                   <Sparkles className="h-3 w-3 mr-1" /> {t(`${cs}.seeSubscriptions`)}

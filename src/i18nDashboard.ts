@@ -169,6 +169,7 @@ const es = {
       topupRequiresSubscription: 'Las recargas están disponibles solo para suscriptores. Suscríbete para desbloquear packs de créditos a mejor precio.',
       subscribersOnly: 'Solo suscriptores',
       seeSubscriptions: 'Ver suscripciones',
+      subscribersBenefits: 'Accede a recargas con hasta un 40% de descuento por crédito y nunca te quedes sin registros.',
     },
     creditHistory: {
       title: 'Historial de créditos',
@@ -729,6 +730,7 @@ const en: typeof es = {
       topupRequiresSubscription: 'Top-ups are only available for subscribers. Subscribe to unlock credit packs at a better price.',
       subscribersOnly: 'Subscribers only',
       seeSubscriptions: 'See subscriptions',
+      subscribersBenefits: 'Get top-ups at up to 40% off per credit and never run out of registrations.',
     },
     creditHistory: {
       title: 'Credit history',
@@ -1289,6 +1291,7 @@ const pt: typeof es = {
       topupRequiresSubscription: 'Os top-ups estão disponíveis apenas para assinantes. Assine para desbloquear pacotes de créditos a melhor preço.',
       subscribersOnly: 'Apenas assinantes',
       seeSubscriptions: 'Ver assinaturas',
+      subscribersBenefits: 'Acesse recargas com até 40% de desconto por crédito e nunca fique sem registros.',
     },
     creditHistory: {
       title: 'Histórico de créditos',
@@ -1849,6 +1852,7 @@ const fr: typeof es = {
       topupRequiresSubscription: 'Les top-ups sont disponibles uniquement pour les abonnés. Abonnez-vous pour débloquer des packs de crédits à meilleur prix.',
       subscribersOnly: 'Abonnés uniquement',
       seeSubscriptions: 'Voir les abonnements',
+      subscribersBenefits: 'Accédez à des recharges avec jusqu\'à 40% de réduction par crédit et ne manquez jamais d\'enregistrements.',
     },
     creditHistory: {
       title: 'Historique des crédits',
@@ -2409,6 +2413,7 @@ const it: typeof es = {
       topupRequiresSubscription: 'I top-up sono disponibili solo per gli abbonati. Abbonati per sbloccare pacchetti di crediti a prezzo migliore.',
       subscribersOnly: 'Solo abbonati',
       seeSubscriptions: 'Vedi abbonamenti',
+      subscribersBenefits: 'Accedi a ricariche con fino al 40% di sconto per credito e non restare mai senza registrazioni.',
     },
     creditHistory: {
       title: 'Storico crediti',
@@ -2969,6 +2974,7 @@ const de: typeof es = {
       topupRequiresSubscription: 'Top-ups sind nur für Abonnenten verfügbar. Abonnieren Sie, um Kreditpakete zu einem besseren Preis freizuschalten.',
       subscribersOnly: 'Nur für Abonnenten',
       seeSubscriptions: 'Abonnements ansehen',
+      subscribersBenefits: 'Erhalten Sie Aufladungen mit bis zu 40% Rabatt pro Credit und gehen Sie nie ohne Registrierungen aus.',
     },
     creditHistory: {
       title: 'Credit-Verlauf',
