@@ -724,6 +724,7 @@ const en: typeof es = {
       noSignupFee: 'No signup fee · Cancel anytime',
       creditsAdded: '✅ {{n}} credits added to your account',
       paymentError: 'Error processing payment',
+      topupRequiresSubscription: 'Top-ups are only available for subscribers. Subscribe to a plan to top up credits.',
     },
     creditHistory: {
       title: 'Credit history',
