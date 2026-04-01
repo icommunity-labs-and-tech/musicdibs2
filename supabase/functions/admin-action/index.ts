@@ -563,6 +563,26 @@ serve(async (req) => {
         details: { promo_id, old_status: promo.status, new_status },
       });
 
+      // Clean up media file when published or rejected
+      if ((new_status === "published" || new_status === "rejected") && promo.media_file_path) {
+        try {
+          const { error: delErr } = await admin.storage
+            .from("premium-promo-media")
+            .remove([promo.media_file_path]);
+          if (delErr) {
+            console.error("[ADMIN] Failed to delete promo media:", delErr);
+          } else {
+            console.log(`[ADMIN] Deleted promo media: ${promo.media_file_path}`);
+            await admin
+              .from("premium_social_promotions")
+              .update({ media_file_path: null })
+              .eq("id", promo_id);
+          }
+        } catch (cleanErr) {
+          console.error("[ADMIN] Media cleanup error:", cleanErr);
+        }
+      }
+
       // If published, send email to user
       if (new_status === "published") {
         const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -602,6 +622,19 @@ serve(async (req) => {
       }
 
       return json({ success: true });
+    }
+
+    // ── get_premium_promo_media_url ──────────────────────────────
+    if (action === "get_premium_promo_media_url") {
+      const { file_path } = payload;
+      if (!file_path) return json({ error: "file_path required" }, 400);
+
+      const { data, error: signErr } = await admin.storage
+        .from("premium-promo-media")
+        .createSignedUrl(file_path, 300);
+      if (signErr) return json({ error: signErr.message }, 500);
+
+      return json({ signed_url: data.signedUrl });
     }
 
     return json({ error: "Unknown action" }, 400);

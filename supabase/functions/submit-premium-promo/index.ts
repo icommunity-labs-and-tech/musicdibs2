@@ -118,6 +118,7 @@ serve(async (req) => {
           body: JSON.stringify({
             from: 'MusicDibs <noreply@notify.musicdibs.com>',
             to: ['marketing@musicdibs.com'],
+            cc: ['hello@icommunity.io'],
             subject: `👑 Nueva Promo Premium: ${artist_name} — ${song_title}`,
             html,
           }),

@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
-import { supabase } from '@/integrations/supabase/client';
+
 import { toast } from 'sonner';
 import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
 import { format } from 'date-fns';
@@ -56,11 +56,12 @@ export default function AdminPremiumPromosPage() {
 
   const downloadMedia = async (filePath: string) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('premium-promo-media')
-        .createSignedUrl(filePath, 300);
-      if (error) throw error;
-      window.open(data.signedUrl, '_blank');
+      const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: filePath });
+      if (res?.signed_url) {
+        window.open(res.signed_url, '_blank');
+      } else {
+        throw new Error('No se pudo obtener la URL del archivo');
+      }
     } catch (e: any) { toast.error('Error descargando archivo: ' + e.message); }
   };
 
