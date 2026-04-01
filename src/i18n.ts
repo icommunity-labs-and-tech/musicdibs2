@@ -2007,6 +2007,7 @@ const resources = {
         creditPerUse: 'Credit pro Nutzung',
         creditsPerUse: 'Credits pro Nutzung',
         comingSoon: 'Demnächst',
+        free: 'Kostenlos',
         promoGroupTitle: 'Werbematerial erstellen',
         modules: {
           createMusic: { title: 'Musik erstellen', desc: 'Generiere originelle Musik von Grund auf mit KI. Beschreibe den Stil, die Stimmung und die gewünschten Eigenschaften.' },
