@@ -1203,6 +1203,7 @@ const pt: typeof es = {
       expiresIn: 'Sua assinatura expira em {{days}} dia(s)',
       renewal: 'Renovação: {{date}}',
       renewalWarning: 'Sua assinatura será renovada automaticamente. Verifique se seu método de pagamento está atualizado.',
+      cancelledRenewal: 'Renovação cancelada · Ativo até {{date}}',
     },
     creditStore: {
       credits: 'Créditos',
