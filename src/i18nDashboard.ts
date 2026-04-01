@@ -148,6 +148,8 @@ const es = {
       planChanged: 'Plan cambiado correctamente',
       purchaseError: 'Error al procesar la compra',
       nCredits: '{{n}} créditos',
+      cancelled: 'Cancelado',
+      reactivate: 'Reactivar',
     },
     creditHistory: {
       title: 'Historial de créditos',
