@@ -112,14 +112,13 @@ const APP_ROUTE_PREFIXES = ["/dashboard", "/admin", "/manager", "/ia-studio", "/
 
 const SocialProofPopup = () => {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [data, setData] = useState<NotificationData | null>(null);
   const [dismissed, setDismissed] = useState(false);
-  const pathname = window.location.pathname;
-  const isAppRoute = APP_ROUTE_PREFIXES.some((p) => pathname.startsWith(p));
 
-  if (isAppRoute) return null;
+  const isAppRoute = APP_ROUTE_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   const lang = i18n.resolvedLanguage || i18n.language || "es";
   const langKey = lang.startsWith("pt") ? "pt-BR" : NAMES_BY_LANG[lang] ? lang : "en";
@@ -149,17 +148,14 @@ const SocialProofPopup = () => {
   };
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || isAppRoute) return;
 
-    // First appearance after 15s
     const initialTimer = setTimeout(() => {
       setData(generateNotification());
       setVisible(true);
-      // Auto-hide after 6s
       setTimeout(() => dismiss(), 6000);
     }, 15000);
 
-    // Then every 30-60s
     const interval = setInterval(
       () => {
         if (dismissed) return;
@@ -175,9 +171,9 @@ const SocialProofPopup = () => {
       clearTimeout(initialTimer);
       clearInterval(interval);
     };
-  }, [dismissed, generateNotification]);
+  }, [dismissed, generateNotification, isAppRoute]);
 
-  if (!visible || !data || dismissed) return null;
+  if (!visible || !data || dismissed || isAppRoute) return null;
 
   const actionIcon = data.action === "distributed" ? Music : ShieldCheck;
   const ActionIcon = actionIcon;
