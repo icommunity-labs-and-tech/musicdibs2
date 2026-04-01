@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useTranslation } from 'react-i18next';
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 3;
 
 export function RecentRegistrations() {
   const { t, i18n } = useTranslation();
