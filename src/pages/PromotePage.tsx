@@ -9,6 +9,7 @@ import {
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { PremiumPromoForm } from '@/components/dashboard/PremiumPromoForm';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 

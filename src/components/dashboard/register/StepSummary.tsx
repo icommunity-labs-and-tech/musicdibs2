@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { useTranslation } from 'react-i18next';
 import { WORK_TYPES, VERSION_TYPES, CREATOR_ROLES, type WizardData } from './types';
 import { useWorkTypeLabels, useVersionTypeLabels, useCreatorRoleLabels } from './useWizardLabels';

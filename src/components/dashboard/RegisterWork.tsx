@@ -15,6 +15,7 @@ import type { DashboardSummary, IbsSignature } from '@/types/dashboard';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { DistributeButton } from '@/components/dashboard/DistributeButton';
 import { CertificateButton } from '@/components/dashboard/CertificateButton';
 import { supabase } from '@/integrations/supabase/client';
