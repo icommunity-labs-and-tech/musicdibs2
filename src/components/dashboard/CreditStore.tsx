@@ -349,7 +349,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
             >
               {isActive && (
                 <Badge className={`absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 ${cancelAtPeriodEnd ? 'bg-destructive' : 'bg-primary'}`}>
-                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled', { defaultValue: 'Cancelado' }) : t('dashboard.creditStore.yourPlan')}
+                  <CheckCircle2 className="h-3 w-3" /> {cancelAtPeriodEnd ? t('dashboard.creditStore.cancelled') : t('dashboard.creditStore.yourPlan')}
                 </Badge>
               )}
               {plan.popular && !isActive && (
