@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   Crown, Loader2, CheckCircle2, Sparkles, Video, Users, Clock,
-  Instagram, Music, ArrowLeft, Upload, FileText, X, Import,
+  Instagram, Music, ArrowLeft, Upload, FileText, X, Import, AlertTriangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
@@ -49,7 +49,12 @@ interface PremiumPromoFormProps {
 }
 
 const PREMIUM_COST = FEATURE_COSTS.promote_premium;
-const ACCEPTED_MEDIA = 'audio/*,video/*';
+const ACCEPTED_MEDIA = 'audio/*,video/mp4,video/quicktime,.mp4,.mov';
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/quicktime'];
+const ACCEPTED_VIDEO_EXTS = ['.mp4', '.mov'];
+const MAX_VIDEO_DURATION_SECS = 90;
+const MIN_VIDEO_WIDTH = 600;
+const MIN_VIDEO_HEIGHT = 600;
 
 export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const { t } = useTranslation();
@@ -66,6 +71,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [mediaWarnings, setMediaWarnings] = useState<string[]>([]);
 
   // Lyrics import
   const [showLyricsImport, setShowLyricsImport] = useState(false);
@@ -95,13 +101,51 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
     }
   };
 
-  const handleMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateVideoFile = useCallback((file: File): Promise<string[]> => {
+    return new Promise((resolve) => {
+      const warnings: string[] = [];
+      const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+      const isVideo = file.type.startsWith('video/') || ACCEPTED_VIDEO_EXTS.includes(ext);
+
+      if (!isVideo) { resolve([]); return; }
+
+      // Check format
+      if (!ACCEPTED_VIDEO_TYPES.includes(file.type) && !ACCEPTED_VIDEO_EXTS.includes(ext)) {
+        warnings.push(t('dashboard.premium.videoInvalidFormat', 'Formato no válido. Usa MP4 o MOV.'));
+      }
+
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      video.src = url;
+      video.onloadedmetadata = () => {
+        if (video.duration > MAX_VIDEO_DURATION_SECS) {
+          warnings.push(t('dashboard.premium.videoTooLong', 'Duración máxima recomendada: {{max}}s. Tu vídeo dura {{dur}}s.', { max: MAX_VIDEO_DURATION_SECS, dur: Math.round(video.duration) }));
+        }
+        if (video.videoWidth < MIN_VIDEO_WIDTH || video.videoHeight < MIN_VIDEO_HEIGHT) {
+          warnings.push(t('dashboard.premium.videoLowRes', 'Resolución mínima recomendada: {{w}}×{{h}}px. Tu vídeo: {{vw}}×{{vh}}px.', { w: MIN_VIDEO_WIDTH, h: MIN_VIDEO_HEIGHT, vw: video.videoWidth, vh: video.videoHeight }));
+        }
+        const ratio = video.videoWidth / video.videoHeight;
+        if (ratio < 0.5 || ratio > 2.0) {
+          warnings.push(t('dashboard.premium.videoBadRatio', 'Aspect ratio inusual. Recomendado: 9:16, 1:1 o 4:5.'));
+        }
+        URL.revokeObjectURL(url);
+        resolve(warnings);
+      };
+      video.onerror = () => { URL.revokeObjectURL(url); resolve(warnings); };
+    });
+  }, [t]);
+
+  const handleMediaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 50 * 1024 * 1024) {
       toast.error(t('dashboard.premium.fileTooLarge', 'Archivo demasiado grande (máx. 50 MB)'));
       return;
     }
+    setMediaWarnings([]);
+    const warnings = await validateVideoFile(file);
+    setMediaWarnings(warnings);
     setMediaFile(file);
   };
 
@@ -312,17 +356,29 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             <div className="space-y-1.5">
               <Label className="text-sm">{t('dashboard.premium.mediaUpload')}</Label>
               <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.mediaUploadHint')}</p>
+              <p className="text-[10px] text-muted-foreground/70">{t('dashboard.premium.videoSpecs')}</p>
               {mediaFile ? (
-                <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
-                  <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="truncate flex-1">{mediaFile.name}</span>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
-                    {(mediaFile.size / (1024 * 1024)).toFixed(1)} MB
-                  </span>
-                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setMediaFile(null)}>
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
+                <>
+                  <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
+                    <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="truncate flex-1">{mediaFile.name}</span>
+                    <span className="text-[10px] text-muted-foreground shrink-0">
+                      {(mediaFile.size / (1024 * 1024)).toFixed(1)} MB
+                    </span>
+                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setMediaFile(null); setMediaWarnings([]); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  {mediaWarnings.length > 0 && (
+                    <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2.5 space-y-1">
+                      {mediaWarnings.map((w, i) => (
+                        <p key={i} className="text-[11px] text-amber-700 dark:text-amber-400 flex items-start gap-1.5">
+                          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" /> {w}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </>
               ) : (
                 <label className="flex items-center justify-center gap-2 cursor-pointer rounded-md border border-dashed border-border/60 p-4 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
                   <Upload className="h-4 w-4" />
