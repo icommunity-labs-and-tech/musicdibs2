@@ -57,8 +57,8 @@ export default function DashboardHome() {
     );
   }
 
-  if (hasWorks === false) {
-    return <FirstHitFlow />;
+  if (hasWorks === false && !skipFirstHit) {
+    return <FirstHitFlow onSkip={() => setSkipFirstHit(true)} />;
   }
 
   return (
