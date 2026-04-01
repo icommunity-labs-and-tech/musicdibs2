@@ -63,7 +63,10 @@ export default function DashboardHome() {
   }
 
   if (hasWorks === false && !skipFirstHit) {
-    return <FirstHitFlow onSkip={() => setSkipFirstHit(true)} />;
+    return <FirstHitFlow onSkip={() => {
+      if (storageKey) localStorage.setItem(storageKey, '1');
+      setSkipFirstHit(true);
+    }} />;
   }
 
   return (
