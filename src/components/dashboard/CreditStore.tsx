@@ -35,7 +35,7 @@ function getButtonConfig(
   if (currentPlanId === planId) {
     if (cancelAtPeriodEnd) {
       // Renewal was cancelled → allow reactivation
-      return { label: t('dashboard.creditStore.reactivate', { defaultValue: 'Reactivar' }), variant: 'default' as const, icon: null, disabled: false };
+      return { label: t('dashboard.creditStore.reactivate'), variant: 'default' as const, icon: null, disabled: false };
     }
     return { label: t('dashboard.creditStore.yourPlan'), variant: 'secondary' as const, icon: null, disabled: true };
   }
