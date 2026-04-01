@@ -81,11 +81,11 @@ export function RecentRegistrations() {
                   return (
                     <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_auto] gap-1 sm:gap-2 items-center px-4 py-2 hover:bg-muted/50 transition-colors">
                       {/* Title */}
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FileText className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileText className="h-3 w-3 text-primary" />
                         </div>
-                        <p className="text-sm font-medium truncate">{reg.title}</p>
+                        <p className="text-xs font-medium truncate">{reg.title}</p>
                       </div>
 
                       {/* Status */}
