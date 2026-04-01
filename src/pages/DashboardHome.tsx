@@ -166,7 +166,7 @@ export default function DashboardHome() {
         {/* Col 3: Credit Store */}
         <div className="space-y-4">
           <div data-tour="credit-store">
-            <CreditStore compact />
+            <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
         </div>
       </div>
