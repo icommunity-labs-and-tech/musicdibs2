@@ -69,7 +69,7 @@ export function RecentRegistrations() {
           <>
             <div className="overflow-x-auto">
               {/* Header */}
-              <div className="hidden sm:grid sm:grid-cols-[minmax(0,1fr)_60px_58px_auto] gap-1 items-center px-3 py-1.5 border-b border-border/30 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+              <div className="hidden sm:grid sm:grid-cols-[1fr_80px_80px_auto] gap-2 items-center px-4 py-2 border-b border-border/30 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <span>{t('dashboard.recentReg.work')}</span>
                 <span>{t('dashboard.recentReg.status')}</span>
                 <span>{t('dashboard.recentReg.date')}</span>
@@ -79,29 +79,29 @@ export function RecentRegistrations() {
                 {pageData.map(reg => {
                   const sc = statusConfig[reg.status] || statusConfig.processing;
                   return (
-                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_60px_58px_auto] gap-1 items-center px-3 py-1.5 hover:bg-muted/50 transition-colors">
+                    <div key={reg.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_auto] gap-1 sm:gap-2 items-center px-4 py-2 hover:bg-muted/50 transition-colors">
                       {/* Title */}
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FileText className="h-2.5 w-2.5 text-primary" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileText className="h-3 w-3 text-primary" />
                         </div>
-                        <p className="text-[11px] font-medium truncate">{reg.title}</p>
+                        <p className="text-xs font-medium truncate">{reg.title}</p>
                       </div>
 
                       {/* Status */}
                       <div>
-                        <Badge variant="outline" className={`text-[9px] px-1 py-0 ${sc.className}`}>
+                        <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${sc.className}`}>
                           {sc.label}
                         </Badge>
                       </div>
 
                       {/* Date */}
-                      <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                        {new Date(reg.date).toLocaleDateString(i18n.resolvedLanguage, { day: 'numeric', month: 'numeric' })}
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(reg.date).toLocaleDateString(i18n.resolvedLanguage)}
                       </span>
 
                       {/* Actions — aligned left */}
-                      <div className="flex items-center gap-1 flex-wrap">
+                      <div className="flex items-center gap-2">
                         {reg.certificateUrl && (
                           <a
                             href={reg.certificateUrl}
