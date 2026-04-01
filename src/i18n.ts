@@ -1389,6 +1389,7 @@ const resources = {
         creditPerUse: 'crédito por uso',
         creditsPerUse: 'créditos por uso',
         comingSoon: 'Em breve',
+        free: 'Grátis',
         promoGroupTitle: 'Gere material promocional',
         modules: {
           createMusic: { title: 'Crie Música', desc: 'Gere música original do zero usando IA. Descreva o estilo, mood e características que deseja.' },
