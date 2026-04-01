@@ -152,7 +152,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
                   <SelectContent>
                     {ANNUAL_OPTIONS.map(o => (
                       <SelectItem key={o.planId} value={o.planId}>
-                        {t(`${cs}.nCredits`, { n: o.credits })} — {o.price}{t(`${cs}.perYear`)} ({o.pricePerCredit}/{t(`${cs}.credits`, { count: 1 }).charAt(0).toLowerCase() + t(`${cs}.credits`).slice(1).split(' ')[0]})
+                        {t(`${cs}.nCredits`, { n: o.credits })} — {o.price}{t(`${cs}.perYear`)} ({o.pricePerCredit}/cr.)
                       </SelectItem>
                     ))}
                   </SelectContent>
