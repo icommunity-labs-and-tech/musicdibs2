@@ -63,7 +63,7 @@ export function CertificateButton({ work, authorName, authorDocId }: Props) {
         ibsUrl:      `https://app.icommunitylabs.com/evidences/${work.ibs_evidence_id}`,
         evidenceId:  work.ibs_evidence_id,
       }
-      await generateCertificate(certData)
+      await generateCertificate(certData, locale)
       toast.success(t('dashboard.certificate.downloadSuccess'))
     } catch (e) {
       console.error(e)
