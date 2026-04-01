@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music, Pencil, Check, X } from 'lucide-react';
+import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music, Pencil, Check, X, Play, Pause } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -32,6 +33,47 @@ const VoiceCloningPage = () => {
   const [editingCloneName, setEditingCloneName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Audio player state
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
+  const stopPlayback = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setPlayingId(null);
+    setCurrentTime(0);
+    setDuration(0);
+  }, []);
+
+  const togglePlay = useCallback(async (clone: any) => {
+    if (playingId === clone.id) { stopPlayback(); return; }
+    stopPlayback();
+    if (!clone.sample_url) return;
+    const audio = new Audio(clone.sample_url);
+    audioRef.current = audio;
+    audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
+    audio.addEventListener('ended', stopPlayback);
+    const tick = () => { setCurrentTime(audio.currentTime); rafRef.current = requestAnimationFrame(tick); };
+    setPlayingId(clone.id);
+    await audio.play();
+    tick();
+  }, [playingId, stopPlayback]);
+
+  const handleSeek = useCallback((val: number[]) => {
+    if (audioRef.current) { audioRef.current.currentTime = val[0]; setCurrentTime(val[0]); }
+  }, []);
+
+  useEffect(() => () => { stopPlayback(); }, [stopPlayback]);
+
   const loadClones = async () => {
     if (!user) return;
     const { data } = await supabase
@@ -40,7 +82,17 @@ const VoiceCloningPage = () => {
       .eq('user_id', user.id)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
-    setClones(data || []);
+    // Generate signed URLs for samples
+    const withUrls = await Promise.all((data || []).map(async (c: any) => {
+      if (c.sample_storage_path) {
+        const { data: urlData } = await supabase.storage
+          .from('voice-clone-samples')
+          .createSignedUrl(c.sample_storage_path, 3600);
+        return { ...c, sample_url: urlData?.signedUrl || null };
+      }
+      return { ...c, sample_url: null };
+    }));
+    setClones(withUrls);
     setLoading(false);
   };
 
@@ -259,6 +311,34 @@ const VoiceCloningPage = () => {
                   <p className="text-xs text-muted-foreground mt-1">
                     Creada el {new Date(clone.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
+                  {/* Audio player */}
+                  {clone.sample_url && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => togglePlay(clone)}
+                      >
+                        {playingId === clone.id
+                          ? <Pause className="h-3.5 w-3.5" />
+                          : <Play className="h-3.5 w-3.5" />}
+                      </Button>
+                      <Slider
+                        value={[playingId === clone.id ? currentTime : 0]}
+                        max={playingId === clone.id && duration > 0 ? duration : 100}
+                        step={0.1}
+                        onValueChange={handleSeek}
+                        className="flex-1"
+                        disabled={playingId !== clone.id}
+                      />
+                      <span className="text-[10px] text-muted-foreground tabular-nums w-16 text-right shrink-0">
+                        {playingId === clone.id
+                          ? `${formatTime(currentTime)} / ${formatTime(duration)}`
+                          : '0:00'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/artist-profiles')} className="gap-1.5">
