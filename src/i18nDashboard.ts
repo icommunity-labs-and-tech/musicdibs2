@@ -49,6 +49,8 @@ const es = {
       statusUncollectible: 'Incobrable',
       viewInvoice: 'Ver factura',
       downloadPdf: 'Descargar PDF',
+      typeSubscription: 'Suscripción',
+      typeOneTime: 'Compra única',
     },
     profile: {
       title: 'Perfil',
