@@ -116,7 +116,7 @@ export default function DashboardHome() {
         {/* Col 1: Account Summary + Verify */}
         <div className="space-y-4">
           <div data-tour="account-summary">
-            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} />
+            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
           <div data-tour="verify-registration">
             <VerifyRegistration />
