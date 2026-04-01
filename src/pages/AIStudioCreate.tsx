@@ -1573,6 +1573,7 @@ const AIStudioCreate = () => {
                       {!hasEnough(currentCost) ? (
                         <NoCreditsAlert message={`Necesitas ${currentCost} créditos para generar ${mode === 'song' ? 'una canción' : 'un instrumental'}.`} />
                       ) : (
+                        <>
                         <Button
                           onClick={handleGenerate}
                           disabled={isGenerating || !prompt.trim()}
@@ -1586,6 +1587,7 @@ const AIStudioCreate = () => {
                            }
                         </Button>
                         <PricingLink className="mt-1 block text-center" />
+                        </>
                       )}
                     </CardContent>
                   </Card>
