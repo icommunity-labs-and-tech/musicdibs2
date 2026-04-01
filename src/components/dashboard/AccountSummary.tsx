@@ -104,15 +104,17 @@ export function AccountSummary({ onSummaryLoaded, subscriptionEnd, cancelAtPerio
           const expiringSoon = daysLeft >= 0 && daysLeft < 7;
           return (
             <>
-              <div className={`mt-3 flex items-center gap-1.5 text-xs justify-center ${expiringSoon ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                {expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
+              <div className={`mt-3 flex items-center gap-1.5 text-xs justify-center ${cancelAtPeriodEnd ? 'text-destructive font-medium' : expiringSoon ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                {cancelAtPeriodEnd || expiringSoon ? <AlertTriangle className="h-3.5 w-3.5" /> : <CalendarClock className="h-3.5 w-3.5" />}
                 <span>
-                  {expiringSoon
-                    ? t('dashboard.account.expiresIn', { days: daysLeft })
-                    : t('dashboard.account.renewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}
+                  {cancelAtPeriodEnd
+                    ? t('dashboard.account.cancelledRenewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }), defaultValue: `Renovación cancelada · Activo hasta ${endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}` })
+                    : expiringSoon
+                      ? t('dashboard.account.expiresIn', { days: daysLeft })
+                      : t('dashboard.account.renewal', { date: endDate.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' }) })}
                 </span>
               </div>
-              {expiringSoon && (
+              {expiringSoon && !cancelAtPeriodEnd && (
                 <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400 text-center">
                   {t('dashboard.account.renewalWarning')}
                 </div>
