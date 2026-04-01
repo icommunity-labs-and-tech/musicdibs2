@@ -1291,6 +1291,7 @@ const pt: typeof es = {
       topupRequiresSubscription: 'Os top-ups estão disponíveis apenas para assinantes. Assine para desbloquear pacotes de créditos a melhor preço.',
       subscribersOnly: 'Apenas assinantes',
       seeSubscriptions: 'Ver assinaturas',
+      subscribersBenefits: 'Acesse recargas com até 40% de desconto por crédito e nunca fique sem registros.',
     },
     creditHistory: {
       title: 'Histórico de créditos',
