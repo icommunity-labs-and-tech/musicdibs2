@@ -303,11 +303,11 @@ export default function AIStudioVocal() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">{String(String(t('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
+              <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{String(String(t('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              {String(String(t('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
+              {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
             </p>
           </div>
 
@@ -318,9 +318,9 @@ export default function AIStudioVocal() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
                   <Mic className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold">{String(String(t('aiVocal.firstTimeTitle', '¡Empieza aquí! Clona tu voz'))}</h2>
+                <h2 className="text-2xl font-bold">{ts('aiVocal.firstTimeTitle', '¡Empieza aquí! Clona tu voz'))}</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  {String(String(t('aiVocal.firstTimeDesc', 'Para usar cualquier herramienta, primero necesitas clonar tu voz. Solo toma 30 segundos.'))}
+                  {ts('aiVocal.firstTimeDesc', 'Para usar cualquier herramienta, primero necesitas clonar tu voz. Solo toma 30 segundos.'))}
                 </p>
                 <ArrowDown className="h-6 w-6 text-primary mx-auto animate-bounce" />
               </CardContent>
@@ -351,11 +351,11 @@ export default function AIStudioVocal() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">{String(String(t('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
+            <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{String(String(t('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {String(String(t('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
+            {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
           </p>
         </div>
 
@@ -364,15 +364,15 @@ export default function AIStudioVocal() {
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="sing" className="gap-2">
               <Music className="h-4 w-4" />
-              <span className="hidden sm:inline">{String(String(t('aiVocal.tabSing', 'Cantar'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabSing', 'Cantar'))}</span>
             </TabsTrigger>
             <TabsTrigger value="clone" className="gap-2">
               <Mic className="h-4 w-4" />
-              <span className="hidden sm:inline">{String(String(t('aiVocal.tabClone', 'Clonar'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabClone', 'Clonar'))}</span>
             </TabsTrigger>
             <TabsTrigger value="translate" className="gap-2">
               <Globe className="h-4 w-4" />
-              <span className="hidden sm:inline">{String(String(t('aiVocal.tabTranslate', 'Traducir'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabTranslate', 'Traducir'))}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -392,10 +392,10 @@ export default function AIStudioVocal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  {String(String(t('aiVocal.translateTitle', 'Traductor de voz'))}
+                  {ts('aiVocal.translateTitle', 'Traductor de voz'))}
                 </CardTitle>
                 <CardDescription>
-                  {String(String(t('aiVocal.translateSubtitle', 'Traduce audios existentes a otros idiomas manteniendo tu timbre'))}
+                  {ts('aiVocal.translateSubtitle', 'Traduce audios existentes a otros idiomas manteniendo tu timbre'))}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -761,7 +761,7 @@ export default function AIStudioVocal() {
     return (
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          {String(String(t('aiVocal.comingSoonLabel', 'Próximamente'))}
+          {ts('aiVocal.comingSoonLabel', 'Próximamente'))}
         </h3>
         <div className="grid sm:grid-cols-3 gap-4">
           {tools.map((tool, idx) => (
@@ -772,7 +772,7 @@ export default function AIStudioVocal() {
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <tool.icon className="h-5 w-5 text-muted-foreground" />
-                  <Badge variant="secondary" className="text-[10px]">{String(String(t('aiVocal.comingSoonBadge', 'Próximamente'))}</Badge>
+                  <Badge variant="secondary" className="text-[10px]">{ts('aiVocal.comingSoonBadge', 'Próximamente'))}</Badge>
                 </div>
                 <CardTitle className="text-sm">{tool.title}</CardTitle>
                 <CardDescription className="text-xs">{tool.desc}</CardDescription>
