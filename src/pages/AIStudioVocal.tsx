@@ -98,8 +98,8 @@ export default function AIStudioVocal() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const vc = (key: string, opts?: any) => t(`dashboard.voiceCloning.${key}`, opts);
-  const tv = (key: string, opts?: any) => t(`aiVocal.${key}`, opts);
+  const vc = (key: string, opts?: any) => String(t(`dashboard.voiceCloning.${key}`, opts));
+  const tv = (key: string, opts?: any) => String(t(`aiVocal.${key}`, opts));
 
   // Load clones
   const loadClones = useCallback(async () => {
