@@ -67,7 +67,7 @@ const ManagerWorks = lazy(() => import("./pages/ManagerWorks"));
 const ManagerRegisterWork = lazy(() => import("./pages/ManagerRegisterWork"));
 const ManagerLanding = lazy(() => import("./pages/ManagerLanding"));
 const ArtistProfilesPage = lazy(() => import("./pages/ArtistProfilesPage"));
-const VoiceCloningPage = lazy(() => import("./pages/VoiceCloningPage"));
+
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -120,7 +120,7 @@ const App = () => (
                 <Route path="blockchain" element={<BlockchainEvidencePage />} />
                 <Route path="verify-identity" element={<IdentityVerificationPage />} />
                 <Route path="artist-profiles" element={<ArtistProfilesPage />} />
-                <Route path="voice-cloning" element={<VoiceCloningPage />} />
+                
                 <Route path="admin/users" element={<Suspense fallback={null}><AdminGuard><AdminUsersPage /></AdminGuard></Suspense>} />
                 <Route path="admin/credits" element={<Suspense fallback={null}><AdminGuard><AdminCreditsPage /></AdminGuard></Suspense>} />
                 <Route path="admin/works" element={<Suspense fallback={null}><AdminGuard><AdminWorksPage /></AdminGuard></Suspense>} />
