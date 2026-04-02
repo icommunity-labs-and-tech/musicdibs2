@@ -15,6 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from 'react-i18next';
+import { VoiceTranslator } from '@/components/voice/VoiceTranslator';
 
 const VoiceCloningPage = () => {
   const { user } = useAuth();
@@ -218,6 +219,22 @@ const VoiceCloningPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Voice Translator Section */}
+      {clones.length > 0 && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" />
+              {vc('translator.sectionTitle')}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">{vc('translator.sectionDesc')}</p>
+          </CardHeader>
+          <CardContent>
+            <VoiceTranslator clones={clones} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Form */}
       {showForm && (
