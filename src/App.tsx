@@ -67,7 +67,7 @@ const ManagerWorks = lazy(() => import("./pages/ManagerWorks"));
 const ManagerRegisterWork = lazy(() => import("./pages/ManagerRegisterWork"));
 const ManagerLanding = lazy(() => import("./pages/ManagerLanding"));
 const ArtistProfilesPage = lazy(() => import("./pages/ArtistProfilesPage"));
-const VoiceCloningPage = lazy(() => import("./pages/VoiceCloningPage"));
+
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
