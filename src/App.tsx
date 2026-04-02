@@ -120,7 +120,7 @@ const App = () => (
                 <Route path="blockchain" element={<BlockchainEvidencePage />} />
                 <Route path="verify-identity" element={<IdentityVerificationPage />} />
                 <Route path="artist-profiles" element={<ArtistProfilesPage />} />
-                <Route path="voice-cloning" element={<VoiceCloningPage />} />
+                
                 <Route path="admin/users" element={<Suspense fallback={null}><AdminGuard><AdminUsersPage /></AdminGuard></Suspense>} />
                 <Route path="admin/credits" element={<Suspense fallback={null}><AdminGuard><AdminCreditsPage /></AdminGuard></Suspense>} />
                 <Route path="admin/works" element={<Suspense fallback={null}><AdminGuard><AdminWorksPage /></AdminGuard></Suspense>} />
