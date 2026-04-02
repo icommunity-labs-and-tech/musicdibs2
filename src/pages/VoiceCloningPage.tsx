@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music, Pencil, Check, X, Play, Pause } from 'lucide-react';
+import { Mic, Upload, Trash2, Loader2, CheckCircle2, AlertCircle, Music, Pencil, Check, X, Play, Pause, Globe } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
