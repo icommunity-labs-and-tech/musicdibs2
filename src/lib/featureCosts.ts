@@ -14,6 +14,7 @@ export const FEATURE_COSTS = {
   generate_cover: 2,
   inspiration: 0,
   generate_video: 6,
+  voice_translation_per_min: 2,
 } as const;
 
 export type FeatureKey = keyof typeof FEATURE_COSTS;
