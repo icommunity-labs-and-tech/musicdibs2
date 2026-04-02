@@ -303,11 +303,11 @@ export default function AIStudioVocal() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
               <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
+              <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz')</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz')</h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
+              {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más')
             </p>
           </div>
 
@@ -318,9 +318,9 @@ export default function AIStudioVocal() {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
                   <Mic className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold">{ts('aiVocal.firstTimeTitle', '¡Empieza aquí! Clona tu voz'))}</h2>
+                <h2 className="text-2xl font-bold">{ts('aiVocal.firstTimeTitle', '¡Empieza aquí! Clona tu voz')</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  {ts('aiVocal.firstTimeDesc', 'Para usar cualquier herramienta, primero necesitas clonar tu voz. Solo toma 30 segundos.'))}
+                  {ts('aiVocal.firstTimeDesc', 'Para usar cualquier herramienta, primero necesitas clonar tu voz. Solo toma 30 segundos.')
                 </p>
                 <ArrowDown className="h-6 w-6 text-primary mx-auto animate-bounce" />
               </CardContent>
@@ -351,11 +351,11 @@ export default function AIStudioVocal() {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz'))}</span>
+            <span className="text-sm font-medium">{ts('aiVocal.voiceTools', 'Herramientas de Voz')</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz'))}</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">{ts('aiVocal.voiceToolsTitle', 'Herramientas de Voz')</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más'))}
+            {ts('aiVocal.voiceToolsSubtitle', 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más')
           </p>
         </div>
 
@@ -364,15 +364,15 @@ export default function AIStudioVocal() {
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="sing" className="gap-2">
               <Music className="h-4 w-4" />
-              <span className="hidden sm:inline">{ts('aiVocal.tabSing', 'Cantar'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabSing', 'Cantar')</span>
             </TabsTrigger>
             <TabsTrigger value="clone" className="gap-2">
               <Mic className="h-4 w-4" />
-              <span className="hidden sm:inline">{ts('aiVocal.tabClone', 'Clonar'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabClone', 'Clonar')</span>
             </TabsTrigger>
             <TabsTrigger value="translate" className="gap-2">
               <Globe className="h-4 w-4" />
-              <span className="hidden sm:inline">{ts('aiVocal.tabTranslate', 'Traducir'))}</span>
+              <span className="hidden sm:inline">{ts('aiVocal.tabTranslate', 'Traducir')</span>
             </TabsTrigger>
           </TabsList>
 
@@ -392,10 +392,10 @@ export default function AIStudioVocal() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  {ts('aiVocal.translateTitle', 'Traductor de voz'))}
+                  {ts('aiVocal.translateTitle', 'Traductor de voz')
                 </CardTitle>
                 <CardDescription>
-                  {ts('aiVocal.translateSubtitle', 'Traduce audios existentes a otros idiomas manteniendo tu timbre'))}
+                  {ts('aiVocal.translateSubtitle', 'Traduce audios existentes a otros idiomas manteniendo tu timbre')
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -553,7 +553,7 @@ export default function AIStudioVocal() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )
           </div>
         )}
       </div>
@@ -586,7 +586,7 @@ export default function AIStudioVocal() {
                       <span className="text-lg">🎤</span>
                       <div><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{tv('clonedLabel')}</p></div>
                     </button>
-                  ))}
+                  )
                   <Button size="sm" variant="ghost" className="w-full text-xs text-muted-foreground mt-1" onClick={() => setActiveTab('clone')}>
                     <Mic className="w-3 h-3 mr-1" /> {tv('addVoice')}
                   </Button>
@@ -611,27 +611,27 @@ export default function AIStudioVocal() {
               <div className="space-y-2">
                 <Label className="text-xs font-medium">{tv('centralTheme')}</Label>
                 <div className="flex flex-wrap gap-1.5">
-                  {THEMES.map(th => (<Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>))}
+                  {THEMES.map(th => (<Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">{tv('genreLabel')}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {MUSIC_GENRES.map(g => (<Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? '' : g)}>{g}</Badge>))}
+                    {MUSIC_GENRES.map(g => (<Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? '' : g)}>{g}</Badge>)
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">{tv('moodLabel')}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {MUSIC_MOODS.map(m => (<Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? '' : m)}>{m}</Badge>))}
+                    {MUSIC_MOODS.map(m => (<Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? '' : m)}>{m}</Badge>)
                   </div>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs font-medium">{tv('artistRefsLabel')} <span className="text-muted-foreground font-normal ml-1">{tv('customArtistHint')}</span></Label>
                 <div className="flex flex-wrap gap-1.5">
-                  {ARTIST_REFS.map(a => (<Badge key={a} variant={lyricsArtistRefs.includes(a) ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsArtistRefs(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])}>{a}</Badge>))}
+                  {ARTIST_REFS.map(a => (<Badge key={a} variant={lyricsArtistRefs.includes(a) ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsArtistRefs(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a])}>{a}</Badge>)
                 </div>
                 <div className="flex gap-2 mt-1.5">
                   <Input placeholder={tv('addCustomArtist')} className="text-xs h-8" onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const val = (e.target as HTMLInputElement).value.trim(); if (val && !lyricsArtistRefs.includes(val)) { setLyricsArtistRefs(prev => [...prev, val]); (e.target as HTMLInputElement).value = ''; } } }} />
@@ -639,8 +639,8 @@ export default function AIStudioVocal() {
                 {lyricsArtistRefs.filter(a => !ARTIST_REFS.includes(a)).length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mt-1">
                     {lyricsArtistRefs.filter(a => !ARTIST_REFS.includes(a)).map(a => (
-                      <Badge key={a} variant="default" className="cursor-pointer text-xs gap-1" onClick={() => setLyricsArtistRefs(prev => prev.filter(x => x !== a))}>{a} ✕</Badge>
-                    ))}
+                      <Badge key={a} variant="default" className="cursor-pointer text-xs gap-1" onClick={() => setLyricsArtistRefs(prev => prev.filter(x => x !== a)>{a} ✕</Badge>
+                    )
                   </div>
                 )}
               </div>
@@ -675,7 +675,7 @@ export default function AIStudioVocal() {
               <div className="space-y-2">
                 <Label className="text-xs font-medium">{tv('writingStyleLabel')}</Label>
                 <div className="flex flex-wrap gap-1.5">
-                  {LYRIC_STYLES.map(s => (<Badge key={s} variant={lyricsStyle === s ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === s ? '' : s)}>{s}</Badge>))}
+                  {LYRIC_STYLES.map(s => (<Badge key={s} variant={lyricsStyle === s ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === s ? '' : s)}>{s}</Badge>)
                 </div>
               </div>
               <Button variant="outline" className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}>
@@ -724,7 +724,7 @@ export default function AIStudioVocal() {
                     <span className="min-w-[24px] h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">{idx + 1}</span>
                     <p className="text-sm text-muted-foreground leading-relaxed">{text}</p>
                   </div>
-                ))}
+                )
               </CardContent>
             </Card>
           )}
@@ -742,7 +742,7 @@ export default function AIStudioVocal() {
                     </div>
                     <a href={h.audio_url} download><Download className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground cursor-pointer" /></a>
                   </div>
-                ))}
+                )
               </CardContent>
             </Card>
           )}
@@ -761,7 +761,7 @@ export default function AIStudioVocal() {
     return (
       <div className="space-y-3">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          {ts('aiVocal.comingSoonLabel', 'Próximamente'))}
+          {ts('aiVocal.comingSoonLabel', 'Próximamente')
         </h3>
         <div className="grid sm:grid-cols-3 gap-4">
           {tools.map((tool, idx) => (
@@ -772,13 +772,13 @@ export default function AIStudioVocal() {
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <tool.icon className="h-5 w-5 text-muted-foreground" />
-                  <Badge variant="secondary" className="text-[10px]">{ts('aiVocal.comingSoonBadge', 'Próximamente'))}</Badge>
+                  <Badge variant="secondary" className="text-[10px]">{ts('aiVocal.comingSoonBadge', 'Próximamente')</Badge>
                 </div>
                 <CardTitle className="text-sm">{tool.title}</CardTitle>
                 <CardDescription className="text-xs">{tool.desc}</CardDescription>
               </CardHeader>
             </Card>
-          ))}
+          )
         </div>
       </div>
     );
