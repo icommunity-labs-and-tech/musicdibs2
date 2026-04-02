@@ -327,7 +327,7 @@ const ArtistProfilesPage = () => {
                   {voiceClones.length === 0 ? (
                     <div className="text-center py-6 space-y-2">
                       <p className="text-sm text-muted-foreground">Aún no tienes voces clonadas</p>
-                      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate('/dashboard/voice-cloning')}>
+                      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate('/ai-studio/vocal')}>
                         <Mic className="h-3.5 w-3.5" /> Clonar mi voz
                       </Button>
                     </div>
