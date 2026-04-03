@@ -169,11 +169,6 @@ const AIStudio = () => {
                   {t('aiStudio.comingSoon')}
                 </Badge>
               )}
-              {module.available && !module.costsCredits && (
-                <Badge className="absolute top-3 right-3 z-10 text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white border-0">
-                  {t('aiStudio.free', 'Gratis')}
-                </Badge>
-              )}
               {module.available && !hasEnough(cost) && module.costsCredits && (
                 <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
                   {t('aiStudio.noCredits')}
@@ -188,9 +183,11 @@ const AIStudio = () => {
                   {t(module.titleKey)}
                 </CardTitle>
                 <CardDescription>{t(module.descKey)}</CardDescription>
-                {module.costsCredits && cost > 0 && (
+                {module.costsCredits && cost > 0 ? (
                   <span className="mt-1"><PricingLink /></span>
-                )}
+                ) : !module.costsCredits ? (
+                  <span className="mt-1 text-[11px] text-emerald-500 font-medium">{t('aiStudio.free', 'Gratis')}</span>
+                ) : null}
               </CardHeader>
               <CardContent>
                 {!module.available ? (
