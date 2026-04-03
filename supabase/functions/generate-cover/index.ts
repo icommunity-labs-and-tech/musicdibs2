@@ -232,10 +232,10 @@ serve(async (req) => {
         imageUrl = await faceSwapWithReplicate(baseImageUrl, artistPhotoBase64)
         console.log(`[COVER] Photomontage step 2 complete`)
 
-      } else if (referenceMode === 'artist' && referenceImageBase64) {
+      } else if (referenceMode === 'artist' && artistPhotoBase64) {
         const artistPrompt = prompt + ` Professional album cover incorporating the artist photo, high-end design, commercial quality, studio photography aesthetic.`
         const strength = 1 - (referenceStrength || 0.5)
-        imageUrl = await generateWithFal(artistPrompt, referenceImageBase64, strength)
+        imageUrl = await generateWithFal(artistPrompt, artistPhotoBase64, strength)
 
       } else if (referenceMode === 'reference' && referenceImageBase64) {
         const refPrompt = prompt + ` Inspired by the reference cover aesthetic but completely unique and original, same visual style but different execution and elements.`
