@@ -206,18 +206,16 @@ export const CoversSection = () => {
       let referenceImageBase64: string | null = null;
       let strengthValue = 0;
 
-      if ((referenceMode === 'artist' || referenceMode === 'photomontage') && artistPhoto) {
+      if (referenceMode === 'artist' && artistPhoto) {
         artistPhotoBase64 = await fileToBase64(artistPhoto);
         strengthValue = artistPhotoStrength / 100;
-      }
-      if ((referenceMode === 'reference' || referenceMode === 'photomontage') && referenceImage) {
+      } else if (referenceMode === 'reference' && referenceImage) {
         referenceImageBase64 = await fileToBase64(referenceImage);
-        strengthValue = referenceMode === 'photomontage' ? 0.6 : referenceStrength / 100;
-      }
-      // For artist-only mode, send as referenceImageBase64 for backward compat
-      if (referenceMode === 'artist' && artistPhotoBase64) {
-        referenceImageBase64 = artistPhotoBase64;
-        artistPhotoBase64 = null;
+        strengthValue = referenceStrength / 100;
+      } else if (referenceMode === 'photomontage' && artistPhoto && referenceImage) {
+        artistPhotoBase64 = await fileToBase64(artistPhoto);
+        referenceImageBase64 = await fileToBase64(referenceImage);
+        strengthValue = 0.6;
       }
 
       const { data, error } = await supabase.functions.invoke('generate-cover', {
