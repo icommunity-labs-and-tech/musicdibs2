@@ -163,7 +163,7 @@ const AIStudio = () => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
             return (
-            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 flex flex-col ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
               {!module.available && (
                 <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
                   {t('aiStudio.comingSoon')}
