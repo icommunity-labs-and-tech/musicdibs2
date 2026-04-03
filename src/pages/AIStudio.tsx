@@ -175,7 +175,7 @@ const AIStudio = () => {
                 </Badge>
               )}
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
-              <CardHeader>
+              <CardHeader className="flex-1">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
                   <module.icon className="w-6 h-6 text-white" />
                 </div>
