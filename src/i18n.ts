@@ -1094,7 +1094,7 @@ const resources = {
         promoGroupTitle: 'Generate promotional material',
         modules: {
           createMusic: { title: 'Create Music', desc: 'Generate original music from scratch using AI. Describe the style, mood and characteristics you want.' },
-          editModify: { title: 'Edit & Modify', desc: 'Modify existing tracks, create variations or apply inpainting to fill in sections.' },
+          editModify: { title: 'Remaster & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Create Covers', desc: 'Generate professional covers for your single or album. Precise text, artistic styles and artist references.' },
