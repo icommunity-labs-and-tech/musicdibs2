@@ -186,7 +186,7 @@ const AIStudio = () => {
                 {module.costsCredits && cost > 0 ? (
                   <span className="mt-1"><PricingLink /></span>
                 ) : !module.costsCredits ? (
-                  <span className="mt-1 inline-flex items-center rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-500">{t('aiStudio.free', 'Gratis')}</span>
+                  <span className="mt-1 inline-flex items-center rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white shadow-sm">{t('aiStudio.free', 'Gratis')}</span>
                 ) : null}
               </CardHeader>
               <CardContent>
