@@ -139,7 +139,7 @@ serve(async (req) => {
 
       let endpoint: string
       if (imageBase64) {
-        endpoint = "https://fal.run/fal-ai/flux-pro/v1.1/image-to-image"
+        endpoint = "https://fal.run/fal-ai/flux/dev/image-to-image"
         falBody.image_url = `data:image/jpeg;base64,${imageBase64}`
         falBody.strength = Math.max(0.1, Math.min(0.9, strength))
         console.log(`[COVER] Image-to-image, strength=${falBody.strength}`)
