@@ -1778,7 +1778,7 @@ const resources = {
           inspire: { title: 'Lasciati Ispirare', desc: 'Ottieni idee, prompt suggeriti e scopri combinazioni di generi e mood.' },
           createVideoclips: { title: 'Crea Videoclip', desc: 'Genera videoclip musicali con l\'IA. Descrivi lo stile visivo, carica un\'immagine o crea da testo.' },
           createCovers: { title: 'Crea Copertine', desc: 'Genera copertine professionali per il tuo singolo o album. Testo preciso, stili artistici e riferimenti ad artisti.' },
-          singYourSong: { title: 'Canta la tua canzone', desc: 'Genera una traccia vocale con la tua voce clonata che canta il tuo testo. Scaricala e mixala con la tua base strumentale.' },
+          singYourSong: { title: 'Strumenti Vocali', desc: 'Il tuo studio vocale IA: clona la tua voce, canta in 29 lingue, traduci audio e molto altro' },
         },
         features: {
           highQuality: { title: 'Alta Qualità', desc: 'Audio 44.1kHz stereo' },
