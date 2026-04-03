@@ -17,7 +17,7 @@ export const InstagramSection = () => {
   const tr = (key: string) => t(`promoMaterial.instagram.${key}`);
   const { toast } = useToast();
 
-  const [format, setFormat] = useState('feed');
+  const [format, setFormat] = useState<'feed' | 'story'>('feed');
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
   const [visualStyle, setVisualStyle] = useState('vibrant');
@@ -169,18 +169,14 @@ export const InstagramSection = () => {
         <p className="text-sm text-muted-foreground mt-1">{tr('subtitle')}</p>
       </div>
 
-      <Tabs value={format} onValueChange={setFormat}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+      <Tabs value={format} onValueChange={(v) => setFormat(v as 'feed' | 'story')}>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="feed" className="text-xs sm:text-sm">
             📱 {tr('formatFeed')}
             <Badge variant="outline" className="ml-1 text-[10px]">1:1</Badge>
           </TabsTrigger>
           <TabsTrigger value="story" className="text-xs sm:text-sm">
             📲 {tr('formatStory')}
-            <Badge variant="outline" className="ml-1 text-[10px]">9:16</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="reel" className="text-xs sm:text-sm">
-            🎬 {tr('formatReel')}
             <Badge variant="outline" className="ml-1 text-[10px]">9:16</Badge>
           </TabsTrigger>
         </TabsList>

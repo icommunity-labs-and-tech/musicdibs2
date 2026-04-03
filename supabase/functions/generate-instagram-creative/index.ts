@@ -154,7 +154,6 @@ function buildImagePrompt(
   const formatDesc: Record<string, string> = {
     feed: 'square format 1:1 Instagram feed post',
     story: 'vertical format 9:16 Instagram story',
-    reel: 'vertical format 9:16 Instagram reel cover thumbnail',
   };
 
   let prompt = `Professional Instagram ${format} image for music promotion. `;
