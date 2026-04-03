@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const corsHeaders = {
@@ -48,13 +48,14 @@ serve(async (req) => {
       colorPalette,
       artistRef,
       description,
+      artistPhotoBase64,
       referenceImageBase64,
       referenceStrength,
       referenceMode,
     } = await req.json()
 
     // ── Credit deduction ──────────────────────────────────────
-    const CREDITS_COST = 2
+    const CREDITS_COST = referenceMode === 'photomontage' ? 4 : 2
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("available_credits")
@@ -118,75 +119,138 @@ serve(async (req) => {
       prompt += ` Additional details: ${description}.`
     }
 
-    // Context based on reference mode
-    if (referenceMode === 'artist') {
-      prompt += ` Professional album cover incorporating the artist photo as a central element, high-end design, commercial quality, studio photography aesthetic.`
-    } else if (referenceMode === 'reference') {
-      prompt += ` Inspired by the reference cover aesthetic but completely unique and original, same visual style but different execution and elements.`
-    }
-
     prompt += ` High quality, visually striking, suitable for streaming platforms like Spotify and Apple Music. No watermarks.`
 
     console.log(`[COVER] Generating for user ${user.id}, mode=${referenceMode || 'none'}: ${prompt.slice(0, 100)}`)
 
-    // ── Determine endpoint and params ─────────────────────────
-    const hasReferenceImage = referenceImageBase64 && referenceMode && referenceMode !== 'none'
+    // ── Helper: generate with fal.ai ─────────────────────────
+    const generateWithFal = async (
+      falPrompt: string,
+      imageBase64: string | null,
+      strength: number,
+    ): Promise<string> => {
+      const falBody: Record<string, unknown> = {
+        prompt: falPrompt,
+        image_size: "square_hd",
+        num_inference_steps: 28,
+        num_images: 1,
+        enable_safety_checker: true,
+      }
 
-    let falEndpoint: string
-    const falBody: Record<string, unknown> = {
-      prompt,
-      image_size: "square_hd",
-      num_inference_steps: 28,
-      num_images: 1,
-      enable_safety_checker: true,
+      let endpoint: string
+      if (imageBase64) {
+        endpoint = "https://fal.run/fal-ai/flux-pro/v1.1/image-to-image"
+        falBody.image_url = `data:image/jpeg;base64,${imageBase64}`
+        falBody.strength = Math.max(0.1, Math.min(0.9, strength))
+        console.log(`[COVER] Image-to-image, strength=${falBody.strength}`)
+      } else {
+        endpoint = "https://fal.run/fal-ai/nano-banana-2"
+      }
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Key ${FAL_API_KEY}`,
+        },
+        body: JSON.stringify(falBody),
+      })
+
+      if (!res.ok) {
+        const errText = await res.text()
+        console.error("[COVER] fal.ai error:", errText)
+        throw new Error(`fal.ai error: ${res.status}`)
+      }
+
+      const data = await res.json()
+      const url = data.images?.[0]?.url
+      if (!url) throw new Error("No image returned from fal.ai")
+      return url
     }
 
-    if (hasReferenceImage) {
-      // Image-to-image mode
-      falEndpoint = "https://fal.run/fal-ai/flux-pro/v1.1/image-to-image"
+    // ── Helper: face-swap with Replicate ─────────────────────
+    const faceSwapWithReplicate = async (
+      targetImageUrl: string,
+      sourceImageBase64: string,
+    ): Promise<string> => {
+      const REPLICATE_API_KEY = Deno.env.get("REPLICATE_API_KEY")
+      if (!REPLICATE_API_KEY) throw new Error("REPLICATE_API_KEY not configured")
 
-      // Convert base64 to data URL for fal.ai
-      falBody.image_url = `data:image/jpeg;base64,${referenceImageBase64}`
+      const sourceDataUrl = `data:image/jpeg;base64,${sourceImageBase64}`
 
-      // strength in fal.ai = how much to change (1 = completely new, 0 = keep original)
-      // Our referenceStrength = how much to keep the original (0.2-0.9)
-      // So we invert: fal strength = 1 - referenceStrength
-      const strength = Math.max(0.1, Math.min(0.9, 1 - (referenceStrength || 0.5)))
-      falBody.strength = strength
+      const prediction = await fetch("https://api.replicate.com/v1/predictions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${REPLICATE_API_KEY}`,
+          "Content-Type": "application/json",
+          "Prefer": "wait",
+        },
+        body: JSON.stringify({
+          version: "cdingram/face-swap:d1d6ea8c8be89d664a07a457526f7128109dee7c4b04131d5ecbfb4c82a30a56",
+          input: {
+            target_image: targetImageUrl,
+            swap_image: sourceDataUrl,
+          },
+        }),
+      })
 
-      console.log(`[COVER] Image-to-image mode, strength=${strength}`)
-    } else {
-      // Text-to-image mode (original behavior)
-      falEndpoint = "https://fal.run/fal-ai/nano-banana-2"
+      const predictionData = await prediction.json()
+
+      // If "Prefer: wait" returned a completed prediction
+      if (predictionData.status === "succeeded" && predictionData.output) {
+        return predictionData.output
+      }
+
+      // Otherwise poll
+      let attempts = 0
+      const maxAttempts = 30
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000))
+        const statusRes = await fetch(
+          `https://api.replicate.com/v1/predictions/${predictionData.id}`,
+          { headers: { "Authorization": `Bearer ${REPLICATE_API_KEY}` } },
+        )
+        const statusData = await statusRes.json()
+        if (statusData.status === "succeeded") return statusData.output
+        if (statusData.status === "failed") throw new Error("Face-swap failed: " + (statusData.error || "unknown"))
+        attempts++
+      }
+      throw new Error("Face-swap timeout")
     }
 
-    const falRes = await fetch(falEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Key ${FAL_API_KEY}`,
-      },
-      body: JSON.stringify(falBody),
-    })
+    // ── Generate based on mode ───────────────────────────────
+    let imageUrl: string
 
-    if (!falRes.ok) {
-      const errText = await falRes.text()
-      console.error("[COVER] fal.ai error:", errText)
-      await refundCredits(`fal.ai error: ${falRes.status}`)
+    try {
+      if (referenceMode === 'photomontage' && artistPhotoBase64 && referenceImageBase64) {
+        // Step 1: Generate base with reference style
+        const basePrompt = prompt + ` Person facing camera in iconic pose, dramatic lighting, professional album cover composition. Inspired by the reference style but unique execution.`
+        const baseImageUrl = await generateWithFal(basePrompt, referenceImageBase64, 0.4)
+        console.log(`[COVER] Photomontage step 1 complete`)
+
+        // Step 2: Face-swap
+        imageUrl = await faceSwapWithReplicate(baseImageUrl, artistPhotoBase64)
+        console.log(`[COVER] Photomontage step 2 complete`)
+
+      } else if (referenceMode === 'artist' && referenceImageBase64) {
+        const artistPrompt = prompt + ` Professional album cover incorporating the artist photo, high-end design, commercial quality, studio photography aesthetic.`
+        const strength = 1 - (referenceStrength || 0.5)
+        imageUrl = await generateWithFal(artistPrompt, referenceImageBase64, strength)
+
+      } else if (referenceMode === 'reference' && referenceImageBase64) {
+        const refPrompt = prompt + ` Inspired by the reference cover aesthetic but completely unique and original, same visual style but different execution and elements.`
+        const strength = 1 - (referenceStrength || 0.5)
+        imageUrl = await generateWithFal(refPrompt, referenceImageBase64, strength)
+
+      } else {
+        imageUrl = await generateWithFal(prompt, null, 0)
+      }
+    } catch (genErr) {
+      console.error("[COVER] Generation error:", genErr)
+      await refundCredits(`Generation failed: ${genErr instanceof Error ? genErr.message : String(genErr)}`)
       return new Response(
-        JSON.stringify({ error: `fal.ai error: ${falRes.status}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      )
-    }
-
-    const falData = await falRes.json()
-    const imageUrl = falData.images?.[0]?.url
-
-    if (!imageUrl) {
-      await refundCredits("No image returned from fal.ai")
-      return new Response(
-        JSON.stringify({ error: "No image returned from fal.ai" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: genErr instanceof Error ? genErr.message : "Generation failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       )
     }
 

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,7 +54,7 @@ const ARTIST_REFS = [
   'Karol G', 'Rauw Alejandro', 'Bizarrap',
 ];
 
-type ReferenceMode = 'none' | 'artist' | 'reference';
+type ReferenceMode = 'none' | 'artist' | 'reference' | 'photomontage';
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -94,6 +95,10 @@ export const CoversSection = () => {
   const [referenceImagePreview, setReferenceImagePreview] = useState<string | null>(null);
   const [referenceStrength, setReferenceStrength] = useState(50);
 
+  // Photomontage states
+  const [photomontageStep, setPhotomontageStep] = useState<1 | 2>(1);
+  const [photomontageProgress, setPhotomontageProgress] = useState(0);
+
   const artistPhotoRef = useRef<HTMLInputElement>(null);
   const referenceImageRef = useRef<HTMLInputElement>(null);
 
@@ -115,10 +120,11 @@ export const CoversSection = () => {
     } else if (referenceMode === 'artist') {
       setReferenceImage(null);
       setReferenceImagePreview(p => { if (p) URL.revokeObjectURL(p); return null; });
-    } else {
+    } else if (referenceMode === 'reference') {
       setArtistPhoto(null);
       setArtistPhotoPreview(p => { if (p) URL.revokeObjectURL(p); return null; });
     }
+    // photomontage keeps both images
   }, [referenceMode]);
 
   const validateAndSetImage = (
@@ -174,10 +180,16 @@ export const CoversSection = () => {
       toast.error(tr('referenceTitle'), { description: tr('referenceUpload') });
       return;
     }
+    if (referenceMode === 'photomontage' && (!artistPhoto || !referenceImage)) {
+      toast.error(tr('photomontageMissingPhotos'), { description: tr('photomontageMissingPhotosDesc') });
+      return;
+    }
 
     setIsGenerating(true);
     setGenError(null);
     setImageUrl(null);
+    setPhotomontageStep(1);
+    setPhotomontageProgress(0);
 
     try {
       // Pre-validate credits
@@ -189,15 +201,23 @@ export const CoversSection = () => {
       });
       if (spendErr || spend?.error) throw new Error(spend?.message || t('aiShared.error'));
 
-      // Convert reference image to base64 if applicable
+      // Convert images to base64 based on mode
+      let artistPhotoBase64: string | null = null;
       let referenceImageBase64: string | null = null;
       let strengthValue = 0;
-      if (referenceMode === 'artist' && artistPhoto) {
-        referenceImageBase64 = await fileToBase64(artistPhoto);
+
+      if ((referenceMode === 'artist' || referenceMode === 'photomontage') && artistPhoto) {
+        artistPhotoBase64 = await fileToBase64(artistPhoto);
         strengthValue = artistPhotoStrength / 100;
-      } else if (referenceMode === 'reference' && referenceImage) {
+      }
+      if ((referenceMode === 'reference' || referenceMode === 'photomontage') && referenceImage) {
         referenceImageBase64 = await fileToBase64(referenceImage);
-        strengthValue = referenceStrength / 100;
+        strengthValue = referenceMode === 'photomontage' ? 0.6 : referenceStrength / 100;
+      }
+      // For artist-only mode, send as referenceImageBase64 for backward compat
+      if (referenceMode === 'artist' && artistPhotoBase64) {
+        referenceImageBase64 = artistPhotoBase64;
+        artistPhotoBase64 = null;
       }
 
       const { data, error } = await supabase.functions.invoke('generate-cover', {
@@ -208,6 +228,7 @@ export const CoversSection = () => {
           colorPalette,
           artistRef,
           description,
+          artistPhotoBase64,
           referenceImageBase64,
           referenceStrength: strengthValue,
           referenceMode,
@@ -245,11 +266,13 @@ export const CoversSection = () => {
   const promptLabel =
     referenceMode === 'artist' ? tr('promptLabelArtist') :
     referenceMode === 'reference' ? tr('promptLabelReference') :
+    referenceMode === 'photomontage' ? tr('promptLabelPhotomontage') :
     tr('promptLabelNone');
 
   const promptPlaceholder =
     referenceMode === 'artist' ? tr('promptPlaceholderArtist') :
     referenceMode === 'reference' ? tr('promptPlaceholderReference') :
+    referenceMode === 'photomontage' ? tr('promptPlaceholderPhotomontage') :
     tr('promptPlaceholderNone');
 
   return (
@@ -303,10 +326,14 @@ export const CoversSection = () => {
                 </div>
 
                 <Tabs value={referenceMode} onValueChange={(v) => setReferenceMode(v as ReferenceMode)}>
-                  <TabsList className="w-full">
-                    <TabsTrigger value="none" className="flex-1 text-xs">{tr('modeNone')}</TabsTrigger>
-                    <TabsTrigger value="artist" className="flex-1 text-xs">{tr('modeArtist')}</TabsTrigger>
-                    <TabsTrigger value="reference" className="flex-1 text-xs">{tr('modeReference')}</TabsTrigger>
+                  <TabsList className="w-full grid grid-cols-4">
+                    <TabsTrigger value="none" className="text-xs">{tr('modeNone')}</TabsTrigger>
+                    <TabsTrigger value="artist" className="text-xs">{tr('modeArtist')}</TabsTrigger>
+                    <TabsTrigger value="reference" className="text-xs">{tr('modeReference')}</TabsTrigger>
+                    <TabsTrigger value="photomontage" className="text-xs flex flex-col items-center gap-0.5 py-1.5">
+                      <span>{tr('modePhotomontage')}</span>
+                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{tr('photomontageCredits')}</Badge>
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="none" className="mt-3">
@@ -456,6 +483,139 @@ export const CoversSection = () => {
                           </AlertDescription>
                         </Alert>
                       </>
+                    )}
+                  </TabsContent>
+
+                  {/* Photomontage tab */}
+                  <TabsContent value="photomontage" className="mt-3 space-y-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-medium">{tr('photomontageTitle')}</p>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{tr('photomontageDesc')}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      {/* Your photo */}
+                      <Card>
+                        <CardHeader className="p-3 pb-1">
+                          <CardTitle className="text-xs flex items-center gap-1.5">
+                            <Camera className="h-3.5 w-3.5" />
+                            {tr('photomontageYourPhoto')}
+                          </CardTitle>
+                          <CardDescription className="text-[10px]">{tr('photomontageYourPhotoDesc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-1">
+                          <input
+                            ref={artistPhotoRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) validateAndSetImage(f, setArtistPhoto, setArtistPhotoPreview);
+                            }}
+                          />
+                          <div
+                            onClick={() => artistPhotoRef.current?.click()}
+                            className="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                          >
+                            {artistPhotoPreview ? (
+                              <div className="space-y-2">
+                                <img src={artistPhotoPreview} alt="" className="w-full aspect-square rounded-lg object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setArtistPhoto(null);
+                                    if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
+                                    setArtistPhotoPreview(null);
+                                    if (artistPhotoRef.current) artistPhotoRef.current.value = '';
+                                  }}
+                                  className="text-xs text-primary hover:underline"
+                                >
+                                  {tr('changePhoto')}
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <Camera className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                                <p className="text-[10px] font-medium">{tr('artistPhotoUpload')}</p>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Reference cover */}
+                      <Card>
+                        <CardHeader className="p-3 pb-1">
+                          <CardTitle className="text-xs flex items-center gap-1.5">
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            {tr('photomontageReference')}
+                          </CardTitle>
+                          <CardDescription className="text-[10px]">{tr('photomontageReferenceDesc')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-1">
+                          <input
+                            ref={referenceImageRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) validateAndSetImage(f, setReferenceImage, setReferenceImagePreview);
+                            }}
+                          />
+                          <div
+                            onClick={() => referenceImageRef.current?.click()}
+                            className="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                          >
+                            {referenceImagePreview ? (
+                              <div className="space-y-2">
+                                <img src={referenceImagePreview} alt="" className="w-full aspect-square rounded-lg object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReferenceImage(null);
+                                    if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
+                                    setReferenceImagePreview(null);
+                                    if (referenceImageRef.current) referenceImageRef.current.value = '';
+                                  }}
+                                  className="text-xs text-primary hover:underline"
+                                >
+                                  {tr('changeReference')}
+                                </button>
+                              </div>
+                            ) : (
+                              <>
+                                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
+                                <p className="text-[10px] font-medium">{tr('referenceUpload')}</p>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertTitle className="text-xs">{tr('photomontageProcessInfo')}</AlertTitle>
+                      <AlertDescription className="text-[10px]">{tr('photomontageProcessDesc')}</AlertDescription>
+                    </Alert>
+
+                    {isGenerating && referenceMode === 'photomontage' && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          <p className="text-xs font-medium">
+                            {photomontageStep === 1 ? tr('photomontageStep1') : tr('photomontageStep2')}
+                          </p>
+                        </div>
+                        <Progress value={photomontageProgress} className="h-2" />
+                      </div>
                     )}
                   </TabsContent>
                 </Tabs>
