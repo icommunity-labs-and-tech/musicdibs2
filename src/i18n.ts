@@ -2189,7 +2189,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Capas', desc: 'Crie arte visual profissional para singles, EPs ou álbuns.' },
-        singYourSong: { title: 'Cante sua música', desc: 'Faça sua voz clonada interpretar sua letra e baixe a faixa vocal.' },
+        singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
       },
       features: {
         highQuality: { title: 'Alta qualidade', desc: 'Resultados prontos para iterar, apresentar ou publicar.' },
