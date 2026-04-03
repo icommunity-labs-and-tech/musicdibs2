@@ -188,6 +188,8 @@ export const CoversSection = () => {
     setIsGenerating(true);
     setGenError(null);
     setImageUrl(null);
+    setPhotomontageStep(1);
+    setPhotomontageProgress(0);
 
     try {
       // Pre-validate credits
