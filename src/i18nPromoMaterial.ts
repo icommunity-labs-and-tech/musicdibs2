@@ -602,7 +602,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
       tabCovers: 'Capas',
       tabCreatives: 'Criativos',
       tabVideos: 'Vídeos para redes',
-      tabFlyers: 'Flyers',
+      tabPosters: 'Cartazes',
       creatives: {
         title: 'Criativos',
         subtitle: 'Gere imagens profissionais para Instagram e YouTube',
