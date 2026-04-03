@@ -1097,7 +1097,7 @@ const resources = {
           editModify: { title: 'Remaster & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
-          createCovers: { title: 'Create Covers', desc: 'Generate professional covers for your single or album. Precise text, artistic styles and artist references.' },
+          createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
           singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
         },
         features: {
