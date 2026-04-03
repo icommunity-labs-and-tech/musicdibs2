@@ -51,6 +51,7 @@ const AIStudioInspire = lazy(() => import("./pages/AIStudioInspire"));
 const AIStudioVideo = lazy(() => import("./pages/AIStudioVideo"));
 const AIStudioCovers = lazy(() => import("./pages/AIStudioCovers"));
 const AIStudioVocal = lazy(() => import("./pages/AIStudioVocal"));
+const PromoMaterial = lazy(() => import("./pages/PromoMaterial"));
 const AdminGuard = lazy(() => import("./components/AdminGuard").then(m => ({ default: m.AdminGuard })));
 const ManagerGuard = lazy(() => import("./components/ManagerGuard").then(m => ({ default: m.ManagerGuard })));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
@@ -113,6 +114,7 @@ const App = () => (
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="verify" element={<VerifyPage />} />
                 <Route path="promote" element={<PromotePage />} />
+                <Route path="premium-promotion" element={<PromotePage />} />
                 <Route path="credits" element={<CreditsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="billing" element={<BillingPage />} />
@@ -141,6 +143,7 @@ const App = () => (
               <Route path="/ai-studio/video" element={<AIStudioVideo />} />
               <Route path="/ai-studio/covers" element={<AIStudioCovers />} />
               <Route path="/ai-studio/vocal" element={<AIStudioVocal />} />
+              <Route path="/ai-studio/promo-material" element={<PromoMaterial />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -62,21 +62,11 @@ const AIStudio = () => {
       titleKey: "aiStudio.modules.createCovers.title",
       descKey: "aiStudio.modules.createCovers.desc",
       icon: Image,
-      href: "/ai-studio/covers",
+      href: "/ai-studio/promo-material",
       available: true,
       costsCredits: true,
       featureKey: 'generate_cover' as const,
       color: "from-emerald-500 to-teal-500"
-    },
-    {
-      titleKey: "aiStudio.modules.createVideoclips.title",
-      descKey: "aiStudio.modules.createVideoclips.desc",
-      icon: Video,
-      href: "/ai-studio/video",
-      available: false,
-      costsCredits: true,
-      featureKey: 'generate_video' as const,
-      color: "from-rose-500 to-red-500"
     },
   ];
 

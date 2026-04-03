@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Upload, Search, Megaphone, ShoppingBag, User,
   CreditCard, LifeBuoy, Music, LogOut, Mic, Sparkles, Shield,
   HelpCircle, Users, BarChart3, Settings2, Rocket, Briefcase,
-  ClipboardList, UserCircle, ChevronDown,
+  ClipboardList, UserCircle, ChevronDown, Palette, Crown,
 } from 'lucide-react';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -43,7 +43,8 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
-    { title: tr('dashboard.sidebar.promoteWork', 'Promocionar obra'), url: '/dashboard/promote', icon: Megaphone },
+    { title: tr('dashboard.sidebar.premiumPromotion', 'Promoción Premium'), url: '/dashboard/premium-promotion', icon: Crown, hideForManager: true },
+    { title: tr('dashboard.sidebar.promoMaterial', 'Material Promocional'), url: '/ai-studio/promo-material', icon: Palette, hideForManager: true },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
     
     { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },

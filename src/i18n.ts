@@ -7,6 +7,7 @@ import { aiStudioTranslations } from './i18nAIStudio';
 import { wizardTranslations } from './i18nWizard';
 import { dashboardTranslations } from './i18nDashboard';
 import { pagesTranslations } from './i18nPages';
+import { promoMaterialTranslations } from './i18nPromoMaterial';
 
 // Spanish-speaking country codes (ISO 3166-1 alpha-2 mapped via navigator.language)
 const SPANISH_LANG_TAGS = [
@@ -529,7 +530,9 @@ const resources = {
           registrationHistory: 'Historial de registros',
           verifyRegistration: 'Verificar registro',
           verifyIdentity: 'Verificar identidad',
-          promoteWork: 'Promocionar obra',
+          premiumPromotion: 'Promoción Premium',
+          promoMaterial: 'Material Promocional',
+          service: 'Servicio',
           artistProfiles: 'Mis Artistas Virtuales',
           profile: 'Perfil',
           plansCredits: 'Planes y créditos',
@@ -1012,7 +1015,9 @@ const resources = {
           registrationHistory: 'Registration history',
           verifyRegistration: 'Verify registration',
           verifyIdentity: 'Verify identity',
-          promoteWork: 'Promote work',
+          premiumPromotion: 'Premium Promotion',
+          promoMaterial: 'Promo Material',
+          service: 'Service',
           artistProfiles: 'My Virtual Artists',
           profile: 'Profile',
           plansCredits: 'Plans & credits',
@@ -1306,7 +1311,9 @@ const resources = {
           registrationHistory: 'Histórico de registros',
           verifyRegistration: 'Verificar registro',
           verifyIdentity: 'Verificar identidade',
-          promoteWork: 'Promover obra',
+          premiumPromotion: 'Promoção Premium',
+          promoMaterial: 'Material Promocional',
+          service: 'Serviço',
           artistProfiles: 'Meus Artistas Virtuais',
           profile: 'Perfil',
           plansCredits: 'Planos e créditos',
@@ -1620,7 +1627,7 @@ langs.forEach((lang) => {
   }
 });
 
-// Merge AI Studio subpage translations (all 6 languages)
+// Merge AI Studio subpage translations
 const allLangs = ['es', 'en', 'pt-BR'] as const;
 allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
@@ -1628,6 +1635,9 @@ allLangs.forEach((lang) => {
   }
   if (resources[lang] && wizardTranslations[lang]) {
     Object.assign(resources[lang].translation, wizardTranslations[lang]);
+  }
+  if (resources[lang] && promoMaterialTranslations[lang]) {
+    Object.assign(resources[lang].translation, promoMaterialTranslations[lang]);
   }
 });
 
