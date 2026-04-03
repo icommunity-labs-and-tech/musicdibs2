@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Image, Share2, Video, FileText, ArrowLeft, Palette } from 'lucide-react';
+import { Image, Instagram, Video, FileText, ArrowLeft, Palette } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CoversSection } from './components/CoversSection';
-import { SocialCreativesSection } from './components/SocialCreativesSection';
+import { InstagramSection } from './components/InstagramSection';
 import { SocialVideosSection } from './components/SocialVideosSection';
 import { FlyersSection } from './components/FlyersSection';
 
@@ -25,7 +24,6 @@ const PromoMaterialPage = () => {
           {t('aiStudio.backToDashboard', 'Volver a AI Studio')}
         </Link>
 
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-3">
             <Palette className="w-8 h-8 text-primary" />
@@ -36,24 +34,23 @@ const PromoMaterialPage = () => {
           </p>
         </div>
 
-        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4 max-w-xl">
             <TabsTrigger value="covers" className="gap-1.5 text-xs sm:text-sm">
               <Image className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabs.covers')}</span>
+              <span className="hidden sm:inline">{tr('tabCovers')}</span>
             </TabsTrigger>
-            <TabsTrigger value="social" className="gap-1.5 text-xs sm:text-sm">
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabs.social')}</span>
+            <TabsTrigger value="instagram" className="gap-1.5 text-xs sm:text-sm">
+              <Instagram className="w-4 h-4" />
+              <span className="hidden sm:inline">{tr('tabInstagram')}</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-1.5 text-xs sm:text-sm">
               <Video className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabs.videos')}</span>
+              <span className="hidden sm:inline">{tr('tabVideos')}</span>
             </TabsTrigger>
             <TabsTrigger value="flyers" className="gap-1.5 text-xs sm:text-sm relative">
               <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabs.flyers')}</span>
+              <span className="hidden sm:inline">{tr('tabFlyers')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -61,8 +58,8 @@ const PromoMaterialPage = () => {
             <CoversSection />
           </TabsContent>
 
-          <TabsContent value="social">
-            <SocialCreativesSection />
+          <TabsContent value="instagram">
+            <InstagramSection />
           </TabsContent>
 
           <TabsContent value="videos">
