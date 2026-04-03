@@ -17,7 +17,7 @@ export const InstagramSection = () => {
   const tr = (key: string) => t(`promoMaterial.instagram.${key}`);
   const { toast } = useToast();
 
-  const [format, setFormat] = useState('feed');
+  const [format, setFormat] = useState<'feed' | 'story'>('feed');
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
   const [visualStyle, setVisualStyle] = useState('vibrant');
