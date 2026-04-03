@@ -97,7 +97,7 @@ const AIStudio = () => {
 
         {/* Row 1 - 3 columns: Crear música, Remasterizar, Herramientas de Voz */}
         <div className="grid md:grid-cols-3 gap-6 mb-6">
-          {mainModules.slice(0, 3).map((module) => {
+          {topRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
             return (
@@ -159,7 +159,7 @@ const AIStudio = () => {
 
         {/* Row 2 - 2 columns: Material promocional, Inspiración */}
         <div className="grid md:grid-cols-2 gap-6 mb-10">
-          {mainModules.slice(3).map((module) => {
+          {bottomRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
             return (
@@ -217,72 +217,6 @@ const AIStudio = () => {
             </Card>
             );
           })}
-        </div>
-
-        {/* Promo Material Group */}
-        <div className="rounded-2xl border border-border/60 bg-muted/30 p-6 mb-16">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            {t('aiStudio.promoGroupTitle', 'Genera material promocional')}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {promoModules.map((module) => {
-              const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
-              const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
-              return (
-              <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
-                {!module.available && (
-                  <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
-                    {t('aiStudio.comingSoon')}
-                  </Badge>
-                )}
-                {module.available && !hasEnough(cost) && module.costsCredits && (
-                  <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
-                    {t('aiStudio.noCredits')}
-                  </Badge>
-                )}
-                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
-                <CardHeader>
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
-                    <module.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <CardTitle className="flex items-center gap-2">
-                    {t(module.titleKey)}
-                    {!module.available && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">{t('aiStudio.comingSoon')}</span>
-                    )}
-                  </CardTitle>
-                  <CardDescription>{t(module.descKey)}</CardDescription>
-                  {module.costsCredits && cost > 0 && (
-                    <span className="mt-1"><PricingLink /></span>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {!module.available ? (
-                    <Button className="w-full" variant="secondary" disabled>
-                      <Zap className="w-4 h-4 mr-2" />
-                      {t('aiStudio.comingSoon')}
-                    </Button>
-                  ) : disabled ? (
-                    <Button asChild className="w-full" variant="default">
-                      <Link to="/dashboard/credits">
-                        <Coins className="w-4 h-4 mr-2" />
-                        {t('aiStudio.buyCredits')}
-                      </Link>
-                    </Button>
-                  ) : (
-                  <Button asChild className="w-full" variant="default">
-                    <Link to={module.href}>
-                      <Zap className="w-4 h-4 mr-2" />
-                      {t('aiStudio.startBtn')}
-                    </Link>
-                  </Button>
-                  )}
-                </CardContent>
-              </Card>
-              );
-            })}
-          </div>
         </div>
 
         {/* Features */}
