@@ -1100,7 +1100,7 @@ const resources = {
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Create Covers', desc: 'Generate professional covers for your single or album. Precise text, artistic styles and artist references.' },
-          singYourSong: { title: 'Sing Your Song', desc: 'Generate a vocal track with your cloned voice singing your lyrics. Download and mix it with your instrumental.' },
+          singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
         },
         features: {
           highQuality: { title: 'High Quality', desc: '44.1kHz stereo audio' },
