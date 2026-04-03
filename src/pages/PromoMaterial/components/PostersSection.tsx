@@ -186,7 +186,7 @@ export const PostersSection = () => {
       }
 
       const { data: urlData } = await supabase.storage
-        .from('event-posters')
+        .from('social-posters')
         .createSignedUrl(data.image_path, 3600);
 
       setGeneratedImage(urlData?.signedUrl || null);
