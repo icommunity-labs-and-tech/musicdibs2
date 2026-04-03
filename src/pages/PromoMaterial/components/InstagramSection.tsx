@@ -169,8 +169,8 @@ export const InstagramSection = () => {
         <p className="text-sm text-muted-foreground mt-1">{tr('subtitle')}</p>
       </div>
 
-      <Tabs value={format} onValueChange={setFormat}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+      <Tabs value={format} onValueChange={(v) => setFormat(v as 'feed' | 'story')}>
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="feed" className="text-xs sm:text-sm">
             📱 {tr('formatFeed')}
             <Badge variant="outline" className="ml-1 text-[10px]">1:1</Badge>
