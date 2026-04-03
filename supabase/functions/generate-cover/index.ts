@@ -144,7 +144,7 @@ serve(async (req) => {
         falBody.strength = Math.max(0.1, Math.min(0.9, strength))
         console.log(`[COVER] Image-to-image, strength=${falBody.strength}`)
       } else {
-        endpoint = "https://fal.run/fal-ai/nano-banana-2"
+        endpoint = "https://fal.run/fal-ai/flux-pro/v1.1"
       }
 
       const res = await fetch(endpoint, {
