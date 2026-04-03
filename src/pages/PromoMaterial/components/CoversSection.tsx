@@ -54,7 +54,7 @@ const ARTIST_REFS = [
   'Karol G', 'Rauw Alejandro', 'Bizarrap',
 ];
 
-type ReferenceMode = 'none' | 'artist' | 'reference';
+type ReferenceMode = 'none' | 'artist' | 'reference' | 'photomontage';
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
