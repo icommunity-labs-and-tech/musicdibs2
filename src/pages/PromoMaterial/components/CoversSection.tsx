@@ -180,6 +180,10 @@ export const CoversSection = () => {
       toast.error(tr('referenceTitle'), { description: tr('referenceUpload') });
       return;
     }
+    if (referenceMode === 'photomontage' && (!artistPhoto || !referenceImage)) {
+      toast.error(tr('photomontageMissingPhotos'), { description: tr('photomontageMissingPhotosDesc') });
+      return;
+    }
 
     setIsGenerating(true);
     setGenError(null);
