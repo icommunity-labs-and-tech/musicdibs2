@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Instagram, Video, FileText, ArrowLeft, Palette } from 'lucide-react';
+import { Image, Sparkles, Video, FileText, ArrowLeft, Palette } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CoversSection } from './components/CoversSection';
-import { InstagramSection } from './components/InstagramSection';
+import { CreativesSection } from './components/CreativesSection';
 import { SocialVideosSection } from './components/SocialVideosSection';
 import { FlyersSection } from './components/FlyersSection';
 
@@ -40,9 +40,9 @@ const PromoMaterialPage = () => {
               <Image className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabCovers')}</span>
             </TabsTrigger>
-            <TabsTrigger value="instagram" className="gap-1.5 text-xs sm:text-sm">
-              <Instagram className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabInstagram')}</span>
+            <TabsTrigger value="creatives" className="gap-1.5 text-xs sm:text-sm">
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">{tr('tabCreatives')}</span>
             </TabsTrigger>
             <TabsTrigger value="videos" className="gap-1.5 text-xs sm:text-sm">
               <Video className="w-4 h-4" />
@@ -58,8 +58,8 @@ const PromoMaterialPage = () => {
             <CoversSection />
           </TabsContent>
 
-          <TabsContent value="instagram">
-            <InstagramSection />
+          <TabsContent value="creatives">
+            <CreativesSection />
           </TabsContent>
 
           <TabsContent value="videos">
