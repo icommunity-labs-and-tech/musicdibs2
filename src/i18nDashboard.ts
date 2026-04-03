@@ -3533,7 +3533,4 @@ export const dashboardTranslations: Record<string, { translation: { dashboard: t
   es: { translation: es },
   en: { translation: en },
   'pt-BR': { translation: pt },
-  fr: { translation: fr },
-  it: { translation: it },
-  de: { translation: de },
 };
