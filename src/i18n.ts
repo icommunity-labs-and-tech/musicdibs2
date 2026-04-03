@@ -1621,7 +1621,7 @@ langs.forEach((lang) => {
 });
 
 // Merge AI Studio subpage translations (all 6 languages)
-const allLangs = ['es', 'en', 'pt-BR', 'fr', 'it', 'de'] as const;
+const allLangs = ['es', 'en', 'pt-BR'] as const;
 allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
     Object.assign(resources[lang].translation, aiStudioTranslations[lang]);
