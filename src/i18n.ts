@@ -617,7 +617,7 @@ const resources = {
           inspire: { title: 'Inspírate', desc: 'Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.' },
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
           createCovers: { title: 'Crea Portadas', desc: 'Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.' },
-          singYourSong: { title: 'Canta tu canción', desc: 'Genera una pista vocal con tu voz clonada cantando tu letra. Descárgala y mézclala con tu base instrumental.' },
+          singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
         },
         features: {
           highQuality: { title: 'Alta Calidad', desc: 'Audio de 44.1kHz estéreo' },
@@ -1100,7 +1100,7 @@ const resources = {
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Create Covers', desc: 'Generate professional covers for your single or album. Precise text, artistic styles and artist references.' },
-          singYourSong: { title: 'Sing Your Song', desc: 'Generate a vocal track with your cloned voice singing your lyrics. Download and mix it with your instrumental.' },
+          singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
         },
         features: {
           highQuality: { title: 'High Quality', desc: '44.1kHz stereo audio' },
@@ -1394,7 +1394,7 @@ const resources = {
           inspire: { title: 'Inspire-se', desc: 'Obtenha ideias, prompts sugeridos e descubra combinações de gêneros e moods.' },
           createVideoclips: { title: 'Crie Videoclipes', desc: 'Gere videoclipes musicais com IA. Descreva o estilo visual, envie uma imagem ou crie a partir de texto.' },
           createCovers: { title: 'Crie Capas', desc: 'Gere capas profissionais para seu single ou álbum. Texto preciso, estilos artísticos e referência de artistas.' },
-          singYourSong: { title: 'Cante sua música', desc: 'Gere uma faixa vocal com sua voz clonada cantando sua letra. Baixe e misture com sua base instrumental.' },
+          singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
         },
         features: {
           highQuality: { title: 'Alta Qualidade', desc: 'Áudio 44.1kHz estéreo' },
@@ -1546,7 +1546,7 @@ const resources = {
           inspire: { title: 'Inspirez-vous', desc: 'Obtenez des idées, des prompts suggérés et découvrez des combinaisons de genres et de moods.' },
           createVideoclips: { title: 'Créez des Vidéoclips', desc: 'Générez des clips musicaux avec l\'IA. Décrivez le style visuel, téléchargez une image ou créez à partir de texte.' },
           createCovers: { title: 'Créez des Pochettes', desc: 'Générez des pochettes professionnelles pour votre single ou album. Texte précis, styles artistiques et références d\'artistes.' },
-          singYourSong: { title: 'Chantez votre chanson', desc: 'Générez une piste vocale avec votre voix clonée chantant vos paroles. Téléchargez-la et mixez-la avec votre instrumental.' },
+          singYourSong: { title: 'Outils Vocaux', desc: 'Votre studio vocal IA : clonez votre voix, chantez en 29 langues, traduisez des audios et bien plus' },
         },
         features: {
           highQuality: { title: 'Haute Qualité', desc: 'Audio 44.1kHz stéréo' },
@@ -1778,7 +1778,7 @@ const resources = {
           inspire: { title: 'Lasciati Ispirare', desc: 'Ottieni idee, prompt suggeriti e scopri combinazioni di generi e mood.' },
           createVideoclips: { title: 'Crea Videoclip', desc: 'Genera videoclip musicali con l\'IA. Descrivi lo stile visivo, carica un\'immagine o crea da testo.' },
           createCovers: { title: 'Crea Copertine', desc: 'Genera copertine professionali per il tuo singolo o album. Testo preciso, stili artistici e riferimenti ad artisti.' },
-          singYourSong: { title: 'Canta la tua canzone', desc: 'Genera una traccia vocale con la tua voce clonata che canta il tuo testo. Scaricala e mixala con la tua base strumentale.' },
+          singYourSong: { title: 'Strumenti Vocali', desc: 'Il tuo studio vocale IA: clona la tua voce, canta in 29 lingue, traduci audio e molto altro' },
         },
         features: {
           highQuality: { title: 'Alta Qualità', desc: 'Audio 44.1kHz stereo' },
@@ -2010,7 +2010,7 @@ const resources = {
           inspire: { title: 'Lass dich inspirieren', desc: 'Erhalte Ideen, vorgeschlagene Prompts und entdecke Genre- und Stimmungskombinationen.' },
           createVideoclips: { title: 'Videoclips erstellen', desc: 'Generiere Musikvideos mit KI. Beschreibe den visuellen Stil, lade ein Bild hoch oder erstelle aus Text.' },
           createCovers: { title: 'Cover erstellen', desc: 'Generiere professionelle Cover für deine Single oder dein Album. Präziser Text, künstlerische Stile und Künstlerreferenzen.' },
-          singYourSong: { title: 'Sing deinen Song', desc: 'Generiere eine Vocal-Spur mit deiner geklonten Stimme, die deinen Text singt. Lade sie herunter und mixe sie mit deinem Instrumental.' },
+          singYourSong: { title: 'Stimm-Tools', desc: 'Dein KI-Vokalstudio: Stimme klonen, in 29 Sprachen singen, Audios übersetzen und vieles mehr' },
         },
         features: {
           highQuality: { title: 'Hohe Qualität', desc: '44.1kHz Stereo-Audio' },
