@@ -326,10 +326,14 @@ export const CoversSection = () => {
                 </div>
 
                 <Tabs value={referenceMode} onValueChange={(v) => setReferenceMode(v as ReferenceMode)}>
-                  <TabsList className="w-full">
-                    <TabsTrigger value="none" className="flex-1 text-xs">{tr('modeNone')}</TabsTrigger>
-                    <TabsTrigger value="artist" className="flex-1 text-xs">{tr('modeArtist')}</TabsTrigger>
-                    <TabsTrigger value="reference" className="flex-1 text-xs">{tr('modeReference')}</TabsTrigger>
+                  <TabsList className="w-full grid grid-cols-4">
+                    <TabsTrigger value="none" className="text-xs">{tr('modeNone')}</TabsTrigger>
+                    <TabsTrigger value="artist" className="text-xs">{tr('modeArtist')}</TabsTrigger>
+                    <TabsTrigger value="reference" className="text-xs">{tr('modeReference')}</TabsTrigger>
+                    <TabsTrigger value="photomontage" className="text-xs flex flex-col items-center gap-0.5 py-1.5">
+                      <span>{tr('modePhotomontage')}</span>
+                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{tr('photomontageCredits')}</Badge>
+                    </TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="none" className="mt-3">
