@@ -201,15 +201,23 @@ export const CoversSection = () => {
       });
       if (spendErr || spend?.error) throw new Error(spend?.message || t('aiShared.error'));
 
-      // Convert reference image to base64 if applicable
+      // Convert images to base64 based on mode
+      let artistPhotoBase64: string | null = null;
       let referenceImageBase64: string | null = null;
       let strengthValue = 0;
-      if (referenceMode === 'artist' && artistPhoto) {
-        referenceImageBase64 = await fileToBase64(artistPhoto);
+
+      if ((referenceMode === 'artist' || referenceMode === 'photomontage') && artistPhoto) {
+        artistPhotoBase64 = await fileToBase64(artistPhoto);
         strengthValue = artistPhotoStrength / 100;
-      } else if (referenceMode === 'reference' && referenceImage) {
+      }
+      if ((referenceMode === 'reference' || referenceMode === 'photomontage') && referenceImage) {
         referenceImageBase64 = await fileToBase64(referenceImage);
-        strengthValue = referenceStrength / 100;
+        strengthValue = referenceMode === 'photomontage' ? 0.6 : referenceStrength / 100;
+      }
+      // For artist-only mode, send as referenceImageBase64 for backward compat
+      if (referenceMode === 'artist' && artistPhotoBase64) {
+        referenceImageBase64 = artistPhotoBase64;
+        artistPhotoBase64 = null;
       }
 
       const { data, error } = await supabase.functions.invoke('generate-cover', {
@@ -220,6 +228,7 @@ export const CoversSection = () => {
           colorPalette,
           artistRef,
           description,
+          artistPhotoBase64,
           referenceImageBase64,
           referenceStrength: strengthValue,
           referenceMode,
