@@ -614,7 +614,7 @@ const resources = {
           editModify: { title: 'Remasterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
           inspire: { title: 'Inspírate', desc: 'Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.' },
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
-          createCovers: { title: 'Crea Portadas', desc: 'Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.' },
+          createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
           singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
         },
         features: {
@@ -1097,7 +1097,7 @@ const resources = {
           editModify: { title: 'Remaster & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
-          createCovers: { title: 'Create Covers', desc: 'Generate professional covers for your single or album. Precise text, artistic styles and artist references.' },
+          createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
           singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
         },
         features: {
@@ -1391,7 +1391,7 @@ const resources = {
           editModify: { title: 'Remasterizar e melhorar', desc: 'Melhore suas faixas, limpe o áudio e obtenha uma versão mais profissional.' },
           inspire: { title: 'Inspire-se', desc: 'Obtenha ideias, prompts sugeridos e descubra combinações de gêneros e moods.' },
           createVideoclips: { title: 'Crie Videoclipes', desc: 'Gere videoclipes musicais com IA. Descreva o estilo visual, envie uma imagem ou crie a partir de texto.' },
-          createCovers: { title: 'Crie Capas', desc: 'Gere capas profissionais para seu single ou álbum. Texto preciso, estilos artísticos e referência de artistas.' },
+          createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
           singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
         },
         features: {
@@ -1428,7 +1428,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         editModify: { title: 'Remasterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
         inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
-        createCovers: { title: 'Portadas', desc: 'Crea arte visual profesional para singles, EPs o álbumes.' },
+        createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
         singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
       },
       features: {
@@ -1459,7 +1459,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         editModify: { title: 'Remaster & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
         inspire: { title: 'Inspiration', desc: 'Discover prompts, combinations and references to start faster.' },
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
-        createCovers: { title: 'Covers', desc: 'Create professional visual art for singles, EPs or albums.' },
+        createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
         singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
       },
       features: {
@@ -1490,7 +1490,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         editModify: { title: 'Remasterizar e melhorar', desc: 'Melhore suas faixas, limpe o áudio e obtenha uma versão mais profissional.' },
         inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
-        createCovers: { title: 'Capas', desc: 'Crie arte visual profissional para singles, EPs ou álbuns.' },
+        createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
         singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
       },
       features: {
