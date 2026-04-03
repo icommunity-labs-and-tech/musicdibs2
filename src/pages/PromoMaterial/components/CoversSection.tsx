@@ -575,7 +575,7 @@ export const CoversSection = () => {
           {isGenerating ? (
             <Card className="border-border/40">
               <CardContent className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                   <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 </div>
                 <div className="text-center space-y-1">
