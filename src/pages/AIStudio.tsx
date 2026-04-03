@@ -14,7 +14,7 @@ const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const { t } = useTranslation();
 
-  const mainModules = [
+  const topRowModules = [
     {
       titleKey: "aiStudio.modules.createMusic.title",
       descKey: "aiStudio.modules.createMusic.desc",
@@ -36,16 +36,6 @@ const AIStudio = () => {
       color: "from-blue-500 to-cyan-500"
     },
     {
-      titleKey: "aiStudio.modules.inspire.title",
-      descKey: "aiStudio.modules.inspire.desc",
-      icon: Lightbulb,
-      href: "/ai-studio/inspire",
-      available: true,
-      costsCredits: false,
-      featureKey: 'inspiration' as const,
-      color: "from-amber-500 to-orange-500"
-    },
-    {
       titleKey: "aiStudio.modules.singYourSong.title",
       descKey: "aiStudio.modules.singYourSong.desc",
       icon: Mic,
@@ -57,7 +47,7 @@ const AIStudio = () => {
     }
   ];
 
-  const promoModules = [
+  const bottomRowModules = [
     {
       titleKey: "aiStudio.modules.createCovers.title",
       descKey: "aiStudio.modules.createCovers.desc",
@@ -67,6 +57,16 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_cover' as const,
       color: "from-emerald-500 to-teal-500"
+    },
+    {
+      titleKey: "aiStudio.modules.inspire.title",
+      descKey: "aiStudio.modules.inspire.desc",
+      icon: Lightbulb,
+      href: "/ai-studio/inspire",
+      available: true,
+      costsCredits: false,
+      featureKey: 'inspiration' as const,
+      color: "from-amber-500 to-orange-500"
     },
   ];
 
