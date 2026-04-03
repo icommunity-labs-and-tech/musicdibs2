@@ -51,6 +51,7 @@ const AIStudioInspire = lazy(() => import("./pages/AIStudioInspire"));
 const AIStudioVideo = lazy(() => import("./pages/AIStudioVideo"));
 const AIStudioCovers = lazy(() => import("./pages/AIStudioCovers"));
 const AIStudioVocal = lazy(() => import("./pages/AIStudioVocal"));
+const PromoMaterial = lazy(() => import("./pages/PromoMaterial"));
 const AdminGuard = lazy(() => import("./components/AdminGuard").then(m => ({ default: m.AdminGuard })));
 const ManagerGuard = lazy(() => import("./components/ManagerGuard").then(m => ({ default: m.ManagerGuard })));
 const AdminUsersPage = lazy(() => import("./pages/AdminUsersPage"));
