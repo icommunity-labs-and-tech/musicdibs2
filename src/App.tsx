@@ -113,6 +113,7 @@ const App = () => (
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="verify" element={<VerifyPage />} />
                 <Route path="promote" element={<PromotePage />} />
+                <Route path="premium-promotion" element={<PromotePage />} />
                 <Route path="credits" element={<CreditsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="billing" element={<BillingPage />} />
