@@ -266,11 +266,13 @@ export const CoversSection = () => {
   const promptLabel =
     referenceMode === 'artist' ? tr('promptLabelArtist') :
     referenceMode === 'reference' ? tr('promptLabelReference') :
+    referenceMode === 'photomontage' ? tr('promptLabelPhotomontage') :
     tr('promptLabelNone');
 
   const promptPlaceholder =
     referenceMode === 'artist' ? tr('promptPlaceholderArtist') :
     referenceMode === 'reference' ? tr('promptPlaceholderReference') :
+    referenceMode === 'photomontage' ? tr('promptPlaceholderPhotomontage') :
     tr('promptPlaceholderNone');
 
   return (
