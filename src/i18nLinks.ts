@@ -1,9 +1,9 @@
-export type LangCode = 'es' | 'en' | 'pt-BR' | 'fr' | 'it' | 'de';
+export type LangCode = 'es' | 'en' | 'pt-BR';
 
 const normalizeLang = (lang?: string): LangCode => {
   if (!lang) return 'es';
   if (lang.toLowerCase().startsWith('pt')) return 'pt-BR';
-  const supported: LangCode[] = ['es', 'en', 'pt-BR', 'fr', 'it', 'de'];
+  const supported: LangCode[] = ['es', 'en', 'pt-BR'];
   return (supported.includes(lang as LangCode) ? (lang as LangCode) : 'en');
 };
 
@@ -51,14 +51,11 @@ export const getNavLinks = (lang?: string) => {
     },
   } as const;
 
-  const mapping: Record<LangCode, typeof en> = {
+  const mapping: Record<LangCode, typeof en | typeof es | typeof pt> = {
     en,
     es,
-    'pt-BR': pt as any,
-    fr: en,
-    it: en,
-    de: en,
-  } as any;
+    'pt-BR': pt,
+  };
 
   return mapping[l];
 };
@@ -119,14 +116,11 @@ export const getFooterLinks = (lang?: string) => {
     },
   } as const;
 
-  const mapping: Record<LangCode, typeof en> = {
+  const mapping: Record<LangCode, typeof en | typeof es | typeof pt> = {
     en,
     es,
-    'pt-BR': pt as any,
-    fr: en,
-    it: en,
-    de: en,
-  } as any;
+    'pt-BR': pt,
+  };
 
   return mapping[l];
 };
