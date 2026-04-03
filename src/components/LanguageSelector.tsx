@@ -16,12 +16,9 @@ export const LanguageSelector = () => {
   }, [i18n.resolvedLanguage, i18n.language]);
 
   const languages = [
-    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "en", name: "English", flag: "🇬🇧" },
     { code: "pt-BR", name: "Português (Brasil)", flag: "🇧🇷" },
     { code: "es", name: "Español", flag: "🇪🇸" },
-    { code: "fr", name: "Français", flag: "🇫🇷" },
-    { code: "it", name: "Italiano", flag: "🇮🇹" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪" },
   ];
 
   const currentLanguage = languages.find((lang) => lang.code === selectedLanguage) || languages[0];
