@@ -48,6 +48,9 @@ serve(async (req) => {
       colorPalette,
       artistRef,
       description,
+      referenceImageBase64,
+      referenceStrength,
+      referenceMode,
     } = await req.json()
 
     // ── Credit deduction ──────────────────────────────────────
@@ -73,7 +76,7 @@ serve(async (req) => {
       user_id: user.id,
       amount: -CREDITS_COST,
       type: "usage",
-      description: `Portada IA: ${trackTitle || "Sin título"}`.slice(0, 200),
+      description: `Portada IA: ${trackTitle || "Sin título"}${referenceMode && referenceMode !== 'none' ? ` (${referenceMode})` : ''}`.slice(0, 200),
     })
 
     const refundCredits = async (reason: string) => {
@@ -93,7 +96,7 @@ serve(async (req) => {
       }
     }
 
-    // Construir prompt optimizado para portadas musicales
+    // ── Build prompt ──────────────────────────────────────────
     let prompt = `Music album cover art, square 1:1 format, professional quality.`
 
     if (trackTitle) {
@@ -115,27 +118,56 @@ serve(async (req) => {
       prompt += ` Additional details: ${description}.`
     }
 
+    // Context based on reference mode
+    if (referenceMode === 'artist') {
+      prompt += ` Professional album cover incorporating the artist photo as a central element, high-end design, commercial quality, studio photography aesthetic.`
+    } else if (referenceMode === 'reference') {
+      prompt += ` Inspired by the reference cover aesthetic but completely unique and original, same visual style but different execution and elements.`
+    }
+
     prompt += ` High quality, visually striking, suitable for streaming platforms like Spotify and Apple Music. No watermarks.`
 
-    console.log(`[COVER] Generating for user ${user.id}: ${prompt.slice(0, 100)}`)
+    console.log(`[COVER] Generating for user ${user.id}, mode=${referenceMode || 'none'}: ${prompt.slice(0, 100)}`)
 
-    const falRes = await fetch(
-      "https://fal.run/fal-ai/nano-banana-2",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Key ${FAL_API_KEY}`,
-        },
-        body: JSON.stringify({
-          prompt,
-          image_size:         "square_hd",
-          num_inference_steps: 28,
-          num_images:          1,
-          enable_safety_checker: true,
-        }),
-      }
-    )
+    // ── Determine endpoint and params ─────────────────────────
+    const hasReferenceImage = referenceImageBase64 && referenceMode && referenceMode !== 'none'
+
+    let falEndpoint: string
+    const falBody: Record<string, unknown> = {
+      prompt,
+      image_size: "square_hd",
+      num_inference_steps: 28,
+      num_images: 1,
+      enable_safety_checker: true,
+    }
+
+    if (hasReferenceImage) {
+      // Image-to-image mode
+      falEndpoint = "https://fal.run/fal-ai/flux-pro/v1.1/image-to-image"
+
+      // Convert base64 to data URL for fal.ai
+      falBody.image_url = `data:image/jpeg;base64,${referenceImageBase64}`
+
+      // strength in fal.ai = how much to change (1 = completely new, 0 = keep original)
+      // Our referenceStrength = how much to keep the original (0.2-0.9)
+      // So we invert: fal strength = 1 - referenceStrength
+      const strength = Math.max(0.1, Math.min(0.9, 1 - (referenceStrength || 0.5)))
+      falBody.strength = strength
+
+      console.log(`[COVER] Image-to-image mode, strength=${strength}`)
+    } else {
+      // Text-to-image mode (original behavior)
+      falEndpoint = "https://fal.run/fal-ai/nano-banana-2"
+    }
+
+    const falRes = await fetch(falEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Key ${FAL_API_KEY}`,
+      },
+      body: JSON.stringify(falBody),
+    })
 
     if (!falRes.ok) {
       const errText = await falRes.text()
