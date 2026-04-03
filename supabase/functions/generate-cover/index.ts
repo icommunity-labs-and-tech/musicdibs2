@@ -141,7 +141,11 @@ serve(async (req) => {
       if (imageBase64) {
         endpoint = "https://fal.run/fal-ai/flux/dev/image-to-image"
         falBody.image_url = `data:image/jpeg;base64,${imageBase64}`
-        falBody.strength = Math.max(0.1, Math.min(0.9, strength))
+        // strength from caller = user's "fidelity" (high = keep original)
+        // fal.ai strength = how much to change (high = more creative)
+        // So we invert: user 0.2 (creative) -> fal 0.8, user 0.9 (faithful) -> fal 0.1
+        const falStrength = Math.max(0.1, Math.min(0.9, 1 - strength))
+        falBody.strength = falStrength
         console.log(`[COVER] Image-to-image, strength=${falBody.strength}`)
       } else {
         endpoint = "https://fal.run/fal-ai/flux-pro/v1.1"
