@@ -1627,7 +1627,7 @@ langs.forEach((lang) => {
   }
 });
 
-// Merge AI Studio subpage translations (all 6 languages)
+// Merge AI Studio subpage translations
 const allLangs = ['es', 'en', 'pt-BR'] as const;
 allLangs.forEach((lang) => {
   if (resources[lang] && aiStudioTranslations[lang]) {
@@ -1635,6 +1635,9 @@ allLangs.forEach((lang) => {
   }
   if (resources[lang] && wizardTranslations[lang]) {
     Object.assign(resources[lang].translation, wizardTranslations[lang]);
+  }
+  if (resources[lang] && promoMaterialTranslations[lang]) {
+    Object.assign(resources[lang].translation, promoMaterialTranslations[lang]);
   }
 });
 
