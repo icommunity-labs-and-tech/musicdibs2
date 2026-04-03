@@ -2127,7 +2127,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
         createCovers: { title: 'Portadas', desc: 'Crea arte visual profesional para singles, EPs o álbumes.' },
-        singYourSong: { title: 'Canta tu canción', desc: 'Haz que tu voz clonada interprete tu letra y descarga la pista vocal.' },
+        singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
       },
       features: {
         highQuality: { title: 'Alta calidad', desc: 'Resultados listos para iterar, presentar o publicar.' },
@@ -2158,7 +2158,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiration', desc: 'Discover prompts, combinations and references to start faster.' },
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
         createCovers: { title: 'Covers', desc: 'Create professional visual art for singles, EPs or albums.' },
-        singYourSong: { title: 'Sing your song', desc: 'Make your cloned voice perform your lyrics and download the vocal track.' },
+        singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
       },
       features: {
         highQuality: { title: 'High quality', desc: 'Results ready to iterate, pitch or publish.' },
@@ -2189,7 +2189,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Capas', desc: 'Crie arte visual profissional para singles, EPs ou álbuns.' },
-        singYourSong: { title: 'Cante sua música', desc: 'Faça sua voz clonada interpretar sua letra e baixe a faixa vocal.' },
+        singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
       },
       features: {
         highQuality: { title: 'Alta qualidade', desc: 'Resultados prontos para iterar, apresentar ou publicar.' },
@@ -2220,7 +2220,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiration', desc: 'Découvrez des prompts, combinaisons et références pour démarrer plus vite.' },
         createVideoclips: { title: 'Vidéoclips', desc: 'Générez des vidéos musicales et fusionnez-les avec l’audio de votre historique.' },
         createCovers: { title: 'Pochettes', desc: 'Créez des visuels professionnels pour singles, EP ou albums.' },
-        singYourSong: { title: 'Chantez votre chanson', desc: 'Faites interpréter vos paroles par votre voix clonée et téléchargez la piste vocale.' },
+        singYourSong: { title: 'Outils Vocaux', desc: 'Votre studio vocal IA : clonez votre voix, chantez en 29 langues, traduisez des audios et bien plus' },
       },
       features: {
         highQuality: { title: 'Haute qualité', desc: 'Des résultats prêts à itérer, présenter ou publier.' },
@@ -2251,7 +2251,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Ispirazione', desc: 'Scopri prompt, combinazioni e riferimenti per iniziare più velocemente.' },
         createVideoclips: { title: 'Videoclip', desc: 'Genera video musicali e uniscili con l’audio della tua cronologia.' },
         createCovers: { title: 'Copertine', desc: 'Crea artwork professionali per singoli, EP o album.' },
-        singYourSong: { title: 'Canta la tua canzone', desc: 'Fai interpretare il testo alla tua voce clonata e scarica la traccia vocale.' },
+        singYourSong: { title: 'Strumenti Vocali', desc: 'Il tuo studio vocale IA: clona la tua voce, canta in 29 lingue, traduci audio e molto altro' },
       },
       features: {
         highQuality: { title: 'Alta qualità', desc: 'Risultati pronti per iterare, presentare o pubblicare.' },
@@ -2282,7 +2282,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         inspire: { title: 'Inspiration', desc: 'Entdecke Prompts, Kombinationen und Referenzen für einen schnelleren Start.' },
         createVideoclips: { title: 'Videoclips', desc: 'Erzeuge Musikvideos und kombiniere sie mit Audio aus deinem Verlauf.' },
         createCovers: { title: 'Cover', desc: 'Erstelle professionelle Visuals für Singles, EPs oder Alben.' },
-        singYourSong: { title: 'Sing deinen Song', desc: 'Lass deine geklonte Stimme deinen Text performen und lade die Vocal-Spur herunter.' },
+        singYourSong: { title: 'Stimm-Tools', desc: 'Dein KI-Vokalstudio: Stimme klonen, in 29 Sprachen singen, Audios übersetzen und vieles mehr' },
       },
       features: {
         highQuality: { title: 'Hohe Qualität', desc: 'Ergebnisse bereit zum Iterieren, Pitchen oder Veröffentlichen.' },
