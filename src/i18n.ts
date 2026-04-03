@@ -1757,7 +1757,7 @@ i18n
     resources,
     lng: detectedLang,
     fallbackLng: 'es',
-    supportedLngs: ['es', 'en', 'pt-BR', 'fr', 'it', 'de'],
+    supportedLngs: ['es', 'en', 'pt-BR'],
     nonExplicitSupportedLngs: true,
     load: 'languageOnly',
     cleanCode: true,
