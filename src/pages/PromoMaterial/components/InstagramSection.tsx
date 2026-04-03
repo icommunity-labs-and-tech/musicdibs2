@@ -179,10 +179,6 @@ export const InstagramSection = () => {
             📲 {tr('formatStory')}
             <Badge variant="outline" className="ml-1 text-[10px]">9:16</Badge>
           </TabsTrigger>
-          <TabsTrigger value="reel" className="text-xs sm:text-sm">
-            🎬 {tr('formatReel')}
-            <Badge variant="outline" className="ml-1 text-[10px]">9:16</Badge>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={format} className="mt-6">

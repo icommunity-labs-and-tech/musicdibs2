@@ -344,7 +344,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Gere posts completos com imagem, copy e hashtags para Instagram',
         formatFeed: 'Post Feed',
         formatStory: 'Story',
-        formatReel: 'Capa Reel',
+        
         artistName: 'Nome do artista',
         artistNamePlaceholder: 'Ex: Bad Bunny',
         trackTitle: 'Título da música',
