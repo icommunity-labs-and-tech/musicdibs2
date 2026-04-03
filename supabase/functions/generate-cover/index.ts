@@ -141,7 +141,11 @@ serve(async (req) => {
       if (imageBase64) {
         endpoint = "https://fal.run/fal-ai/flux/dev/image-to-image"
         falBody.image_url = `data:image/jpeg;base64,${imageBase64}`
-        falBody.strength = Math.max(0.1, Math.min(0.9, strength))
+        // strength from caller = user's "fidelity" (high = keep original)
+        // fal.ai strength = how much to change (high = more creative)
+        // So we invert: user 0.2 (creative) -> fal 0.8, user 0.9 (faithful) -> fal 0.1
+        const falStrength = Math.max(0.1, Math.min(0.9, 1 - strength))
+        falBody.strength = falStrength
         console.log(`[COVER] Image-to-image, strength=${falBody.strength}`)
       } else {
         endpoint = "https://fal.run/fal-ai/flux-pro/v1.1"
@@ -234,13 +238,12 @@ serve(async (req) => {
 
       } else if (referenceMode === 'artist' && artistPhotoBase64) {
         const artistPrompt = prompt + ` Professional album cover incorporating the artist photo, high-end design, commercial quality, studio photography aesthetic.`
-        const strength = 1 - (referenceStrength || 0.5)
-        imageUrl = await generateWithFal(artistPrompt, artistPhotoBase64, strength)
+        // Pass raw user value (0-1); generateWithFal will invert for fal.ai
+        imageUrl = await generateWithFal(artistPrompt, artistPhotoBase64, referenceStrength || 0.5)
 
       } else if (referenceMode === 'reference' && referenceImageBase64) {
         const refPrompt = prompt + ` Inspired by the reference cover aesthetic but completely unique and original, same visual style but different execution and elements.`
-        const strength = 1 - (referenceStrength || 0.5)
-        imageUrl = await generateWithFal(refPrompt, referenceImageBase64, strength)
+        imageUrl = await generateWithFal(refPrompt, referenceImageBase64, referenceStrength || 0.5)
 
       } else {
         imageUrl = await generateWithFal(prompt, null, 0)
