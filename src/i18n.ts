@@ -20,16 +20,14 @@ export const mapBrowserLang = (detected: string | undefined): string => {
   if (!detected) return 'es';
   const tag = detected.trim().replace(/_/g, '-');
 
-  // Any Spanish variant → es
+  // Spanish variants → es
   if (tag === 'es' || SPANISH_LANG_TAGS.some(s => tag.toLowerCase().startsWith(s.toLowerCase()))) return 'es';
   // Portuguese variants → pt-BR
   if (tag.toLowerCase().startsWith('pt')) return 'pt-BR';
-  // Exact supported matches
-  const base = tag.split('-')[0].toLowerCase();
-  const supported = ['en', 'fr', 'it', 'de'];
-  if (supported.includes(base)) return base;
+  // English variants → en
+  if (tag.toLowerCase().startsWith('en')) return 'en';
   // Default fallback
-  return 'es';
+  return 'en';
 };
 
 /** Try multiple browser signals to find the best language match */
