@@ -2010,7 +2010,7 @@ const resources = {
           inspire: { title: 'Lass dich inspirieren', desc: 'Erhalte Ideen, vorgeschlagene Prompts und entdecke Genre- und Stimmungskombinationen.' },
           createVideoclips: { title: 'Videoclips erstellen', desc: 'Generiere Musikvideos mit KI. Beschreibe den visuellen Stil, lade ein Bild hoch oder erstelle aus Text.' },
           createCovers: { title: 'Cover erstellen', desc: 'Generiere professionelle Cover für deine Single oder dein Album. Präziser Text, künstlerische Stile und Künstlerreferenzen.' },
-          singYourSong: { title: 'Sing deinen Song', desc: 'Generiere eine Vocal-Spur mit deiner geklonten Stimme, die deinen Text singt. Lade sie herunter und mixe sie mit deinem Instrumental.' },
+          singYourSong: { title: 'Stimm-Tools', desc: 'Dein KI-Vokalstudio: Stimme klonen, in 29 Sprachen singen, Audios übersetzen und vieles mehr' },
         },
         features: {
           highQuality: { title: 'Hohe Qualität', desc: '44.1kHz Stereo-Audio' },
