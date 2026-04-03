@@ -1758,8 +1758,8 @@ i18n
     lng: detectedLang,
     fallbackLng: 'es',
     supportedLngs: ['es', 'en', 'pt-BR'],
-    nonExplicitSupportedLngs: true,
-    load: 'languageOnly',
+    nonExplicitSupportedLngs: false,
+    load: 'currentOnly',
     cleanCode: true,
     interpolation: { escapeValue: false },
     detection: {
