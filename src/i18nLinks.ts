@@ -51,10 +51,10 @@ export const getNavLinks = (lang?: string) => {
     },
   } as const;
 
-  const mapping: Record<LangCode, typeof en> = {
+  const mapping: Record<LangCode, typeof en | typeof es | typeof pt> = {
     en,
     es,
-    'pt-BR': pt as any,
+    'pt-BR': pt,
   };
 
   return mapping[l];
