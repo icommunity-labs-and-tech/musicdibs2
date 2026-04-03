@@ -143,6 +143,7 @@ const App = () => (
               <Route path="/ai-studio/video" element={<AIStudioVideo />} />
               <Route path="/ai-studio/covers" element={<AIStudioCovers />} />
               <Route path="/ai-studio/vocal" element={<AIStudioVocal />} />
+              <Route path="/ai-studio/promo-material" element={<PromoMaterial />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
