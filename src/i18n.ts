@@ -614,7 +614,7 @@ const resources = {
           editModify: { title: 'Remasterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
           inspire: { title: 'Inspírate', desc: 'Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.' },
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
-          createCovers: { title: 'Crea Portadas', desc: 'Genera portadas profesionales para tu single o álbum. Texto preciso, estilos artísticos y referencia de artistas.' },
+          createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
           singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
         },
         features: {
