@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Sparkles, Video, FileText, ArrowLeft, Palette } from 'lucide-react';
+import { Image, Sparkles, Video, Megaphone, ArrowLeft, Palette } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CoversSection } from './components/CoversSection';
 import { CreativesSection } from './components/CreativesSection';
 import { SocialVideosSection } from './components/SocialVideosSection';
-import { FlyersSection } from './components/FlyersSection';
+import { PostersSection } from './components/PostersSection';
 
 const PromoMaterialPage = () => {
   const { t, i18n } = useTranslation();
@@ -48,9 +48,9 @@ const PromoMaterialPage = () => {
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabVideos')}</span>
             </TabsTrigger>
-            <TabsTrigger value="flyers" className="gap-1.5 text-xs sm:text-sm relative">
-              <FileText className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabFlyers')}</span>
+            <TabsTrigger value="posters" className="gap-1.5 text-xs sm:text-sm">
+              <Megaphone className="w-4 h-4" />
+              <span className="hidden sm:inline">{tr('tabPosters')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -66,8 +66,8 @@ const PromoMaterialPage = () => {
             <SocialVideosSection />
           </TabsContent>
 
-          <TabsContent value="flyers">
-            <FlyersSection />
+          <TabsContent value="posters">
+            <PostersSection />
           </TabsContent>
         </Tabs>
       </main>
