@@ -163,7 +163,7 @@ const AIStudio = () => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
             return (
-            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 flex flex-col ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
               {!module.available && (
                 <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
                   {t('aiStudio.comingSoon')}
@@ -175,7 +175,7 @@ const AIStudio = () => {
                 </Badge>
               )}
               <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
-              <CardHeader>
+              <CardHeader className="flex-1">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
                   <module.icon className="w-6 h-6 text-white" />
                 </div>
