@@ -95,6 +95,10 @@ export const CoversSection = () => {
   const [referenceImagePreview, setReferenceImagePreview] = useState<string | null>(null);
   const [referenceStrength, setReferenceStrength] = useState(50);
 
+  // Photomontage states
+  const [photomontageStep, setPhotomontageStep] = useState<1 | 2>(1);
+  const [photomontageProgress, setPhotomontageProgress] = useState(0);
+
   const artistPhotoRef = useRef<HTMLInputElement>(null);
   const referenceImageRef = useRef<HTMLInputElement>(null);
 
