@@ -19,7 +19,7 @@ export const SocialVideosSection = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { credits, hasEnough } = useCredits();
-  const tr = (key: string, opts?: any) => t(`promoMaterial.videos.${key}`, opts);
+  const tr = (key: string, opts?: any) => t(`promoMaterial.videos.${key}`, opts) as string;
 
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('10');
