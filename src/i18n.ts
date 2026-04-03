@@ -1428,7 +1428,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         editModify: { title: 'Remasterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
         inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
-        createCovers: { title: 'Portadas', desc: 'Crea arte visual profesional para singles, EPs o álbumes.' },
+        createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
         singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
       },
       features: {
