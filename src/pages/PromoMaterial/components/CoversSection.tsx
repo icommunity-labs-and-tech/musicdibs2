@@ -120,10 +120,11 @@ export const CoversSection = () => {
     } else if (referenceMode === 'artist') {
       setReferenceImage(null);
       setReferenceImagePreview(p => { if (p) URL.revokeObjectURL(p); return null; });
-    } else {
+    } else if (referenceMode === 'reference') {
       setArtistPhoto(null);
       setArtistPhotoPreview(p => { if (p) URL.revokeObjectURL(p); return null; });
     }
+    // photomontage keeps both images
   }, [referenceMode]);
 
   const validateAndSetImage = (
