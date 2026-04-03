@@ -447,8 +447,8 @@ export const CoversSection = () => {
                           </div>
                         </div>
 
-                        <Alert variant="default" className="border-yellow-500/30 bg-yellow-500/5">
-                          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <Alert variant="default" className="border-destructive/30 bg-destructive/5">
+                          <AlertTriangle className="h-4 w-4 text-destructive" />
                           <AlertTitle className="text-xs">{tr('copyrightWarningTitle')}</AlertTitle>
                           <AlertDescription className="text-[10px] space-y-1">
                             <p>{tr('copyrightWarning1')}</p>
