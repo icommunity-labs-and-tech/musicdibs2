@@ -200,6 +200,7 @@ export default function DashboardHome() {
           <RecentRegistrations />
         </div>
       </div>
+      <DistributionInfoModal open={showDistributionModal} onOpenChange={setShowDistributionModal} />
     </div>
   );
 }
