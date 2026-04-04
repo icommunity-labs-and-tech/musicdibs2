@@ -29,6 +29,7 @@ export function DashboardSidebar() {
   const { user, signOut, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
   const { t, i18n } = useTranslation();
   const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
