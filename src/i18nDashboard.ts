@@ -881,8 +881,8 @@ const en: typeof es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promote your music',
-      subtitle: 'Choose how you want to promote your work',
+      title: 'Boost your music 🚀',
+      subtitle: 'Get your song in front of thousands and grow your visibility as an artist.',
       credits: 'credits',
       standardTitle: 'Social Media Promo',
       standardDesc: 'Automatically generate a promotional image + copies for Instagram and TikTok with AI.',
