@@ -1476,8 +1476,8 @@ const pt: typeof es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promova sua música',
-      subtitle: 'Escolha como quer promover sua obra',
+      title: 'Impulsione sua música 🚀',
+      subtitle: 'Faça sua música chegar a milhares de pessoas e ganhe visibilidade como artista.',
       credits: 'créditos',
       standardTitle: 'Promoção em RRSS',
       standardDesc: 'Gere automaticamente imagem promocional + copies para Instagram e TikTok com IA.',
