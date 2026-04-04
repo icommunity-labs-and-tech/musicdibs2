@@ -1020,6 +1020,8 @@ const resources = {
           premiumPromotion: 'Premium Promotion',
           promoMaterial: 'Promo Material',
           service: 'Service',
+          distributeMusic: 'Distribute your music',
+          socialPromo: 'Social media promotion',
           artistProfiles: 'My Virtual Artists',
           profile: 'Profile',
           plansCredits: 'Plans & credits',
