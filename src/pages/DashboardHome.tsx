@@ -28,6 +28,7 @@ export default function DashboardHome() {
     if (!storageKey) return false;
     return localStorage.getItem(storageKey) === '1';
   });
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
