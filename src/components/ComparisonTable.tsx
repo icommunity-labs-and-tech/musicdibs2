@@ -18,7 +18,7 @@ const featureRows = [
 
 function CellValue({ value, t }: { value: string; t: (key: string) => string }) {
   if (value === "yes") return <Check className="w-4 h-4 text-emerald-400 mx-auto" />;
-  if (value === "no") return <X className="w-4 h-4 text-white/30 mx-auto" />;
+  if (value === "no") return <X className="w-4 h-4 text-red-400 mx-auto" />;
   if (value === "paid") return <span className="text-yellow-300 text-[11px] font-medium">{t("compare.paid")}</span>;
   if (value === "highlight") return <span className="text-emerald-400 font-bold text-xs">{t("compare.included")}</span>;
   return <span className="text-white font-semibold text-xs">{value}</span>;
