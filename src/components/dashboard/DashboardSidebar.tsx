@@ -189,6 +189,7 @@ export function DashboardSidebar() {
   );
 
   return (
+    <>
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
