@@ -47,6 +47,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
     { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
     { title: tr('dashboard.sidebar.socialPromo', 'Promoción en redes'), url: '/dashboard/premium-promotion', icon: Crown, hideForManager: true },
+    { title: tr('dashboard.sidebar.press', 'Prensa & Visibilidad'), url: '/dashboard/press', icon: Newspaper, hideForManager: true },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
     { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
     { title: tr('dashboard.sidebar.verifyRegistration', 'Verificar registro'), url: '/dashboard/verify', icon: Search },
