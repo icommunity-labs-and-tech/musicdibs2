@@ -16,6 +16,13 @@ const es = {
       distributeWork: 'Distribuir tu música',
       distributeWorkDesc: 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.',
       goToDistribute: 'Ir a distribución',
+      aiStudioTitle: 'AI Studio',
+      aiStudioDesc: 'Crea música, voces y contenido visual con IA',
+      aiStudioMusic: 'Música',
+      aiStudioVoice: 'Voces',
+      aiStudioImages: 'Imágenes',
+      aiStudioVideos: 'Videos',
+      aiStudioButton: 'Abrir AI Studio',
     },
     billing: {
       title: 'Facturación',
