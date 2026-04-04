@@ -233,5 +233,7 @@ export function DashboardSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
+    <DistributionInfoModal open={showDistributionModal} onOpenChange={setShowDistributionModal} />
+    </>
   );
 }
