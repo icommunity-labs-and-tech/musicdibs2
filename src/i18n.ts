@@ -118,10 +118,10 @@ const resources = {
             desc: 'Lanza en +220 plataformas digitales y GANA hasta un 95% en royalties',
             popup: `Distribución Mundial. Lanza tu música en las <strong1>plataformas digitales más importantes del mundo: Spotify, Apple Music, Amazon Music, YouTube Music</strong1> y muchas más, hasta 220. <strong2>Gana royalties desde el primer stream</strong2> y haz que tu talento cruce fronteras sin intermediarios ni comisiones ocultas. Controla todo desde una sola plataforma, con estadísticas en tiempo real y soporte personalizado.`,
           },
-          nocensor: {
-            title: 'SIN Censura',
-            desc: 'En Musicdibs protegemos a autores y artistas, pero no limitamos su creatividad',
-            popup: `Sin Censura. Sin límites. Solo libertad creativa. En Musicdibs creemos que el arte no debe tener fronteras. Por eso, <strong1>aceptamos registros de obras generadas con inteligencia artificial</strong1> o experimentales, sin restricciones ni filtros, siempre que tengas todos los derechos de las mismas y no sean plagios.`,
+          promo: {
+            title: 'Material Promocional con IA',
+            desc: 'Crea portadas, carteles, vídeos y creatividades para redes sociales con inteligencia artificial.',
+            popup: `Desde el AI Studio puedes generar todo el material visual que necesitas para promocionar tu música:\n\n• Portadas de álbum y single con fotomontaje o foto del artista\n• Creatividades optimizadas para Instagram (Feed y Stories) y YouTube (miniaturas)\n• Vídeos promocionales de 5 a 15 segundos\n• Carteles para eventos en formatos profesionales (A5, A4, A3) y cabeceras para redes sociales\n\nTodo generado con modelos de IA de alta calidad, listo para publicar en tus plataformas favoritas.`,
           },
         },
       },
