@@ -74,7 +74,7 @@ const resources = {
         market: 'Marketplace de obras',
         dibs: 'DIBS Token',
         verifier: 'Verificador de obras',
-        login: 'Registro de obras',
+        login: 'Accede a tu cuenta',
         contact: 'Contacto',
         howItWorks: '¿Cómo funciona?',
         accessServices: 'Acceso a servicios',
