@@ -286,8 +286,8 @@ const es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promociona tu música',
-      subtitle: 'Elige cómo quieres promocionar tu obra',
+      title: 'Impulsa tu música 🚀',
+      subtitle: 'Haz que tu canción llegue a miles de personas y gana visibilidad como artista.',
       credits: 'créditos',
       standardTitle: 'Promoción en RRSS',
       standardDesc: 'Genera automáticamente imagen promocional + copies para Instagram y TikTok con IA.',
