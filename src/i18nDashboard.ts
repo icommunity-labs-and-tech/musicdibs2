@@ -15,6 +15,7 @@ const es = {
       goToRegister: 'Ir al registro',
       distributeWork: 'Distribuir tu música',
       distributeWorkDesc: 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.',
+      distributeRoyalties: 'Gana hasta el 96% de tus royalties',
       goToDistribute: 'Ir a distribución',
       aiStudioTitle: 'AI Studio',
       aiStudioDesc: 'Crea música, voces y contenido visual con IA',
