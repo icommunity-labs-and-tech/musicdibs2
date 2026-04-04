@@ -174,7 +174,10 @@ export default function DashboardHome() {
                 <p className="text-sm text-muted-foreground">
                   {t('dashboard.home.distributeWorkDesc')}
                 </p>
-                <p className="text-sm font-semibold text-green-500">{t('dashboard.home.distributeRoyalties', 'Recibe el 95% de tus royalties.')}</p>
+                <p className="text-sm font-semibold text-green-500 flex items-center justify-center gap-1.5">
+                  <CircleDollarSign className="h-4 w-4" />
+                  {t('dashboard.home.distributeRoyalties', 'Recibe el 95% de tus royalties.')}
+                </p>
               </div>
               <Button variant="blue" className="w-full" asChild>
                 <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
