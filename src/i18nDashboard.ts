@@ -611,6 +611,7 @@ const en: typeof es = {
       goToRegister: 'Go to registration',
       distributeWork: 'Distribute your music',
       distributeWorkDesc: 'Get your music on all digital platforms: Spotify, Apple Music, Amazon and more.',
+      distributeRoyalties: 'Earn up to 96% of your royalties',
       goToDistribute: 'Go to distribution',
       aiStudioTitle: 'AI Studio',
       aiStudioDesc: 'Create music, voices and visual content with AI',
