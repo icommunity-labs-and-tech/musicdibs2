@@ -28,7 +28,7 @@ export const mapBrowserLang = (detected: string | undefined): string => {
   // English variants → en
   if (tag.toLowerCase().startsWith('en')) return 'en';
   // Default fallback
-  return 'en';
+  return 'es';
 };
 
 /** Try multiple browser signals to find the best language match */
@@ -533,6 +533,8 @@ const resources = {
           premiumPromotion: 'Promoción Premium',
           promoMaterial: 'Material Promocional',
           service: 'Servicio',
+          distributeMusic: 'Distribuir tu música',
+          socialPromo: 'Promoción en redes',
           artistProfiles: 'Mis Artistas Virtuales',
           profile: 'Perfil',
           plansCredits: 'Planes y créditos',
@@ -1018,6 +1020,8 @@ const resources = {
           premiumPromotion: 'Premium Promotion',
           promoMaterial: 'Promo Material',
           service: 'Service',
+          distributeMusic: 'Distribute your music',
+          socialPromo: 'Social media promotion',
           artistProfiles: 'My Virtual Artists',
           profile: 'Profile',
           plansCredits: 'Plans & credits',
@@ -1314,6 +1318,8 @@ const resources = {
           premiumPromotion: 'Promoção Premium',
           promoMaterial: 'Material Promocional',
           service: 'Serviço',
+          distributeMusic: 'Distribuir sua música',
+          socialPromo: 'Promoção nas redes',
           artistProfiles: 'Meus Artistas Virtuais',
           profile: 'Perfil',
           plansCredits: 'Planos e créditos',
