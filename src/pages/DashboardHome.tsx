@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DistributionInfoModal } from '@/components/DistributionInfoModal';
 import { useTranslation } from 'react-i18next';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { CreditStore } from '@/components/dashboard/CreditStore';
