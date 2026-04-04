@@ -8,6 +8,7 @@ import {
   HelpCircle, Users, BarChart3, Settings2, Rocket, Briefcase,
   ClipboardList, UserCircle, ChevronDown, Palette, Crown,
 } from 'lucide-react';
+import { DistributionInfoModal } from '@/components/DistributionInfoModal';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
