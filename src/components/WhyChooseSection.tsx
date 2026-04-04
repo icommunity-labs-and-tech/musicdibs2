@@ -1,4 +1,4 @@
-import { Shield, Zap, Globe, Ban } from "lucide-react";
+import { Shield, Zap, Palette, Globe } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
@@ -58,6 +58,17 @@ export const WhyChooseSection = () => {
       )
     },
     {
+      icon: Palette,
+      title: "Material Promocional con IA",
+      description: "Crea portadas, carteles, vídeos y creatividades para redes sociales con inteligencia artificial.",
+      color: "from-cyan-500 to-pink-600",
+      popupContent: (
+        <span style={{ whiteSpace: 'pre-line' }}>
+          {"Desde el AI Studio puedes generar todo el material visual que necesitas para promocionar tu música:\n\n• Portadas de álbum y single con fotomontaje o foto del artista\n• Creatividades optimizadas para Instagram (Feed y Stories) y YouTube (miniaturas)\n• Vídeos promocionales de 5 a 15 segundos\n• Carteles para eventos en formatos profesionales (A5, A4, A3) y cabeceras para redes sociales\n\nTodo generado con modelos de IA de alta calidad, listo para publicar en tus plataformas favoritas."}
+        </span>
+      )
+    },
+    {
       icon: Globe,
       title: t("why.features.distribution.title"),
       description: t("why.features.distribution.desc"),
@@ -69,22 +80,6 @@ export const WhyChooseSection = () => {
             components={{
               strong1: <span className="font-bold text-primary" />,
               strong2: <span className="font-bold text-primary" />,
-            }}
-          />
-        </>
-      )
-    },
-    {
-      icon: Ban,
-      title: t("why.features.nocensor.title"),
-      description: t("why.features.nocensor.desc"),
-      color: "from-cyan-500 to-pink-600",
-      popupContent: (
-        <>
-          <Trans
-            i18nKey="why.features.nocensor.popup"
-            components={{
-              strong1: <span className="font-bold text-primary" />,
             }}
           />
         </>
