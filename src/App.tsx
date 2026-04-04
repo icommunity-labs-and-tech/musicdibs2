@@ -70,6 +70,7 @@ const ManagerWorks = lazyWithRetry(() => import("./pages/ManagerWorks"));
 const ManagerRegisterWork = lazyWithRetry(() => import("./pages/ManagerRegisterWork"));
 const ManagerLanding = lazyWithRetry(() => import("./pages/ManagerLanding"));
 const ArtistProfilesPage = lazyWithRetry(() => import("./pages/ArtistProfilesPage"));
+const PressPage = lazyWithRetry(() => import("./pages/PressPage"));
 
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
