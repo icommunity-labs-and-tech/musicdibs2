@@ -77,7 +77,7 @@ serve(async (req) => {
     const userId = claimsData.claims.sub as string;
     const userEmail = claimsData.claims.email as string;
     if (!userEmail) throw new Error("User email not available in token");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId, email: userEmail });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
