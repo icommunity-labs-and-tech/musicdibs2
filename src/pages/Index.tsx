@@ -1,18 +1,19 @@
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ArtistsBanner } from "@/components/ArtistsBanner";
 import { SEO } from "@/components/SEO";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // Lazy-load below-fold sections to reduce initial JS and improve TTI
-const WhyChooseSection = lazy(() => import("@/components/WhyChooseSection").then(m => ({ default: m.WhyChooseSection })));
-const DistributionSection = lazy(() => import("@/components/DistributionSection").then(m => ({ default: m.DistributionSection })));
-const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
-const PricingSection = lazy(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
-const RoyaltiesCalculator = lazy(() => import("@/components/RoyaltiesCalculator").then(m => ({ default: m.RoyaltiesCalculator })));
-const TutorialSection = lazy(() => import("@/components/TutorialSection").then(m => ({ default: m.TutorialSection })));
-const ManagerBannerSection = lazy(() => import("@/components/ManagerBannerSection").then(m => ({ default: m.ManagerBannerSection })));
-const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
+const WhyChooseSection = lazyWithRetry(() => import("@/components/WhyChooseSection").then(m => ({ default: m.WhyChooseSection })));
+const DistributionSection = lazyWithRetry(() => import("@/components/DistributionSection").then(m => ({ default: m.DistributionSection })));
+const TestimonialsSection = lazyWithRetry(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
+const PricingSection = lazyWithRetry(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
+const RoyaltiesCalculator = lazyWithRetry(() => import("@/components/RoyaltiesCalculator").then(m => ({ default: m.RoyaltiesCalculator })));
+const TutorialSection = lazyWithRetry(() => import("@/components/TutorialSection").then(m => ({ default: m.TutorialSection })));
+const ManagerBannerSection = lazyWithRetry(() => import("@/components/ManagerBannerSection").then(m => ({ default: m.ManagerBannerSection })));
+const Footer = lazyWithRetry(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
 const Index = () => {
   return (
