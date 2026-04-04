@@ -4,11 +4,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Megaphone, Crown, Sparkles, Video, Users, Instagram, ArrowRight, Clock, CheckCircle2, Loader2,
+  Crown, Video, Users, Instagram, Loader2,
 } from 'lucide-react';
-import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
 import { PremiumPromoForm } from '@/components/dashboard/PremiumPromoForm';
-import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,8 +28,6 @@ interface PremiumPromo {
   credits_spent: number;
 }
 
-type PromoView = 'selector' | 'standard' | 'premium';
-
 const getStatusMap = (t: (key: string, fallback: string) => string): Record<string, { label: string; color: string }> => ({
   submitted: { label: t('dashboard.premium.statusPending', 'Pendiente de revisión'), color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
   under_review: { label: t('dashboard.premium.statusUnderReview', 'En revisión'), color: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
@@ -44,7 +40,7 @@ const getStatusMap = (t: (key: string, fallback: string) => string): Record<stri
 export default function PromotePage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const [view, setView] = useState<PromoView>('selector');
+  const [showForm, setShowForm] = useState(false);
   const [works, setWorks] = useState<Work[]>([]);
   const [premiumPromos, setPremiumPromos] = useState<PremiumPromo[]>([]);
   const [loadingPromos, setLoadingPromos] = useState(false);
@@ -101,29 +97,17 @@ export default function PromotePage() {
 
   useEffect(() => { loadWorks(); loadPremiumPromos(); }, [loadWorks, loadPremiumPromos]);
 
-  if (view === 'standard') {
-    return (
-      <div className="max-w-3xl space-y-4" key={i18n.language}>
-        <Button variant="ghost" size="sm" onClick={() => setView('selector')} className="mb-2 text-xs gap-1">
-          <ArrowRight className="h-3 w-3 rotate-180" /> {t('dashboard.premium.backToPromo')}
-        </Button>
-        <PromoteWorks />
-      </div>
-    );
-  }
-
-  if (view === 'premium') {
+  if (showForm) {
     return (
       <div className="max-w-3xl space-y-4" key={i18n.language}>
         <PremiumPromoForm
           works={works}
-          onBack={() => { setView('selector'); loadPremiumPromos(); }}
+          onBack={() => { setShowForm(false); loadPremiumPromos(); }}
         />
       </div>
     );
   }
 
-  // Selector view
   return (
     <div className="max-w-3xl space-y-6" key={i18n.language}>
       <div>
@@ -131,81 +115,69 @@ export default function PromotePage() {
         <p className="text-sm text-muted-foreground">{t('dashboard.promoSelector.subtitle')}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Standard promo card */}
-        <Card
-          className="border-border/40 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-          onClick={() => setView('standard')}
-        >
-          <CardContent className="p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Megaphone className="h-5 w-5 text-primary" />
-              </div>
-              <PricingLink />
+      {/* Premium promo card */}
+      <Card
+        className="border-amber-500/30 shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden"
+        onClick={() => setShowForm(true)}
+      >
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/10 to-transparent" />
+        <CardContent className="p-5 space-y-3 relative">
+          <div className="flex items-center justify-between">
+            <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <Crown className="h-5 w-5 text-amber-500" />
             </div>
-            <div>
-              <h3 className="text-sm font-semibold group-hover:text-primary transition-colors">
-                {t('dashboard.promoSelector.standardTitle')}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {t('dashboard.promoSelector.standardDesc')}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                <Instagram className="h-2.5 w-2.5" /> Copies
-              </Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                <Sparkles className="h-2.5 w-2.5" /> {t('dashboard.promoSelector.aiImage')}
-              </Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                ⚡ {t('dashboard.promoSelector.instant')}
-              </Badge>
-            </div>
-            <Button variant="outline" size="sm" className="w-full text-xs group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-              {t('dashboard.promoSelector.standardCta')} <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          </CardContent>
-        </Card>
+            <PricingLink />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold group-hover:text-amber-600 transition-colors">
+              {t('dashboard.promoSelector.premiumTitle')}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              {t('dashboard.promoSelector.premiumDesc')}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
+              <Video className="h-2.5 w-2.5" /> {t('dashboard.promoSelector.customVideo')}
+            </Badge>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
+              <Users className="h-2.5 w-2.5" /> 350K+
+            </Badge>
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
+              <Instagram className="h-2.5 w-2.5" /> TikTok + IG
+            </Badge>
+          </div>
+          <Button variant="outline" size="sm" className="w-full text-xs border-amber-500/30 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+            {t('dashboard.promoSelector.premiumCta')} <Crown className="h-3 w-3 ml-1" />
+          </Button>
+        </CardContent>
+      </Card>
 
-        {/* Premium promo card */}
-        <Card
-          className="border-amber-500/30 shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden"
-          onClick={() => setView('premium')}
-        >
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/10 to-transparent" />
-          <CardContent className="p-5 space-y-3 relative">
-            <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                <Crown className="h-5 w-5 text-amber-500" />
-              </div>
-              <PricingLink />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold group-hover:text-amber-600 transition-colors">
-                {t('dashboard.promoSelector.premiumTitle')}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                {t('dashboard.promoSelector.premiumDesc')}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
-                <Video className="h-2.5 w-2.5" /> {t('dashboard.promoSelector.customVideo')}
-              </Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
-                <Users className="h-2.5 w-2.5" /> 350K+
-              </Badge>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
-                <Instagram className="h-2.5 w-2.5" /> TikTok + IG
-              </Badge>
-            </div>
-            <Button variant="outline" size="sm" className="w-full text-xs border-amber-500/30 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-              {t('dashboard.promoSelector.premiumCta')} <Crown className="h-3 w-3 ml-1" />
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Social links */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">{t('dashboard.promoSelector.followUs', 'Síguenos en nuestras redes')}</p>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="https://www.tiktok.com/@musicdibs_"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 border border-border hover:border-primary/50 rounded-lg transition-colors text-sm"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" />
+            </svg>
+            @musicdibs_
+          </a>
+          <a
+            href="https://www.instagram.com/musicdibs/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 border border-border hover:border-primary/50 rounded-lg transition-colors text-sm"
+          >
+            <Instagram className="h-4 w-4" />
+            @musicdibs
+          </a>
+        </div>
       </div>
 
       {/* Premium promo history */}
