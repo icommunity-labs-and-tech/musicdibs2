@@ -286,8 +286,8 @@ const es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promociona tu música',
-      subtitle: 'Elige cómo quieres promocionar tu obra',
+      title: 'Impulsa tu música 🚀',
+      subtitle: 'Haz que tu canción llegue a miles de personas y gana visibilidad como artista.',
       credits: 'créditos',
       standardTitle: 'Promoción en RRSS',
       standardDesc: 'Genera automáticamente imagen promocional + copies para Instagram y TikTok con IA.',
@@ -881,8 +881,8 @@ const en: typeof es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promote your music',
-      subtitle: 'Choose how you want to promote your work',
+      title: 'Boost your music 🚀',
+      subtitle: 'Get your song in front of thousands and grow your visibility as an artist.',
       credits: 'credits',
       standardTitle: 'Social Media Promo',
       standardDesc: 'Automatically generate a promotional image + copies for Instagram and TikTok with AI.',
@@ -1476,8 +1476,8 @@ const pt: typeof es = {
       copiesLabel: 'copies',
     },
     promoSelector: {
-      title: 'Promova sua música',
-      subtitle: 'Escolha como quer promover sua obra',
+      title: 'Impulsione sua música 🚀',
+      subtitle: 'Faça sua música chegar a milhares de pessoas e ganhe visibilidade como artista.',
       credits: 'créditos',
       standardTitle: 'Promoção em RRSS',
       standardDesc: 'Gere automaticamente imagem promocional + copies para Instagram e TikTok com IA.',
