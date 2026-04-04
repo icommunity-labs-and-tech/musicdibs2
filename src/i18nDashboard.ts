@@ -1207,6 +1207,7 @@ const pt: typeof es = {
       goToRegister: 'Ir ao registro',
       distributeWork: 'Distribua sua música',
       distributeWorkDesc: 'Leve sua música para todas as plataformas digitais: Spotify, Apple Music, Amazon e mais.',
+      distributeRoyalties: 'Ganhe até 96% dos seus royalties',
       goToDistribute: 'Ir para distribuição',
       aiStudioTitle: 'AI Studio',
       aiStudioDesc: 'Crie música, vozes e conteúdo visual com IA',
