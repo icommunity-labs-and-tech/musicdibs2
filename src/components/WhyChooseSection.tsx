@@ -17,6 +17,15 @@ export const WhyChooseSection = () => {
       )
     },
     {
+      icon: Palette,
+      title: t("why.features.promo.title"),
+      description: t("why.features.promo.desc"),
+      color: "from-cyan-500 to-pink-600",
+      popupContent: (
+        <span style={{ whiteSpace: 'pre-line' }}>{t("why.features.promo.popup")}</span>
+      )
+    },
+    {
       icon: Zap,
       title: t("why.features.instant.title"), 
       description: t("why.features.instant.desc"),
@@ -55,15 +64,6 @@ export const WhyChooseSection = () => {
             }}
           />
         </>
-      )
-    },
-    {
-      icon: Palette,
-      title: t("why.features.promo.title"),
-      description: t("why.features.promo.desc"),
-      color: "from-cyan-500 to-pink-600",
-      popupContent: (
-        <span style={{ whiteSpace: 'pre-line' }}>{t("why.features.promo.popup")}</span>
       )
     },
     {
