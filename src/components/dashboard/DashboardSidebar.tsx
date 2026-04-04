@@ -8,6 +8,7 @@ import {
   HelpCircle, Users, BarChart3, Settings2, Rocket, Briefcase,
   ClipboardList, UserCircle, ChevronDown, Palette, Crown,
 } from 'lucide-react';
+import { DistributionInfoModal } from '@/components/DistributionInfoModal';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -28,6 +29,7 @@ export function DashboardSidebar() {
   const { user, signOut, isAdmin, isManager } = useAuth();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
   const { t, i18n } = useTranslation();
   const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
@@ -43,7 +45,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
-    { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '/ai-studio/promo-material', icon: Palette, hideForManager: true },
+    { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
     { title: tr('dashboard.sidebar.socialPromo', 'Promoción en redes'), url: '/dashboard/premium-promotion', icon: Crown, hideForManager: true },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
     { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
@@ -120,6 +122,24 @@ export function DashboardSidebar() {
 
   const renderMenuItem = (item: typeof mainItems[0], activeClass = 'bg-primary/10 text-primary font-medium') => {
     const isHighlight = !!(item as any).highlight && !isManager;
+    const isDistribute = !!(item as any).isDistribute;
+
+    if (isDistribute) {
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild>
+            <button
+              onClick={() => setShowDistributionModal(true)}
+              className="flex items-center w-full hover:bg-muted/50 rounded-md px-2 py-1.5 text-sm"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {!collapsed && <span>{item.title}</span>}
+            </button>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
     return (
       <SidebarMenuItem key={item.title}>
         <SidebarMenuButton asChild isActive={isActive(item.url)}>
@@ -169,6 +189,7 @@ export function DashboardSidebar() {
   );
 
   return (
+    <>
     <Sidebar collapsible="icon" className="border-r border-border/40">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
@@ -213,5 +234,7 @@ export function DashboardSidebar() {
         </Button>
       </SidebarFooter>
     </Sidebar>
+    <DistributionInfoModal open={showDistributionModal} onOpenChange={setShowDistributionModal} />
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DistributionInfoModal } from '@/components/DistributionInfoModal';
 import { useTranslation } from 'react-i18next';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { CreditStore } from '@/components/dashboard/CreditStore';
@@ -27,6 +28,7 @@ export default function DashboardHome() {
     if (!storageKey) return false;
     return localStorage.getItem(storageKey) === '1';
   });
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -164,7 +166,7 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
-          <Card className="border-border/40 shadow-sm">
+          <Card className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => setShowDistributionModal(true)}>
             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
                 <Share2 className="h-6 w-6 text-blue-500" />
@@ -179,10 +181,8 @@ export default function DashboardHome() {
                   {t('dashboard.home.distributeRoyalties', 'Recibe el 95% de tus royalties.')}
                 </p>
               </div>
-              <Button variant="blue" className="w-full" asChild>
-                <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
-                  {t('dashboard.home.goToDistribute')}
-                </a>
+              <Button variant="blue" className="w-full">
+                {t('dashboard.home.goToDistribute')}
               </Button>
             </CardContent>
           </Card>
@@ -200,6 +200,7 @@ export default function DashboardHome() {
           <RecentRegistrations />
         </div>
       </div>
+      <DistributionInfoModal open={showDistributionModal} onOpenChange={setShowDistributionModal} />
     </div>
   );
 }
