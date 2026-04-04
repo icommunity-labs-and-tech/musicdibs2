@@ -101,6 +101,69 @@ export type Database = {
         }
         Relationships: []
       }
+      audiomack_connections: {
+        Row: {
+          audiomack_id: string | null
+          audiomack_slug: string
+          connected_at: string
+          id: string
+          last_sync_at: string | null
+          user_id: string
+        }
+        Insert: {
+          audiomack_id?: string | null
+          audiomack_slug: string
+          connected_at?: string
+          id?: string
+          last_sync_at?: string | null
+          user_id: string
+        }
+        Update: {
+          audiomack_id?: string | null
+          audiomack_slug?: string
+          connected_at?: string
+          id?: string
+          last_sync_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audiomack_metrics: {
+        Row: {
+          audiomack_slug: string
+          favorites: number | null
+          fetched_at: string
+          followers: number | null
+          id: string
+          plays_last_hour: number | null
+          reposts: number | null
+          top_songs: Json | null
+          user_id: string
+        }
+        Insert: {
+          audiomack_slug: string
+          favorites?: number | null
+          fetched_at?: string
+          followers?: number | null
+          id?: string
+          plays_last_hour?: number | null
+          reposts?: number | null
+          top_songs?: Json | null
+          user_id: string
+        }
+        Update: {
+          audiomack_slug?: string
+          favorites?: number | null
+          fetched_at?: string
+          followers?: number | null
+          id?: string
+          plays_last_hour?: number | null
+          reposts?: number | null
+          top_songs?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -730,6 +793,51 @@ export type Database = {
           updated_at?: string
           user_id?: string
           work_id?: string
+        }
+        Relationships: []
+      }
+      press_releases: {
+        Row: {
+          body: string
+          created_at: string
+          genre: string | null
+          groover_campaign_id: string | null
+          id: string
+          language: string | null
+          short_bio: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          work_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          genre?: string | null
+          groover_campaign_id?: string | null
+          id?: string
+          language?: string | null
+          short_bio?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          work_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          genre?: string | null
+          groover_campaign_id?: string | null
+          id?: string
+          language?: string | null
+          short_bio?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          work_id?: string | null
         }
         Relationships: []
       }
