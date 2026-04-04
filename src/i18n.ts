@@ -28,7 +28,7 @@ export const mapBrowserLang = (detected: string | undefined): string => {
   // English variants → en
   if (tag.toLowerCase().startsWith('en')) return 'en';
   // Default fallback
-  return 'en';
+  return 'es';
 };
 
 /** Try multiple browser signals to find the best language match */
