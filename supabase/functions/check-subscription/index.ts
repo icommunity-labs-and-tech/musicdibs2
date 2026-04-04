@@ -65,12 +65,19 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
 
-    const { data: userData, error: userError } = await supabaseAuth.auth.getUser();
-    if (userError) throw new Error(`Authentication error: ${JSON.stringify(userError)}`);
+    // Use getClaims for fast local JWT validation (no network call)
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims?.sub) {
+      logStep("JWT validation failed, returning graceful response");
+      return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null, auth_error: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    const userId = claimsData.claims.sub as string;
+    const userEmail = claimsData.claims.email as string;
+    if (!userEmail) throw new Error("User email not available in token");
+    logStep("User authenticated", { userId, email: userEmail });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -79,11 +86,11 @@ serve(async (req) => {
     );
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2026-02-25.clover" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
 
     if (customers.data.length === 0) {
       logStep("No Stripe customer found, setting Free plan");
-      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
+      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", userId);
       return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -95,7 +102,7 @@ serve(async (req) => {
     await supabaseClient
       .from("profiles")
       .update({ stripe_customer_id: customerId })
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .is("stripe_customer_id", null);
 
     const subscriptions = await stripe.subscriptions.list({
@@ -108,7 +115,7 @@ serve(async (req) => {
 
     if (!subscription) {
       logStep("No active-like subscription, setting Free plan");
-      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", user.id);
+      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", userId);
       return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -135,7 +142,7 @@ serve(async (req) => {
     await supabaseClient
       .from("profiles")
       .update({ subscription_plan: plan })
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     return new Response(JSON.stringify({
       subscribed: true,

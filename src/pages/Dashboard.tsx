@@ -25,12 +25,16 @@ export default function Dashboard() {
   // Sync subscription status with Stripe on dashboard load
   useEffect(() => {
     if (!user) return;
-    const check = () => {
+    const check = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return; // skip if no valid session
       supabase.functions.invoke('check-subscription').then(({ data, error }) => {
         if (error) console.error('[check-subscription]', error);
         else {
           console.log('[check-subscription]', data);
-          setSubscriptionEnd(data?.subscription_end ?? null);
+          if (!data?.auth_error) {
+            setSubscriptionEnd(data?.subscription_end ?? null);
+          }
         }
       });
     };
