@@ -637,6 +637,51 @@ serve(async (req) => {
       return json({ signed_url: data.signedUrl });
     }
 
+    // ── delete_work ────────────────────────────────────────────
+    if (action === "delete_work") {
+      const { work_id } = payload;
+      if (!work_id) return json({ error: "work_id required" }, 400);
+
+      // Fetch work first
+      const { data: work, error: fetchErr } = await admin
+        .from("works")
+        .select("*")
+        .eq("id", work_id)
+        .single();
+      if (fetchErr || !work) return json({ error: "Work not found" }, 404);
+
+      const { data: targetAuth } = await admin.auth.admin.getUserById(work.user_id);
+      const targetEmail = targetAuth?.user?.email || "";
+
+      // Delete related managed_works
+      await admin.from("managed_works").delete().eq("work_id", work_id);
+
+      // Delete related ibs_sync_queue
+      await admin.from("ibs_sync_queue").delete().eq("work_id", work_id);
+
+      // Delete storage file if exists
+      if (work.file_path) {
+        try {
+          await admin.storage.from("works-files").remove([work.file_path]);
+        } catch (e) {
+          console.error("[ADMIN] Failed to delete work file:", e);
+        }
+      }
+
+      // Delete the work itself
+      const { error: delErr } = await admin.from("works").delete().eq("id", work_id);
+      if (delErr) return json({ error: delErr.message }, 500);
+
+      await audit({
+        action: "delete_work",
+        target_user_id: work.user_id,
+        target_email: targetEmail,
+        details: { work_id, title: work.title, type: work.type, status: work.status },
+      });
+
+      return json({ success: true });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);
