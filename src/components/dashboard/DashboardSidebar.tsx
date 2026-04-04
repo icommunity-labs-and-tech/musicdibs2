@@ -122,6 +122,24 @@ export function DashboardSidebar() {
 
   const renderMenuItem = (item: typeof mainItems[0], activeClass = 'bg-primary/10 text-primary font-medium') => {
     const isHighlight = !!(item as any).highlight && !isManager;
+    const isDistribute = !!(item as any).isDistribute;
+
+    if (isDistribute) {
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild>
+            <button
+              onClick={() => setShowDistributionModal(true)}
+              className="flex items-center w-full hover:bg-muted/50 rounded-md px-2 py-1.5 text-sm"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {!collapsed && <span>{item.title}</span>}
+            </button>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
     return (
       <SidebarMenuItem key={item.title}>
         <SidebarMenuButton asChild isActive={isActive(item.url)}>
