@@ -112,84 +112,79 @@ export default function DashboardHome() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Col 1: Account Summary + AI Studio */}
-        <div className="space-y-4">
-          <div data-tour="account-summary">
-            <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
-          </div>
-          <Card
-            className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
-            onClick={() => navigate('/ai-studio')}
-          >
-            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
-                <Sparkles className="h-6 w-6 text-white" />
+        {/* Row 1: Account Summary | Register CTA | Credit Store */}
+        <div data-tour="account-summary">
+          <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
+        </div>
+        <div data-tour="register-work">
+          <Card className="border-border/40 shadow-sm h-full">
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Upload className="h-6 w-6 text-primary" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-semibold">{t('dashboard.home.aiStudioTitle')}</h3>
+                <h3 className="text-base font-semibold">{t('dashboard.home.registerNew')}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {t('dashboard.home.aiStudioDesc')}
+                  {t('dashboard.home.registerNewDesc')}
                 </p>
               </div>
-              <div className="flex flex-wrap justify-center gap-1.5">
-                <Badge variant="secondary" className="text-xs">🎵 {t('dashboard.home.aiStudioMusic')}</Badge>
-                <Badge variant="secondary" className="text-xs">🎤 {t('dashboard.home.aiStudioVoice')}</Badge>
-                <Badge variant="secondary" className="text-xs">🎨 {t('dashboard.home.aiStudioImages')}</Badge>
-                <Badge variant="secondary" className="text-xs">🎬 {t('dashboard.home.aiStudioVideos')}</Badge>
-              </div>
-              <Button variant="hero" className="w-full">
-                {t('dashboard.home.aiStudioButton')}
+              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                {t('dashboard.home.goToRegister')}
               </Button>
             </CardContent>
           </Card>
         </div>
-
-        {/* Col 2: Register CTA + Distribute */}
-        <div className="space-y-4">
-          <div data-tour="register-work">
-            <Card className="border-border/40 shadow-sm">
-              <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <Upload className="h-6 w-6 text-primary" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-base font-semibold">{t('dashboard.home.registerNew')}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {t('dashboard.home.registerNewDesc')}
-                  </p>
-                </div>
-                <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
-                  {t('dashboard.home.goToRegister')}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-          <Card className="border-border/40 shadow-sm">
-            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
-                <Share2 className="h-6 w-6 text-blue-500" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="text-base font-semibold">{t('dashboard.home.distributeWork')}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('dashboard.home.distributeWorkDesc')}
-                </p>
-              </div>
-              <Button variant="blue" className="w-full" asChild>
-                <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
-                  {t('dashboard.home.goToDistribute')}
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
+        <div data-tour="credit-store">
+          <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
         </div>
 
-        {/* Col 3: Credit Store */}
-        <div className="space-y-4">
-          <div data-tour="credit-store">
-            <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
-          </div>
-        </div>
+        {/* Row 2: AI Studio | Distribute */}
+        <Card
+          className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
+          onClick={() => navigate('/ai-studio')}
+        >
+          <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold">{t('dashboard.home.aiStudioTitle')}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t('dashboard.home.aiStudioDesc')}
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              <Badge variant="secondary" className="text-xs">🎵 {t('dashboard.home.aiStudioMusic')}</Badge>
+              <Badge variant="secondary" className="text-xs">🎤 {t('dashboard.home.aiStudioVoice')}</Badge>
+              <Badge variant="secondary" className="text-xs">🎨 {t('dashboard.home.aiStudioImages')}</Badge>
+              <Badge variant="secondary" className="text-xs">🎬 {t('dashboard.home.aiStudioVideos')}</Badge>
+            </div>
+            <Button variant="hero" className="w-full">
+              {t('dashboard.home.aiStudioButton')}
+            </Button>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 shadow-sm">
+          <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
+              <Share2 className="h-6 w-6 text-blue-500" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold">{t('dashboard.home.distributeWork')}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t('dashboard.home.distributeWorkDesc')}
+              </p>
+              <p className="text-sm font-medium text-emerald-500">
+                {t('dashboard.home.distributeRoyalties')}
+              </p>
+            </div>
+            <Button variant="blue" className="w-full" asChild>
+              <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
+                {t('dashboard.home.goToDistribute')}
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Recent Registrations spanning cols 1-2 */}
         <div className="md:col-span-2" data-tour="recent-registrations">
