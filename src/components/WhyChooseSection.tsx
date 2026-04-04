@@ -1,4 +1,4 @@
-import { Shield, Zap, Globe, Ban } from "lucide-react";
+import { Shield, Zap, Palette, Globe } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
