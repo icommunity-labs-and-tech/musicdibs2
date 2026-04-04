@@ -174,6 +174,7 @@ export default function DashboardHome() {
                 <p className="text-sm text-muted-foreground">
                   {t('dashboard.home.distributeWorkDesc')}
                 </p>
+                <p className="text-sm font-semibold text-green-500">{t('dashboard.home.distributeRoyalties', 'Recibe el 95% de tus royalties.')}</p>
               </div>
               <Button variant="blue" className="w-full" asChild>
                 <a href="https://dist.musicdibs.com/" target="_blank" rel="noopener noreferrer">
