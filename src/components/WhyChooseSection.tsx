@@ -114,11 +114,6 @@ export const WhyChooseSection = () => {
               <Dialog key={index}>
                 <DialogTrigger asChild>
                   <div className="relative bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 cursor-pointer h-full flex flex-col">
-                    {index === 0 && (
-                      <span className="absolute top-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{ background: "#A855F7" }}>
-                        {t('whyBadge.comingSoon')}
-                      </span>
-                    )}
                     <div className={`w-16 h-16 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 mx-auto`}>
                       <feature.icon className="w-8 h-8 text-white" />
                     </div>
