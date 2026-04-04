@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { CreditStore } from '@/components/dashboard/CreditStore';
-import { VerifyRegistration } from '@/components/dashboard/VerifyRegistration';
+import { Badge } from '@/components/ui/badge';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
 import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
