@@ -141,7 +141,7 @@ export default function PromotePage() {
               <Video className="h-2.5 w-2.5" /> {t('dashboard.promoSelector.customVideo')}
             </Badge>
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
-              <Users className="h-2.5 w-2.5" /> 350K+
+              <Users className="h-2.5 w-2.5" /> 200K+
             </Badge>
             <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20">
               <Instagram className="h-2.5 w-2.5" /> TikTok + IG
