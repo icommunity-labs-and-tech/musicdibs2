@@ -1206,6 +1206,13 @@ const pt: typeof es = {
       distributeWork: 'Distribua sua música',
       distributeWorkDesc: 'Leve sua música para todas as plataformas digitais: Spotify, Apple Music, Amazon e mais.',
       goToDistribute: 'Ir para distribuição',
+      aiStudioTitle: 'AI Studio',
+      aiStudioDesc: 'Crie música, vozes e conteúdo visual com IA',
+      aiStudioMusic: 'Música',
+      aiStudioVoice: 'Vozes',
+      aiStudioImages: 'Imagens',
+      aiStudioVideos: 'Vídeos',
+      aiStudioButton: 'Abrir AI Studio',
     },
     billing: {
       title: 'Faturamento',

@@ -113,14 +113,36 @@ export default function DashboardHome() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Col 1: Account Summary + Verify */}
+        {/* Col 1: Account Summary + AI Studio */}
         <div className="space-y-4">
           <div data-tour="account-summary">
             <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
-          <div data-tour="verify-registration">
-            <VerifyRegistration />
-          </div>
+          <Card
+            className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
+            onClick={() => navigate('/ai-studio')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-semibold">{t('dashboard.home.aiStudioTitle')}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {t('dashboard.home.aiStudioDesc')}
+                </p>
+              </div>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                <Badge variant="secondary" className="text-xs">🎵 {t('dashboard.home.aiStudioMusic')}</Badge>
+                <Badge variant="secondary" className="text-xs">🎤 {t('dashboard.home.aiStudioVoice')}</Badge>
+                <Badge variant="secondary" className="text-xs">🎨 {t('dashboard.home.aiStudioImages')}</Badge>
+                <Badge variant="secondary" className="text-xs">🎬 {t('dashboard.home.aiStudioVideos')}</Badge>
+              </div>
+              <Button variant="hero" className="w-full">
+                {t('dashboard.home.aiStudioButton')}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Col 2: Register CTA + Distribute */}
