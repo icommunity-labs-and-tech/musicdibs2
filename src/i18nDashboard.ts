@@ -611,6 +611,13 @@ const en: typeof es = {
       distributeWork: 'Distribute your music',
       distributeWorkDesc: 'Get your music on all digital platforms: Spotify, Apple Music, Amazon and more.',
       goToDistribute: 'Go to distribution',
+      aiStudioTitle: 'AI Studio',
+      aiStudioDesc: 'Create music, voices and visual content with AI',
+      aiStudioMusic: 'Music',
+      aiStudioVoice: 'Voices',
+      aiStudioImages: 'Images',
+      aiStudioVideos: 'Videos',
+      aiStudioButton: 'Open AI Studio',
     },
     billing: {
       title: 'Billing',
