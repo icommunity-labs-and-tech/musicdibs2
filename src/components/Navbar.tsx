@@ -24,7 +24,7 @@ export const Navbar = () => {
   const isAiStudio = location.pathname.startsWith('/ai-studio');
 
   // Pages with light/white backgrounds need dark navbar text
-  const lightBgPages = ['/ai-studio', '/contact', '/terms', '/privacy', '/cookies', '/sla'];
+  const lightBgPages = ['/ai-studio', '/terms', '/privacy', '/cookies', '/sla'];
   const isLightBg = lightBgPages.some(p => location.pathname.startsWith(p));
 
   // Text color classes based on background
