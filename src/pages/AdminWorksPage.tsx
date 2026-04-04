@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { Music, Search, ChevronLeft, ChevronRight, ExternalLink, Download, Eye, Loader2 } from 'lucide-react';
+import { Music, Search, ChevronLeft, ChevronRight, ExternalLink, Download, Eye, Loader2, MoreHorizontal, Trash2, RotateCcw } from 'lucide-react';
 
 export default function AdminWorksPage() {
   const [works, setWorks] = useState<any[]>([]);
@@ -16,6 +18,8 @@ export default function AdminWorksPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [detailWork, setDetailWork] = useState<any | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -40,6 +44,37 @@ export default function AdminWorksPage() {
       URL.revokeObjectURL(url);
       toast.success('CSV exportado correctamente');
     } catch (e: any) { toast.error(e.message); }
+  };
+
+  const handleDeleteWork = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await adminApi.deleteWork(deleteTarget.id);
+      toast.success(`Obra "${deleteTarget.title}" eliminada correctamente`);
+      setDeleteTarget(null);
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setDeleting(false);
+  };
+
+  const handleRetryWork = async (work: any) => {
+    try {
+      // Find the queue item for this work
+      const res = await adminApi.callAction('get_ibs_queue');
+      const queueItem = (res.items || []).find((i: any) => i.work_id === work.id);
+      if (!queueItem) {
+        toast.error('No se encontró elemento en la cola para esta obra');
+        return;
+      }
+      await adminApi.callAction('retry_ibs_queue_item', { queueId: queueItem.id, workId: work.id });
+      toast.success('Reintento programado');
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
   };
 
   const getProcessingDelay = (createdAt: string) => {
@@ -135,9 +170,33 @@ export default function AdminWorksPage() {
                   ) : '—'}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => setDetailWork(w)}>
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setDetailWork(w)}>
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver registro
+                      </DropdownMenuItem>
+                      {w.status === 'failed' && (
+                        <DropdownMenuItem onClick={() => handleRetryWork(w)}>
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Reintentar registro
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeleteTarget(w)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar registro
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -153,6 +212,31 @@ export default function AdminWorksPage() {
           Siguiente <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar esta obra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vas a eliminar permanentemente la obra <strong>"{deleteTarget?.title}"</strong> de <strong>{deleteTarget?.user_email}</strong>.
+              <br /><br />
+              Esta acción eliminará también los archivos asociados, registros de gestión y datos de la cola de certificación. <strong>No se puede deshacer.</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteWork}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Work Detail Modal */}
       <Dialog open={!!detailWork} onOpenChange={open => !open && setDetailWork(null)}>

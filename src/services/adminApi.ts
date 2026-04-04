@@ -26,4 +26,5 @@ export const adminApi = {
   callAction: (action: string, payload: Record<string, any> = {}) => adminAction(action, payload),
   getPremiumPromos: (offset = 0, status_filter = '') => adminAction('get_premium_promos', { offset, status_filter }),
   updatePremiumPromoStatus: (promo_id: string, new_status: string) => adminAction('update_premium_promo_status', { promo_id, new_status }),
+  deleteWork: (work_id: string) => adminAction('delete_work', { work_id }),
 };
