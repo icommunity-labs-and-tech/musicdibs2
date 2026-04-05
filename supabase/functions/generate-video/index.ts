@@ -159,7 +159,7 @@ serve(async (req) => {
       const endpoint = mode === 'image_to_video' ? 'image_to_video' : 'text_to_video';
       
       const body: Record<string, unknown> = {
-        model: 'gen4_turbo',
+        model: 'gen4.5',
         promptText,
         ratio: ratio || '1280:720',
         duration: duration || 5,
