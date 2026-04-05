@@ -1134,8 +1134,10 @@ const AIStudioCreate = () => {
                           </Button>
                         </CollapsibleContent>
                       </Collapsible>
+                      </div>
 
                       {/* Genre chips */}
+                      <div data-tour="mc-settings">
                       <div className="space-y-2">
                         <Label>{t('aiCreate.genre')}</Label>
                         <div className="flex flex-wrap gap-2">
