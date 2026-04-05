@@ -617,7 +617,7 @@ const resources = {
         promoGroupTitle: 'Genera material promocional',
         modules: {
           createMusic: { title: 'Crea Música', desc: 'Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.' },
-          editModify: { title: 'Masterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
+          editModify: { title: 'Masterizado profesional con IA', desc: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.' },
           inspire: { title: 'Inspírate', desc: 'Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.' },
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
