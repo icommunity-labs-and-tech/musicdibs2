@@ -326,6 +326,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Generate professional images for Instagram and YouTube',
         platformInstagram: 'Instagram',
         platformYoutube: 'YouTube',
+        improveWithAI: '✨ Improve with AI',
+        aiDescribe: {
+          needInput: 'Write something or upload a photo',
+          success: 'Description generated with AI',
+          error: 'Error generating description',
+          generating: 'Generating…',
+          button: '✨ Generate with AI',
+        },
         instagram: {
           title: 'Instagram Creatives',
           subtitle: 'Generate complete posts with image, copy and hashtags',
