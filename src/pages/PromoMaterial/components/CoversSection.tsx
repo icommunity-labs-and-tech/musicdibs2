@@ -474,44 +474,19 @@ export const CoversSection = () => {
                           <CardDescription className="text-[10px]">{tr('photomontageReferenceDesc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-3 pt-1">
-                          <input
-                            ref={referenceImageRef}
-                            type="file"
+                          <FileDropzone
+                            fileType="image"
                             accept="image/jpeg,image/png,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) validateAndSetImage(f, setReferenceImage, setReferenceImagePreview);
+                            maxSize={10}
+                            currentFile={referenceImage}
+                            preview={referenceImagePreview}
+                            onFileSelect={(f) => validateAndSetImage(f, setReferenceImage, setReferenceImagePreview)}
+                            onRemove={() => {
+                              setReferenceImage(null);
+                              if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
+                              setReferenceImagePreview(null);
                             }}
                           />
-                          <div
-                            onClick={() => referenceImageRef.current?.click()}
-                            className="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                          >
-                            {referenceImagePreview ? (
-                              <div className="space-y-2">
-                                <img src={referenceImagePreview} alt="" className="w-full aspect-square rounded-lg object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setReferenceImage(null);
-                                    if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
-                                    setReferenceImagePreview(null);
-                                    if (referenceImageRef.current) referenceImageRef.current.value = '';
-                                  }}
-                                  className="text-xs text-primary hover:underline"
-                                >
-                                  {tr('changeReference')}
-                                </button>
-                              </div>
-                            ) : (
-                              <>
-                                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
-                                <p className="text-[10px] font-medium">{tr('referenceUpload')}</p>
-                              </>
-                            )}
-                          </div>
                         </CardContent>
                       </Card>
                     </div>
