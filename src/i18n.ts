@@ -1671,7 +1671,7 @@ allLangs.forEach((lang) => {
     ...Object.keys(existingDashboard),
     ...Object.keys(dashboardWidgets || {}),
     ...Object.keys(dashboardFull || {}),
-  ]);
+  ]));
   const merged: Record<string, any> = {};
   for (const k of allDashboardKeys) {
     merged[k] = {
