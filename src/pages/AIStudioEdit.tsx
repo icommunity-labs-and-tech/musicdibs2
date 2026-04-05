@@ -406,7 +406,6 @@ const AIStudioEdit = () => {
                   onRemove={() => {
                     setUploadedFile(null);
                     setUploadedAudioUrl(null);
-                    setSelectedAudioUrl(null);
                   }}
                 />
 
