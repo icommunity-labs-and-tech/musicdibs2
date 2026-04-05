@@ -240,7 +240,7 @@ export const CreativesSection = () => {
 
           {/* Level 2: Format */}
           <Tabs value={instagramFormat} onValueChange={(v) => setInstagramFormat(v as typeof instagramFormat)}>
-            <TabsList className="grid w-full grid-cols-2 max-w-sm">
+            <TabsList className="grid w-full grid-cols-2 max-w-sm" data-tour="pm-ig-formats">
               <TabsTrigger value="feed" className="gap-1.5 text-xs sm:text-sm">
                 {trIg('formatFeed')} <Badge variant="outline" className="ml-1 text-[10px]">1:1</Badge>
               </TabsTrigger>
