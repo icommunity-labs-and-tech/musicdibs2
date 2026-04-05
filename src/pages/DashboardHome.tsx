@@ -130,6 +130,7 @@ export default function DashboardHome() {
             <AccountSummary onSummaryLoaded={setSummary} subscriptionEnd={subscriptionEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
           <Card
+            data-tour="ai-studio"
             className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
             onClick={() => navigate('/ai-studio')}
           >
