@@ -443,7 +443,7 @@ export default function AIStudioVocal() {
                       <Label className="text-xs font-medium">{tv('whatAbout')}</Label>
                       <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={3} className="resize-none text-sm" maxLength={400} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2" data-tour="vt-music-settings">
                       <Label className="text-xs font-medium">{tv('centralTheme')}</Label>
                       <div className="flex flex-wrap gap-1.5">
                         {THEMES.map(th => <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)}
