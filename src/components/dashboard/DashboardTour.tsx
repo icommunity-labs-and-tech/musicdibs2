@@ -13,14 +13,57 @@ function getTourKey(userId: string) {
 function useSteps(): Step[] {
   const { t } = useTranslation();
   return useMemo(() => [
-    { target: 'body', placement: 'center' as const, title: t('dashboard.tour.welcome'), content: t('dashboard.tour.welcomeContent'), disableBeacon: true },
-    { target: '[data-tour="account-summary"]', title: t('dashboard.tour.accountTitle'), content: t('dashboard.tour.accountContent'), disableBeacon: true },
-    { target: '[data-tour="register-work"]', title: t('dashboard.tour.registerTitle'), content: t('dashboard.tour.registerContent'), disableBeacon: true },
-    { target: '[data-tour="credit-store"]', title: t('dashboard.tour.creditsTitle'), content: t('dashboard.tour.creditsContent'), disableBeacon: true },
-    { target: '[data-tour="verify-registration"]', title: t('dashboard.tour.verifyTitle'), content: t('dashboard.tour.verifyContent'), disableBeacon: true },
-    { target: '[data-tour="recent-registrations"]', title: t('dashboard.tour.recentTitle'), content: t('dashboard.tour.recentContent'), disableBeacon: true },
-    { target: '[data-tour="ai-studio"]', title: t('dashboard.tour.aiStudioTitle'), content: t('dashboard.tour.aiStudioContent'), disableBeacon: true },
-    { target: 'body', placement: 'center' as const, title: t('dashboard.tour.doneTitle'), content: t('dashboard.tour.doneContent'), disableBeacon: true },
+    {
+      target: 'body',
+      placement: 'center' as const,
+      title: t('dashboard.tour.welcome', 'Bienvenido a MusicDibs'),
+      content: t('dashboard.tour.welcomeContent', 'Este es tu panel de control. Desde aquí tienes una visión general y puedes acceder a todas las herramientas para músicos.\n\nTe mostramos rápidamente cómo funciona.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="account-summary"]',
+      title: t('dashboard.tour.accountTitle', 'Resumen de la cuenta'),
+      content: t('dashboard.tour.accountContent', 'Aquí puedes ver un resumen de tu actividad:\n• Obras registradas\n• Registros pendientes\n• Créditos disponibles\n\nLos créditos son los que utilizas para usar cada herramienta: registros, promociones, distribución, creación con IA MusicDibs Studio.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="ai-studio"]',
+      title: t('dashboard.tour.aiStudioTitle', 'AI Studio'),
+      content: t('dashboard.tour.aiStudioContent', 'Crea música, voces y contenido visual con IA\n\n🎵 Música: Genera canciones completas\n🎤 Voces: Clona voces o usa 29 idiomas\n🎨 Imágenes: Portadas, creatividades, carteles\n🎬 Videos: Clips para redes sociales\n\nTodo en un solo lugar.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="distribute"]',
+      title: t('dashboard.tour.distributeTitle', 'Distribuir tu música'),
+      content: t('dashboard.tour.distributeContent', 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.\n\n💰 Recibe el 95% de tus royalties.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="register-work"]',
+      title: t('dashboard.tour.registerTitle', 'Registrar obra'),
+      content: t('dashboard.tour.registerContent', 'Aquí puedes registrar una nueva obra. Solo tienes que introducir los datos y subir el archivo original.\n\nCada registro utiliza 1 crédito y genera una prueba de autoría verificable.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="promotion"]',
+      title: t('dashboard.tour.promotionTitle', 'Promoción y difusión'),
+      content: t('dashboard.tour.promotionContent', 'Da visibilidad a tu música:\n\n📱 Promoción en redes\nPublica en TikTok e Instagram con +350K seguidores\n\n📰 Prensa y medios\nGenera notas de prensa con IA y distribúyelas en medios'),
+      disableBeacon: true,
+      placement: 'right' as const,
+    },
+    {
+      target: '[data-tour="virtual-artists"]',
+      title: t('dashboard.tour.virtualArtistsTitle', 'Mis Artistas Virtuales'),
+      content: t('dashboard.tour.virtualArtistsContent', 'Crea artistas completos y escala tu catálogo musical:\n\n🎤 Crea múltiples artistas virtuales\n🎶 Genera canciones con IA\n🔒 Registra automáticamente\n🌍 Distribuye y monetiza\n\nPor primera vez, cualquiera puede crear y escalar artistas sin estudio, sin equipo y sin barreras.'),
+      disableBeacon: true,
+      placement: 'right' as const,
+    },
+    {
+      target: '[data-tour="credit-store"]',
+      title: t('dashboard.tour.creditsTitle', 'Créditos'),
+      content: t('dashboard.tour.creditsContent', 'Los créditos te permiten usar todas las herramientas de la plataforma. Cada herramienta utiliza una cantidad de créditos diferente.\n\nPuedes comprar créditos individuales o usar una suscripción para reducir el coste por registro.'),
+      disableBeacon: true,
+    },
   ], [t]);
 }
 
@@ -67,11 +110,11 @@ function CustomTooltip({
         <div className="flex items-center gap-2">
           {index === 0 ? (
             <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" {...skipProps}>
-              {t('dashboard.tour.skip')}
+              {t('dashboard.tour.skip', 'Saltar')}
             </Button>
           ) : (
             <Button variant="ghost" size="sm" className="text-xs" {...backProps}>
-              {t('dashboard.tour.back')}
+              {t('dashboard.tour.back', 'Atrás')}
             </Button>
           )}
 
@@ -81,7 +124,7 @@ function CustomTooltip({
               className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
               {...closeProps}
             >
-              {t('dashboard.tour.start')}
+              {t('dashboard.tour.start', '¡Empezar!')}
             </Button>
           ) : (
             <Button
@@ -89,7 +132,7 @@ function CustomTooltip({
               className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
               {...primaryProps}
             >
-              {t('dashboard.tour.next')}
+              {t('dashboard.tour.next', 'Siguiente')}
             </Button>
           )}
         </div>

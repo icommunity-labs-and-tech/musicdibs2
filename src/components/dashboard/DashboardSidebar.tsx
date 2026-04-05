@@ -141,7 +141,7 @@ export function DashboardSidebar() {
 
     return (
       <SidebarMenuItem key={item.title}>
-        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+        <SidebarMenuButton asChild isActive={isActive(item.url)} data-tour={(item as any).tourId || undefined}>
           <NavLink
             to={item.url}
             end={item.url === '/dashboard'}
