@@ -152,7 +152,7 @@ export const SocialVideosSection = () => {
           }
         }
 
-        toast({ title: tr('error'), description: 'Video generation timed out.', variant: 'destructive' });
+        toast({ title: tr('error'), description: tr('progress.timeout'), variant: 'destructive' });
       };
 
       await poll();
