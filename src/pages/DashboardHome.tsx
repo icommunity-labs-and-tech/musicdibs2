@@ -6,7 +6,7 @@ import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { CreditStore } from '@/components/dashboard/CreditStore';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
-import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
+import { Card, CardContent } from '@/components/ui/card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
