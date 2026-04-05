@@ -24,7 +24,7 @@ async function enqueueKycEmail(
   await supabaseAdmin.rpc("enqueue_email", {
     queue_name: "transactional_emails",
     payload: {
-      run_id: crypto.randomUUID(),
+      idempotency_key: `${label}-${messageId}`,
       message_id: messageId,
       to: email,
       from: "MusicDibs <noreply@notify.musicdibs.com>",
