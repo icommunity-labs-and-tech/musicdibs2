@@ -369,6 +369,7 @@ export const PostersSection = () => {
                   <Button className="w-full" size="lg" disabled={generating} onClick={handleGenerateEvents}>
                     {generating ? (<><Loader2 className="w-4 h-4 animate-spin" />{trEv('generating')}</>) : trEv('generateButton')}
                   </Button>
+                  <PricingLink className="block text-center mt-1" />
                 </CardContent>
               </Card>
             </TabsContent>
