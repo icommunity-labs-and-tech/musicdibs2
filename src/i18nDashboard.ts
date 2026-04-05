@@ -23,6 +23,9 @@ const es = {
       aiStudioImages: 'Imágenes',
       aiStudioVideos: 'Videos',
       aiStudioButton: 'Abrir AI Studio',
+      newUserTitle: '¡Bienvenido a MusicDibs!',
+      newUserDesc: 'Aún no tienes obras registradas. Sigue nuestro asistente paso a paso para lanzar tu primera canción al mundo.',
+      newUserBtn: 'Lanza tu primer hit',
     },
     billing: {
       title: 'Facturación',
