@@ -259,6 +259,7 @@ const AIStudioEdit = () => {
     masteredAudioRef.current = null;
     setAudioFile(null);
     setAudioUrl(null);
+    setAudioName(null);
     setProcessedUrl(null);
     setProcessError(null);
     setProgressPercent(0);
