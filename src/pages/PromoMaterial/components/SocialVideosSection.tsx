@@ -172,10 +172,11 @@ export const SocialVideosSection = () => {
             ) : (
               <>
                 <Video className="w-4 h-4 mr-2" />
-                {tr('generateBtn')} ({VIDEO_COST} créditos)
+                {tr('generateBtn')}
               </>
             )}
           </Button>
+          <PricingLink className="block text-center mt-1" />
 
           {videoUrl && (
             <div className="space-y-3">
