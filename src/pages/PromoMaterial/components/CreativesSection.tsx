@@ -209,7 +209,7 @@ export const CreativesSection = () => {
       currentFile={basePhoto}
       preview={basePhotoPreview}
       onFileSelect={(file) => {
-        if (file.size > 10 * 1024 * 1024) { toast({ title: 'Archivo demasiado grande', variant: 'destructive' }); return; }
+        if (file.size > 10 * 1024 * 1024) { toast({ title: t('promoMaterial.creatives.instagram.imageTooBig'), variant: 'destructive' }); return; }
         setBasePhoto(file);
         setBasePhotoPreview(URL.createObjectURL(file));
       }}
