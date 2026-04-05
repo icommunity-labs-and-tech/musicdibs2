@@ -232,6 +232,7 @@ export const VoiceTranslator = ({ clones }: VoiceTranslatorProps) => {
           <><Sparkles className="h-4 w-4" /> {vc('translateBtn')}</>
         )}
       </Button>
+      <PricingLink className="block text-center mt-1" />
 
       {/* Download Translated */}
       {translatedUrl && (
