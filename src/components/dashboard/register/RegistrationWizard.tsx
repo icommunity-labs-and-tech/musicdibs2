@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { WizardStepper } from './WizardStepper';
 import { StepEntry } from './StepEntry';
@@ -30,6 +31,7 @@ interface RegistrationWizardProps {
 export function RegistrationWizard({ summary }: RegistrationWizardProps) {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const prefill = (location.state as { prefill?: { title?: string; type?: string; description?: string; audioUrl?: string } })?.prefill;
 
   const STEPS_NEW = [
@@ -175,15 +177,26 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
   if (kycBlocked) {
     return (
       <Card className="border-border/40">
-        <CardContent className="p-6 space-y-3">
+        <CardContent className="p-6 space-y-4">
           <div className="flex items-center gap-2 text-amber-600">
             <ShieldAlert className="h-5 w-5" />
             <span className="font-medium text-sm">{t('wizard.rw.kycRequired')}</span>
           </div>
           <p className="text-sm text-muted-foreground">{t('wizard.rw.kycWait')}</p>
-          <Badge variant="outline" className="text-amber-600 border-amber-300">
-            {t('wizard.rw.kycStatus', { status: summary?.kycStatus === 'pending' ? t('wizard.rw.kycPending') : t('wizard.rw.kycNotVerified') })}
-          </Badge>
+          <div className="flex items-center gap-3 flex-wrap">
+            <Badge variant="outline" className="text-amber-600 border-amber-300">
+              {t('wizard.rw.kycStatus', { status: summary?.kycStatus === 'pending' ? t('wizard.rw.kycPending') : t('wizard.rw.kycNotVerified') })}
+            </Badge>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => navigate('/dashboard/verify-identity')}
+              className="gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              {t('wizard.rw.goToVerify')}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
