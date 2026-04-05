@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Loader2, Play, Pause, Download,
   Music, Sparkles, CheckCircle2, AlertTriangle,
-  Headphones, Volume2, Waves, Wind, Radio, RefreshCw
+  Headphones, Volume2, Waves, Wind, Radio, RefreshCw, Upload
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,6 +20,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
+import { GenerationPicker } from "@/components/ai-studio/GenerationPicker";
 
 const PROCESSING_STEPS = [
   { icon: Waves, key: "eq" },
