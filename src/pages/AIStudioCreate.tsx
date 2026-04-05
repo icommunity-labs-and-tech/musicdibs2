@@ -24,7 +24,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, Import, RotateCw, Sparkles
+  Mic, Headphones, Import, RotateCw, Sparkles, HelpCircle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,6 +37,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
+import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
 
 // ── Music tab constants ──
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -791,9 +792,24 @@ const AIStudioCreate = () => {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* ═══ LEFT: Creation Panel ═══ */}
           <div className="space-y-6" ref={formRef}>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
-              <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
+            <MusicCreatorTour />
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
+                <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground gap-1.5"
+                onClick={() => {
+                  if (user) localStorage.removeItem(`musicdibs_music_creator_tour_seen_${user.id}`);
+                  window.dispatchEvent(new Event('musicdibs:start-music-tour'));
+                }}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                {t('aiCreate.tour.showAgain', 'Ver tutorial')}
+              </Button>
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "music" | "lyrics")} className="w-full">
@@ -887,7 +903,7 @@ const AIStudioCreate = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Artist profile selector */}
-                      <div className="space-y-2">
+                      <div className="space-y-2" data-tour="mc-artist-profile">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm font-medium">🎤 {t('aiCreate.artistProfile')}</Label>
                           <button
@@ -1016,7 +1032,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Mode toggle */}
-                      <div className="flex rounded-full bg-muted p-1">
+                      <div className="flex rounded-full bg-muted p-1" data-tour="mc-creation-mode">
                         <button
                           onClick={() => setMode('song')}
                           className={cn(
@@ -1046,7 +1062,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Main textarea */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5" data-tour="mc-description">
                         <div className="flex items-center justify-between">
                           <Label>{t('aiCreate.describeSong')}</Label>
                           <button
@@ -1090,6 +1106,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Collapsible lyrics section */}
+                      <div data-tour="mc-lyrics">
                       <Collapsible open={lyricsExpanded} onOpenChange={setLyricsExpanded}>
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" className="w-full justify-between px-3 h-10 text-sm text-muted-foreground hover:text-foreground">
@@ -1117,8 +1134,10 @@ const AIStudioCreate = () => {
                           </Button>
                         </CollapsibleContent>
                       </Collapsible>
+                      </div>
 
                       {/* Genre chips */}
+                      <div data-tour="mc-settings">
                       <div className="space-y-2">
                         <Label>{t('aiCreate.genre')}</Label>
                         <div className="flex flex-wrap gap-2">
@@ -1531,6 +1550,7 @@ const AIStudioCreate = () => {
                           </div>
                         </div>
                       )}
+                      </div>{/* close data-tour="mc-settings" */}
 
                       {/* Duration options */}
                       <div className="space-y-2">
