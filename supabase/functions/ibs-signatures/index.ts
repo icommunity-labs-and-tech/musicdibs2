@@ -136,7 +136,7 @@ serve(async (req) => {
         await supabaseAdmin.rpc("enqueue_email", {
           queue_name: "transactional_emails",
           payload: {
-            run_id: crypto.randomUUID(),
+            idempotency_key: `kyc-in-process-${messageId}`,
             message_id: messageId,
             to: user.email,
             from: "MusicDibs <noreply@notify.musicdibs.com>",

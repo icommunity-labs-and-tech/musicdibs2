@@ -326,7 +326,7 @@ serve(async (req) => {
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
-                run_id: crypto.randomUUID(), message_id: adminMessageId,
+                idempotency_key: `payment-failed-admin-${adminMessageId}`, message_id: adminMessageId,
                 to: "info@musicdibs.com", from: "MusicDibs <noreply@notify.musicdibs.com>",
                 sender_domain: "notify.musicdibs.com",
                 subject: `⚠️ Fallo de pago — ${userEmail}`,
