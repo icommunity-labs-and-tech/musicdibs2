@@ -1851,12 +1851,86 @@ const voiceToolsTourTranslations: Record<string, any> = {
   },
 };
 
+// ── Promo Material Tour translations ──
+const promoMaterialTourTranslations: Record<string, any> = {
+  es: {
+    promoMaterialTour: {
+      step1Title: 'Crea contenido visual profesional 🎨',
+      step1Content: 'Genera portadas, creatividades, videos y carteles para promocionar tu música con IA.\n\nHerramientas disponibles:\n• Portadas para Spotify/Apple Music\n• Creatividades para Instagram y YouTube\n• Videos para redes sociales\n• Carteles para eventos y conciertos\n\nTodo el contenido se genera en segundos con calidad profesional.',
+      step2Title: 'Portadas para tus obras',
+      step2Content: 'Genera portadas profesionales optimizadas para:\n✓ Spotify\n✓ YouTube Music\n✓ Apple Music\n✓ Amazon Music\n\n4 modos de creación:\n• Sin imagen (IA genera todo)\n• Solo foto del artista\n• Portada de referencia\n• Fotomontaje (combina foto + inspiración)\n\nCoste: 2 créditos por portada',
+      step3Title: 'Creatividades para Instagram y YouTube',
+      step3Content: 'Genera contenido optimizado para cada plataforma:\n\n📱 Instagram\n• Feed Post (1:1) → imagen + copy + hashtags\n• Story (9:16) → imagen + copy + hashtags\n\n🎬 YouTube\n• Miniatura (16:9) → imagen llamativa con texto\n\nLa IA genera tanto la imagen como el texto de acompañamiento automáticamente.\n\nCoste: 1 crédito por creatividad',
+      step4Title: 'Diferencia entre formatos Instagram',
+      step4Content: '📸 Feed Post (cuadrado 1:1)\nPara el feed principal de Instagram\nIdeal para: anuncios de singles, portadas, fotos artísticas\n\n📱 Story (vertical 9:16)\nPara historias de Instagram\nIdeal para: teasers, behind the scenes, anuncios temporales\n\nAmbos incluyen:\n✓ Imagen optimizada\n✓ Copy personalizado\n✓ Hashtags relevantes',
+      step5Title: 'Videos promocionales',
+      step5Content: 'Genera videos cortos (3-5 segundos) optimizados para:\n• TikTok\n• Instagram Reels\n• YouTube Shorts\n\nDos formas de crear:\n1️⃣ Texto → Video (describe el concepto)\n2️⃣ Imagen → Video (anima una portada o foto)\n\nPerfecto para promocionar lanzamientos de forma dinámica.\n\nCoste: 10 créditos por video',
+      step6Title: 'Carteles y posters',
+      step6Content: 'Crea carteles profesionales para:\n\n🎪 Eventos y conciertos\n• Flyer (A5) → tamaño bolsillo\n• Poster (A4) → tamaño estándar\n• Poster grande (A3) → impacto visual\n\n🌐 Redes sociales\n• Facebook Event Cover (1920x1080)\n• Twitter/X Header (1500x500)\n\nIncluye: fecha, lugar, hora, logo y foto del artista.\n\nCoste: 1 crédito por cartel',
+      step7Title: 'Sube archivos fácilmente',
+      step7Content: 'En todas las secciones puedes subir archivos de dos formas:\n\n🖱️ Click para seleccionar\nHaz click en la zona de upload y selecciona el archivo\n\n📂 Arrastra y suelta\nArrastra la imagen/foto directamente desde tu ordenador\n\nFormatos aceptados:\n• Imágenes: JPG, PNG, WEBP (máx. 10MB)\n• Audio: MP3, WAV (solo para videos)',
+      step8Title: 'Descarga y usa tu contenido',
+      step8Content: 'Una vez generado el contenido:\n\n✓ Preview en pantalla\n✓ Botón de descarga directo\n✓ Copia automática de textos (copy/hashtags)\n✓ Archivos optimizados para cada plataforma\n\nTodo el contenido se guarda en tu cuenta y puedes descargarlo cuando quieras.\n\n💡 Consejo: Genera múltiples versiones para A/B testing en redes sociales.',
+      finish: '¡Empezar!',
+      rewatch: 'Ver tutorial',
+    },
+  },
+  en: {
+    promoMaterialTour: {
+      step1Title: 'Create professional visual content 🎨',
+      step1Content: 'Generate covers, creatives, videos and posters to promote your music with AI.\n\nAvailable tools:\n• Covers for Spotify/Apple Music\n• Creatives for Instagram and YouTube\n• Videos for social media\n• Posters for events and concerts\n\nAll content is generated in seconds with professional quality.',
+      step2Title: 'Covers for your works',
+      step2Content: 'Generate professional covers optimized for:\n✓ Spotify\n✓ YouTube Music\n✓ Apple Music\n✓ Amazon Music\n\n4 creation modes:\n• No image (AI generates everything)\n• Artist photo only\n• Reference cover\n• Photomontage (combines photo + inspiration)\n\nCost: 2 credits per cover',
+      step3Title: 'Creatives for Instagram and YouTube',
+      step3Content: 'Generate content optimized for each platform:\n\n📱 Instagram\n• Feed Post (1:1) → image + copy + hashtags\n• Story (9:16) → image + copy + hashtags\n\n🎬 YouTube\n• Thumbnail (16:9) → eye-catching image with text\n\nAI generates both the image and accompanying text automatically.\n\nCost: 1 credit per creative',
+      step4Title: 'Instagram format differences',
+      step4Content: '📸 Feed Post (square 1:1)\nFor Instagram\'s main feed\nIdeal for: single announcements, covers, artistic photos\n\n📱 Story (vertical 9:16)\nFor Instagram stories\nIdeal for: teasers, behind the scenes, temporary announcements\n\nBoth include:\n✓ Optimized image\n✓ Custom copy\n✓ Relevant hashtags',
+      step5Title: 'Promotional videos',
+      step5Content: 'Generate short videos (3-5 seconds) optimized for:\n• TikTok\n• Instagram Reels\n• YouTube Shorts\n\nTwo ways to create:\n1️⃣ Text → Video (describe the concept)\n2️⃣ Image → Video (animate a cover or photo)\n\nPerfect for promoting releases dynamically.\n\nCost: 10 credits per video',
+      step6Title: 'Posters and flyers',
+      step6Content: 'Create professional posters for:\n\n🎪 Events and concerts\n• Flyer (A5) → pocket size\n• Poster (A4) → standard size\n• Large Poster (A3) → visual impact\n\n🌐 Social media\n• Facebook Event Cover (1920x1080)\n• Twitter/X Header (1500x500)\n\nIncludes: date, venue, time, logo and artist photo.\n\nCost: 1 credit per poster',
+      step7Title: 'Upload files easily',
+      step7Content: 'In all sections you can upload files in two ways:\n\n🖱️ Click to select\nClick on the upload area and select the file\n\n📂 Drag and drop\nDrag the image/photo directly from your computer\n\nAccepted formats:\n• Images: JPG, PNG, WEBP (max. 10MB)\n• Audio: MP3, WAV (videos only)',
+      step8Title: 'Download and use your content',
+      step8Content: 'Once content is generated:\n\n✓ On-screen preview\n✓ Direct download button\n✓ Auto-copy text (copy/hashtags)\n✓ Files optimized for each platform\n\nAll content is saved in your account and can be downloaded anytime.\n\n💡 Tip: Generate multiple versions for A/B testing on social media.',
+      finish: 'Get started!',
+      rewatch: 'View tutorial',
+    },
+  },
+  'pt-BR': {
+    promoMaterialTour: {
+      step1Title: 'Crie conteúdo visual profissional 🎨',
+      step1Content: 'Gere capas, criativos, vídeos e cartazes para promover sua música com IA.\n\nFerramentas disponíveis:\n• Capas para Spotify/Apple Music\n• Criativos para Instagram e YouTube\n• Vídeos para redes sociais\n• Cartazes para eventos e shows\n\nTodo o conteúdo é gerado em segundos com qualidade profissional.',
+      step2Title: 'Capas para suas obras',
+      step2Content: 'Gere capas profissionais otimizadas para:\n✓ Spotify\n✓ YouTube Music\n✓ Apple Music\n✓ Amazon Music\n\n4 modos de criação:\n• Sem imagem (IA gera tudo)\n• Apenas foto do artista\n• Capa de referência\n• Fotomontagem (combina foto + inspiração)\n\nCusto: 2 créditos por capa',
+      step3Title: 'Criativos para Instagram e YouTube',
+      step3Content: 'Gere conteúdo otimizado para cada plataforma:\n\n📱 Instagram\n• Feed Post (1:1) → imagem + copy + hashtags\n• Story (9:16) → imagem + copy + hashtags\n\n🎬 YouTube\n• Miniatura (16:9) → imagem chamativa com texto\n\nA IA gera tanto a imagem quanto o texto de acompanhamento automaticamente.\n\nCusto: 1 crédito por criativo',
+      step4Title: 'Diferença entre formatos Instagram',
+      step4Content: '📸 Feed Post (quadrado 1:1)\nPara o feed principal do Instagram\nIdeal para: anúncios de singles, capas, fotos artísticas\n\n📱 Story (vertical 9:16)\nPara stories do Instagram\nIdeal para: teasers, bastidores, anúncios temporários\n\nAmbos incluem:\n✓ Imagem otimizada\n✓ Copy personalizado\n✓ Hashtags relevantes',
+      step5Title: 'Vídeos promocionais',
+      step5Content: 'Gere vídeos curtos (3-5 segundos) otimizados para:\n• TikTok\n• Instagram Reels\n• YouTube Shorts\n\nDuas formas de criar:\n1️⃣ Texto → Vídeo (descreva o conceito)\n2️⃣ Imagem → Vídeo (anime uma capa ou foto)\n\nPerfeito para promover lançamentos de forma dinâmica.\n\nCusto: 10 créditos por vídeo',
+      step6Title: 'Cartazes e posters',
+      step6Content: 'Crie cartazes profissionais para:\n\n🎪 Eventos e shows\n• Flyer (A5) → tamanho bolso\n• Poster (A4) → tamanho padrão\n• Poster grande (A3) → impacto visual\n\n🌐 Redes sociais\n• Facebook Event Cover (1920x1080)\n• Twitter/X Header (1500x500)\n\nInclui: data, local, horário, logo e foto do artista.\n\nCusto: 1 crédito por cartaz',
+      step7Title: 'Envie arquivos facilmente',
+      step7Content: 'Em todas as seções você pode enviar arquivos de duas formas:\n\n🖱️ Clique para selecionar\nClique na área de upload e selecione o arquivo\n\n📂 Arraste e solte\nArraste a imagem/foto diretamente do seu computador\n\nFormatos aceitos:\n• Imagens: JPG, PNG, WEBP (máx. 10MB)\n• Áudio: MP3, WAV (apenas para vídeos)',
+      step8Title: 'Baixe e use seu conteúdo',
+      step8Content: 'Depois que o conteúdo for gerado:\n\n✓ Preview na tela\n✓ Botão de download direto\n✓ Cópia automática de textos (copy/hashtags)\n✓ Arquivos otimizados para cada plataforma\n\nTodo o conteúdo é salvo na sua conta e pode ser baixado quando quiser.\n\n💡 Dica: Gere múltiplas versões para testes A/B nas redes sociais.',
+      finish: 'Vamos lá!',
+      rewatch: 'Ver tutorial',
+    },
+  },
+};
+
 allLangs.forEach((lang) => {
   const translation = resources[lang]?.translation as Record<string, any> | undefined;
   if (!translation) return;
   const vtt = voiceToolsTourTranslations[lang]?.voiceToolsTour;
   if (vtt) {
     translation.voiceToolsTour = vtt;
+  }
+  const pmt = promoMaterialTourTranslations[lang]?.promoMaterialTour;
+  if (pmt) {
+    translation.promoMaterialTour = pmt;
   }
 });
 
