@@ -676,6 +676,9 @@ const en: typeof es = {
       aiStudioImages: 'Images',
       aiStudioVideos: 'Videos',
       aiStudioButton: 'Open AI Studio',
+      newUserTitle: 'Welcome to MusicDibs!',
+      newUserDesc: "You don't have any registered works yet. Follow our step-by-step assistant to launch your first song to the world.",
+      newUserBtn: 'Launch your first hit',
     },
     billing: {
       title: 'Billing',
