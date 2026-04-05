@@ -28,6 +28,9 @@ export const SocialVideosSection = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
+  const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [pollCount, setPollCount] = useState(0);
 
   const handleImproveDescription = async () => {
     if (!description.trim() || improvingPrompt) return;
