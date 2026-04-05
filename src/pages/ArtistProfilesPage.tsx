@@ -238,6 +238,12 @@ const ArtistProfilesPage = () => {
 
   return (
     <div className="space-y-6">
+      <VirtualArtistsWelcomeModal
+        open={showWelcomeModal}
+        onOpenChange={setShowWelcomeModal}
+        onCreateFirst={() => { setShowWelcomeModal(false); resetForm(); setShowForm(true); }}
+      />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('dashboard.virtualArtists.title', { defaultValue: 'Mis Artistas Virtuales' })}</h1>
@@ -245,12 +251,18 @@ const ArtistProfilesPage = () => {
             {t('dashboard.virtualArtists.description', { defaultValue: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' })}
           </p>
         </div>
-        {!showForm && (
-          <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t('dashboard.virtualArtists.newArtist', { defaultValue: 'Nuevo Artista Virtual' })}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowWelcomeModal(true)} className="gap-1.5 text-muted-foreground">
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('virtualArtists.welcome.showAgain', 'Ver introducción')}</span>
           </Button>
-        )}
+          {!showForm && (
+            <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('dashboard.virtualArtists.newArtist', { defaultValue: 'Nuevo Artista Virtual' })}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Form */}
