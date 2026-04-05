@@ -279,6 +279,42 @@ export const SocialVideosSection = () => {
               </>
             )}
           </Button>
+
+          {generating && progressStatus && (
+            <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                {progressStatus === 'queued' ? (
+                  <>
+                    <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                    <span>
+                      {queuePosition != null && queuePosition > 0
+                        ? `En cola · Posición ${queuePosition}`
+                        : 'En cola · Esperando servidor…'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Generando vídeo…</span>
+                  </>
+                )}
+              </div>
+              <Progress
+                value={
+                  progressStatus === 'queued'
+                    ? Math.min(pollCount * 5, 30)
+                    : Math.min(30 + pollCount * 3, 95)
+                }
+                className="h-2"
+              />
+              <p className="text-xs text-muted-foreground">
+                {progressStatus === 'queued'
+                  ? 'El vídeo se está preparando. Puede tardar 1-3 minutos.'
+                  : 'El modelo está renderizando tu vídeo. Casi listo…'}
+              </p>
+            </div>
+          )}
+
           <PricingLink className="block text-center mt-1" />
 
           {videoUrl && (
