@@ -1667,7 +1667,7 @@ allLangs.forEach((lang) => {
 
   // Deep-merge dashboard sub-keys so no section overwrites another
   const existingDashboard = (translation.dashboard || {}) as Record<string, any>;
-  const allDashboardKeys = new Set([
+  const allDashboardKeys = Array.from(new Set([
     ...Object.keys(existingDashboard),
     ...Object.keys(dashboardWidgets || {}),
     ...Object.keys(dashboardFull || {}),
