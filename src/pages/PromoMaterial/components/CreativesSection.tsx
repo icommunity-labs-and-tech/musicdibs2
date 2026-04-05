@@ -110,7 +110,7 @@ export const CreativesSection = () => {
       }
     } catch (err: any) {
       console.error('AI describe error:', err);
-      toast({ title: t('promoMaterial.creatives.aiDescribe.error', 'Error al generar descripción'), variant: 'destructive' });
+      toast({ title: t('promoMaterial.creatives.aiDescribe.error'), variant: 'destructive' });
     } finally {
       setImprovingPrompt(false);
     }
