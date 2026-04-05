@@ -677,9 +677,6 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       errorGeneric: 'Error processing audio. Please try again.',
       errorTimeout: 'Processing took too long. Please try again.',
     },
-      enhanceError: 'Error enhancing audio. Please try again.',
-      enhanceTimeout: 'Processing took too long. Please try again.',
-    },
     aiInspire: {
       backToStudio: 'Back to AI MusicDibs Studio',
       badge: 'Musical Inspiration',
