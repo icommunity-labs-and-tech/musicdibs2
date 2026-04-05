@@ -66,7 +66,8 @@ export default function UserLogin() {
     e.preventDefault();
     setError(''); setSuccess(''); setLoading(true);
     const form = new FormData(e.currentTarget);
-    const { error } = await signUp(form.get('email') as string, form.get('password') as string);
+    const lang = i18n.resolvedLanguage || 'es';
+    const { error } = await signUp(form.get('email') as string, form.get('password') as string, { language: lang });
     setLoading(false);
     if (error) setError(error.message); else setSuccess(t('userLogin.checkEmailConfirm'));
   };
