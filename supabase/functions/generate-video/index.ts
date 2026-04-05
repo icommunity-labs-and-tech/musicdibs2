@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const FAL_MODEL = 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video';
 const FAL_SUBMIT_URL = `https://queue.fal.run/${FAL_MODEL}`;
-const FAL_QUEUE_BASE_URL = 'https://queue.fal.run/fal-ai/kling-video';
+const FAL_QUEUE_PATH_PREFIX = `/${FAL_MODEL}/requests/`;
 
 const jsonResponse = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
@@ -21,15 +21,15 @@ const isAllowedFalQueueUrl = (value: unknown): value is string => {
 
   try {
     const url = new URL(value);
-    return url.protocol === 'https:' && url.host === 'queue.fal.run';
+    return url.protocol === 'https:' && url.host === 'queue.fal.run' && url.pathname.startsWith(FAL_QUEUE_PATH_PREFIX);
   } catch {
     return false;
   }
 };
 
 const withLogsParam = (url: string) => (url.includes('?') ? `${url}&logs=1` : `${url}?logs=1`);
-const getFallbackStatusUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}/status`;
-const getFallbackResponseUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}`;
+const getFallbackStatusUrl = (requestId: string) => `${FAL_SUBMIT_URL}/requests/${requestId}/status`;
+const getFallbackResponseUrl = (requestId: string) => `${FAL_SUBMIT_URL}/requests/${requestId}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
