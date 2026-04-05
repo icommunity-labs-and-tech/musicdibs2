@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, Mic } from "lucide-react";
+import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, Mic, HelpCircle } from "lucide-react";
+import { VirtualArtistsWelcomeModal } from "@/components/dashboard/VirtualArtistsWelcomeModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -42,6 +43,7 @@ const ArtistProfilesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -78,6 +80,12 @@ const ArtistProfilesPage = () => {
     if (user) {
       supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
         .then(({ data }) => setVoiceClones(data || []));
+      // Show welcome modal on first visit
+      const hasSeenKey = `virtual_artists_welcome_seen_${user.id}`;
+      if (!localStorage.getItem(hasSeenKey)) {
+        setShowWelcomeModal(true);
+        localStorage.setItem(hasSeenKey, 'true');
+      }
     }
   }, [user]);
 
@@ -230,6 +238,12 @@ const ArtistProfilesPage = () => {
 
   return (
     <div className="space-y-6">
+      <VirtualArtistsWelcomeModal
+        open={showWelcomeModal}
+        onOpenChange={setShowWelcomeModal}
+        onCreateFirst={() => { setShowWelcomeModal(false); resetForm(); setShowForm(true); }}
+      />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{t('dashboard.virtualArtists.title', { defaultValue: 'Mis Artistas Virtuales' })}</h1>
@@ -237,12 +251,18 @@ const ArtistProfilesPage = () => {
             {t('dashboard.virtualArtists.description', { defaultValue: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' })}
           </p>
         </div>
-        {!showForm && (
-          <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {t('dashboard.virtualArtists.newArtist', { defaultValue: 'Nuevo Artista Virtual' })}
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setShowWelcomeModal(true)} className="gap-1.5 text-muted-foreground">
+            <HelpCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('virtualArtists.welcome.showAgain', 'Ver introducción')}</span>
           </Button>
-        )}
+          {!showForm && (
+            <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t('dashboard.virtualArtists.newArtist', { defaultValue: 'Nuevo Artista Virtual' })}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Form */}
