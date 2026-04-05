@@ -1663,20 +1663,32 @@ allLangs.forEach((lang) => {
   }
 
   const dashboardWidgets = dashboardWidgetTranslations[lang]?.dashboard;
-  if (dashboardWidgets) {
-    translation.dashboard = {
-      ...(translation.dashboard || {}),
-      ...dashboardWidgets,
-    };
-  }
-
   const dashboardFull = dashboardTranslations[lang]?.translation?.dashboard;
-  if (dashboardFull) {
-    translation.dashboard = {
-      ...(translation.dashboard || {}),
-    ...dashboardFull,
+
+  // Deep-merge dashboard sub-keys so no section overwrites another
+  const existingDashboard = (translation.dashboard || {}) as Record<string, any>;
+  const allDashboardKeys = new Set([
+    ...Object.keys(existingDashboard),
+    ...Object.keys(dashboardWidgets || {}),
+    ...Object.keys(dashboardFull || {}),
+  ]);
+  const merged: Record<string, any> = {};
+  for (const k of allDashboardKeys) {
+    merged[k] = {
+      ...(typeof existingDashboard[k] === 'object' ? existingDashboard[k] : {}),
+      ...(dashboardWidgets && typeof dashboardWidgets[k] === 'object' ? dashboardWidgets[k] : {}),
+      ...(dashboardFull && typeof (dashboardFull as any)[k] === 'object' ? (dashboardFull as any)[k] : {}),
     };
+    // If any source had a non-object value, prefer the last one
+    if (dashboardFull && typeof (dashboardFull as any)[k] !== 'undefined' && typeof (dashboardFull as any)[k] !== 'object') {
+      merged[k] = (dashboardFull as any)[k];
+    } else if (dashboardWidgets && typeof dashboardWidgets[k] !== 'undefined' && typeof dashboardWidgets[k] !== 'object') {
+      merged[k] = dashboardWidgets[k];
+    } else if (typeof existingDashboard[k] !== 'undefined' && typeof existingDashboard[k] !== 'object') {
+      merged[k] = existingDashboard[k];
+    }
   }
+  translation.dashboard = merged;
 
   const pagesRoot = pagesTranslations[lang]?.translation;
   if (pagesRoot) {
