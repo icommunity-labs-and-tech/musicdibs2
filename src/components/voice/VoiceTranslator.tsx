@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { FileDropzone } from '@/components/FileDropzone';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
