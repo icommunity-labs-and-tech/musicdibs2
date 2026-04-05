@@ -160,6 +160,8 @@ export const SocialVideosSection = () => {
       toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
     } finally {
       setGenerating(false);
+      setProgressStatus(null);
+      setQueuePosition(null);
     }
   };
 
