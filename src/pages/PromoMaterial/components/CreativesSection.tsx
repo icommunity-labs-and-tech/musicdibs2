@@ -180,7 +180,7 @@ export const CreativesSection = () => {
         setBasePhoto(file);
         setBasePhotoPreview(URL.createObjectURL(file));
       }}
-      onRemove={clearPhoto}
+      onRemove={() => { setBasePhoto(null); setBasePhotoPreview(null); }}
     />
   );
 
