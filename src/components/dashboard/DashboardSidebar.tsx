@@ -220,7 +220,7 @@ export function DashboardSidebar() {
           onClick={() => { window.dispatchEvent(new CustomEvent('musicdibs:start-tour')); }}
         >
           <HelpCircle className="h-4 w-4 mr-2" />
-          {!collapsed && <span>{tr('dashboard.sidebar.panelGuide', 'Guía del panel')}</span>}
+          {!collapsed && <span>{tr('dashboard.sidebar.panelGuide', 'Tutorial guiado')}</span>}
         </Button>
         <Button
           variant="ghost"

@@ -33,15 +33,15 @@ function useSteps(): Step[] {
       disableBeacon: true,
     },
     {
-      target: '[data-tour="distribute"]',
-      title: t('dashboard.tour.distributeTitle', 'Distribuir tu música'),
-      content: t('dashboard.tour.distributeContent', 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.\n\n💰 Recibe el 95% de tus royalties.'),
-      disableBeacon: true,
-    },
-    {
       target: '[data-tour="register-work"]',
       title: t('dashboard.tour.registerTitle', 'Registrar obra'),
       content: t('dashboard.tour.registerContent', 'Aquí puedes registrar una nueva obra. Solo tienes que introducir los datos y subir el archivo original.\n\nCada registro utiliza 1 crédito y genera una prueba de autoría verificable.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="distribute"]',
+      title: t('dashboard.tour.distributeTitle', 'Distribuir tu música'),
+      content: t('dashboard.tour.distributeContent', 'Lleva tu música a todas las plataformas digitales: Spotify, Apple Music, Amazon y más.\n\n💰 Recibe el 95% de tus royalties.'),
       disableBeacon: true,
     },
     {
