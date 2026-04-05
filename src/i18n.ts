@@ -1023,6 +1023,7 @@ const resources = {
           service: 'Service',
           distributeMusic: 'Distribute your music',
           socialPromo: 'Social media promotion',
+          promotion: 'Promotion & outreach',
           artistProfiles: 'My Virtual Artists',
           profile: 'Profile',
           plansCredits: 'Plans & credits',
