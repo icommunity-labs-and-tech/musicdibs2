@@ -311,7 +311,6 @@ export default function ManagerRegisterWork() {
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descripción de la obra..." rows={3} />
           </div>
 
-          {/* Multi-file upload */}
           <div className="space-y-2">
             <Label>Archivos *</Label>
             {files.length > 0 ? (
@@ -335,13 +334,12 @@ export default function ManagerRegisterWork() {
                 </Button>
               </div>
             ) : (
-              <div
-                className="flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-muted/30 p-8 cursor-pointer transition-colors"
-                onClick={() => document.getElementById('manager-file-input')?.click()}
-              >
-                <Upload className="h-6 w-6 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Haz clic para seleccionar archivos</p>
-              </div>
+              <FileDropzone
+                fileType="any"
+                accept="*/*"
+                maxSize={100}
+                onFileSelect={(file) => handleAddFiles(createFileList(file))}
+              />
             )}
             <input id="manager-file-input" type="file" multiple className="hidden" onChange={(e) => { handleAddFiles(e.target.files); e.target.value = ''; }} />
           </div>
