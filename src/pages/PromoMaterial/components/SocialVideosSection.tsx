@@ -27,6 +27,32 @@ export const SocialVideosSection = () => {
   const [style, setStyle] = useState('');
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [improvingPrompt, setImprovingPrompt] = useState(false);
+
+  const handleImproveDescription = async () => {
+    if (!description.trim() || improvingPrompt) return;
+    setImprovingPrompt(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/improve-prompt`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt: description, mode: 'visual_creative' }),
+        }
+      );
+      const data = await res.json();
+      if (data?.improved) setDescription(data.improved);
+    } catch (e) {
+      console.error('Error improving prompt:', e);
+    } finally {
+      setImprovingPrompt(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!description.trim() || !duration || !style || !user) return;
