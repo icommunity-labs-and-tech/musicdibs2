@@ -436,6 +436,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
         kycPending: 'Pendente',
         kycNotVerified: 'Não verificado',
         kycStatus: 'Status: {{status}}',
+        goToVerify: 'Ir para verificar identidade',
         errorAudio: 'Erro ao processar o áudio',
         errorRegister: 'Erro no registro',
         errorGeneric: 'Erro ao registrar a obra',

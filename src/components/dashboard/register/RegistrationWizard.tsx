@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Shield } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { WizardStepper } from './WizardStepper';
 import { StepEntry } from './StepEntry';
