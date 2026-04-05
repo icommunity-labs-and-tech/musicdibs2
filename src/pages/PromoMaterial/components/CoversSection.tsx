@@ -637,7 +637,7 @@ export const CoversSection = () => {
               </CardContent>
             </Card>
           ) : imageUrl ? (
-            <div className="space-y-3">
+            <div className="space-y-3" data-tour="pm-results">
               <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-lg aspect-square">
                 <img
                   src={imageUrl}
