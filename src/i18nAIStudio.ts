@@ -154,8 +154,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
     },
     aiEdit: {
       backToStudio: 'Volver a AI MusicDibs Studio',
-      title: 'Editar Audio',
-      subtitle: 'Crea variaciones y edita tus pistas de audio',
+      title: 'Masterizado profesional con IA',
+      subtitle: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.',
       audioSource: 'Fuente de Audio',
       audioSourceDesc: 'Selecciona del historial o sube un archivo',
       uploadAudio: 'Subir archivo de audio',
@@ -659,8 +659,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
     },
     aiEdit: {
       backToStudio: 'Back to AI MusicDibs Studio',
-      title: 'Edit Audio',
-      subtitle: 'Create variations and edit your audio tracks',
+      title: 'Professional AI Mastering',
+      subtitle: 'Get a Spotify-ready sound: more volume, clarity and power in seconds.',
       audioSource: 'Audio Source',
       audioSourceDesc: 'Select from history or upload a file',
       uploadAudio: 'Upload audio file',
@@ -1161,8 +1161,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
     },
     aiEdit: {
       backToStudio: 'Voltar ao AI MusicDibs Studio',
-      title: 'Editar Áudio',
-      subtitle: 'Crie variações e edite suas faixas de áudio',
+      title: 'Masterização profissional com IA',
+      subtitle: 'Consiga um som pronto para o Spotify: mais volume, clareza e potência em segundos.',
       audioSource: 'Fonte de Áudio',
       audioSourceDesc: 'Selecione do histórico ou envie um arquivo',
       uploadAudio: 'Enviar arquivo de áudio',
