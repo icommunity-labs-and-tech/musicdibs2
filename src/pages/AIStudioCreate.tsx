@@ -1550,6 +1550,8 @@ const AIStudioCreate = () => {
                           </div>
                         </div>
                       )}
+                      )}
+                      </div>{/* close data-tour="mc-settings" */}
 
                       {/* Duration options */}
                       <div className="space-y-2">
