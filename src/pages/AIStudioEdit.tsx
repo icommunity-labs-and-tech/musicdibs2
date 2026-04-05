@@ -37,8 +37,10 @@ const AIStudioEdit = () => {
   const { hasEnough } = useCredits();
   const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts) as string;
 
+  const [sourceTab, setSourceTab] = useState<string>("upload");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioName, setAudioName] = useState<string | null>(null);
 
   // Processing
   const [isProcessing, setIsProcessing] = useState(false);
