@@ -43,6 +43,7 @@ const ArtistProfilesPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Form state
   const [formName, setFormName] = useState("");
