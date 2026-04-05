@@ -41,6 +41,15 @@ export default function DashboardHome() {
     return () => clearInterval(interval);
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('works')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => setWorksCount(count ?? 0));
+  }, [user]);
+
   return (
     <div className="space-y-6 max-w-[1400px]">
       <PaymentAlertBanner />
