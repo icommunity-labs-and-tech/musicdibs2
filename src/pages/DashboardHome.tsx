@@ -7,7 +7,7 @@ import { CreditStore } from '@/components/dashboard/CreditStore';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
 import { Card, CardContent } from '@/components/ui/card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2, Sparkles, CircleDollarSign } from 'lucide-react';
