@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, Download, Info, AlertCircle, Video } from 'lucide-react';
+import { Loader2, Sparkles, Download, Info, AlertCircle, Video, Clock } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 const VIDEO_COST = FEATURE_COSTS.social_video;
 
 export const SocialVideosSection = () => {
@@ -28,6 +29,9 @@ export const SocialVideosSection = () => {
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
+  const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [pollCount, setPollCount] = useState(0);
 
   const handleImproveDescription = async () => {
     if (!description.trim() || improvingPrompt) return;
@@ -67,6 +71,9 @@ export const SocialVideosSection = () => {
     }
 
     setGenerating(true);
+    setProgressStatus('queued');
+    setQueuePosition(null);
+    setPollCount(0);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const headers = {
@@ -118,13 +125,25 @@ export const SocialVideosSection = () => {
               return;
             }
 
+            // Update progress indicator
+            if (statusData.queue_position != null) {
+              setQueuePosition(statusData.queue_position);
+              setProgressStatus('queued');
+            } else {
+              setProgressStatus('processing');
+              setQueuePosition(null);
+            }
+            setPollCount(i + 1);
+
             if (statusData.status === 'SUCCEEDED' && statusData.video_url) {
               setVideoUrl(statusData.video_url);
+              setProgressStatus(null);
               toast({ title: tr('success'), description: tr('successDesc') });
               return;
             }
 
             if (statusData.status === 'FAILED') {
+              setProgressStatus(null);
               toast({ title: tr('error'), description: statusData.failure || tr('errorDesc'), variant: 'destructive' });
               return;
             }
@@ -142,6 +161,8 @@ export const SocialVideosSection = () => {
       toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
     } finally {
       setGenerating(false);
+      setProgressStatus(null);
+      setQueuePosition(null);
     }
   };
 
@@ -258,6 +279,42 @@ export const SocialVideosSection = () => {
               </>
             )}
           </Button>
+
+          {generating && progressStatus && (
+            <div className="space-y-3 rounded-lg border border-border/50 bg-muted/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                {progressStatus === 'queued' ? (
+                  <>
+                    <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
+                    <span>
+                      {queuePosition != null && queuePosition > 0
+                        ? `En cola · Posición ${queuePosition}`
+                        : 'En cola · Esperando servidor…'}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Generando vídeo…</span>
+                  </>
+                )}
+              </div>
+              <Progress
+                value={
+                  progressStatus === 'queued'
+                    ? Math.min(pollCount * 5, 30)
+                    : Math.min(30 + pollCount * 3, 95)
+                }
+                className="h-2"
+              />
+              <p className="text-xs text-muted-foreground">
+                {progressStatus === 'queued'
+                  ? 'El vídeo se está preparando. Puede tardar 1-3 minutos.'
+                  : 'El modelo está renderizando tu vídeo. Casi listo…'}
+              </p>
+            </div>
+          )}
+
           <PricingLink className="block text-center mt-1" />
 
           {videoUrl && (
