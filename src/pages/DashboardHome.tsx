@@ -6,8 +6,8 @@ import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { CreditStore } from '@/components/dashboard/CreditStore';
 import { PaymentAlertBanner } from '@/components/dashboard/PaymentAlertBanner';
 import { RecentRegistrations } from '@/components/dashboard/RecentRegistrations';
-import { FirstHitFlow } from '@/components/dashboard/FirstHitFlow';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2, Sparkles, CircleDollarSign } from 'lucide-react';
@@ -22,12 +22,6 @@ export default function DashboardHome() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
-  const [hasWorks, setHasWorks] = useState<boolean | null>(null);
-  const storageKey = user ? `musicdibs_skip_first_hit_${user.id}` : null;
-  const [skipFirstHit, setSkipFirstHit] = useState(() => {
-    if (!storageKey) return false;
-    return localStorage.getItem(storageKey) === '1';
-  });
   const [showDistributionModal, setShowDistributionModal] = useState(false);
 
   useEffect(() => {
@@ -45,32 +39,6 @@ export default function DashboardHome() {
     const interval = setInterval(check, 60_000);
     return () => clearInterval(interval);
   }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from('works')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .then(({ count }) => {
-        setHasWorks((count ?? 0) > 0);
-      });
-  }, [user]);
-
-  if (hasWorks === null) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  if (hasWorks === false && !skipFirstHit) {
-    return <FirstHitFlow onSkip={() => {
-      if (storageKey) localStorage.setItem(storageKey, '1');
-      setSkipFirstHit(true);
-    }} />;
-  }
 
   return (
     <div className="space-y-6 max-w-[1400px]">
