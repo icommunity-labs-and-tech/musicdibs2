@@ -146,6 +146,7 @@ export default function DashboardHome() {
               </div>
               <div className="flex flex-wrap justify-center gap-1.5">
                 <Badge variant="secondary" className="text-xs">🎵 {t('dashboard.home.aiStudioMusic')}</Badge>
+                <Badge variant="secondary" className="text-xs">🎧 {t('dashboard.home.aiStudioMastering', 'Masterizado profesional')}</Badge>
                 <Badge variant="secondary" className="text-xs">🎤 {t('dashboard.home.aiStudioVoice')}</Badge>
                 <Badge variant="secondary" className="text-xs">🎨 {t('dashboard.home.aiStudioImages')}</Badge>
                 <Badge variant="secondary" className="text-xs">🎬 {t('dashboard.home.aiStudioVideos')}</Badge>
