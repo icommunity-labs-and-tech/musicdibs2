@@ -177,7 +177,7 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
-          <Card className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => setShowDistributionModal(true)}>
+          <Card data-tour="distribute" className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => setShowDistributionModal(true)}>
             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
                 <Share2 className="h-6 w-6 text-blue-500" />

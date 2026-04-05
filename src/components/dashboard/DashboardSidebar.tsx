@@ -46,8 +46,8 @@ export function DashboardSidebar() {
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
     { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
     { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
-    { title: tr('dashboard.sidebar.promotion', 'Promoción y difusión'), url: '/dashboard/promotion', icon: Megaphone, hideForManager: true },
-    { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
+    { title: tr('dashboard.sidebar.promotion', 'Promoción y difusión'), url: '/dashboard/promotion', icon: Megaphone, hideForManager: true, tourId: 'promotion' },
+    { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true, tourId: 'virtual-artists' },
   ], [i18n.resolvedLanguage, t]);
 
   const accountItems = useMemo(() => [
