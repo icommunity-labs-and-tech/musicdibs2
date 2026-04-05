@@ -73,6 +73,40 @@ export const PostersSection = () => {
   // Common
   const [generating, setGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [improvingEvPrompt, setImprovingEvPrompt] = useState(false);
+  const [improvingSoPrompt, setImprovingSoPrompt] = useState(false);
+
+  const handleImprovePrompt = async (
+    text: string,
+    setText: (v: string) => void,
+    setLoading: (v: boolean) => void,
+    photo?: File | null,
+  ) => {
+    if (!text.trim() && !photo) return;
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const body: any = { prompt: text, mode: 'visual_creative' };
+      if (photo) body.image_base64 = await fileToBase64(photo);
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/improve-prompt`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      const data = await res.json();
+      if (data?.improved) setText(data.improved);
+    } catch (e) {
+      console.error('Error improving prompt:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const evLogoRef = useRef<HTMLInputElement>(null);
   const evPhotoRef = useRef<HTMLInputElement>(null);
