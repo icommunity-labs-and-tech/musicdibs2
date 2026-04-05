@@ -216,7 +216,6 @@ serve(async (req) => {
           await admin.rpc("enqueue_email", {
             queue_name: "transactional_emails",
             payload: {
-              run_id: crypto.randomUUID(),
               message_id: messageId,
               to: targetEmail,
               from: "MusicDibs <noreply@notify.musicdibs.com>",
@@ -226,6 +225,7 @@ serve(async (req) => {
               text: emailData.text,
               purpose: "transactional",
               label: "kyc_rejected",
+              idempotency_key: `kyc-rejected-${user_id}-${Date.now()}`,
               queued_at: new Date().toISOString(),
             },
           });
