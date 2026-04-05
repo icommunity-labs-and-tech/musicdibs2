@@ -80,6 +80,12 @@ const ArtistProfilesPage = () => {
     if (user) {
       supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
         .then(({ data }) => setVoiceClones(data || []));
+      // Show welcome modal on first visit
+      const hasSeenKey = `virtual_artists_welcome_seen_${user.id}`;
+      if (!localStorage.getItem(hasSeenKey)) {
+        setShowWelcomeModal(true);
+        localStorage.setItem(hasSeenKey, 'true');
+      }
     }
   }, [user]);
 
