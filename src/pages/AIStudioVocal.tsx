@@ -25,6 +25,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { VoiceTranslator } from '@/components/voice/VoiceTranslator';
+import { VoiceToolsTour } from '@/components/ai-studio/VoiceToolsTour';
+import { HelpCircle } from 'lucide-react';
 
 const THEMES = ["Amor", "Desamor", "Superación", "Fiesta", "Calle", "Familia", "Libertad", "Nostalgia", "Éxito", "Identidad"];
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -372,6 +374,7 @@ export default function AIStudioVocal() {
   // ──── REGULAR (has clones) ────
   return (
     <div className="min-h-screen bg-background">
+      <VoiceToolsTour />
       <Navbar />
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
@@ -383,20 +386,23 @@ export default function AIStudioVocal() {
             <span className="text-sm font-medium">{voiceToolsBadge}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{voiceToolsTitle}</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{voiceToolsSub}</p>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">{voiceToolsSub}</p>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1" onClick={() => window.dispatchEvent(new Event('musicdibs:start-voice-tour'))}>
+            <HelpCircle className="h-3.5 w-3.5" /> {String(t('voiceToolsTour.rewatch', { defaultValue: 'Ver tutorial' }))}
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-5xl mx-auto">
           <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="sing" className="gap-2">
+            <TabsTrigger value="sing" className="gap-2" data-tour="vt-sing-tab">
               <Music className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabSing', 'Cantar')}</span>
             </TabsTrigger>
-            <TabsTrigger value="clone" className="gap-2">
+            <TabsTrigger value="clone" className="gap-2" data-tour="vt-clone-tab">
               <Mic className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabClone', 'Clonar')}</span>
             </TabsTrigger>
-            <TabsTrigger value="translate" className="gap-2">
+            <TabsTrigger value="translate" className="gap-2" data-tour="vt-translate-tab">
               <Globe className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabTranslate', 'Traducir')}</span>
             </TabsTrigger>
@@ -407,7 +413,7 @@ export default function AIStudioVocal() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-5">
                 {/* Voice selector */}
-                <Card>
+                <Card data-tour="vt-cloned-list">
                   <CardHeader className="pb-3"><CardTitle className="text-base">{tv('clonedVoice')}</CardTitle></CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -426,7 +432,7 @@ export default function AIStudioVocal() {
                 </Card>
 
                 {/* Lyrics */}
-                <Card>
+                <Card data-tour="vt-lyrics-gen">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">{tv('yourLyrics')}</CardTitle>
@@ -438,7 +444,7 @@ export default function AIStudioVocal() {
                       <Label className="text-xs font-medium">{tv('whatAbout')}</Label>
                       <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={3} className="resize-none text-sm" maxLength={400} />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2" data-tour="vt-music-settings">
                       <Label className="text-xs font-medium">{tv('centralTheme')}</Label>
                       <div className="flex flex-wrap gap-1.5">
                         {THEMES.map(th => <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)}
