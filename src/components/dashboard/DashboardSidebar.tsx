@@ -55,6 +55,7 @@ export function DashboardSidebar() {
 
   const accountItems = useMemo(() => [
     { title: tr('dashboard.sidebar.profile', 'Perfil'), url: '/dashboard/profile', icon: User },
+    { title: tr('dashboard.sidebar.verifyIdentity', 'Verificar identidad'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
     { title: tr('dashboard.sidebar.plansCredits', 'Planes y créditos'), url: '/dashboard/credits', icon: ShoppingBag },
     { title: tr('dashboard.sidebar.billing', 'Facturación'), url: '/dashboard/billing', icon: CreditCard },
     { title: tr('dashboard.sidebar.support', 'Soporte'), url: '/dashboard/support', icon: LifeBuoy },
