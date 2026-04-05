@@ -431,7 +431,7 @@ export default function AIStudioVocal() {
                 </Card>
 
                 {/* Lyrics */}
-                <Card>
+                <Card data-tour="vt-lyrics-gen">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">{tv('yourLyrics')}</CardTitle>
