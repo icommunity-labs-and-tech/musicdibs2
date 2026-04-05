@@ -87,7 +87,7 @@ export const CreativesSection = () => {
 
   const handleImproveDescription = async () => {
     if (!imageDescription.trim() && !basePhoto) {
-      toast({ title: t('promoMaterial.creatives.aiDescribe.needInput', 'Escribe algo o sube una foto'), variant: 'destructive' });
+      toast({ title: t('promoMaterial.creatives.aiDescribe.needInput'), variant: 'destructive' });
       return;
     }
     setImprovingPrompt(true);
