@@ -4,7 +4,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
-import { Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone, Coins } from 'lucide-react';
+import { Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone, Coins, Instagram, Youtube, LayoutGrid, Share2, Languages } from 'lucide-react';
 
 const PRICING_ROWS = [
   { key: 'register_work', icon: Shield },
@@ -16,6 +16,12 @@ const PRICING_ROWS = [
   { key: 'enhance_audio', icon: Sparkles },
   { key: 'generate_cover', icon: Image },
   { key: 'generate_video', icon: Video },
+  { key: 'instagram_creative', icon: Instagram },
+  { key: 'youtube_thumbnail', icon: Youtube },
+  { key: 'event_poster', icon: LayoutGrid },
+  { key: 'social_poster', icon: Share2 },
+  { key: 'social_video', icon: Video },
+  { key: 'voice_translation_per_min', icon: Languages },
 ] as const;
 
 export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {

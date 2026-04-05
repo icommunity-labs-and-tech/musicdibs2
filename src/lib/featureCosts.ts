@@ -15,6 +15,11 @@ export const FEATURE_COSTS = {
   inspiration: 0,
   generate_video: 6,
   voice_translation_per_min: 2,
+  instagram_creative: 1,
+  youtube_thumbnail: 1,
+  event_poster: 1,
+  social_poster: 1,
+  social_video: 10,
 } as const;
 
 export type FeatureKey = keyof typeof FEATURE_COSTS;
