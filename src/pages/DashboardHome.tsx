@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2, Sparkles, CircleDollarSign } from 'lucide-react';
+import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2, Sparkles, CircleDollarSign, Rocket } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { DashboardSummary } from '@/types/dashboard';
@@ -23,6 +23,7 @@ export default function DashboardHome() {
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [worksCount, setWorksCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -40,9 +41,42 @@ export default function DashboardHome() {
     return () => clearInterval(interval);
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('works')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .then(({ count }) => setWorksCount(count ?? 0));
+  }, [user]);
+
   return (
     <div className="space-y-6 max-w-[1400px]">
       <PaymentAlertBanner />
+
+      {/* Banner for new users with no works */}
+      {worksCount === 0 && (
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+              <Rocket className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-semibold">{t('dashboard.home.newUserTitle')}</p>
+              <p className="text-xs text-muted-foreground">{t('dashboard.home.newUserDesc')}</p>
+            </div>
+            <Button
+              variant="hero"
+              size="sm"
+              className="gap-1.5 shrink-0"
+              onClick={() => navigate('/dashboard/launch')}
+            >
+              <Rocket className="h-3.5 w-3.5" />
+              {t('dashboard.home.newUserBtn')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
       {/* KYC verification alert */}
       {summary && summary.kycStatus !== 'verified' && (
         <Card className="border-amber-500/30 bg-amber-500/5">

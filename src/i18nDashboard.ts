@@ -23,6 +23,9 @@ const es = {
       aiStudioImages: 'Imágenes',
       aiStudioVideos: 'Videos',
       aiStudioButton: 'Abrir AI Studio',
+      newUserTitle: '¡Bienvenido a MusicDibs!',
+      newUserDesc: 'Aún no tienes obras registradas. Sigue nuestro asistente paso a paso para lanzar tu primera canción al mundo.',
+      newUserBtn: 'Lanza tu primer hit',
     },
     billing: {
       title: 'Facturación',
@@ -673,6 +676,9 @@ const en: typeof es = {
       aiStudioImages: 'Images',
       aiStudioVideos: 'Videos',
       aiStudioButton: 'Open AI Studio',
+      newUserTitle: 'Welcome to MusicDibs!',
+      newUserDesc: "You don't have any registered works yet. Follow our step-by-step assistant to launch your first song to the world.",
+      newUserBtn: 'Launch your first hit',
     },
     billing: {
       title: 'Billing',
@@ -1323,6 +1329,9 @@ const pt: typeof es = {
       aiStudioImages: 'Imagens',
       aiStudioVideos: 'Vídeos',
       aiStudioButton: 'Abrir AI Studio',
+      newUserTitle: 'Bem-vindo ao MusicDibs!',
+      newUserDesc: 'Você ainda não tem obras registradas. Siga nosso assistente passo a passo para lançar sua primeira música ao mundo.',
+      newUserBtn: 'Lance seu primeiro hit',
     },
     billing: {
       title: 'Faturamento',
