@@ -792,9 +792,24 @@ const AIStudioCreate = () => {
         <div className="grid lg:grid-cols-2 gap-8">
           {/* ═══ LEFT: Creation Panel ═══ */}
           <div className="space-y-6" ref={formRef}>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
-              <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
+            <MusicCreatorTour />
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
+                <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground gap-1.5"
+                onClick={() => {
+                  if (user) localStorage.removeItem(`musicdibs_music_creator_tour_seen_${user.id}`);
+                  window.dispatchEvent(new Event('musicdibs:start-music-tour'));
+                }}
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                {t('aiCreate.tour.showAgain', 'Ver tutorial')}
+              </Button>
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "music" | "lyrics")} className="w-full">
