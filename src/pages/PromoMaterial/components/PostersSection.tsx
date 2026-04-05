@@ -367,7 +367,20 @@ export const PostersSection = () => {
                   <StyleSelect value={evStyle} onChange={setEvStyle} trKey={trEv} />
 
                   <div className="space-y-2">
-                    <Label>{trEv('additionalInfo')}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>{trEv('additionalInfo')}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={(!evAdditionalInfo.trim() && !evPhoto) || improvingEvPrompt}
+                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto)}
+                        className="h-7 text-xs gap-1"
+                      >
+                        {improvingEvPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {t('promoMaterial.creatives.improveWithAI')}
+                      </Button>
+                    </div>
                     <Textarea value={evAdditionalInfo} onChange={(e) => setEvAdditionalInfo(e.target.value)} placeholder={trEv('additionalInfoPlaceholder')} rows={2} />
                   </div>
 
