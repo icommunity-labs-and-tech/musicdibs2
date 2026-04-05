@@ -617,7 +617,7 @@ const resources = {
         promoGroupTitle: 'Genera material promocional',
         modules: {
           createMusic: { title: 'Crea Música', desc: 'Genera música original desde cero usando IA. Describe el estilo, mood y características que deseas.' },
-          editModify: { title: 'Masterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
+          editModify: { title: 'Masterizado profesional con IA', desc: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.' },
           inspire: { title: 'Inspírate', desc: 'Obtén ideas, prompts sugeridos y descubre combinaciones de géneros y moods.' },
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
@@ -1105,7 +1105,7 @@ const resources = {
         promoGroupTitle: 'Generate promotional material',
         modules: {
           createMusic: { title: 'Create Music', desc: 'Generate original music from scratch using AI. Describe the style, mood and characteristics you want.' },
-          editModify: { title: 'Master & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
+          editModify: { title: 'Professional AI Mastering', desc: 'Get a Spotify-ready sound: more volume, clarity and power in seconds.' },
           inspire: { title: 'Get Inspired', desc: 'Get ideas, suggested prompts and discover genre and mood combinations.' },
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
@@ -1404,7 +1404,7 @@ const resources = {
         promoGroupTitle: 'Gere material promocional',
         modules: {
           createMusic: { title: 'Crie Música', desc: 'Gere música original do zero usando IA. Descreva o estilo, mood e características que deseja.' },
-          editModify: { title: 'Masterizar e melhorar', desc: 'Melhore suas faixas, limpe o áudio e obtenha uma versão mais profissional.' },
+          editModify: { title: 'Masterização profissional com IA', desc: 'Consiga um som pronto para o Spotify: mais volume, clareza e potência em segundos.' },
           inspire: { title: 'Inspire-se', desc: 'Obtenha ideias, prompts sugeridos e descubra combinações de gêneros e moods.' },
           createVideoclips: { title: 'Crie Videoclipes', desc: 'Gere videoclipes musicais com IA. Descreva o estilo visual, envie uma imagem ou crie a partir de texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
@@ -1441,7 +1441,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       legalText: 'Asegúrate de tener derechos sobre el contenido que subas o generes antes de registrarlo, distribuirlo o publicarlo.',
       modules: {
         createMusic: { title: 'Crear música', desc: 'Genera canciones completas o bases instrumentales a partir de una descripción.' },
-        editModify: { title: 'Masterizar y mejorar', desc: 'Mejora tus pistas, limpia el audio y consigue una versión más profesional.' },
+        editModify: { title: 'Masterizado profesional con IA', desc: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.' },
         inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
         createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
@@ -1472,7 +1472,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       legalText: 'Make sure you own the rights to any content you upload or generate before registering, distributing or publishing it.',
       modules: {
         createMusic: { title: 'Create music', desc: 'Generate songs or instrumentals from a text description.' },
-        editModify: { title: 'Master & Enhance', desc: 'Enhance your tracks, clean the audio and get a more professional version.' },
+        editModify: { title: 'Professional AI Mastering', desc: 'Get a Spotify-ready sound: more volume, clarity and power in seconds.' },
         inspire: { title: 'Inspiration', desc: 'Discover prompts, combinations and references to start faster.' },
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
         createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
@@ -1503,7 +1503,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       legalText: 'Certifique-se de ter os direitos sobre qualquer conteúdo enviado ou gerado antes de registrá-lo, distribuí-lo ou publicá-lo.',
       modules: {
         createMusic: { title: 'Criar música', desc: 'Gere músicas ou instrumentais a partir de uma descrição.' },
-        editModify: { title: 'Masterizar e melhorar', desc: 'Melhore suas faixas, limpe o áudio e obtenha uma versão mais profissional.' },
+        editModify: { title: 'Masterização profissional com IA', desc: 'Consiga um som pronto para o Spotify: mais volume, clareza e potência em segundos.' },
         inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
