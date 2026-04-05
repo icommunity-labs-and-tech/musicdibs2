@@ -338,28 +338,30 @@ export const PostersSection = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{trEv('artistLogo')}</Label>
-                      <p className="text-xs text-muted-foreground">{trEv('artistLogoDesc')}</p>
-                      <FileUploadBox
+                      <FileDropzone
+                        label={trEv('artistLogo')}
+                        description={trEv('artistLogoDesc')}
+                        fileType="image"
+                        accept="image/jpeg,image/png,image/webp"
+                        maxSize={10}
+                        currentFile={evLogo}
                         preview={evLogoPreview}
-                        onClear={() => { setEvLogo(null); setEvLogoPreview(null); if (evLogoRef.current) evLogoRef.current.value = ''; }}
-                        onClick={() => evLogoRef.current?.click()}
-                        uploadLabel={trEv('uploadFile')}
-                        changeLabel={trEv('changeFile')}
+                        onFileSelect={(f) => { if (validateFile(f, toast, trEv)) { setEvLogo(f); setEvLogoPreview(URL.createObjectURL(f)); } }}
+                        onRemove={() => { setEvLogo(null); setEvLogoPreview(null); }}
                       />
-                      <input ref={evLogoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setEvLogo, setEvLogoPreview, trEv)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{trEv('artistPhoto')}</Label>
-                      <p className="text-xs text-muted-foreground">{trEv('artistPhotoDesc')}</p>
-                      <FileUploadBox
+                      <FileDropzone
+                        label={trEv('artistPhoto')}
+                        description={trEv('artistPhotoDesc')}
+                        fileType="image"
+                        accept="image/jpeg,image/png,image/webp"
+                        maxSize={10}
+                        currentFile={evPhoto}
                         preview={evPhotoPreview}
-                        onClear={() => { setEvPhoto(null); setEvPhotoPreview(null); if (evPhotoRef.current) evPhotoRef.current.value = ''; }}
-                        onClick={() => evPhotoRef.current?.click()}
-                        uploadLabel={trEv('uploadFile')}
-                        changeLabel={trEv('changeFile')}
+                        onFileSelect={(f) => { if (validateFile(f, toast, trEv)) { setEvPhoto(f); setEvPhotoPreview(URL.createObjectURL(f)); } }}
+                        onRemove={() => { setEvPhoto(null); setEvPhotoPreview(null); }}
                       />
-                      <input ref={evPhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setEvPhoto, setEvPhotoPreview, trEv)} />
                     </div>
                   </div>
 
