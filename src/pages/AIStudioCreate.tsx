@@ -1062,7 +1062,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Main textarea */}
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5" data-tour="mc-description">
                         <div className="flex items-center justify-between">
                           <Label>{t('aiCreate.describeSong')}</Label>
                           <button
