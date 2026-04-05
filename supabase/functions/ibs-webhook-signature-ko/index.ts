@@ -143,7 +143,7 @@ serve(async (req) => {
 
         // Send failure email
         if (userInfo.email) {
-          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason });
+          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason, lang: userInfo.lang });
           await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
         }
       }
