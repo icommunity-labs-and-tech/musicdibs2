@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User, Mail, Shield, Calendar, Lock, Loader2,
-  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2,
+  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2, Globe,
 } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
