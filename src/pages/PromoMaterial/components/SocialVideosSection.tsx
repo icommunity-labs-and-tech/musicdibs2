@@ -12,8 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, Download, Info, AlertCircle, Video } from 'lucide-react';
-
-const VIDEO_COST = 10;
+const VIDEO_COST = FEATURE_COSTS.social_video;
 
 export const SocialVideosSection = () => {
   const { user } = useAuth();
