@@ -49,7 +49,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.socialPromo', 'Promoción en redes'), url: '/dashboard/premium-promotion', icon: Crown, hideForManager: true },
     { title: tr('dashboard.sidebar.press', 'Prensa & Visibilidad'), url: '/dashboard/press', icon: Newspaper, hideForManager: true },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true },
-    { title: tr('dashboard.sidebar.registrationHistory', 'Historial de registros'), url: '/dashboard/blockchain', icon: Shield },
+    
     { title: tr('dashboard.sidebar.verifyRegistration', 'Verificar registro'), url: '/dashboard/verify', icon: Search },
     { title: tr('dashboard.sidebar.verifyIdentity', 'Verificar identidad'), url: '/dashboard/verify-identity', icon: User, kycOnly: true },
   ], [i18n.resolvedLanguage, t]);
