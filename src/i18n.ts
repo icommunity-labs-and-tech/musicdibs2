@@ -1322,6 +1322,7 @@ const resources = {
           service: 'Serviço',
           distributeMusic: 'Distribuir sua música',
           socialPromo: 'Promoção nas redes',
+          promotion: 'Promoção e difusão',
           artistProfiles: 'Meus Artistas Virtuais',
           profile: 'Perfil',
           plansCredits: 'Planos e créditos',
