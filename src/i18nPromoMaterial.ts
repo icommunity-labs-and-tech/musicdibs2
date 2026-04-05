@@ -12,6 +12,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Genera imágenes profesionales para Instagram y YouTube',
         platformInstagram: 'Instagram',
         platformYoutube: 'YouTube',
+        improveWithAI: '✨ Mejorar con IA',
+        aiDescribe: {
+          needInput: 'Escribe algo o sube una foto',
+          success: 'Descripción generada con IA',
+          error: 'Error al generar descripción',
+          generating: 'Generando…',
+          button: '✨ Generar con IA',
+        },
         instagram: {
           title: 'Creatividades para Instagram',
           subtitle: 'Genera posts completos con imagen, copy y hashtags',
