@@ -1032,7 +1032,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Mode toggle */}
-                      <div className="flex rounded-full bg-muted p-1">
+                      <div className="flex rounded-full bg-muted p-1" data-tour="mc-creation-mode">
                         <button
                           onClick={() => setMode('song')}
                           className={cn(
