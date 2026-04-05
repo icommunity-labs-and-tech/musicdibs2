@@ -338,7 +338,10 @@ export default function ManagerRegisterWork() {
                 fileType="any"
                 accept="*/*"
                 maxSize={100}
-                onFileSelect={(file) => handleAddFiles(createFileList(file))}
+                onFileSelect={(file) => setFiles(prev => {
+                  const merged = [...prev, file];
+                  return merged.filter((f, i, a) => a.findIndex(x => x.name === f.name && x.size === f.size) === i);
+                })}
               />
             )}
             <input id="manager-file-input" type="file" multiple className="hidden" onChange={(e) => { handleAddFiles(e.target.files); e.target.value = ''; }} />
