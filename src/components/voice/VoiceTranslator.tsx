@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Upload, Download, Info, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 interface VoiceTranslatorProps {
   clones: any[];
