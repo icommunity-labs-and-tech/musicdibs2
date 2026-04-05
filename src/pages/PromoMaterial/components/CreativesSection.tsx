@@ -85,6 +85,37 @@ export const CreativesSection = () => {
       reader.readAsDataURL(file);
     });
 
+  const handleImproveDescription = async () => {
+    if (!imageDescription.trim() && !basePhoto) {
+      toast({ title: t('promoMaterial.creatives.aiDescribe.needInput', 'Escribe algo o sube una foto'), variant: 'destructive' });
+      return;
+    }
+    setImprovingPrompt(true);
+    try {
+      let image_base64: string | null = null;
+      if (basePhoto) image_base64 = await fileToBase64(basePhoto);
+
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: {
+          prompt: imageDescription.trim() || '',
+          mode: 'visual_creative',
+          image_base64,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.improved) {
+        setImageDescription(data.improved);
+        toast({ title: '✨ ' + t('promoMaterial.creatives.aiDescribe.success', 'Descripción generada con IA') });
+      }
+    } catch (err: any) {
+      console.error('AI describe error:', err);
+      toast({ title: t('promoMaterial.creatives.aiDescribe.error', 'Error al generar descripción'), variant: 'destructive' });
+    } finally {
+      setImprovingPrompt(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (platform === 'instagram') {
       if (!artistName.trim() || !trackTitle.trim() || !imageDescription.trim()) {
