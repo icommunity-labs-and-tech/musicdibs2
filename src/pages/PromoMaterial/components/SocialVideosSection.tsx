@@ -70,7 +70,9 @@ export const SocialVideosSection = () => {
     }
 
     setGenerating(true);
-    try {
+    setProgressStatus('queued');
+    setQueuePosition(null);
+    setPollCount(0);
       const { data: { session } } = await supabase.auth.getSession();
       const headers = {
         'Authorization': `Bearer ${session?.access_token}`,
