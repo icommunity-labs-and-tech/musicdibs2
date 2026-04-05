@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
