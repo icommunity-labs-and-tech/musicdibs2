@@ -385,7 +385,10 @@ export default function AIStudioVocal() {
             <span className="text-sm font-medium">{voiceToolsBadge}</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">{voiceToolsTitle}</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{voiceToolsSub}</p>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">{voiceToolsSub}</p>
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground gap-1" onClick={() => window.dispatchEvent(new Event('musicdibs:start-voice-tour'))}>
+            <HelpCircle className="h-3.5 w-3.5" /> {String(t('voiceToolsTour.rewatch', { defaultValue: 'Ver tutorial' }))}
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-5xl mx-auto">
