@@ -36,9 +36,11 @@ function useSteps(): Step[] {
     },
     {
       target: '[data-tour="pm-ig-formats"]',
+      placement: 'bottom' as const,
       title: pm('step4Title', 'Diferencia entre formatos Instagram'),
       content: pm('step4Content', '📸 Feed Post (cuadrado 1:1)\nPara el feed principal de Instagram\nIdeal para: anuncios de singles, portadas, fotos artísticas\n\n📱 Story (vertical 9:16)\nPara historias de Instagram\nIdeal para: teasers, behind the scenes, anuncios temporales\n\nAmbos incluyen:\n✓ Imagen optimizada\n✓ Copy personalizado\n✓ Hashtags relevantes'),
       disableBeacon: true,
+      isFixed: true,
     },
     {
       target: '[data-tour="pm-videos-tab"]',
@@ -53,13 +55,15 @@ function useSteps(): Step[] {
       disableBeacon: true,
     },
     {
-      target: '[data-tour="pm-dropzone"]',
+      target: 'body',
+      placement: 'center' as const,
       title: pm('step7Title', 'Sube archivos fácilmente'),
       content: pm('step7Content', 'En todas las secciones puedes subir archivos de dos formas:\n\n🖱️ Click para seleccionar\nHaz click en la zona de upload y selecciona el archivo\n\n📂 Arrastra y suelta\nArrastra la imagen/foto directamente desde tu ordenador\n\nFormatos aceptados:\n• Imágenes: JPG, PNG, WEBP (máx. 10MB)\n• Audio: MP3, WAV (solo para videos)'),
       disableBeacon: true,
     },
     {
-      target: '[data-tour="pm-results"]',
+      target: 'body',
+      placement: 'center' as const,
       title: pm('step8Title', 'Descarga y usa tu contenido'),
       content: pm('step8Content', 'Una vez generado el contenido:\n\n✓ Preview en pantalla\n✓ Botón de descarga directo\n✓ Copia automática de textos (copy/hashtags)\n✓ Archivos optimizados para cada plataforma\n\nTodo el contenido se guarda en tu cuenta y puedes descargarlo cuando quieras.\n\n💡 Consejo: Genera múltiples versiones para A/B testing en redes sociales.'),
       disableBeacon: true,
