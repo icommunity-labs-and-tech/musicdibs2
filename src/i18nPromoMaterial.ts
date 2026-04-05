@@ -211,6 +211,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         insufficientCreditsDesc: 'Necesitas 10 créditos para generar un video. Tienes {{current}}.',
         important: 'Importante:',
         notMusicVideo: 'Este generador crea clips visuales cortos, no videoclips musicales completos.',
+        progress: {
+          queuePosition: 'En cola · Posición {{position}}',
+          queueWaiting: 'En cola · Esperando servidor…',
+          generating: 'Generando vídeo…',
+          queueHint: 'El vídeo se está preparando. Puede tardar 1-3 minutos.',
+          processingHint: 'El modelo está renderizando tu vídeo. Casi listo…',
+          timeout: 'La generación del vídeo ha expirado.',
+        },
       },
       posters: {
         title: 'Carteles',
