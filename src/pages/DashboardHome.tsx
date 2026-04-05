@@ -24,6 +24,7 @@ export default function DashboardHome() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
   const [worksCount, setWorksCount] = useState<number | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(() => sessionStorage.getItem('newUserBannerDismissed') === 'true');
 
   useEffect(() => {
     if (!user) return;
