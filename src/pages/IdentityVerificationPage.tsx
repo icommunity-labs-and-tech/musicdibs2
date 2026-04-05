@@ -407,13 +407,33 @@ export default function IdentityVerificationPage() {
                   </div>
                 )}
 
+                {/* Always show open-in-new-tab option prominently */}
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 flex flex-col sm:flex-row items-center gap-3">
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="text-sm font-medium">¿Problemas con la verificación?</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Si la cámara no funciona o el proceso no avanza, ábrelo en una nueva pestaña.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(kycUrl, '_blank', 'noopener,noreferrer')}
+                    className="gap-2 shrink-0"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Abrir en nueva pestaña
+                  </Button>
+                </div>
+
                 {!iframeError ? (
                   <div className="rounded-lg overflow-hidden border border-border/40">
                     <iframe
                       ref={iframeRef}
                       src={kycUrl}
                       className="w-full h-[600px]"
-                      allow="camera; microphone"
+                      allow="camera *; microphone *"
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"
                       title="Verificación de identidad"
                       onError={() => setIframeError(true)}
                       onLoad={() => console.log('[KYC] iframe loaded')}
@@ -425,17 +445,10 @@ export default function IdentityVerificationPage() {
                     <div>
                       <p className="font-medium">La verificación debe completarse en una ventana externa</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Haz clic en el botón para abrir el proceso de verificación.
+                        Haz clic en el botón de arriba para abrir el proceso.
                         Una vez finalices, vuelve a esta página.
                       </p>
                     </div>
-                    <Button
-                      onClick={() => window.open(kycUrl, '_blank', 'width=800,height=700')}
-                      className="gap-2"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                      Abrir verificación en nueva ventana
-                    </Button>
                     <p className="text-xs text-muted-foreground">
                       Esta página se actualizará automáticamente cuando termines.
                     </p>
