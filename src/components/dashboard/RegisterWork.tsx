@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { FileDropzone } from '@/components/FileDropzone';
 import { useLocation, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
