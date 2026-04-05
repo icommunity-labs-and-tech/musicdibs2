@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, Copy, Check, Download } from 'lucide-react';
+import { Loader2, Upload, Copy, Check, Download, Sparkles } from 'lucide-react';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 export const CreativesSection = () => {
