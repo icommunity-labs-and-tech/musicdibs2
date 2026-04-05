@@ -6,8 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-const RUNWAY_API_URL = 'https://api.dev.runwayml.com/v1';
-const RUNWAY_API_VERSION = '2024-11-06';
+const FAL_MODEL = 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video';
+const FAL_QUEUE_URL = `https://queue.fal.run/${FAL_MODEL}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -38,20 +38,71 @@ serve(async (req) => {
 
     const userId = user.id;
 
-    const RUNWAY_API_KEY = Deno.env.get('RUNWAY_API_KEY');
-    if (!RUNWAY_API_KEY) {
-      throw new Error('RUNWAY_API_KEY is not configured');
-    }
+    const FAL_API_KEY = Deno.env.get('FAL_API_KEY');
+    if (!FAL_API_KEY) throw new Error('FAL_API_KEY is not configured');
 
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { action, mode, promptText, promptImage, ratio, duration, taskId } = await req.json();
+    const { action, promptText, duration, requestId } = await req.json();
 
-    // ── Rate limiting: solo para generate, no para status (polling) ──
+    const falHeaders = {
+      'Authorization': `Key ${FAL_API_KEY}`,
+      'Content-Type': 'application/json',
+    };
+
+    // ── Action: check status ──
+    if (action === 'status') {
+      if (!requestId) throw new Error('requestId is required for status check');
+
+      const statusRes = await fetch(`${FAL_QUEUE_URL}/requests/${requestId}/status?logs=1`, {
+        headers: falHeaders,
+      });
+
+      if (!statusRes.ok) {
+        const errorText = await statusRes.text();
+        console.error(`[GENERATE-VIDEO] fal status error: ${statusRes.status} - ${errorText}`);
+        throw new Error(`fal.ai status error: ${statusRes.status}`);
+      }
+
+      const statusData = await statusRes.json();
+
+      // If completed, fetch the result
+      if (statusData.status === 'COMPLETED') {
+        const resultRes = await fetch(`${FAL_QUEUE_URL}/requests/${requestId}`, {
+          headers: falHeaders,
+        });
+        if (!resultRes.ok) {
+          throw new Error(`fal.ai result error: ${resultRes.status}`);
+        }
+        const resultData = await resultRes.json();
+        return new Response(JSON.stringify({
+          status: 'SUCCEEDED',
+          video_url: resultData.video?.url ?? null,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      if (statusData.status === 'FAILED') {
+        return new Response(JSON.stringify({
+          status: 'FAILED',
+          failure: statusData.error ?? 'Unknown error',
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // Still processing
+      return new Response(JSON.stringify({
+        status: 'PENDING',
+        queue_position: statusData.queue_position ?? null,
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // ── Action: generate ──
     if (action === 'generate') {
+      if (!promptText) throw new Error('promptText is required');
+
+      // Rate limiting
       const VIDEO_LIMIT = 1;
       const WINDOW_SECS = 60;
       const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
@@ -64,55 +115,19 @@ serve(async (req) => {
         .gte('called_at', windowStart);
 
       if ((recentCalls ?? 0) >= VIDEO_LIMIT) {
-        console.warn(`[GENERATE-VIDEO] Rate limit exceeded for user ${userId}`);
         return new Response(
           JSON.stringify({
             error: 'rate_limit_exceeded',
             message: `Máximo ${VIDEO_LIMIT} generación de vídeo por minuto. Espera unos segundos e inténtalo de nuevo.`,
             retryAfter: WINDOW_SECS,
           }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(WINDOW_SECS) },
-          }
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(WINDOW_SECS) } }
         );
       }
 
       await supabaseAdmin.from('ai_rate_limits').insert({ user_id: userId, function_name: 'generate-video' });
-    }
 
-    const headers = {
-      'Authorization': `Bearer ${RUNWAY_API_KEY}`,
-      'Content-Type': 'application/json',
-      'X-Runway-Version': RUNWAY_API_VERSION,
-    };
-
-    // Action: check task status
-    if (action === 'status') {
-      if (!taskId) throw new Error('taskId is required for status check');
-
-      const response = await fetch(`${RUNWAY_API_URL}/tasks/${taskId}`, {
-        method: 'GET',
-        headers,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[GENERATE-VIDEO] Runway status error: ${response.status} - ${errorText}`);
-        throw new Error(`Runway API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Action: generate video
-    if (action === 'generate') {
-      if (!promptText) throw new Error('promptText is required');
-
-      // ── Credit deduction ──────────────────────────────────────
+      // Credit deduction
       const CREDITS_COST = 6;
       const { data: profile } = await supabaseAdmin
         .from('profiles')
@@ -126,7 +141,6 @@ serve(async (req) => {
         });
       }
 
-      // Deduct credits upfront
       await supabaseAdmin.from('profiles').update({
         available_credits: profile.available_credits - CREDITS_COST,
         updated_at: new Date().toISOString(),
@@ -156,53 +170,40 @@ serve(async (req) => {
         }
       };
 
-      const endpoint = mode === 'image_to_video' ? 'image_to_video' : 'text_to_video';
-      
-      const body: Record<string, unknown> = {
-        model: 'gen4.5',
-        promptText,
-        ratio: ratio || '1280:720',
-        duration: duration || 5,
+      // Submit to fal.ai queue
+      const body = {
+        prompt: promptText,
+        duration: String(duration || 5),
+        aspect_ratio: '16:9',
       };
 
-      if (mode === 'image_to_video' && promptImage) {
-        body.promptImage = promptImage;
-      }
+      console.log(`[GENERATE-VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..." | ${duration}s`);
 
-      console.log(`[GENERATE-VIDEO] Starting ${endpoint}: "${promptText.slice(0, 60)}..." | ${duration}s | ratio: ${ratio}`);
-
-      const response = await fetch(`${RUNWAY_API_URL}/${endpoint}`, {
+      const response = await fetch(FAL_QUEUE_URL, {
         method: 'POST',
-        headers,
+        headers: falHeaders,
         body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[GENERATE-VIDEO] Runway API error: ${response.status} - ${errorText}`);
-        
+        console.error(`[GENERATE-VIDEO] fal.ai error: ${response.status} - ${errorText}`);
+
         if (response.status === 429) {
-          await refundCredits('Rate limit Runway');
+          await refundCredits('Rate limit fal.ai');
           return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait and try again.' }), {
             status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        if (response.status === 402 || errorText.includes('not have enough credits')) {
-          await refundCredits('Créditos Runway insuficientes');
-          return new Response(JSON.stringify({ error: 'insufficient_credits', provider: 'runway', message: 'No hay créditos suficientes en Runway. Recarga créditos en runway.com.' }), {
-            status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-
-        await refundCredits(`Error Runway: ${response.status}`);
-        throw new Error(`Runway API error: ${response.status} - ${errorText}`);
+        await refundCredits(`Error fal.ai: ${response.status}`);
+        throw new Error(`fal.ai error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log(`[GENERATE-VIDEO] Task created: ${data.id}, ${CREDITS_COST} credits charged`);
+      console.log(`[GENERATE-VIDEO] Queue request submitted: ${data.request_id}, ${CREDITS_COST} credits charged`);
 
-      return new Response(JSON.stringify({ taskId: data.id }), {
+      return new Response(JSON.stringify({ requestId: data.request_id }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
