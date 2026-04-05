@@ -73,6 +73,13 @@ export default function ProfilePage() {
     fetchDashboardSummary()
       .then(setSummary)
       .finally(() => setKycLoading(false));
+    // Load language from profile
+    if (user?.id) {
+      supabase.from('profiles').select('language').eq('user_id', user.id).single()
+        .then(({ data }) => {
+          if (data?.language) setUserLang(data.language);
+        });
+    }
   }, [user]);
 
   const handleSaveProfile = async () => {
