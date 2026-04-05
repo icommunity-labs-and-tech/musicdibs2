@@ -138,7 +138,24 @@ export const SocialVideosSection = () => {
       <Card>
         <CardContent className="p-6 space-y-5">
           <div className="space-y-2">
-            <Label>{tr('descriptionLabel')}</Label>
+            <div className="flex items-center justify-between">
+              <Label>{tr('descriptionLabel')}</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={!description.trim() || improvingPrompt}
+                onClick={handleImproveDescription}
+                className="h-7 text-xs gap-1"
+              >
+                {improvingPrompt ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3 w-3" />
+                )}
+                {t('promoMaterial.creatives.improveWithAI')}
+              </Button>
+            </div>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
