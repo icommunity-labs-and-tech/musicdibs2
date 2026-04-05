@@ -418,15 +418,14 @@ export function RegisterWork({ summary }: { summary: DashboardSummary | null }) 
                   </Button>
                 </div>
               ) : (
-                <div
-                  className="flex items-center gap-2 rounded-md border border-dashed border-border p-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => fileRef.current?.click()}
-                >
-                  <FileUp className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground truncate">
-                    {file ? file.name : t('dashboard.registerWork.selectFile')}
-                  </span>
-                </div>
+                <FileDropzone
+                  fileType="audio"
+                  accept="*/*"
+                  maxSize={100}
+                  currentFile={file}
+                  onFileSelect={(f) => setFile(f)}
+                  onRemove={() => setFile(null)}
+                />
               )}
               <input ref={fileRef} type="file" className="hidden" onChange={e => setFile(e.target.files?.[0] || null)} />
             </div>
