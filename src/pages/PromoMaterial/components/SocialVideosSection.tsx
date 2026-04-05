@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useCredits } from '@/hooks/useCredits';
+import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,8 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, Sparkles, Download, Info, AlertCircle, Video } from 'lucide-react';
-
-const VIDEO_COST = 10;
+const VIDEO_COST = FEATURE_COSTS.social_video;
 
 export const SocialVideosSection = () => {
   const { user } = useAuth();
@@ -172,10 +173,11 @@ export const SocialVideosSection = () => {
             ) : (
               <>
                 <Video className="w-4 h-4 mr-2" />
-                {tr('generateBtn')} ({VIDEO_COST} créditos)
+                {tr('generateBtn')}
               </>
             )}
           </Button>
+          <PricingLink className="block text-center mt-1" />
 
           {videoUrl && (
             <div className="space-y-3">

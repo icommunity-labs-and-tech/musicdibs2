@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Upload, Copy, Check, Download } from 'lucide-react';
+import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 export const CreativesSection = () => {
   const { t } = useTranslation();
@@ -296,6 +297,7 @@ export const CreativesSection = () => {
                     <Button onClick={handleGenerate} disabled={generating} className="w-full" size="lg">
                       {generating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{trIg('generating')}</>) : trIg('generateButton')}
                     </Button>
+                    <PricingLink className="block text-center mt-1" />
                   </CardContent>
                 </Card>
 
@@ -413,6 +415,7 @@ export const CreativesSection = () => {
                 <Button onClick={handleGenerate} disabled={generating} className="w-full" size="lg">
                   {generating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{trYt('generating')}</>) : trYt('generateButton')}
                 </Button>
+                <PricingLink className="block text-center mt-1" />
               </CardContent>
             </Card>
 
