@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export default function UserLogin() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -66,7 +66,8 @@ export default function UserLogin() {
     e.preventDefault();
     setError(''); setSuccess(''); setLoading(true);
     const form = new FormData(e.currentTarget);
-    const { error } = await signUp(form.get('email') as string, form.get('password') as string);
+    const lang = i18n.resolvedLanguage || 'es';
+    const { error } = await signUp(form.get('email') as string, form.get('password') as string, { language: lang });
     setLoading(false);
     if (error) setError(error.message); else setSuccess(t('userLogin.checkEmailConfirm'));
   };

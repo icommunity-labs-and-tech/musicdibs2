@@ -10,9 +10,10 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User, Mail, Shield, Calendar, Lock, Loader2,
-  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2,
+  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2, Globe,
 } from 'lucide-react';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
@@ -45,6 +46,8 @@ export default function ProfilePage() {
   const lang = i18n.resolvedLanguage || 'es';
 
   const [editing, setEditing] = useState(false);
+  const [userLang, setUserLang] = useState(i18n.resolvedLanguage || 'es');
+  const [langSaving, setLangSaving] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -70,6 +73,13 @@ export default function ProfilePage() {
     fetchDashboardSummary()
       .then(setSummary)
       .finally(() => setKycLoading(false));
+    // Load language from profile
+    if (user?.id) {
+      supabase.from('profiles').select('language').eq('user_id', user.id).single()
+        .then(({ data }) => {
+          if (data?.language) setUserLang(data.language);
+        });
+    }
   }, [user]);
 
   const handleSaveProfile = async () => {
@@ -278,6 +288,42 @@ export default function ProfilePage() {
                 </div>
               )}
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Language */}
+      <Card className="border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" /> {t('dashboard.profile.languageTitle')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">{t('dashboard.profile.languageDesc')}</p>
+          <Select
+            value={userLang}
+            onValueChange={async (val) => {
+              setUserLang(val);
+              setLangSaving(true);
+              i18n.changeLanguage(val);
+              await supabase.from('profiles').update({ language: val }).eq('user_id', user!.id);
+              setLangSaving(false);
+            }}
+          >
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="es">🇪🇸 Español</SelectItem>
+              <SelectItem value="en">🇬🇧 English</SelectItem>
+              <SelectItem value="pt">🇧🇷 Português</SelectItem>
+            </SelectContent>
+          </Select>
+          {langSaving && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> {t('dashboard.profile.saving')}
+            </div>
           )}
         </CardContent>
       </Card>

@@ -203,9 +203,9 @@ serve(async (req) => {
       // Send rejection email when KYC is rejected
       if (status === "rejected" && targetEmail) {
         try {
-          const { data: profile } = await admin.from("profiles").select("display_name").eq("user_id", user_id).single();
+          const { data: profile } = await admin.from("profiles").select("display_name, language").eq("user_id", user_id).single();
           const name = profile?.display_name || targetEmail.split("@")[0] || "Usuario";
-          const emailData = kycRejectedEmail({ name });
+          const emailData = kycRejectedEmail({ name, lang: profile?.language });
           const messageId = crypto.randomUUID();
           await admin.from("email_send_log").insert({
             message_id: messageId,
@@ -639,7 +639,7 @@ serve(async (req) => {
           try {
             const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
             const userEmail = targetAuth?.user?.email;
-            const { data: userProfile } = await admin.from("profiles").select("display_name").eq("user_id", promo.user_id).single();
+            const { data: userProfile } = await admin.from("profiles").select("display_name, language").eq("user_id", promo.user_id).single();
             const displayName = userProfile?.display_name || userEmail || "Artista";
 
             if (userEmail) {
@@ -647,6 +647,7 @@ serve(async (req) => {
                 name: displayName,
                 artistName: promo.artist_name,
                 songTitle: promo.song_title,
+                lang: userProfile?.language,
               });
 
               await fetch("https://api.resend.com/emails", {

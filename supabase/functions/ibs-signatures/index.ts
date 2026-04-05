@@ -121,11 +121,11 @@ serve(async (req) => {
       try {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("display_name")
+          .select("display_name, language")
           .eq("user_id", user.id)
           .single();
         const userName = profile?.display_name || user.email?.split("@")[0] || "Usuario";
-        const emailData = kycInProcessEmail({ name: userName });
+        const emailData = kycInProcessEmail({ name: userName, lang: profile?.language });
         const messageId = crypto.randomUUID();
         await supabaseAdmin.from("email_send_log").insert({
           message_id: messageId,

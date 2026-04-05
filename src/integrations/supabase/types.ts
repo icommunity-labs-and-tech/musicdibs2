@@ -850,6 +850,7 @@ export type Database = {
           id: string
           is_blocked: boolean | null
           kyc_status: string
+          language: string
           phone: string | null
           stripe_customer_id: string | null
           subscription_plan: string
@@ -864,6 +865,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string
+          language?: string
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
@@ -878,6 +880,7 @@ export type Database = {
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string
+          language?: string
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
