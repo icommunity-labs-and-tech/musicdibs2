@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export default function UserLogin() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
