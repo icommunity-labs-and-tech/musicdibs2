@@ -412,7 +412,7 @@ export default function AIStudioVocal() {
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-5">
                 {/* Voice selector */}
-                <Card>
+                <Card data-tour="vt-cloned-list">
                   <CardHeader className="pb-3"><CardTitle className="text-base">{tv('clonedVoice')}</CardTitle></CardHeader>
                   <CardContent>
                     <div className="space-y-2">
