@@ -444,7 +444,7 @@ export const CreativesSection = () => {
                       onClick={handleImproveDescription}
                     >
                       {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating', 'Generando…') : t('promoMaterial.creatives.aiDescribe.button', '✨ Generar con IA')}
+                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
                     </Button>
                   </div>
                   <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trYt('thumbnailDescriptionPlaceholder')} rows={3} />

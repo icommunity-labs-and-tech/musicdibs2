@@ -288,14 +288,14 @@ export const SocialVideosSection = () => {
                     <Clock className="h-4 w-4 text-muted-foreground animate-pulse" />
                     <span>
                       {queuePosition != null && queuePosition > 0
-                        ? `En cola · Posición ${queuePosition}`
-                        : 'En cola · Esperando servidor…'}
+                        ? tr('progress.queuePosition', { position: queuePosition })
+                        : tr('progress.queueWaiting')}
                     </span>
                   </>
                 ) : (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    <span>Generando vídeo…</span>
+                    <span>{tr('progress.generating')}</span>
                   </>
                 )}
               </div>
@@ -309,8 +309,8 @@ export const SocialVideosSection = () => {
               />
               <p className="text-xs text-muted-foreground">
                 {progressStatus === 'queued'
-                  ? 'El vídeo se está preparando. Puede tardar 1-3 minutos.'
-                  : 'El modelo está renderizando tu vídeo. Casi listo…'}
+                  ? tr('progress.queueHint')
+                  : tr('progress.processingHint')}
               </p>
             </div>
           )}
