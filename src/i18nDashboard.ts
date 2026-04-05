@@ -1329,6 +1329,9 @@ const pt: typeof es = {
       aiStudioImages: 'Imagens',
       aiStudioVideos: 'Vídeos',
       aiStudioButton: 'Abrir AI Studio',
+      newUserTitle: 'Bem-vindo ao MusicDibs!',
+      newUserDesc: 'Você ainda não tem obras registradas. Siga nosso assistente passo a passo para lançar sua primeira música ao mundo.',
+      newUserBtn: 'Lance seu primeiro hit',
     },
     billing: {
       title: 'Faturamento',
