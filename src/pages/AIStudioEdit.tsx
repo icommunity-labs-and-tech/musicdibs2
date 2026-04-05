@@ -393,22 +393,22 @@ const AIStudioEdit = () => {
                 <CardDescription>{t('aiEdit.audioSourceDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Upload Button */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
+                {/* Upload with drag & drop */}
+                <FileDropzone
+                  fileType="audio"
                   accept="audio/*"
-                  onChange={handleFileUpload}
-                  className="hidden"
+                  maxSize={50}
+                  label={t('aiEdit.uploadAudio')}
+                  currentFile={uploadedFile}
+                  onFileSelect={(file) => {
+                    handleFileUpload({ target: { files: [file] } } as any);
+                  }}
+                  onRemove={() => {
+                    setUploadedFile(null);
+                    setUploadedAudioUrl(null);
+                    setSelectedAudioUrl(null);
+                  }}
                 />
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {t('aiEdit.uploadAudio')}
-                </Button>
 
                 {/* Uploaded File Preview */}
                 {uploadedFile && uploadedAudioUrl && (
