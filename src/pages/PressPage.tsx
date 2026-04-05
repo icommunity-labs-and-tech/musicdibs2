@@ -147,45 +147,8 @@ const PressPage = () => {
     }
   };
 
-  const handleFetchMetrics = async () => {
-    if (!audiomackSlug.trim()) {
-      toast({ title: t("dashboard.press.enterSlug"), variant: "destructive" });
-      return;
-    }
-    setLoadingMetrics(true);
-    try {
-      if (user) {
-        await supabase.from("audiomack_connections").upsert(
-          {
-            user_id: user.id,
-            audiomack_slug: audiomackSlug.trim(),
-            connected_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" }
-        );
-      }
-      const res = await fetch(
-        `https://api.audiomack.com/v1/artist/${audiomackSlug.trim()}?consumer_key=musicdibs`
-      );
-      if (!res.ok) throw new Error(t("dashboard.press.artistNotFound"));
-      const data = await res.json();
-      const artist = data.results || data;
 
-      const metricsRes = await fetch(
-        `https://api.audiomack.com/v1/artist/${audiomackSlug.trim()}/metrics?consumer_key=musicdibs`
-      );
-      const metricsData = metricsRes.ok ? await metricsRes.json() : null;
-      setAudiomackMetrics({ artist, metrics: metricsData?.results || null });
-      toast({
-        title: t("dashboard.press.metricsLoaded"),
-        description: t("dashboard.press.metricsLoadedDesc", { name: artist.name || audiomackSlug }),
-      });
-    } catch (err: any) {
-      toast({ title: t("dashboard.press.errorAudiomack"), description: err.message, variant: "destructive" });
-    } finally {
-      setLoadingMetrics(false);
-    }
-  };
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
