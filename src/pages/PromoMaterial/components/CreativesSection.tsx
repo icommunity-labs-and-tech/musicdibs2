@@ -106,7 +106,7 @@ export const CreativesSection = () => {
       if (error) throw error;
       if (data?.improved) {
         setImageDescription(data.improved);
-        toast({ title: '✨ ' + t('promoMaterial.creatives.aiDescribe.success', 'Descripción generada con IA') });
+        toast({ title: '✨ ' + t('promoMaterial.creatives.aiDescribe.success') });
       }
     } catch (err: any) {
       console.error('AI describe error:', err);
