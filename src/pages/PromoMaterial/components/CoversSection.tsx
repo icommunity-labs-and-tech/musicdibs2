@@ -380,48 +380,19 @@ export const CoversSection = () => {
 
                   <TabsContent value="reference" className="mt-3 space-y-3">
                     <p className="text-xs text-muted-foreground">{tr('referenceDesc')}</p>
-                    <input
-                      ref={referenceImageRef}
-                      type="file"
+                    <FileDropzone
+                      fileType="image"
                       accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) validateAndSetImage(f, setReferenceImage, setReferenceImagePreview);
+                      maxSize={10}
+                      currentFile={referenceImage}
+                      preview={referenceImagePreview}
+                      onFileSelect={(f) => validateAndSetImage(f, setReferenceImage, setReferenceImagePreview)}
+                      onRemove={() => {
+                        setReferenceImage(null);
+                        if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
+                        setReferenceImagePreview(null);
                       }}
                     />
-                    <div
-                      onClick={() => referenceImageRef.current?.click()}
-                      className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                    >
-                      {referenceImagePreview ? (
-                        <div className="flex items-center gap-3">
-                          <img src={referenceImagePreview} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                          <div className="flex-1 text-left">
-                            <p className="text-xs font-medium truncate">{referenceImage?.name}</p>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setReferenceImage(null);
-                                if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
-                                setReferenceImagePreview(null);
-                                if (referenceImageRef.current) referenceImageRef.current.value = '';
-                              }}
-                              className="text-xs text-primary hover:underline mt-1"
-                            >
-                              {tr('changeReference')}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-xs font-medium">{tr('referenceUpload')}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">{tr('artistPhotoFormats')}</p>
-                        </>
-                      )}
-                    </div>
 
                     {referenceImagePreview && (
                       <>
