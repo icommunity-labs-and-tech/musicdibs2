@@ -79,10 +79,11 @@ export const SocialVideosSection = () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            prompt: description,
+            action: 'generate',
+            promptText: description,
             duration: parseInt(duration),
-            style,
-            mode: 'social_clip',
+            ratio: '1280:720',
+            mode: 'text_to_video',
           }),
         }
       );
