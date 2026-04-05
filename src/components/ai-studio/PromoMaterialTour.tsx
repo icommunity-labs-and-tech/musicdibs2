@@ -35,12 +35,11 @@ function useSteps(): Step[] {
       disableBeacon: true,
     },
     {
-      target: '[data-tour="pm-ig-formats"]',
-      placement: 'bottom' as const,
+      target: 'body',
+      placement: 'center' as const,
       title: pm('step4Title', 'Diferencia entre formatos Instagram'),
       content: pm('step4Content', '📸 Feed Post (cuadrado 1:1)\nPara el feed principal de Instagram\nIdeal para: anuncios de singles, portadas, fotos artísticas\n\n📱 Story (vertical 9:16)\nPara historias de Instagram\nIdeal para: teasers, behind the scenes, anuncios temporales\n\nAmbos incluyen:\n✓ Imagen optimizada\n✓ Copy personalizado\n✓ Hashtags relevantes'),
       disableBeacon: true,
-      isFixed: true,
     },
     {
       target: '[data-tour="pm-videos-tab"]',
