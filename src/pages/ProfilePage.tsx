@@ -46,6 +46,8 @@ export default function ProfilePage() {
   const lang = i18n.resolvedLanguage || 'es';
 
   const [editing, setEditing] = useState(false);
+  const [userLang, setUserLang] = useState(i18n.resolvedLanguage || 'es');
+  const [langSaving, setLangSaving] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
