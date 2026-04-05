@@ -308,7 +308,7 @@ serve(async (req) => {
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
-                run_id: crypto.randomUUID(), message_id: messageId,
+                idempotency_key: `payment-failed-${messageId}`, message_id: messageId,
                 to: userEmail, from: "MusicDibs <noreply@notify.musicdibs.com>",
                 sender_domain: "notify.musicdibs.com",
                 subject: email.subject, html: email.html, text: email.text,
