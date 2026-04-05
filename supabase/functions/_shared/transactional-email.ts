@@ -235,6 +235,27 @@ export function kycFailedEmail(data: { name: string; reason?: string }) {
   };
 }
 
+// ─── 6b. KYC Rejected by Admin ──────────────────────────────────────────────
+
+export function kycRejectedEmail(data: { name: string }) {
+  const safeName = escapeHtml(data.name);
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">Hola <strong style="color:#f3f4f6;">${safeName}</strong>, lamentamos informarte de que tu verificación de identidad ha sido rechazada tras la revisión de nuestro equipo.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(185,28,28,0.12));border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow("Estado", "❌ Rechazada")}
+      ${infoRow("Acción requerida", "Debes repetir el proceso de verificación")}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">Mientras tanto, puedes seguir utilizando todas las funcionalidades de MusicDibs excepto el registro de obras. Accede a tu cuenta para completar la verificación de identidad.</p>
+    ${cta("https://musicdibs.com/dashboard/identity", "Verificar identidad →")}`;
+
+  return {
+    subject: "Verificación de identidad rechazada — MusicDibs",
+    html: wrap("🔒", "Verificación rechazada", body),
+    text: `Hola ${data.name}, tu verificación de identidad ha sido rechazada. Accede a tu cuenta para repetir el proceso: https://musicdibs.com/dashboard/identity`,
+  };
+}
+
 // ─── 7. Payment Failure Notification ────────────────────────────────────────
 
 export function paymentFailedEmail(data: {

@@ -175,16 +175,65 @@ serve(async (req) => {
     if (action === "set_kyc") {
       const { user_id, status } = payload;
       if (!["pending", "verified", "rejected"].includes(status)) return json({ error: "Invalid status" }, 400);
-      const { error } = await admin.from("profiles").update({ kyc_status: status, updated_at: new Date().toISOString() }).eq("user_id", user_id);
+
+      // When rejecting, reset to 'unverified' so the user can retry verification
+      const effectiveStatus = status === "rejected" ? "unverified" : status;
+      const updateData: Record<string, unknown> = {
+        kyc_status: effectiveStatus,
+        updated_at: new Date().toISOString(),
+      };
+      // Clear signature so user can start a fresh verification
+      if (status === "rejected") {
+        updateData.ibs_signature_id = null;
+      }
+
+      const { error } = await admin.from("profiles").update(updateData).eq("user_id", user_id);
       if (error) return json({ error: error.message }, 500);
 
       const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      const targetEmail = targetAuth?.user?.email || "";
+
       await audit({
         action: "set_kyc",
         target_user_id: user_id,
-        target_email: targetAuth?.user?.email || "",
-        details: { new_status: status },
+        target_email: targetEmail,
+        details: { requested_status: status, effective_status: effectiveStatus },
       });
+
+      // Send rejection email when KYC is rejected
+      if (status === "rejected" && targetEmail) {
+        try {
+          const { data: profile } = await admin.from("profiles").select("display_name").eq("user_id", user_id).single();
+          const name = profile?.display_name || targetEmail.split("@")[0] || "Usuario";
+          const emailData = kycRejectedEmail({ name });
+          const messageId = crypto.randomUUID();
+          await admin.from("email_send_log").insert({
+            message_id: messageId,
+            template_name: "kyc_rejected",
+            recipient_email: targetEmail,
+            status: "pending",
+          });
+          await admin.rpc("enqueue_email", {
+            queue_name: "transactional_emails",
+            payload: {
+              run_id: crypto.randomUUID(),
+              message_id: messageId,
+              to: targetEmail,
+              from: "MusicDibs <noreply@notify.musicdibs.com>",
+              sender_domain: "notify.musicdibs.com",
+              subject: emailData.subject,
+              html: emailData.html,
+              text: emailData.text,
+              purpose: "transactional",
+              label: "kyc_rejected",
+              queued_at: new Date().toISOString(),
+            },
+          });
+          console.log(`[ADMIN] Enqueued kyc_rejected email to ${targetEmail}`);
+        } catch (emailErr) {
+          console.error("[ADMIN] Failed to enqueue rejection email:", emailErr);
+        }
+      }
 
       return json({ success: true });
     }
