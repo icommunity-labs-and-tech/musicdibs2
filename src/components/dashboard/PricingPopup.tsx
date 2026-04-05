@@ -37,7 +37,7 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
             {t('creditPricing.title')}
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[360px]">
+        <ScrollArea className="max-h-[360px] pr-3">
           <div className="divide-y divide-border/40">
             {[...PRICING_ROWS]
               .sort((a, b) => (FEATURE_COSTS[a.key as keyof typeof FEATURE_COSTS] ?? 0) - (FEATURE_COSTS[b.key as keyof typeof FEATURE_COSTS] ?? 0))
@@ -45,11 +45,11 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
               const cost = FEATURE_COSTS[key as keyof typeof FEATURE_COSTS];
               return (
                 <div key={key} className="flex items-center justify-between py-2.5 px-1">
-                  <div className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{t(`creditPricing.features.${key}`)}</span>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm truncate">{t(`creditPricing.features.${key}`)}</span>
                   </div>
-                  <span className="text-sm font-semibold tabular-nums">
+                  <span className="text-sm font-semibold tabular-nums whitespace-nowrap ml-3">
                     {cost} {cost === 1 ? t('creditPricing.credit') : t('creditPricing.credits')}
                   </span>
                 </div>
