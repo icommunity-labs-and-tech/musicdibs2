@@ -1106,6 +1106,7 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Collapsible lyrics section */}
+                      <div data-tour="mc-lyrics">
                       <Collapsible open={lyricsExpanded} onOpenChange={setLyricsExpanded}>
                         <CollapsibleTrigger asChild>
                           <Button variant="ghost" className="w-full justify-between px-3 h-10 text-sm text-muted-foreground hover:text-foreground">
