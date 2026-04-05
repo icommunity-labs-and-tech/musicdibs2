@@ -467,7 +467,20 @@ export const PostersSection = () => {
                   <StyleSelect value={soStyle} onChange={setSoStyle} trKey={trSo} />
 
                   <div className="space-y-2">
-                    <Label>{trSo('description')}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>{trSo('description')}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={(!soDescription.trim() && !soPhoto) || improvingSoPrompt}
+                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto)}
+                        className="h-7 text-xs gap-1"
+                      >
+                        {improvingSoPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {t('promoMaterial.creatives.improveWithAI')}
+                      </Button>
+                    </div>
                     <Textarea value={soDescription} onChange={(e) => setSoDescription(e.target.value)} placeholder={trSo('descriptionPlaceholder')} rows={3} />
                   </div>
 
