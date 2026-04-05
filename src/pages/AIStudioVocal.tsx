@@ -393,15 +393,15 @@ export default function AIStudioVocal() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="max-w-5xl mx-auto">
           <TabsList className="grid w-full grid-cols-3 mb-8">
-            <TabsTrigger value="sing" className="gap-2">
+            <TabsTrigger value="sing" className="gap-2" data-tour="vt-sing-tab">
               <Music className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabSing', 'Cantar')}</span>
             </TabsTrigger>
-            <TabsTrigger value="clone" className="gap-2">
+            <TabsTrigger value="clone" className="gap-2" data-tour="vt-clone-tab">
               <Mic className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabClone', 'Clonar')}</span>
             </TabsTrigger>
-            <TabsTrigger value="translate" className="gap-2">
+            <TabsTrigger value="translate" className="gap-2" data-tour="vt-translate-tab">
               <Globe className="h-4 w-4" />
               <span className="hidden sm:inline">{s('aiVocal.tabTranslate', 'Traducir')}</span>
             </TabsTrigger>
