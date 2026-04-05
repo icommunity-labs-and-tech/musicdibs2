@@ -358,6 +358,7 @@ export const CoversSection = () => {
                         setArtistPhotoPreview(null);
                       }}
                     />
+                    </div>
 
                     {artistPhotoPreview && (
                       <div className="space-y-2">
