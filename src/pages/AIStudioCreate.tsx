@@ -24,7 +24,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, Import, RotateCw, Sparkles
+  Mic, Headphones, Import, RotateCw, Sparkles, HelpCircle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -37,6 +37,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
+import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
 
 // ── Music tab constants ──
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
