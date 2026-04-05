@@ -203,9 +203,9 @@ serve(async (req) => {
       // Send rejection email when KYC is rejected
       if (status === "rejected" && targetEmail) {
         try {
-          const { data: profile } = await admin.from("profiles").select("display_name").eq("user_id", user_id).single();
+          const { data: profile } = await admin.from("profiles").select("display_name, language").eq("user_id", user_id).single();
           const name = profile?.display_name || targetEmail.split("@")[0] || "Usuario";
-          const emailData = kycRejectedEmail({ name });
+          const emailData = kycRejectedEmail({ name, lang: profile?.language });
           const messageId = crypto.randomUUID();
           await admin.from("email_send_log").insert({
             message_id: messageId,
