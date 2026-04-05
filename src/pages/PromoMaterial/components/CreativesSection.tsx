@@ -87,7 +87,7 @@ export const CreativesSection = () => {
 
   const handleImproveDescription = async () => {
     if (!imageDescription.trim() && !basePhoto) {
-      toast({ title: t('promoMaterial.creatives.aiDescribe.needInput', 'Escribe algo o sube una foto'), variant: 'destructive' });
+      toast({ title: t('promoMaterial.creatives.aiDescribe.needInput'), variant: 'destructive' });
       return;
     }
     setImprovingPrompt(true);
@@ -106,11 +106,11 @@ export const CreativesSection = () => {
       if (error) throw error;
       if (data?.improved) {
         setImageDescription(data.improved);
-        toast({ title: '✨ ' + t('promoMaterial.creatives.aiDescribe.success', 'Descripción generada con IA') });
+        toast({ title: '✨ ' + t('promoMaterial.creatives.aiDescribe.success') });
       }
     } catch (err: any) {
       console.error('AI describe error:', err);
-      toast({ title: t('promoMaterial.creatives.aiDescribe.error', 'Error al generar descripción'), variant: 'destructive' });
+      toast({ title: t('promoMaterial.creatives.aiDescribe.error'), variant: 'destructive' });
     } finally {
       setImprovingPrompt(false);
     }
@@ -209,7 +209,7 @@ export const CreativesSection = () => {
       currentFile={basePhoto}
       preview={basePhotoPreview}
       onFileSelect={(file) => {
-        if (file.size > 10 * 1024 * 1024) { toast({ title: 'Archivo demasiado grande', variant: 'destructive' }); return; }
+        if (file.size > 10 * 1024 * 1024) { toast({ title: t('promoMaterial.creatives.instagram.imageTooBig'), variant: 'destructive' }); return; }
         setBasePhoto(file);
         setBasePhotoPreview(URL.createObjectURL(file));
       }}
@@ -296,7 +296,7 @@ export const CreativesSection = () => {
                           onClick={handleImproveDescription}
                         >
                           {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                          {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating', 'Generando…') : t('promoMaterial.creatives.aiDescribe.button', '✨ Generar con IA')}
+                          {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
                         </Button>
                       </div>
                       <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trIg('imageDescriptionPlaceholder')} rows={3} />
@@ -444,7 +444,7 @@ export const CreativesSection = () => {
                       onClick={handleImproveDescription}
                     >
                       {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating', 'Generando…') : t('promoMaterial.creatives.aiDescribe.button', '✨ Generar con IA')}
+                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
                     </Button>
                   </div>
                   <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trYt('thumbnailDescriptionPlaceholder')} rows={3} />

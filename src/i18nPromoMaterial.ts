@@ -12,6 +12,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Genera imágenes profesionales para Instagram y YouTube',
         platformInstagram: 'Instagram',
         platformYoutube: 'YouTube',
+        improveWithAI: '✨ Mejorar con IA',
+        aiDescribe: {
+          needInput: 'Escribe algo o sube una foto',
+          success: 'Descripción generada con IA',
+          error: 'Error al generar descripción',
+          generating: 'Generando…',
+          button: '✨ Generar con IA',
+        },
         instagram: {
           title: 'Creatividades para Instagram',
           subtitle: 'Genera posts completos con imagen, copy y hashtags',
@@ -203,6 +211,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         insufficientCreditsDesc: 'Necesitas 10 créditos para generar un video. Tienes {{current}}.',
         important: 'Importante:',
         notMusicVideo: 'Este generador crea clips visuales cortos, no videoclips musicales completos.',
+        progress: {
+          queuePosition: 'En cola · Posición {{position}}',
+          queueWaiting: 'En cola · Esperando servidor…',
+          generating: 'Generando vídeo…',
+          queueHint: 'El vídeo se está preparando. Puede tardar 1-3 minutos.',
+          processingHint: 'El modelo está renderizando tu vídeo. Casi listo…',
+          timeout: 'La generación del vídeo ha expirado.',
+        },
       },
       posters: {
         title: 'Carteles',
@@ -310,6 +326,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Generate professional images for Instagram and YouTube',
         platformInstagram: 'Instagram',
         platformYoutube: 'YouTube',
+        improveWithAI: '✨ Improve with AI',
+        aiDescribe: {
+          needInput: 'Write something or upload a photo',
+          success: 'Description generated with AI',
+          error: 'Error generating description',
+          generating: 'Generating…',
+          button: '✨ Generate with AI',
+        },
         instagram: {
           title: 'Instagram Creatives',
           subtitle: 'Generate complete posts with image, copy and hashtags',
@@ -501,6 +525,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         insufficientCreditsDesc: 'You need 10 credits to generate a video. You have {{current}}.',
         important: 'Important:',
         notMusicVideo: 'This generator creates short visual clips, not complete music videos.',
+        progress: {
+          queuePosition: 'In queue · Position {{position}}',
+          queueWaiting: 'In queue · Waiting for server…',
+          generating: 'Generating video…',
+          queueHint: 'The video is being prepared. It may take 1-3 minutes.',
+          processingHint: 'The model is rendering your video. Almost ready…',
+          timeout: 'Video generation timed out.',
+        },
       },
       posters: {
         title: 'Posters',
@@ -608,6 +640,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         subtitle: 'Gere imagens profissionais para Instagram e YouTube',
         platformInstagram: 'Instagram',
         platformYoutube: 'YouTube',
+        improveWithAI: '✨ Melhorar com IA',
+        aiDescribe: {
+          needInput: 'Escreva algo ou envie uma foto',
+          success: 'Descrição gerada com IA',
+          error: 'Erro ao gerar descrição',
+          generating: 'Gerando…',
+          button: '✨ Gerar com IA',
+        },
         instagram: {
           title: 'Criativos Instagram',
           subtitle: 'Gere posts completos com imagem, copy e hashtags',
@@ -799,6 +839,14 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         insufficientCreditsDesc: 'Você precisa de 10 créditos para gerar um vídeo. Você tem {{current}}.',
         important: 'Importante:',
         notMusicVideo: 'Este gerador cria clipes visuais curtos, não videoclipes musicais completos.',
+        progress: {
+          queuePosition: 'Na fila · Posição {{position}}',
+          queueWaiting: 'Na fila · Aguardando servidor…',
+          generating: 'Gerando vídeo…',
+          queueHint: 'O vídeo está sendo preparado. Pode levar 1-3 minutos.',
+          processingHint: 'O modelo está renderizando seu vídeo. Quase pronto…',
+          timeout: 'A geração do vídeo expirou.',
+        },
       },
       posters: {
         title: 'Cartazes',
