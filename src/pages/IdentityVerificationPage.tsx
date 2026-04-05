@@ -432,8 +432,7 @@ export default function IdentityVerificationPage() {
                       ref={iframeRef}
                       src={kycUrl}
                       className="w-full h-[600px]"
-                      allow="camera *; microphone *"
-                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-top-navigation"
+                      allow="camera; microphone; fullscreen"
                       title="Verificación de identidad"
                       onError={() => setIframeError(true)}
                       onLoad={() => console.log('[KYC] iframe loaded')}
