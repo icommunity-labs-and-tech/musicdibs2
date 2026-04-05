@@ -7,7 +7,29 @@ const corsHeaders = {
 };
 
 const FAL_MODEL = 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video';
-const FAL_QUEUE_URL = `https://queue.fal.run/${FAL_MODEL}`;
+const FAL_SUBMIT_URL = `https://queue.fal.run/${FAL_MODEL}`;
+const FAL_QUEUE_BASE_URL = 'https://queue.fal.run/fal-ai/kling-video';
+
+const jsonResponse = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
+  });
+
+const isAllowedFalQueueUrl = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !value) return false;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.host === 'queue.fal.run';
+  } catch {
+    return false;
+  }
+};
+
+const withLogsParam = (url: string) => (url.includes('?') ? `${url}&logs=1` : `${url}?logs=1`);
+const getFallbackStatusUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}/status`;
+const getFallbackResponseUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -17,9 +39,7 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const supabaseUser = createClient(
@@ -31,9 +51,7 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const userId = user.id;
@@ -46,18 +64,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { action, promptText, duration, requestId } = await req.json();
+    const { action, promptText, duration, requestId, statusUrl } = await req.json();
 
     const falHeaders = {
       'Authorization': `Key ${FAL_API_KEY}`,
       'Content-Type': 'application/json',
     };
 
-    // ── Action: check status ──
     if (action === 'status') {
-      if (!requestId) throw new Error('requestId is required for status check');
+      const resolvedStatusUrl = isAllowedFalQueueUrl(statusUrl)
+        ? statusUrl
+        : typeof requestId === 'string' && requestId
+          ? getFallbackStatusUrl(requestId)
+          : null;
 
-      const statusRes = await fetch(`${FAL_QUEUE_URL}/requests/${requestId}/status?logs=1`, {
+      if (!resolvedStatusUrl) {
+        throw new Error('statusUrl or requestId is required for status check');
+      }
+
+      const statusRes = await fetch(withLogsParam(resolvedStatusUrl), {
+        method: 'GET',
         headers: falHeaders,
       });
 
@@ -69,40 +95,67 @@ serve(async (req) => {
 
       const statusData = await statusRes.json();
 
-      // If completed, fetch the result
       if (statusData.status === 'COMPLETED') {
-        const resultRes = await fetch(`${FAL_QUEUE_URL}/requests/${requestId}`, {
+        if (statusData.error) {
+          return jsonResponse({
+            status: 'FAILED',
+            failure: statusData.error,
+          });
+        }
+
+        const resolvedResponseUrl = isAllowedFalQueueUrl(statusData.response_url)
+          ? statusData.response_url
+          : typeof requestId === 'string' && requestId
+            ? getFallbackResponseUrl(requestId)
+            : null;
+
+        if (!resolvedResponseUrl) {
+          throw new Error('fal.ai response URL missing');
+        }
+
+        const resultRes = await fetch(resolvedResponseUrl, {
+          method: 'GET',
           headers: falHeaders,
         });
+
         if (!resultRes.ok) {
+          const errorText = await resultRes.text();
+          console.error(`[GENERATE-VIDEO] fal result error: ${resultRes.status} - ${errorText}`);
           throw new Error(`fal.ai result error: ${resultRes.status}`);
         }
+
         const resultData = await resultRes.json();
-        return new Response(JSON.stringify({
+        const videoUrl = resultData.video?.url ?? resultData.video_url ?? resultData.output?.video?.url ?? null;
+
+        if (!videoUrl) {
+          return jsonResponse({
+            status: 'FAILED',
+            failure: 'fal.ai completed without a video URL',
+          });
+        }
+
+        return jsonResponse({
           status: 'SUCCEEDED',
-          video_url: resultData.video?.url ?? null,
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+          video_url: videoUrl,
+        });
       }
 
       if (statusData.status === 'FAILED') {
-        return new Response(JSON.stringify({
+        return jsonResponse({
           status: 'FAILED',
           failure: statusData.error ?? 'Unknown error',
-        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        });
       }
 
-      // Still processing
-      return new Response(JSON.stringify({
+      return jsonResponse({
         status: 'PENDING',
         queue_position: statusData.queue_position ?? null,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      });
     }
 
-    // ── Action: generate ──
     if (action === 'generate') {
       if (!promptText) throw new Error('promptText is required');
 
-      // Rate limiting
       const VIDEO_LIMIT = 1;
       const WINDOW_SECS = 60;
       const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
@@ -115,19 +168,19 @@ serve(async (req) => {
         .gte('called_at', windowStart);
 
       if ((recentCalls ?? 0) >= VIDEO_LIMIT) {
-        return new Response(
-          JSON.stringify({
+        return jsonResponse(
+          {
             error: 'rate_limit_exceeded',
             message: `Máximo ${VIDEO_LIMIT} generación de vídeo por minuto. Espera unos segundos e inténtalo de nuevo.`,
             retryAfter: WINDOW_SECS,
-          }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': String(WINDOW_SECS) } }
+          },
+          429,
+          { 'Retry-After': String(WINDOW_SECS) }
         );
       }
 
       await supabaseAdmin.from('ai_rate_limits').insert({ user_id: userId, function_name: 'generate-video' });
 
-      // Credit deduction
       const CREDITS_COST = 6;
       const { data: profile } = await supabaseAdmin
         .from('profiles')
@@ -136,9 +189,11 @@ serve(async (req) => {
         .single();
 
       if (!profile || profile.available_credits < CREDITS_COST) {
-        return new Response(JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }), {
-          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
+        return jsonResponse({
+          error: 'insufficient_credits',
+          available: profile?.available_credits ?? 0,
+          required: CREDITS_COST,
+        }, 402);
       }
 
       await supabaseAdmin.from('profiles').update({
@@ -160,17 +215,18 @@ serve(async (req) => {
             available_credits: p.available_credits + CREDITS_COST,
             updated_at: new Date().toISOString(),
           }).eq('user_id', userId);
+
           await supabaseAdmin.from('credit_transactions').insert({
             user_id: userId,
             amount: CREDITS_COST,
             type: 'refund',
             description: `Reembolso: ${reason}`.slice(0, 200),
           });
+
           console.log(`[GENERATE-VIDEO] Refunded ${CREDITS_COST} credits to user ${userId}: ${reason}`);
         }
       };
 
-      // Submit to fal.ai queue
       const body = {
         prompt: promptText,
         duration: String(duration || 5),
@@ -179,7 +235,7 @@ serve(async (req) => {
 
       console.log(`[GENERATE-VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..." | ${duration}s`);
 
-      const response = await fetch(FAL_QUEUE_URL, {
+      const response = await fetch(FAL_SUBMIT_URL, {
         method: 'POST',
         headers: falHeaders,
         body: JSON.stringify(body),
@@ -191,9 +247,7 @@ serve(async (req) => {
 
         if (response.status === 429) {
           await refundCredits('Rate limit fal.ai');
-          return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait and try again.' }), {
-            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+          return jsonResponse({ error: 'Rate limit exceeded. Please wait and try again.' }, 429);
         }
 
         await refundCredits(`Error fal.ai: ${response.status}`);
@@ -201,10 +255,20 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      console.log(`[GENERATE-VIDEO] Queue request submitted: ${data.request_id}, ${CREDITS_COST} credits charged`);
+      const nextRequestId = data.request_id;
+      const nextStatusUrl = isAllowedFalQueueUrl(data.status_url)
+        ? data.status_url
+        : getFallbackStatusUrl(nextRequestId);
+      const nextResponseUrl = isAllowedFalQueueUrl(data.response_url)
+        ? data.response_url
+        : getFallbackResponseUrl(nextRequestId);
 
-      return new Response(JSON.stringify({ requestId: data.request_id }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      console.log(`[GENERATE-VIDEO] Queue request submitted: ${nextRequestId}, ${CREDITS_COST} credits charged`);
+
+      return jsonResponse({
+        requestId: nextRequestId,
+        statusUrl: nextStatusUrl,
+        responseUrl: nextResponseUrl,
       });
     }
 
@@ -212,8 +276,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('[GENERATE-VIDEO] Error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: message }, 500);
   }
 });
