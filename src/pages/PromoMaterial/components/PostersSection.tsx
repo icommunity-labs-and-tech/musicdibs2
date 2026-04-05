@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, Download } from 'lucide-react';
+import { Loader2, Upload, Download, Sparkles } from 'lucide-react';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 const fileToBase64 = (file: File): Promise<string> => {
@@ -73,6 +73,40 @@ export const PostersSection = () => {
   // Common
   const [generating, setGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [improvingEvPrompt, setImprovingEvPrompt] = useState(false);
+  const [improvingSoPrompt, setImprovingSoPrompt] = useState(false);
+
+  const handleImprovePrompt = async (
+    text: string,
+    setText: (v: string) => void,
+    setLoading: (v: boolean) => void,
+    photo?: File | null,
+  ) => {
+    if (!text.trim() && !photo) return;
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const body: any = { prompt: text, mode: 'visual_creative' };
+      if (photo) body.image_base64 = await fileToBase64(photo);
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/improve-prompt`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      const data = await res.json();
+      if (data?.improved) setText(data.improved);
+    } catch (e) {
+      console.error('Error improving prompt:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const evLogoRef = useRef<HTMLInputElement>(null);
   const evPhotoRef = useRef<HTMLInputElement>(null);
@@ -333,7 +367,20 @@ export const PostersSection = () => {
                   <StyleSelect value={evStyle} onChange={setEvStyle} trKey={trEv} />
 
                   <div className="space-y-2">
-                    <Label>{trEv('additionalInfo')}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>{trEv('additionalInfo')}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={(!evAdditionalInfo.trim() && !evPhoto) || improvingEvPrompt}
+                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto)}
+                        className="h-7 text-xs gap-1"
+                      >
+                        {improvingEvPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {t('promoMaterial.creatives.improveWithAI')}
+                      </Button>
+                    </div>
                     <Textarea value={evAdditionalInfo} onChange={(e) => setEvAdditionalInfo(e.target.value)} placeholder={trEv('additionalInfoPlaceholder')} rows={2} />
                   </div>
 
@@ -420,7 +467,20 @@ export const PostersSection = () => {
                   <StyleSelect value={soStyle} onChange={setSoStyle} trKey={trSo} />
 
                   <div className="space-y-2">
-                    <Label>{trSo('description')}</Label>
+                    <div className="flex items-center justify-between">
+                      <Label>{trSo('description')}</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled={(!soDescription.trim() && !soPhoto) || improvingSoPrompt}
+                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto)}
+                        className="h-7 text-xs gap-1"
+                      >
+                        {improvingSoPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                        {t('promoMaterial.creatives.improveWithAI')}
+                      </Button>
+                    </div>
                     <Textarea value={soDescription} onChange={(e) => setSoDescription(e.target.value)} placeholder={trSo('descriptionPlaceholder')} rows={3} />
                   </div>
 
