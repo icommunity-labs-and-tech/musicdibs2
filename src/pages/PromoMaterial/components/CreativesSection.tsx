@@ -44,6 +44,7 @@ export const CreativesSection = () => {
 
   // Results
   const [generating, setGenerating] = useState(false);
+  const [improvingPrompt, setImprovingPrompt] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedCopy, setGeneratedCopy] = useState('');
   const [generatedHashtags, setGeneratedHashtags] = useState<string[]>([]);
