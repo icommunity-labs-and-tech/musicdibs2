@@ -23,6 +23,7 @@ export default function DashboardHome() {
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [worksCount, setWorksCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
