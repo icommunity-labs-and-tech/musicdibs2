@@ -550,7 +550,7 @@ const resources = {
           principal: 'Principal',
           account: 'Cuenta',
           admin: 'Administración',
-          panelGuide: 'Guía del panel',
+          panelGuide: 'Tutorial guiado',
           logout: 'Cerrar sesión',
            new: 'NUEVO',
            premiumPromos: 'Promos Premium',
