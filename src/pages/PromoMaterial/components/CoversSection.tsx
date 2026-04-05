@@ -448,44 +448,19 @@ export const CoversSection = () => {
                           <CardDescription className="text-[10px]">{tr('photomontageYourPhotoDesc')}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-3 pt-1">
-                          <input
-                            ref={artistPhotoRef}
-                            type="file"
+                          <FileDropzone
+                            fileType="image"
                             accept="image/jpeg,image/png,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) validateAndSetImage(f, setArtistPhoto, setArtistPhotoPreview);
+                            maxSize={10}
+                            currentFile={artistPhoto}
+                            preview={artistPhotoPreview}
+                            onFileSelect={(f) => validateAndSetImage(f, setArtistPhoto, setArtistPhotoPreview)}
+                            onRemove={() => {
+                              setArtistPhoto(null);
+                              if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
+                              setArtistPhotoPreview(null);
                             }}
                           />
-                          <div
-                            onClick={() => artistPhotoRef.current?.click()}
-                            className="border-2 border-dashed border-border rounded-lg p-3 text-center cursor-pointer hover:border-primary/50 transition-colors"
-                          >
-                            {artistPhotoPreview ? (
-                              <div className="space-y-2">
-                                <img src={artistPhotoPreview} alt="" className="w-full aspect-square rounded-lg object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setArtistPhoto(null);
-                                    if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
-                                    setArtistPhotoPreview(null);
-                                    if (artistPhotoRef.current) artistPhotoRef.current.value = '';
-                                  }}
-                                  className="text-xs text-primary hover:underline"
-                                >
-                                  {tr('changePhoto')}
-                                </button>
-                              </div>
-                            ) : (
-                              <>
-                                <Camera className="h-6 w-6 mx-auto text-muted-foreground mb-1" />
-                                <p className="text-[10px] font-medium">{tr('artistPhotoUpload')}</p>
-                              </>
-                            )}
-                          </div>
                         </CardContent>
                       </Card>
 
