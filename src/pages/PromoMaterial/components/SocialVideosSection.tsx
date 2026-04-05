@@ -69,37 +69,68 @@ export const SocialVideosSection = () => {
     setGenerating(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const headers = {
+        'Authorization': `Bearer ${session?.access_token}`,
+        'Content-Type': 'application/json',
+      };
+      const baseUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`;
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'generate',
-            promptText: description,
-            duration: parseInt(duration),
-            ratio: '1280:720',
-            mode: 'text_to_video',
-          }),
-        }
-      );
+      // Submit to queue
+      const res = await fetch(baseUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          action: 'generate',
+          promptText: description,
+          duration: parseInt(duration),
+        }),
+      });
 
       const data = await res.json();
 
       if (!res.ok) {
-        toast({ title: tr('error'), description: data.error || tr('errorDesc'), variant: 'destructive' });
+        toast({ title: tr('error'), description: data.error || data.message || tr('errorDesc'), variant: 'destructive' });
+        setGenerating(false);
         return;
       }
 
-      if (data.video_url) {
-        setVideoUrl(data.video_url);
+      const reqId = data.requestId;
+      if (!reqId) {
+        toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
+        setGenerating(false);
+        return;
       }
 
-      toast({ title: tr('success'), description: tr('successDesc') });
+      // Poll for result
+      const poll = async () => {
+        for (let i = 0; i < 120; i++) {
+          await new Promise(r => setTimeout(r, 5000));
+          try {
+            const statusRes = await fetch(baseUrl, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ action: 'status', requestId: reqId }),
+            });
+            const statusData = await statusRes.json();
+
+            if (statusData.status === 'SUCCEEDED' && statusData.video_url) {
+              setVideoUrl(statusData.video_url);
+              toast({ title: tr('success'), description: tr('successDesc') });
+              return;
+            }
+            if (statusData.status === 'FAILED') {
+              toast({ title: tr('error'), description: statusData.failure || tr('errorDesc'), variant: 'destructive' });
+              return;
+            }
+            // PENDING — keep polling
+          } catch (e) {
+            console.error('Polling error:', e);
+          }
+        }
+        toast({ title: tr('error'), description: 'Video generation timed out.', variant: 'destructive' });
+      };
+
+      await poll();
     } catch (error) {
       console.error('Error generating video:', error);
       toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
