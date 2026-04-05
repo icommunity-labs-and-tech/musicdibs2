@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { FileDropzone } from '@/components/FileDropzone';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -176,25 +177,21 @@ export const VoiceTranslator = ({ clones }: VoiceTranslatorProps) => {
         </Select>
       </div>
 
-      {/* Audio Upload */}
       <div className="space-y-1.5">
         <Label>{vc('uploadAudio')}</Label>
-        <div
-          onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-        >
-          <Upload className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-          <p className="text-sm text-muted-foreground">
-            {audioFile ? audioFile.name : vc('uploadAudioHint')}
-          </p>
-          {audioFile && audioDuration !== null && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {Math.floor(audioDuration / 60)}:{(audioDuration % 60).toString().padStart(2, '0')}
-              {' · '}{vc('creditsNeeded', { credits: creditsNeeded })}
-            </p>
-          )}
-        </div>
-        <input ref={fileInputRef} type="file" accept=".mp3,.wav,.m4a,audio/*" className="hidden" onChange={handleFileChange} />
+        <FileDropzone
+          fileType="audio"
+          accept=".mp3,.wav,.m4a,audio/*"
+          maxSize={50}
+          currentFile={audioFile}
+          onFileSelect={(file) => {
+            handleFileChange({ target: { files: [file] } } as any);
+          }}
+          onRemove={() => {
+            setAudioFile(null);
+            setAudioDuration(null);
+          }}
+        />
       </div>
 
       {/* Target Language */}

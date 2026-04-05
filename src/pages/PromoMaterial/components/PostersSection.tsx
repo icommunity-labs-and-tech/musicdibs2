@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -337,28 +338,30 @@ export const PostersSection = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>{trEv('artistLogo')}</Label>
-                      <p className="text-xs text-muted-foreground">{trEv('artistLogoDesc')}</p>
-                      <FileUploadBox
+                      <FileDropzone
+                        label={trEv('artistLogo')}
+                        description={trEv('artistLogoDesc')}
+                        fileType="image"
+                        accept="image/jpeg,image/png,image/webp"
+                        maxSize={10}
+                        currentFile={evLogo}
                         preview={evLogoPreview}
-                        onClear={() => { setEvLogo(null); setEvLogoPreview(null); if (evLogoRef.current) evLogoRef.current.value = ''; }}
-                        onClick={() => evLogoRef.current?.click()}
-                        uploadLabel={trEv('uploadFile')}
-                        changeLabel={trEv('changeFile')}
+                        onFileSelect={(f) => { if (validateFile(f, toast, trEv)) { setEvLogo(f); setEvLogoPreview(URL.createObjectURL(f)); } }}
+                        onRemove={() => { setEvLogo(null); setEvLogoPreview(null); }}
                       />
-                      <input ref={evLogoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setEvLogo, setEvLogoPreview, trEv)} />
                     </div>
                     <div className="space-y-2">
-                      <Label>{trEv('artistPhoto')}</Label>
-                      <p className="text-xs text-muted-foreground">{trEv('artistPhotoDesc')}</p>
-                      <FileUploadBox
+                      <FileDropzone
+                        label={trEv('artistPhoto')}
+                        description={trEv('artistPhotoDesc')}
+                        fileType="image"
+                        accept="image/jpeg,image/png,image/webp"
+                        maxSize={10}
+                        currentFile={evPhoto}
                         preview={evPhotoPreview}
-                        onClear={() => { setEvPhoto(null); setEvPhotoPreview(null); if (evPhotoRef.current) evPhotoRef.current.value = ''; }}
-                        onClick={() => evPhotoRef.current?.click()}
-                        uploadLabel={trEv('uploadFile')}
-                        changeLabel={trEv('changeFile')}
+                        onFileSelect={(f) => { if (validateFile(f, toast, trEv)) { setEvPhoto(f); setEvPhotoPreview(URL.createObjectURL(f)); } }}
+                        onRemove={() => { setEvPhoto(null); setEvPhotoPreview(null); }}
                       />
-                      <input ref={evPhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setEvPhoto, setEvPhotoPreview, trEv)} />
                     </div>
                   </div>
 
@@ -419,18 +422,17 @@ export const PostersSection = () => {
                     <Textarea value={soDescription} onChange={(e) => setSoDescription(e.target.value)} placeholder={trSo('descriptionPlaceholder')} rows={3} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>{trSo('artistPhoto')}</Label>
-                    <p className="text-xs text-muted-foreground">{trSo('artistPhotoDesc')}</p>
-                    <FileUploadBox
-                      preview={soPhotoPreview}
-                      onClear={() => { setSoPhoto(null); setSoPhotoPreview(null); if (soPhotoRef.current) soPhotoRef.current.value = ''; }}
-                      onClick={() => soPhotoRef.current?.click()}
-                      uploadLabel={trSo('uploadFile')}
-                      changeLabel={trSo('changeFile')}
-                    />
-                    <input ref={soPhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setSoPhoto, setSoPhotoPreview, trSo)} />
-                  </div>
+                  <FileDropzone
+                    label={trSo('artistPhoto')}
+                    description={trSo('artistPhotoDesc')}
+                    fileType="image"
+                    accept="image/jpeg,image/png,image/webp"
+                    maxSize={10}
+                    currentFile={soPhoto}
+                    preview={soPhotoPreview}
+                    onFileSelect={(f) => { if (validateFile(f, toast, trSo)) { setSoPhoto(f); setSoPhotoPreview(URL.createObjectURL(f)); } }}
+                    onRemove={() => { setSoPhoto(null); setSoPhotoPreview(null); }}
+                  />
 
                   <Button className="w-full" size="lg" disabled={generating} onClick={handleGenerateSocial}>
                     {generating ? (<><Loader2 className="w-4 h-4 animate-spin" />{trSo('generating')}</>) : trSo('generateButton')}
