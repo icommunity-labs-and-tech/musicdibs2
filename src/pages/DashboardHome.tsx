@@ -56,8 +56,15 @@ export default function DashboardHome() {
       <PaymentAlertBanner />
 
       {/* Banner for new users with no works */}
-      {worksCount === 0 && (
-        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10">
+      {worksCount === 0 && !bannerDismissed && (
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-primary/10 relative">
+          <button
+            onClick={() => { setBannerDismissed(true); sessionStorage.setItem('newUserBannerDismissed', 'true'); }}
+            className="absolute top-2 right-2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
               <Rocket className="h-5 w-5 text-primary" />
