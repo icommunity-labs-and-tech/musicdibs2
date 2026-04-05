@@ -302,11 +302,19 @@ serve(async (req) => {
           const userName  = customer.name || userEmail;
 
           if (userEmail) {
+            // Fetch user language
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("language")
+              .eq("user_id", profile.user_id)
+              .single();
+            const userLang = profileData?.language;
             const email = paymentFailedEmail({
               name: userName,
               description,
               attemptCount,
               nextAttempt,
+              lang: userLang,
             });
             const messageId = crypto.randomUUID();
             await supabase.from("email_send_log").insert({
