@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -36,24 +37,26 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
             {t('creditPricing.title')}
           </DialogTitle>
         </DialogHeader>
-        <div className="divide-y divide-border/40">
-          {[...PRICING_ROWS]
-            .sort((a, b) => (FEATURE_COSTS[a.key as keyof typeof FEATURE_COSTS] ?? 0) - (FEATURE_COSTS[b.key as keyof typeof FEATURE_COSTS] ?? 0))
-            .map(({ key, icon: Icon }) => {
-            const cost = FEATURE_COSTS[key as keyof typeof FEATURE_COSTS];
-            return (
-              <div key={key} className="flex items-center justify-between py-2.5 px-1">
-                <div className="flex items-center gap-2.5">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{t(`creditPricing.features.${key}`)}</span>
+        <ScrollArea className="max-h-[360px]">
+          <div className="divide-y divide-border/40">
+            {[...PRICING_ROWS]
+              .sort((a, b) => (FEATURE_COSTS[a.key as keyof typeof FEATURE_COSTS] ?? 0) - (FEATURE_COSTS[b.key as keyof typeof FEATURE_COSTS] ?? 0))
+              .map(({ key, icon: Icon }) => {
+              const cost = FEATURE_COSTS[key as keyof typeof FEATURE_COSTS];
+              return (
+                <div key={key} className="flex items-center justify-between py-2.5 px-1">
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">{t(`creditPricing.features.${key}`)}</span>
+                  </div>
+                  <span className="text-sm font-semibold tabular-nums">
+                    {cost} {cost === 1 ? t('creditPricing.credit') : t('creditPricing.credits')}
+                  </span>
                 </div>
-                <span className="text-sm font-semibold tabular-nums">
-                  {cost} {cost === 1 ? t('creditPricing.credit') : t('creditPricing.credits')}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </ScrollArea>
         <p className="text-[11px] text-muted-foreground text-center pt-2">
           {t('creditPricing.footer')}
         </p>
