@@ -3,266 +3,96 @@ import { FileDropzone } from '@/components/FileDropzone';
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
-  Upload, Music, RefreshCw, Palette, Clock, Scissors,
-  Sparkles, Zap, Volume2, Wind, Mic2, CheckCircle2, AlertTriangle
+import {
+  ArrowLeft, Loader2, Play, Pause, Download,
+  Music, Sparkles, CheckCircle2, AlertTriangle,
+  Headphones, Volume2, Waves, Wind, Radio, RefreshCw
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { MOODS, type GenerationResult, type VariationType } from "@/types/aiStudio";
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
 
+const PROCESSING_STEPS = [
+  { icon: Waves, key: "eq" },
+  { icon: Volume2, key: "compression" },
+  { icon: Radio, key: "loudness" },
+  { icon: Wind, key: "noise" },
+  { icon: Sparkles, key: "stereo" },
+] as const;
+
 const AIStudioEdit = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { hasEnough } = useCredits();
-  
+  const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts) as string;
+
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  // Processing
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
-  const [history, setHistory] = useState<GenerationResult[]>([]);
-  const [selectedSource, setSelectedSource] = useState<GenerationResult | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedAudioUrl, setUploadedAudioUrl] = useState<string | null>(null);
-  
-  // Variation settings
-  const [variationType, setVariationType] = useState<VariationType>('similar');
-  const [newMood, setNewMood] = useState<string>('');
-  const [newDuration, setNewDuration] = useState(60);
-  const [inpaintStart, setInpaintStart] = useState(0);
-  const [inpaintEnd, setInpaintEnd] = useState(10);
-  const [inpaintPrompt, setInpaintPrompt] = useState('');
-  
-  // Result
-  const [result, setResult] = useState<GenerationResult | null>(null);
-  const [playingId, setPlayingId] = useState<string | null>(null);
-  const [audioElements, setAudioElements] = useState<Map<string, HTMLAudioElement>>(new Map());
-
-  // Auphonic enhance states
-  const [enhanceMode, setEnhanceMode] = useState("professional");
-  const [isEnhancing, setIsEnhancing] = useState(false);
-  const [enhanceProductionUuid, setEnhanceProductionUuid] = useState<string | null>(null);
-  const [enhanceStatus, setEnhanceStatus] = useState<"idle" | "processing" | "done" | "error">("idle");
-  const [enhanceOutputUrl, setEnhanceOutputUrl] = useState<string | null>(null);
-  const [enhanceError, setEnhanceError] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Enhance mode config (icons + colors only; labels from i18n)
-  const ENHANCE_MODES = [
-    { id: "professional", icon: Sparkles, iconColor: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/30" },
-    { id: "spotify", icon: Volume2, iconColor: "text-green-500", bg: "bg-green-500/10", border: "border-green-500/30" },
-    { id: "denoise", icon: Wind, iconColor: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/30" },
-    { id: "clarity", icon: Zap, iconColor: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30" },
-    { id: "reverb", icon: Mic2, iconColor: "text-rose-500", bg: "bg-rose-500/10", border: "border-rose-500/30" },
-  ] as const;
+  // Result
+  const [processedUrl, setProcessedUrl] = useState<string | null>(null);
+  const [processError, setProcessError] = useState<string | null>(null);
 
+  // A/B comparison
+  const [playingTrack, setPlayingTrack] = useState<"original" | "mastered" | null>(null);
+  const originalAudioRef = useRef<HTMLAudioElement | null>(null);
+  const masteredAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Cleanup on unmount
   useEffect(() => {
-    if (user) loadHistory();
-    else setIsLoadingHistory(false);
-  }, [user]);
+    return () => {
+      stopPolling();
+      stopProgress();
+    };
+  }, []);
 
-  // Cleanup polling on unmount
-  useEffect(() => () => stopPolling(), []);
-
-  const loadHistory = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('ai_generations')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-
-      setHistory((data || []).map(item => ({
-        id: item.id,
-        audioUrl: item.audio_url,
-        prompt: item.prompt,
-        duration: item.duration,
-        genre: item.genre || undefined,
-        mood: item.mood || undefined,
-        createdAt: new Date(item.created_at),
-        isFavorite: item.is_favorite || false,
-      })));
-    } catch (error) {
-      console.error('Error loading history:', error);
-    } finally {
-      setIsLoadingHistory(false);
-    }
+  const stopPolling = () => {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+  };
+  const stopProgress = () => {
+    if (progressRef.current) { clearInterval(progressRef.current); progressRef.current = null; }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('audio/')) {
-      toast({ title: t('aiShared.error'), description: t('aiEdit.errorAudioOnly'), variant: "destructive" });
-      return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-      toast({ title: t('aiShared.error'), description: t('aiEdit.errorFileSize'), variant: "destructive" });
-      return;
-    }
-
-    setUploadedFile(file);
-    setUploadedAudioUrl(URL.createObjectURL(file));
-    setSelectedSource(null);
+  const handleFileSelect = (file: File) => {
+    setAudioFile(file);
+    setAudioUrl(URL.createObjectURL(file));
+    setProcessedUrl(null);
+    setProcessError(null);
+    setPlayingTrack(null);
   };
 
-  const selectFromHistory = (item: GenerationResult) => {
-    setSelectedSource(item);
-    setUploadedFile(null);
-    setUploadedAudioUrl(null);
-    setNewDuration(Math.min(item.duration * 1.5, 180));
+  const handleRemoveFile = () => {
+    setAudioFile(null);
+    setAudioUrl(null);
+    setProcessedUrl(null);
+    setProcessError(null);
+    stopAllAudio();
   };
 
-  const buildVariationPrompt = (): string => {
-    const basePrompt = selectedSource?.prompt || `Audio track based on uploaded file`;
-    
-    switch (variationType) {
-      case 'similar':
-        return `${basePrompt}, create a fresh variation with subtle differences`;
-      case 'mood_change':
-        return `${basePrompt}, but with a ${newMood.toLowerCase()} mood and feeling`;
-      case 'extend':
-        return `${basePrompt}, extended version maintaining the same style and energy`;
-      case 'inpaint':
-        return inpaintPrompt || basePrompt;
-      default:
-        return basePrompt;
-    }
+  const stopAllAudio = () => {
+    originalAudioRef.current?.pause();
+    masteredAudioRef.current?.pause();
+    setPlayingTrack(null);
   };
 
-  const handleProcess = async () => {
-    if (!selectedSource && !uploadedFile) {
-      toast({ title: t('aiShared.error'), description: t('aiEdit.errorSelectSource'), variant: "destructive" });
-      return;
-    }
-
-    if (!user) {
-      toast({ title: t('aiShared.error'), description: t('aiEdit.errorLogin'), variant: "destructive" });
-      return;
-    }
-
-    if (variationType === 'mood_change' && !newMood) {
-      toast({ title: t('aiShared.error'), description: t('aiEdit.errorSelectMood'), variant: "destructive" });
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { feature: 'edit_audio', description: `Edición AI: ${variationType}` },
-      });
-      if (spendError) throw new Error(spendError.message || 'Error al descontar créditos');
-      if (spendResult?.error) throw new Error(spendResult.error);
-
-      const prompt = buildVariationPrompt();
-      const duration = variationType === 'extend' ? newDuration : (selectedSource?.duration || 30);
-
-      const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { 
-          prompt,
-          duration,
-          cfgScale: variationType === 'similar' ? 5 : 7,
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.audio) {
-        const audioUrl = `data:${data.format};base64,${data.audio}`;
-        
-        const { data: savedGen, error: saveError } = await supabase
-          .from('ai_generations')
-          .insert({
-            user_id: user.id,
-            prompt,
-            duration: data.duration,
-            genre: selectedSource?.genre,
-            mood: variationType === 'mood_change' ? newMood : selectedSource?.mood,
-            audio_url: audioUrl,
-          })
-          .select()
-          .single();
-
-        if (saveError) throw saveError;
-
-        const newResult: GenerationResult = {
-          id: savedGen.id,
-          audioUrl,
-          prompt,
-          duration: data.duration,
-          genre: selectedSource?.genre,
-          mood: variationType === 'mood_change' ? newMood : selectedSource?.mood,
-          createdAt: new Date(savedGen.created_at),
-          isFavorite: false,
-          parentId: selectedSource?.id,
-          variationType,
-        };
-        
-        setResult(newResult);
-        toast({ title: t('aiEdit.variationCreated'), description: t('aiEdit.newTrackReady') });
-      }
-    } catch (error: any) {
-      console.error('Process error:', error);
-      toast({ 
-        title: t('aiShared.error'), 
-        description: error.message || t('aiEdit.errorSelectSource'), 
-        variant: "destructive" 
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const togglePlay = (audioUrl: string, id: string) => {
-    const existingAudio = audioElements.get(id);
-    
-    if (playingId === id && existingAudio) {
-      existingAudio.pause();
-      setPlayingId(null);
-    } else {
-      audioElements.forEach(audio => audio.pause());
-      
-      let audio = existingAudio;
-      if (!audio) {
-        audio = new Audio(audioUrl);
-        audio.onended = () => setPlayingId(null);
-        setAudioElements(prev => new Map(prev).set(id, audio!));
-      }
-      audio.play();
-      setPlayingId(id);
-    }
-  };
-
-  const downloadAudio = (audioUrl: string, name: string) => {
-    const link = document.createElement('a');
-    link.href = audioUrl;
-    link.download = `musicdibs-${name}.mp3`;
-    link.click();
-  };
-
-  // ── Auphonic helpers ──────────────────────────────────────
-  const uploadFileForAuphonic = async (file: File): Promise<string> => {
+  // Upload to auphonic-temp bucket
+  const uploadForProcessing = async (file: File): Promise<string> => {
     const safeName = file.name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -278,59 +108,58 @@ const AIStudioEdit = () => {
     return data.publicUrl;
   };
 
-  const stopPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  };
+  const handleMasterize = async () => {
+    if (!audioFile || !user) return;
 
-  const handleEnhance = async () => {
-    const sourceSelected = uploadedFile || uploadedAudioUrl || selectedSource;
-    if (!sourceSelected) {
-      toast({ title: t('aiShared.error'),
-              description: t('aiEdit.errorSelectSource'),
-              variant: "destructive" });
-      return;
-    }
     if (!hasEnough(FEATURE_COSTS.enhance_audio)) {
-      toast({ title: t('aiShared.noCredits'),
-              description: t('aiEdit.enhanceBtn'),
-              variant: "destructive" });
+      toast({ title: t('aiShared.noCredits'), variant: "destructive" });
       return;
     }
 
-    setIsEnhancing(true);
-    setEnhanceStatus("processing");
-    setEnhanceError(null);
-    setEnhanceOutputUrl(null);
-    stopPolling();
+    setIsProcessing(true);
+    setProcessError(null);
+    setProcessedUrl(null);
+    setProgressPercent(0);
+    setActiveStep(0);
+    stopAllAudio();
+
+    // Animate progress & steps
+    progressRef.current = setInterval(() => {
+      setProgressPercent(prev => {
+        if (prev >= 90) return 90;
+        return prev + Math.random() * 3;
+      });
+      setActiveStep(prev => {
+        if (prev >= PROCESSING_STEPS.length - 1) return PROCESSING_STEPS.length - 1;
+        return prev + (Math.random() > 0.6 ? 1 : 0);
+      });
+    }, 3000);
 
     try {
+      // Validate credits
       const { data: spend, error: spendErr } = await supabase.functions.invoke(
         "spend-credits",
-        { body: { feature: "enhance_audio", description: `Auphonic: ${enhanceMode}` } }
+        { body: { feature: "enhance_audio", description: "Masterización profesional" } }
       );
-      if (spendErr || spend?.error) throw new Error(spend?.error || "Error al gastar créditos");
+      if (spendErr || spend?.error) throw new Error(spend?.error || "Error de créditos");
 
-      let audioUrl = uploadedAudioUrl || selectedSource?.audioUrl || "";
-      if (uploadedFile) {
-        audioUrl = await uploadFileForAuphonic(uploadedFile);
-      }
+      // Upload file
+      const uploadedUrl = await uploadForProcessing(audioFile);
 
+      // Start Auphonic processing with "professional" mode
       const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
         body: {
-          action:   "process",
-          mode:     enhanceMode,
-          audioUrl,
-          filename: uploadedFile?.name || "audio",
+          action: "process",
+          mode: "professional",
+          audioUrl: uploadedUrl,
+          filename: audioFile.name,
         },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
 
       const uuid = data.productionUuid;
-      setEnhanceProductionUuid(uuid);
 
+      // Poll for result
       pollingRef.current = setInterval(async () => {
         try {
           const { data: st } = await supabase.functions.invoke("auphonic-enhance", {
@@ -338,490 +167,315 @@ const AIStudioEdit = () => {
           });
           if (st?.done) {
             stopPolling();
-            setEnhanceStatus("done");
-            setEnhanceOutputUrl(st.outputUrl);
-            setIsEnhancing(false);
-            toast({ title: t('aiEdit.enhanced') });
+            stopProgress();
+            setProgressPercent(100);
+            setActiveStep(PROCESSING_STEPS.length - 1);
+            
+            setTimeout(() => {
+              setProcessedUrl(st.outputUrl);
+              setIsProcessing(false);
+              toast({ title: tr('success.title') });
+            }, 500);
           } else if (st?.errored) {
             stopPolling();
-            setEnhanceStatus("error");
-            setEnhanceError(t('aiEdit.enhanceError', { defaultValue: 'No se pudo procesar el audio. Intenta con otro archivo.' }));
-            setIsEnhancing(false);
+            stopProgress();
+            setIsProcessing(false);
+            setProcessError(tr('errorGeneric'));
           }
-        } catch { /* continuar polling */ }
+        } catch { /* continue polling */ }
       }, 8000);
 
+      // Timeout after 5 min
       setTimeout(() => {
         if (pollingRef.current) {
           stopPolling();
-          setIsEnhancing(false);
-          setEnhanceStatus("error");
-          setEnhanceError(t('aiEdit.enhanceTimeout', { defaultValue: 'Tiempo de espera agotado. El procesamiento tardó demasiado.' }));
+          stopProgress();
+          setIsProcessing(false);
+          setProcessError(tr('errorTimeout'));
         }
       }, 300_000);
 
     } catch (err: any) {
-      setEnhanceStatus("error");
-      setEnhanceError(err.message || t('aiEdit.enhanceError', { defaultValue: 'Error al procesar el audio' }));
-      setIsEnhancing(false);
+      stopProgress();
+      setIsProcessing(false);
+      setProcessError(err.message || tr('errorGeneric'));
     }
   };
 
-  const sourceSelected = selectedSource || uploadedFile;
+  const playAudio = (track: "original" | "mastered") => {
+    // Stop both
+    originalAudioRef.current?.pause();
+    masteredAudioRef.current?.pause();
+
+    if (playingTrack === track) {
+      setPlayingTrack(null);
+      return;
+    }
+
+    if (track === "original" && audioUrl) {
+      if (!originalAudioRef.current) {
+        originalAudioRef.current = new Audio(audioUrl);
+        originalAudioRef.current.onended = () => setPlayingTrack(null);
+      }
+      originalAudioRef.current.currentTime = 0;
+      originalAudioRef.current.play();
+    } else if (track === "mastered" && processedUrl) {
+      if (!masteredAudioRef.current) {
+        masteredAudioRef.current = new Audio(processedUrl);
+        masteredAudioRef.current.onended = () => setPlayingTrack(null);
+      }
+      masteredAudioRef.current.currentTime = 0;
+      masteredAudioRef.current.play();
+    }
+    setPlayingTrack(track);
+  };
+
+  const handleReset = () => {
+    stopAllAudio();
+    originalAudioRef.current = null;
+    masteredAudioRef.current = null;
+    setAudioFile(null);
+    setAudioUrl(null);
+    setProcessedUrl(null);
+    setProcessError(null);
+    setProgressPercent(0);
+    setActiveStep(0);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <main className="container mx-auto px-4 py-12 pt-24">
+
+      <main className="container mx-auto px-4 py-12 pt-24 max-w-2xl">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
           {t('aiEdit.backToStudio')}
         </Link>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">{t('aiEdit.title')}</h1>
-          <p className="text-muted-foreground">{t('aiEdit.subtitle')}</p>
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-4">
+            <Headphones className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-3xl font-bold mb-2">{tr('title')}</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">{tr('subtitle')}</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Source Selection - Col 1, spans 2 rows */}
-          <div className="space-y-6 lg:row-span-2">
+        <div className="space-y-6">
+          {/* Upload */}
+          {!processedUrl && !isProcessing && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t('aiEdit.audioSource')}</CardTitle>
-                <CardDescription>{t('aiEdit.audioSourceDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Upload with drag & drop */}
+              <CardContent className="p-6">
                 <FileDropzone
                   fileType="audio"
                   accept="audio/*"
                   maxSize={50}
-                  label={t('aiEdit.uploadAudio')}
-                  currentFile={uploadedFile}
-                  onFileSelect={(file) => {
-                    handleFileUpload({ target: { files: [file] } } as any);
-                  }}
-                  onRemove={() => {
-                    setUploadedFile(null);
-                    setUploadedAudioUrl(null);
-                  }}
+                  label={tr('uploadLabel')}
+                  description={tr('uploadDescription')}
+                  currentFile={audioFile}
+                  onFileSelect={handleFileSelect}
+                  onRemove={handleRemoveFile}
                 />
 
-                {/* Uploaded File Preview */}
-                {uploadedFile && uploadedAudioUrl && (
-                  <Card className="bg-primary/5 border-primary">
-                    <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="shrink-0"
-                          onClick={() => togglePlay(uploadedAudioUrl, 'uploaded')}
-                        >
-                          {playingId === 'uploaded' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                        </Button>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{uploadedFile.name}</p>
-                          <p className="text-xs text-muted-foreground">{t('aiEdit.uploadedFile')}</p>
-                        </div>
+                {/* Audio preview */}
+                {audioFile && audioUrl && (
+                  <div className="mt-4 rounded-xl border border-border/40 bg-muted/20 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 rounded-full"
+                        onClick={() => playAudio('original')}
+                      >
+                        {playingTrack === 'original' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{audioFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <audio src={audioUrl} className="w-full h-8" controls />
+                  </div>
                 )}
-
-                {/* History */}
-                <div className="space-y-2">
-                  <Label className="text-sm text-muted-foreground">{t('aiEdit.selectFromHistory')}</Label>
-                  {isLoadingHistory ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : history.length === 0 ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                      {user ? t('aiEdit.noHistory') : t('aiEdit.loginForHistory')}
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-                      {history.map(item => (
-                        <Card 
-                          key={item.id} 
-                          className={`cursor-pointer transition-colors ${selectedSource?.id === item.id ? 'bg-primary/5 border-primary' : 'hover:bg-muted/50'}`}
-                          onClick={() => selectFromHistory(item)}
-                        >
-                          <CardContent className="p-3">
-                            <div className="flex items-center gap-3">
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="shrink-0"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePlay(item.audioUrl, item.id);
-                                }}
-                              >
-                                {playingId === item.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                              </Button>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{item.prompt}</p>
-                                <p className="text-xs text-muted-foreground">{item.duration}s</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
-          {/* Mejora con Auphonic - Col 2 */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-violet-500" />
-                  {t('aiEdit.enhanceTitle')}
-                </CardTitle>
-                <CardDescription>
-                  {t('aiEdit.enhanceDesc')}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          {/* CTA Button */}
+          {audioFile && !isProcessing && !processedUrl && (
+            <div className="space-y-2">
+              {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
+                <NoCreditsAlert message={tr('ctaButton')} />
+              ) : (
+                <Button
+                  onClick={handleMasterize}
+                  className="w-full h-14 text-base gap-3"
+                  size="lg"
+                >
+                  <Headphones className="w-5 h-5" />
+                  {tr('ctaButton')}
+                </Button>
+              )}
+              <PricingLink className="block text-center" />
+            </div>
+          )}
+
+          {/* Processing state */}
+          {isProcessing && (
+            <Card className="border-primary/20">
+              <CardContent className="p-6 space-y-6">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-primary animate-spin" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold">{tr('processing.title')}</p>
+                    <p className="text-sm text-muted-foreground">{tr('processing.subtitle')}</p>
+                  </div>
+                </div>
+
+                <Progress value={progressPercent} className="h-2" />
 
                 <div className="space-y-2">
-                  {ENHANCE_MODES.map(m => {
-                    const Icon = m.icon;
-                    const selected = enhanceMode === m.id;
+                  {PROCESSING_STEPS.map((step, i) => {
+                    const Icon = step.icon;
+                    const done = i < activeStep;
+                    const active = i === activeStep;
                     return (
-                      <button
-                        key={m.id}
-                        onClick={() => setEnhanceMode(m.id)}
-                        className={`
-                          flex items-center gap-3 rounded-xl border p-3 text-left
-                          transition-all duration-150 w-full
-                          ${selected
-                            ? `${m.border} ${m.bg}`
-                            : "border-border/40 hover:border-border hover:bg-muted/30"
-                          }
-                        `}
+                      <div
+                        key={step.key}
+                        className={`flex items-center gap-3 text-sm transition-all duration-300 ${
+                          done ? 'text-primary' : active ? 'text-foreground' : 'text-muted-foreground/50'
+                        }`}
                       >
-                        <div className={`rounded-lg p-2 ${m.bg}`}>
-                          <Icon className={`w-4 h-4 ${m.iconColor}`} />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-tight">
-                            {t(`aiEdit.enhanceModes.${m.id}.label`)}
-                          </p>
-                          <p className="text-xs text-muted-foreground leading-snug mt-0.5">
-                            {t(`aiEdit.enhanceModes.${m.id}.desc`)}
-                          </p>
-                        </div>
-
-                        {selected && (
-                          <CheckCircle2 className={`w-4 h-4 shrink-0 ${m.iconColor}`} />
+                        {done ? (
+                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                        ) : active ? (
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                        ) : (
+                          <Icon className="w-4 h-4 shrink-0" />
                         )}
-                      </button>
+                        {tr(`processing.steps.${step.key}`)}
+                      </div>
                     );
                   })}
                 </div>
-
-                {enhanceStatus === "processing" && (
-                  <div className="flex items-center gap-3 rounded-lg border border-violet-500/30 bg-violet-500/5 p-4">
-                    <Loader2 className="w-5 h-5 animate-spin text-violet-500 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        {t('aiEdit.processing')}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t('aiEdit.processingDesc')}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {enhanceStatus === "done" && enhanceOutputUrl && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-500">
-                      <CheckCircle2 className="w-5 h-5" />
-                      <p className="text-sm font-semibold">{t('aiEdit.enhanced')}</p>
-                    </div>
-                    <a
-                      href={enhanceOutputUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download
-                      className="flex items-center justify-center gap-2 w-full
-                                 rounded-lg bg-emerald-600 hover:bg-emerald-700
-                                 text-white text-sm font-semibold py-2.5
-                                 transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      {t('aiEdit.downloadEnhanced')}
-                    </a>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full text-xs"
-                      onClick={() => {
-                        setEnhanceStatus("idle");
-                        setEnhanceOutputUrl(null);
-                        setEnhanceProductionUuid(null);
-                      }}
-                    >
-                      {t('aiEdit.processAgain')}
-                    </Button>
-                  </div>
-                )}
-
-                {enhanceStatus === "error" && (
-                  <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                    <AlertTriangle className="w-4 h-4 shrink-0" />
-                    <p>{enhanceError || t('aiEdit.enhanceError', { defaultValue: 'Error al procesar el audio.' })}</p>
-                  </div>
-                )}
-
-                {enhanceStatus !== "done" && (
-                  !hasEnough(FEATURE_COSTS.enhance_audio) ? (
-                    <NoCreditsAlert message={t('aiEdit.enhanceBtn')} />
-                  ) : (
-                    <Button
-                      onClick={handleEnhance}
-                      disabled={isEnhancing || enhanceStatus === "processing" || !sourceSelected}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {isEnhancing || enhanceStatus === "processing"
-                        ? <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {t('aiEdit.processingBtn')}
-                          </>
-                        : <>
-                            <Sparkles className="w-4 h-4 mr-2" />
-                            {t('aiEdit.enhanceBtn')}
-                          </>
-                      }
-                    </Button>
-                  )
-                )}
-
-                <PricingLink className="block text-center" />
               </CardContent>
             </Card>
+          )}
 
-          </div>
+          {/* Error */}
+          {processError && !isProcessing && (
+            <Card className="border-destructive/30">
+              <CardContent className="p-4 flex items-center gap-3 text-destructive">
+                <AlertTriangle className="w-5 h-5 shrink-0" />
+                <p className="text-sm">{processError}</p>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Tipo de Edición - Col 3 */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{t('aiEdit.editType')}</CardTitle>
-                <CardDescription>{t('aiEdit.editTypeDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs value={variationType} onValueChange={(v) => setVariationType(v as VariationType)}>
-                  <TabsList className="grid grid-cols-2 gap-1 h-auto">
-                    <TabsTrigger value="similar" className="flex flex-col gap-1 py-3">
-                      <RefreshCw className="w-4 h-4" />
-                      <span className="text-xs">{t('aiEdit.variation')}</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="mood_change" className="flex flex-col gap-1 py-3">
-                      <Palette className="w-4 h-4" />
-                      <span className="text-xs">{t('aiEdit.mood')}</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="extend" className="flex flex-col gap-1 py-3">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-xs">{t('aiEdit.extend')}</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="inpaint" className="flex flex-col gap-1 py-3">
-                      <Scissors className="w-4 h-4" />
-                      <span className="text-xs">{t('aiEdit.inpaint')}</span>
-                    </TabsTrigger>
-                  </TabsList>
+          {/* Success result */}
+          {processedUrl && (
+            <div className="space-y-4">
+              {/* Success header */}
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                    <h2 className="text-lg font-semibold">{tr('success.title')}</h2>
+                  </div>
 
-                  <TabsContent value="similar" className="mt-4 space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      {t('aiEdit.variationDesc')}
-                    </p>
-                  </TabsContent>
+                  <div className="flex flex-wrap gap-3 mb-6">
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {tr('success.indicators.optimized')}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                      <Volume2 className="w-3 h-3" />
+                      {tr('success.indicators.streaming')}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium">
+                      <Sparkles className="w-3 h-3" />
+                      {tr('success.indicators.professional')}
+                    </span>
+                  </div>
 
-                  <TabsContent value="mood_change" className="mt-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label>{t('aiEdit.newMood')}</Label>
-                      <Select value={newMood} onValueChange={setNewMood}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('aiEdit.selectMood')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MOODS.map(mood => (
-                            <SelectItem key={mood} value={mood}>{mood}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {t('aiEdit.moodDesc')}
-                    </p>
-                  </TabsContent>
-
-                  <TabsContent value="extend" className="mt-4 space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <Label>{t('aiEdit.newDuration')}</Label>
-                        <span className="text-sm font-medium">{newDuration}s</span>
-                      </div>
-                      <Slider
-                        value={[newDuration]}
-                        onValueChange={([v]) => setNewDuration(v)}
-                        min={selectedSource ? selectedSource.duration : 30}
-                        max={180}
-                        step={5}
-                      />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {t('aiEdit.extendDesc')}
-                    </p>
-                  </TabsContent>
-
-                  <TabsContent value="inpaint" className="mt-4 space-y-4">
-                    <div className="space-y-3">
-                      <Label>{t('aiEdit.regionToModify')}</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">{t('aiEdit.start')}</Label>
-                          <Slider
-                            value={[inpaintStart]}
-                            onValueChange={([v]) => setInpaintStart(v)}
-                            min={0}
-                            max={selectedSource?.duration || 60}
-                            step={1}
-                          />
-                          <span className="text-xs">{inpaintStart}s</span>
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">{t('aiEdit.end')}</Label>
-                          <Slider
-                            value={[inpaintEnd]}
-                            onValueChange={([v]) => setInpaintEnd(v)}
-                            min={inpaintStart}
-                            max={selectedSource?.duration || 60}
-                            step={1}
-                          />
-                          <span className="text-xs">{inpaintEnd}s</span>
-                        </div>
+                  {/* Mastered audio player */}
+                  <div className="rounded-xl border border-border/40 bg-background p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="shrink-0 rounded-full"
+                        onClick={() => playAudio('mastered')}
+                      >
+                        {playingTrack === 'mastered' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      <div>
+                        <p className="text-sm font-medium">{tr('success.masteredTitle')}</p>
+                        <p className="text-xs text-muted-foreground">{tr('success.masteredSubtitle')}</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label>{t('aiEdit.changeDesc')}</Label>
-                      <Textarea
-                        placeholder={t('aiEdit.changePlaceholder')}
-                        value={inpaintPrompt}
-                        onChange={(e) => setInpaintPrompt(e.target.value)}
-                        rows={3}
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                    <audio src={processedUrl} className="w-full h-8" controls />
+                  </div>
+                </CardContent>
+              </Card>
 
-                {!hasEnough(FEATURE_COSTS.edit_audio) ? (
-                  <NoCreditsAlert message={t('aiEdit.enhanceBtn')} />
-                ) : (
-                <Button 
-                  onClick={handleProcess} 
-                  disabled={isProcessing || !sourceSelected}
-                  className="w-full mt-6"
-                  size="lg"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      {t('aiShared.processing')}
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-4 h-4 mr-2" />
-                      {t(`aiEdit.${variationType === 'similar' ? 'createVariation' : variationType === 'mood_change' ? 'createVersion' : variationType === 'extend' ? 'createExtension' : 'createEdit'}`)}
-                    </>
-                  )}
+              {/* A/B Comparison */}
+              {audioUrl && (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium mb-3">📊 {tr('success.compare')}</p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={playingTrack === 'original' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => playAudio('original')}
+                        className="gap-2 flex-1"
+                      >
+                        {playingTrack === 'original' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {tr('success.original')}
+                      </Button>
+                      <Button
+                        variant={playingTrack === 'mastered' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => playAudio('mastered')}
+                        className="gap-2 flex-1"
+                      >
+                        {playingTrack === 'mastered' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                        {tr('success.mastered')}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild className="gap-2">
+                  <a href={processedUrl} download target="_blank" rel="noopener noreferrer">
+                    <Download className="w-4 h-4" />
+                    {tr('actions.download')}
+                  </a>
                 </Button>
-                )}
-                <PricingLink className="block text-center mt-1" />
-              </CardContent>
-            </Card>
-          </div>
+                <Button variant="outline" onClick={handleReset} className="gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  {tr('actions.startNew')}
+                </Button>
+              </div>
+            </div>
+          )}
 
-          {/* Result */}
-          <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-xl font-semibold">{t('aiEdit.result')}</h2>
-            {isProcessing ? (
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Skeleton className="w-14 h-14 rounded-full shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-20" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-3 w-12" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-10 w-full" />
-                  <p className="text-sm text-muted-foreground text-center animate-pulse">
-                    {t('aiEdit.generatingAudio')}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : result ? (
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="shrink-0 w-14 h-14 rounded-full"
-                      onClick={() => togglePlay(result.audioUrl, result.id)}
-                    >
-                      {playingId === result.id ? (
-                        <Pause className="w-6 h-6" />
-                      ) : (
-                        <Play className="w-6 h-6 ml-0.5" />
-                      )}
-                    </Button>
-                    <div className="flex-1 min-w-0">
-                      <Badge variant="secondary" className="mb-2">
-                        {variationType === 'similar' ? t('aiEdit.variation') : 
-                         variationType === 'mood_change' ? `${t('aiEdit.mood')}: ${newMood}` :
-                         variationType === 'extend' ? t('aiEdit.extend') : t('aiEdit.inpaint')}
-                      </Badge>
-                      <p className="text-sm truncate">{result.prompt}</p>
-                      <p className="text-xs text-muted-foreground">{result.duration}s</p>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    variant="secondary" 
-                    className="w-full"
-                    onClick={() => downloadAudio(result.audioUrl, result.id.slice(0, 8))}
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    {t('aiEdit.download')}
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-16">
-                  <Music className="w-12 h-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-center">
-                    {sourceSelected ? t('aiEdit.selectSourceOrEdit') : t('aiEdit.selectAudioSource')}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          {/* Footer info */}
+          {!isProcessing && !processedUrl && (
+            <p className="text-center text-xs text-muted-foreground">
+              {tr('info')}
+            </p>
+          )}
         </div>
       </main>
 
