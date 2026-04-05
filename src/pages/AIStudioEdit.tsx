@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { FileDropzone } from '@/components/FileDropzone';
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
