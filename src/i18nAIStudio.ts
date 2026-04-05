@@ -154,8 +154,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
     },
     aiEdit: {
       backToStudio: 'Volver a AI MusicDibs Studio',
-      title: 'Editar Audio',
-      subtitle: 'Crea variaciones y edita tus pistas de audio',
+      title: 'Masterizado profesional con IA',
+      subtitle: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.',
       audioSource: 'Fuente de Audio',
       audioSourceDesc: 'Selecciona del historial o sube un archivo',
       uploadAudio: 'Subir archivo de audio',
