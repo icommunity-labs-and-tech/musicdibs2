@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Sparkles, Download, Info, AlertCircle, Video } from 'lucide-react';
+import { Loader2, Sparkles, Download, Info, AlertCircle, Video, Clock } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 const VIDEO_COST = FEATURE_COSTS.social_video;
 
 export const SocialVideosSection = () => {
