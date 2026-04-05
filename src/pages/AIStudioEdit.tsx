@@ -5,13 +5,14 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Loader2, Play, Pause, Download,
   Music, Sparkles, CheckCircle2, AlertTriangle,
-  Headphones, Volume2, Waves, Wind, Radio, RefreshCw
+  Headphones, Volume2, Waves, Wind, Radio, RefreshCw, Upload
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,6 +20,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
+import { GenerationPicker } from "@/components/ai-studio/GenerationPicker";
 
 const PROCESSING_STEPS = [
   { icon: Waves, key: "eq" },
@@ -35,8 +37,10 @@ const AIStudioEdit = () => {
   const { hasEnough } = useCredits();
   const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts) as string;
 
+  const [sourceTab, setSourceTab] = useState<string>("upload");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioName, setAudioName] = useState<string | null>(null);
 
   // Processing
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,14 +76,33 @@ const AIStudioEdit = () => {
   const handleFileSelect = (file: File) => {
     setAudioFile(file);
     setAudioUrl(URL.createObjectURL(file));
+    setAudioName(file.name);
     setProcessedUrl(null);
     setProcessError(null);
     setPlayingTrack(null);
   };
 
+  const handleGenerationSelect = async (url: string, name: string) => {
+    // Fetch the audio as a File so the upload flow works identically
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const file = new File([blob], name, { type: blob.type || "audio/mpeg" });
+      setAudioFile(file);
+      setAudioUrl(url);
+      setAudioName(name);
+      setProcessedUrl(null);
+      setProcessError(null);
+      setPlayingTrack(null);
+    } catch {
+      toast({ title: t("masterize.errorGeneric", "Error al cargar el audio"), variant: "destructive" });
+    }
+  };
+
   const handleRemoveFile = () => {
     setAudioFile(null);
     setAudioUrl(null);
+    setAudioName(null);
     setProcessedUrl(null);
     setProcessError(null);
     stopAllAudio();
@@ -236,6 +259,7 @@ const AIStudioEdit = () => {
     masteredAudioRef.current = null;
     setAudioFile(null);
     setAudioUrl(null);
+    setAudioName(null);
     setProcessedUrl(null);
     setProcessError(null);
     setProgressPercent(0);
@@ -266,38 +290,72 @@ const AIStudioEdit = () => {
           {!processedUrl && !isProcessing && (
             <Card>
               <CardContent className="p-6">
-                <FileDropzone
-                  fileType="audio"
-                  accept="audio/*"
-                  maxSize={50}
-                  label={tr('uploadLabel')}
-                  description={tr('uploadDescription')}
-                  currentFile={audioFile}
-                  onFileSelect={handleFileSelect}
-                  onRemove={handleRemoveFile}
-                />
+                {!audioFile ? (
+                  <Tabs value={sourceTab} onValueChange={setSourceTab}>
+                    <TabsList className="w-full mb-4">
+                      <TabsTrigger value="upload" className="flex-1 gap-2">
+                        <Upload className="w-4 h-4" />
+                        {t('masterize.tabUpload', 'Subir archivo')}
+                      </TabsTrigger>
+                      <TabsTrigger value="library" className="flex-1 gap-2">
+                        <Music className="w-4 h-4" />
+                        {t('masterize.tabLibrary', 'Mis canciones')}
+                      </TabsTrigger>
+                    </TabsList>
 
-                {/* Audio preview */}
-                {audioFile && audioUrl && (
-                  <div className="mt-4 rounded-xl border border-border/40 bg-muted/20 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0 rounded-full"
-                        onClick={() => playAudio('original')}
-                      >
-                        {playingTrack === 'original' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </Button>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{audioFile.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(audioFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                    <TabsContent value="upload">
+                      <FileDropzone
+                        fileType="audio"
+                        accept="audio/*"
+                        maxSize={50}
+                        label={tr('uploadLabel')}
+                        description={tr('uploadDescription')}
+                        currentFile={audioFile}
+                        onFileSelect={handleFileSelect}
+                        onRemove={handleRemoveFile}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="library">
+                      <GenerationPicker onSelect={handleGenerationSelect} />
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <>
+                    <FileDropzone
+                      fileType="audio"
+                      accept="audio/*"
+                      maxSize={50}
+                      label={tr('uploadLabel')}
+                      description={tr('uploadDescription')}
+                      currentFile={audioFile}
+                      onFileSelect={handleFileSelect}
+                      onRemove={handleRemoveFile}
+                    />
+
+                    {/* Audio preview */}
+                    {audioUrl && (
+                      <div className="mt-4 rounded-xl border border-border/40 bg-muted/20 p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0 rounded-full"
+                            onClick={() => playAudio('original')}
+                          >
+                            {playingTrack === 'original' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </Button>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{audioName || audioFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <audio src={audioUrl} className="w-full h-8" controls />
                       </div>
-                    </div>
-                    <audio src={audioUrl} className="w-full h-8" controls />
-                  </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
