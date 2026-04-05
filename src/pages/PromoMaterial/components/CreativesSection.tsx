@@ -433,7 +433,20 @@ export const CreativesSection = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>{trYt('thumbnailDescription')}</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>{trYt('thumbnailDescription')}</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1 text-primary"
+                      disabled={improvingPrompt || (!imageDescription.trim() && !basePhoto)}
+                      onClick={handleImproveDescription}
+                    >
+                      {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating', 'Generando…') : t('promoMaterial.creatives.aiDescribe.button', '✨ Generar con IA')}
+                    </Button>
+                  </div>
                   <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trYt('thumbnailDescriptionPlaceholder')} rows={3} />
                 </div>
 
