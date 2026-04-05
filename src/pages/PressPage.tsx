@@ -33,8 +33,6 @@ const PressPage = () => {
   const [selectedWork, setSelectedWork] = useState<any>(null);
   const [pressReleases, setPressReleases] = useState<any[]>([]);
   const [audiomackSlug, setAudiomackSlug] = useState("");
-  const [audiomackMetrics, setAudiomackMetrics] = useState<any>(null);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [generatingPR, setGeneratingPR] = useState(false);
   const [generatedPR, setGeneratedPR] = useState<any>(null);
   const [artistBio, setArtistBio] = useState("");
