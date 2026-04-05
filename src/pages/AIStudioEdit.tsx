@@ -33,7 +33,7 @@ const AIStudioEdit = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { hasEnough } = useCredits();
-  const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts);
+  const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts) as string;
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
