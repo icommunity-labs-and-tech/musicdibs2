@@ -166,27 +166,21 @@ export const CreativesSection = () => {
   };
 
   const photoUploadBlock = (labelKey: string, descKey: string, changeKey: string, uploadKey: string) => (
-    <div className="space-y-2">
-      <Label>{t(labelKey)}</Label>
-      <p className="text-xs text-muted-foreground">{t(descKey)}</p>
-      <div
-        onClick={() => basePhotoRef.current?.click()}
-        className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/50 transition-colors"
-      >
-        {basePhotoPreview ? (
-          <div className="space-y-2">
-            <img src={basePhotoPreview} alt="Base" className="max-h-32 mx-auto rounded" />
-            <Button size="sm" variant="ghost" onClick={clearPhoto}>{t(changeKey)}</Button>
-          </div>
-        ) : (
-          <>
-            <Upload className="w-6 h-6 mx-auto text-muted-foreground mb-1" />
-            <p className="text-sm text-muted-foreground">{t(uploadKey)}</p>
-          </>
-        )}
-      </div>
-      <input ref={basePhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handlePhotoChange} />
-    </div>
+    <FileDropzone
+      label={t(labelKey)}
+      description={t(descKey)}
+      fileType="image"
+      accept="image/jpeg,image/png,image/webp"
+      maxSize={10}
+      currentFile={basePhoto}
+      preview={basePhotoPreview}
+      onFileSelect={(file) => {
+        if (file.size > 10 * 1024 * 1024) { toast({ title: 'Archivo demasiado grande', variant: 'destructive' }); return; }
+        setBasePhoto(file);
+        setBasePhotoPreview(URL.createObjectURL(file));
+      }}
+      onRemove={clearPhoto}
+    />
   );
 
   return (

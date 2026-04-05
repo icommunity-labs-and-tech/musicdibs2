@@ -422,18 +422,17 @@ export const PostersSection = () => {
                     <Textarea value={soDescription} onChange={(e) => setSoDescription(e.target.value)} placeholder={trSo('descriptionPlaceholder')} rows={3} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>{trSo('artistPhoto')}</Label>
-                    <p className="text-xs text-muted-foreground">{trSo('artistPhotoDesc')}</p>
-                    <FileUploadBox
-                      preview={soPhotoPreview}
-                      onClear={() => { setSoPhoto(null); setSoPhotoPreview(null); if (soPhotoRef.current) soPhotoRef.current.value = ''; }}
-                      onClick={() => soPhotoRef.current?.click()}
-                      uploadLabel={trSo('uploadFile')}
-                      changeLabel={trSo('changeFile')}
-                    />
-                    <input ref={soPhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handleFileSelect(e, setSoPhoto, setSoPhotoPreview, trSo)} />
-                  </div>
+                  <FileDropzone
+                    label={trSo('artistPhoto')}
+                    description={trSo('artistPhotoDesc')}
+                    fileType="image"
+                    accept="image/jpeg,image/png,image/webp"
+                    maxSize={10}
+                    currentFile={soPhoto}
+                    preview={soPhotoPreview}
+                    onFileSelect={(f) => { if (validateFile(f, toast, trSo)) { setSoPhoto(f); setSoPhotoPreview(URL.createObjectURL(f)); } }}
+                    onRemove={() => { setSoPhoto(null); setSoPhotoPreview(null); }}
+                  />
 
                   <Button className="w-full" size="lg" disabled={generating} onClick={handleGenerateSocial}>
                     {generating ? (<><Loader2 className="w-4 h-4 animate-spin" />{trSo('generating')}</>) : trSo('generateButton')}

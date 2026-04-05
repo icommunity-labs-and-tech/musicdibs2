@@ -275,14 +275,19 @@ export default function AIStudioVocal() {
         </div>
         <div className="space-y-1.5">
           <Label>{vc('uploadLabel')}</Label>
-          <div onClick={() => cloneFileRef.current?.click()} className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors">
-            <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">{cloneAudioFile ? cloneAudioFile.name : vc('uploadHint')}</p>
-            {cloneAudioFile && cloneAudioDuration !== null && (
-              <p className="text-xs text-muted-foreground mt-1">{vc('duration', { seconds: cloneAudioDuration })}</p>
-            )}
-          </div>
-          <input ref={cloneFileRef} type="file" accept=".mp3,.wav,.m4a,audio/*" className="hidden" onChange={handleCloneFileChange} />
+          <FileDropzone
+            fileType="audio"
+            accept=".mp3,.wav,.m4a,audio/*"
+            maxSize={50}
+            currentFile={cloneAudioFile}
+            onFileSelect={(file) => {
+              handleCloneFileChange({ target: { files: [file] } } as any);
+            }}
+            onRemove={() => {
+              setCloneAudioFile(null);
+              setCloneAudioDuration(null);
+            }}
+          />
           {durationBadge()}
         </div>
         <label className="flex items-center gap-2 cursor-pointer text-sm">
