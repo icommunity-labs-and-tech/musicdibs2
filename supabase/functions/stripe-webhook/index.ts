@@ -146,7 +146,13 @@ serve(async (req) => {
         try {
           const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
           if (authUser?.email) {
-            const displayName = authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("display_name, language")
+              .eq("user_id", userId)
+              .single();
+            const displayName = profileData?.display_name || authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            const userLang = profileData?.language;
             // Try to get invoice URL from Stripe
             let invoiceUrl: string | undefined;
             if (resolvedCustomerId) {
@@ -162,6 +168,7 @@ serve(async (req) => {
               planName: planMap[planId] || planId,
               credits,
               invoiceUrl,
+              lang: userLang,
             });
             const messageId = crypto.randomUUID();
             await supabase.from("email_send_log").insert({
@@ -295,11 +302,19 @@ serve(async (req) => {
           const userName  = customer.name || userEmail;
 
           if (userEmail) {
+            // Fetch user language
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("language")
+              .eq("user_id", profile.user_id)
+              .single();
+            const userLang = profileData?.language;
             const email = paymentFailedEmail({
               name: userName,
               description,
               attemptCount,
               nextAttempt,
+              lang: userLang,
             });
             const messageId = crypto.randomUUID();
             await supabase.from("email_send_log").insert({

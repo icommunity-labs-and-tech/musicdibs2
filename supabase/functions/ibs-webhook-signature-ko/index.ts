@@ -86,7 +86,7 @@ serve(async (req) => {
       const { data: { user } } = await supabaseAdmin.auth.admin.getUserById(sig.user_id);
       const { data: profile } = await supabaseAdmin
         .from("profiles")
-        .select("display_name")
+        .select("display_name, language")
         .eq("user_id", sig.user_id)
         .single();
 
@@ -94,6 +94,7 @@ serve(async (req) => {
         userId: sig.user_id,
         email: user?.email,
         name: profile?.display_name || user?.email?.split("@")[0] || "Usuario",
+        lang: profile?.language,
       };
     }
 
@@ -118,7 +119,7 @@ serve(async (req) => {
 
         // Send failure email
         if (userInfo.email) {
-          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason });
+          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason, lang: userInfo.lang });
           await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
         }
       }
@@ -142,7 +143,7 @@ serve(async (req) => {
 
         // Send failure email
         if (userInfo.email) {
-          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason });
+          const emailData = kycFailedEmail({ name: userInfo.name, reason: failureReason, lang: userInfo.lang });
           await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
         }
       }

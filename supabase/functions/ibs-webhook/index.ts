@@ -111,8 +111,14 @@ serve(async (req) => {
             .eq("id", work.id)
             .single();
           const { data: { user: authUser } } = await supabaseAdmin.auth.admin.getUserById(work.user_id);
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("display_name, language")
+            .eq("user_id", work.user_id)
+            .single();
           if (authUser?.email && workFull) {
-            const displayName = authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            const displayName = profile?.display_name || authUser.user_metadata?.display_name || authUser.email.split("@")[0];
+            const userLang = profile?.language;
             const email = workCertifiedEmail({
               name: displayName,
               workTitle: workFull.title,
@@ -120,6 +126,7 @@ serve(async (req) => {
               network: network || "polygon",
               checkerUrl,
               certificateUrl: signedPdfUrl || checkerUrl,
+              lang: userLang,
             });
             const messageId = crypto.randomUUID();
             await supabaseAdmin.from("email_send_log").insert({
