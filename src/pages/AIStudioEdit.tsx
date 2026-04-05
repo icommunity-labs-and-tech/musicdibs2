@@ -76,14 +76,33 @@ const AIStudioEdit = () => {
   const handleFileSelect = (file: File) => {
     setAudioFile(file);
     setAudioUrl(URL.createObjectURL(file));
+    setAudioName(file.name);
     setProcessedUrl(null);
     setProcessError(null);
     setPlayingTrack(null);
   };
 
+  const handleGenerationSelect = async (url: string, name: string) => {
+    // Fetch the audio as a File so the upload flow works identically
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const file = new File([blob], name, { type: blob.type || "audio/mpeg" });
+      setAudioFile(file);
+      setAudioUrl(url);
+      setAudioName(name);
+      setProcessedUrl(null);
+      setProcessError(null);
+      setPlayingTrack(null);
+    } catch {
+      toast({ title: t("masterize.errorGeneric", "Error al cargar el audio"), variant: "destructive" });
+    }
+  };
+
   const handleRemoveFile = () => {
     setAudioFile(null);
     setAudioUrl(null);
+    setAudioName(null);
     setProcessedUrl(null);
     setProcessError(null);
     stopAllAudio();
