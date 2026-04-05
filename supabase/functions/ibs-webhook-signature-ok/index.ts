@@ -141,7 +141,7 @@ serve(async (req) => {
 
         // Send verified email
         if (userInfo.email) {
-          const emailData = kycVerifiedEmail({ name: userInfo.name });
+          const emailData = kycVerifiedEmail({ name: userInfo.name, lang: userInfo.lang });
           await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_verified");
         }
       }
