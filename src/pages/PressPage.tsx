@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/select";
 import {
   Newspaper, Loader2, Copy, Check, ChevronDown, ExternalLink,
-  BarChart3, Music, Users, Heart, Play, RotateCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -34,8 +33,6 @@ const PressPage = () => {
   const [selectedWork, setSelectedWork] = useState<any>(null);
   const [pressReleases, setPressReleases] = useState<any[]>([]);
   const [audiomackSlug, setAudiomackSlug] = useState("");
-  const [audiomackMetrics, setAudiomackMetrics] = useState<any>(null);
-  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [generatingPR, setGeneratingPR] = useState(false);
   const [generatedPR, setGeneratedPR] = useState<any>(null);
   const [artistBio, setArtistBio] = useState("");
@@ -150,45 +147,8 @@ const PressPage = () => {
     }
   };
 
-  const handleFetchMetrics = async () => {
-    if (!audiomackSlug.trim()) {
-      toast({ title: t("dashboard.press.enterSlug"), variant: "destructive" });
-      return;
-    }
-    setLoadingMetrics(true);
-    try {
-      if (user) {
-        await supabase.from("audiomack_connections").upsert(
-          {
-            user_id: user.id,
-            audiomack_slug: audiomackSlug.trim(),
-            connected_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" }
-        );
-      }
-      const res = await fetch(
-        `https://api.audiomack.com/v1/artist/${audiomackSlug.trim()}?consumer_key=musicdibs`
-      );
-      if (!res.ok) throw new Error(t("dashboard.press.artistNotFound"));
-      const data = await res.json();
-      const artist = data.results || data;
 
-      const metricsRes = await fetch(
-        `https://api.audiomack.com/v1/artist/${audiomackSlug.trim()}/metrics?consumer_key=musicdibs`
-      );
-      const metricsData = metricsRes.ok ? await metricsRes.json() : null;
-      setAudiomackMetrics({ artist, metrics: metricsData?.results || null });
-      toast({
-        title: t("dashboard.press.metricsLoaded"),
-        description: t("dashboard.press.metricsLoadedDesc", { name: artist.name || audiomackSlug }),
-      });
-    } catch (err: any) {
-      toast({ title: t("dashboard.press.errorAudiomack"), description: err.message, variant: "destructive" });
-    } finally {
-      setLoadingMetrics(false);
-    }
-  };
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -423,94 +383,59 @@ const PressPage = () => {
         </Card>
       </Collapsible>
 
-      {/* SECCIÓN 3 — Métricas Audiomack */}
+      {/* SECCIÓN 3 — Audiomack */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">{t("dashboard.press.audiomackTitle")}</CardTitle>
-          <CardDescription>{t("dashboard.press.audiomackDesc")}</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">🎵 Tu perfil en Audiomack</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Conecta tu perfil de Audiomack para acceder rápidamente a tus estadísticas y compartir tu música con curadores.
+          </p>
           <div className="space-y-2">
-            <Label>{t("dashboard.press.audiomackSlugLabel")}</Label>
+            <Label className="text-xs font-medium">Tu slug de Audiomack</Label>
             <div className="flex gap-2">
-              <Input value={audiomackSlug} onChange={(e) => setAudiomackSlug(e.target.value)} placeholder="nombre-artista" className="flex-1" />
-              <Button onClick={handleFetchMetrics} disabled={loadingMetrics || !audiomackSlug.trim()} className="gap-2 shrink-0">
-                {loadingMetrics ? <Loader2 className="h-4 w-4 animate-spin" /> : <BarChart3 className="h-4 w-4" />}
-                {t("dashboard.press.audiomackConnectBtn")}
+              <Input
+                value={audiomackSlug}
+                onChange={e => setAudiomackSlug(e.target.value)}
+                placeholder="ej: nombre-artista"
+                className="text-sm"
+              />
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!audiomackSlug.trim() || !user) return;
+                  await supabase.from('audiomack_connections').upsert(
+                    { user_id: user.id, audiomack_slug: audiomackSlug.trim(), connected_at: new Date().toISOString() },
+                    { onConflict: 'user_id' }
+                  );
+                  toast({ title: '✅ Perfil guardado' });
+                }}
+                disabled={!audiomackSlug.trim()}
+              >
+                Guardar
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("dashboard.press.audiomackSlugHint")}<strong>{t("dashboard.press.audiomackSlugHintBold")}</strong>
+              Encuéntralo en tu URL: audiomack.com/<strong>tu-slug</strong>
             </p>
           </div>
-
-          {audiomackMetrics && (
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-center gap-3">
-                {audiomackMetrics.artist?.image && (
-                  <img src={audiomackMetrics.artist.image} alt={audiomackMetrics.artist.name} className="h-12 w-12 rounded-full object-cover" />
-                )}
-                <div>
-                  <p className="font-semibold">{audiomackMetrics.artist?.name || audiomackSlug}</p>
-                  {audiomackMetrics.artist?.genre && (
-                    <p className="text-xs text-muted-foreground">{audiomackMetrics.artist.genre}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Users className="h-4 w-4 mx-auto mb-1 text-primary" />
-                  <p className="text-lg font-bold">{audiomackMetrics.artist?.followers?.toLocaleString() || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{t("dashboard.press.metricFollowers")}</p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Music className="h-4 w-4 mx-auto mb-1 text-primary" />
-                  <p className="text-lg font-bold">{audiomackMetrics.artist?.total_uploads?.toLocaleString() || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{t("dashboard.press.metricUploads")}</p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-3 text-center">
-                  <Heart className="h-4 w-4 mx-auto mb-1 text-primary" />
-                  <p className="text-lg font-bold">{audiomackMetrics.artist?.total_favorites?.toLocaleString() || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{t("dashboard.press.metricFavorites")}</p>
-                </div>
-              </div>
-
-              {audiomackMetrics.metrics?.event_counters && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-muted/30 rounded-lg p-3 text-center">
-                    <Play className="h-4 w-4 mx-auto mb-1 text-green-500" />
-                    <p className="text-lg font-bold">{audiomackMetrics.metrics.event_counters.plays_last_hour?.toLocaleString() || "0"}</p>
-                    <p className="text-xs text-muted-foreground">{t("dashboard.press.metricPlaysLastHour")}</p>
-                  </div>
-                  <div className="bg-muted/30 rounded-lg p-3 text-center">
-                    <RotateCw className="h-4 w-4 mx-auto mb-1 text-blue-500" />
-                    <p className="text-lg font-bold">{audiomackMetrics.metrics.event_counters.reposts_last_hour?.toLocaleString() || "0"}</p>
-                    <p className="text-xs text-muted-foreground">{t("dashboard.press.metricRepostsLastHour")}</p>
-                  </div>
-                </div>
-              )}
-
-              {audiomackMetrics.artist?.music_top10?.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-sm">{t("dashboard.press.topSongs")}</Label>
-                  <div className="space-y-1">
-                    {audiomackMetrics.artist.music_top10.map((song: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between text-sm p-2 bg-muted/20 rounded">
-                        <span className="truncate flex-1">{i + 1}. {song.title}</span>
-                        <span className="text-muted-foreground shrink-0 ml-2">{song.plays?.toLocaleString() || "—"} {t("dashboard.press.plays")}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <Button variant="outline" className="gap-2" onClick={() => window.open(`https://audiomack.com/${audiomackSlug}`, "_blank")}>
-                <ExternalLink className="h-4 w-4" />
-                {t("dashboard.press.viewProfile")}
+          {audiomackSlug && (
+            <a
+              href={`https://audiomack.com/${audiomackSlug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Button className="w-full gap-2" variant="outline">
+                <span>🎵</span> Ver mi perfil en Audiomack →
               </Button>
-            </div>
+            </a>
           )}
+          <div className="rounded-lg bg-muted/40 p-3 text-xs text-muted-foreground">
+            <p className="font-medium mb-1">📊 Analytics avanzados — Próximamente</p>
+            <p>En la siguiente versión podrás ver tus reproducciones, seguidores y tendencias directamente desde MusicDibs gracias a la integración con Chartmetric.</p>
+          </div>
         </CardContent>
       </Card>
     </div>
