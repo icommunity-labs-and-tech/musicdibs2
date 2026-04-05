@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/select";
 import {
   Newspaper, Loader2, Copy, Check, ChevronDown, ExternalLink,
-  BarChart3, Music, Users, Heart, Play, RotateCw,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
