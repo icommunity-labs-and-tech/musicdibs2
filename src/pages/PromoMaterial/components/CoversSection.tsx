@@ -345,6 +345,7 @@ export const CoversSection = () => {
                   <TabsContent value="artist" className="mt-3 space-y-3">
                     <p className="text-xs text-muted-foreground">{tr('artistPhotoDesc')}</p>
                     <FileDropzone
+                      data-tour="pm-dropzone"
                       fileType="image"
                       accept="image/jpeg,image/png,image/webp"
                       maxSize={10}
