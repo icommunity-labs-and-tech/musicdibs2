@@ -95,13 +95,13 @@ export const SocialVideosSection = () => {
       }
 
       const reqId = data.requestId;
-      if (!reqId) {
+      const statusUrl = data.statusUrl;
+      if (!reqId || !statusUrl) {
         toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
         setGenerating(false);
         return;
       }
 
-      // Poll for result
       const poll = async () => {
         for (let i = 0; i < 120; i++) {
           await new Promise(r => setTimeout(r, 5000));
@@ -109,24 +109,30 @@ export const SocialVideosSection = () => {
             const statusRes = await fetch(baseUrl, {
               method: 'POST',
               headers,
-              body: JSON.stringify({ action: 'status', requestId: reqId }),
+              body: JSON.stringify({ action: 'status', requestId: reqId, statusUrl }),
             });
             const statusData = await statusRes.json();
+
+            if (!statusRes.ok) {
+              toast({ title: tr('error'), description: statusData.error || tr('errorDesc'), variant: 'destructive' });
+              return;
+            }
 
             if (statusData.status === 'SUCCEEDED' && statusData.video_url) {
               setVideoUrl(statusData.video_url);
               toast({ title: tr('success'), description: tr('successDesc') });
               return;
             }
+
             if (statusData.status === 'FAILED') {
               toast({ title: tr('error'), description: statusData.failure || tr('errorDesc'), variant: 'destructive' });
               return;
             }
-            // PENDING — keep polling
           } catch (e) {
             console.error('Polling error:', e);
           }
         }
+
         toast({ title: tr('error'), description: 'Video generation timed out.', variant: 'destructive' });
       };
 
