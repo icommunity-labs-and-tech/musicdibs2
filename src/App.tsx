@@ -38,7 +38,7 @@ const DashboardLayout = lazyWithRetry(() => import("./pages/DashboardLayout"));
 const DashboardHome = lazyWithRetry(() => import("./pages/DashboardHome"));
 const RegisterPage = lazyWithRetry(() => import("./pages/RegisterPage"));
 const VerifyPage = lazyWithRetry(() => import("./pages/VerifyPage"));
-const PromotePage = lazyWithRetry(() => import("./pages/PromotePage"));
+const PromotionPage = lazyWithRetry(() => import("./pages/PromotionPage"));
 const CreditsPage = lazyWithRetry(() => import("./pages/CreditsPage"));
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
 const BillingPage = lazyWithRetry(() => import("./pages/BillingPage"));
@@ -116,8 +116,10 @@ const App = () => (
                 <Route path="launch" element={<LaunchPage />} />
                 <Route path="register" element={<RegisterPage />} />
                 <Route path="verify" element={<VerifyPage />} />
-                <Route path="promote" element={<PromotePage />} />
-                <Route path="premium-promotion" element={<PromotePage />} />
+                <Route path="promote" element={<PromotionPage />} />
+                <Route path="premium-promotion" element={<PromotionPage />} />
+                <Route path="promotion" element={<PromotionPage />} />
+                <Route path="press" element={<PromotionPage />} />
                 <Route path="credits" element={<CreditsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="billing" element={<BillingPage />} />
