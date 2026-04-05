@@ -65,13 +65,6 @@ export default function DashboardHome() {
     );
   }
 
-  if (hasWorks === false && !skipFirstHit) {
-    return <FirstHitFlow onSkip={() => {
-      if (storageKey) localStorage.setItem(storageKey, '1');
-      setSkipFirstHit(true);
-    }} />;
-  }
-
   return (
     <div className="space-y-6 max-w-[1400px]">
       <PaymentAlertBanner />
