@@ -289,38 +289,72 @@ const AIStudioEdit = () => {
           {!processedUrl && !isProcessing && (
             <Card>
               <CardContent className="p-6">
-                <FileDropzone
-                  fileType="audio"
-                  accept="audio/*"
-                  maxSize={50}
-                  label={tr('uploadLabel')}
-                  description={tr('uploadDescription')}
-                  currentFile={audioFile}
-                  onFileSelect={handleFileSelect}
-                  onRemove={handleRemoveFile}
-                />
+                {!audioFile ? (
+                  <Tabs value={sourceTab} onValueChange={setSourceTab}>
+                    <TabsList className="w-full mb-4">
+                      <TabsTrigger value="upload" className="flex-1 gap-2">
+                        <Upload className="w-4 h-4" />
+                        {t('masterize.tabUpload', 'Subir archivo')}
+                      </TabsTrigger>
+                      <TabsTrigger value="library" className="flex-1 gap-2">
+                        <Music className="w-4 h-4" />
+                        {t('masterize.tabLibrary', 'Mis canciones')}
+                      </TabsTrigger>
+                    </TabsList>
 
-                {/* Audio preview */}
-                {audioFile && audioUrl && (
-                  <div className="mt-4 rounded-xl border border-border/40 bg-muted/20 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="shrink-0 rounded-full"
-                        onClick={() => playAudio('original')}
-                      >
-                        {playingTrack === 'original' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </Button>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{audioFile.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {(audioFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                    <TabsContent value="upload">
+                      <FileDropzone
+                        fileType="audio"
+                        accept="audio/*"
+                        maxSize={50}
+                        label={tr('uploadLabel')}
+                        description={tr('uploadDescription')}
+                        currentFile={audioFile}
+                        onFileSelect={handleFileSelect}
+                        onRemove={handleRemoveFile}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="library">
+                      <GenerationPicker onSelect={handleGenerationSelect} />
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <>
+                    <FileDropzone
+                      fileType="audio"
+                      accept="audio/*"
+                      maxSize={50}
+                      label={tr('uploadLabel')}
+                      description={tr('uploadDescription')}
+                      currentFile={audioFile}
+                      onFileSelect={handleFileSelect}
+                      onRemove={handleRemoveFile}
+                    />
+
+                    {/* Audio preview */}
+                    {audioUrl && (
+                      <div className="mt-4 rounded-xl border border-border/40 bg-muted/20 p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="shrink-0 rounded-full"
+                            onClick={() => playAudio('original')}
+                          >
+                            {playingTrack === 'original' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </Button>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{audioName || audioFile.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </div>
+                        <audio src={audioUrl} className="w-full h-8" controls />
                       </div>
-                    </div>
-                    <audio src={audioUrl} className="w-full h-8" controls />
-                  </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>
