@@ -292,6 +292,42 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
+      {/* Language */}
+      <Card className="border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Globe className="h-4 w-4 text-primary" /> {t('dashboard.profile.languageTitle')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">{t('dashboard.profile.languageDesc')}</p>
+          <Select
+            value={userLang}
+            onValueChange={async (val) => {
+              setUserLang(val);
+              setLangSaving(true);
+              i18n.changeLanguage(val);
+              await supabase.from('profiles').update({ language: val }).eq('user_id', user!.id);
+              setLangSaving(false);
+            }}
+          >
+            <SelectTrigger className="w-[200px] h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="es">🇪🇸 Español</SelectItem>
+              <SelectItem value="en">🇬🇧 English</SelectItem>
+              <SelectItem value="pt">🇧🇷 Português</SelectItem>
+            </SelectContent>
+          </Select>
+          {langSaving && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> {t('dashboard.profile.saving')}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Notifications */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
