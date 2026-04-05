@@ -123,13 +123,25 @@ export const SocialVideosSection = () => {
               return;
             }
 
+            // Update progress indicator
+            if (statusData.queue_position != null) {
+              setQueuePosition(statusData.queue_position);
+              setProgressStatus('queued');
+            } else {
+              setProgressStatus('processing');
+              setQueuePosition(null);
+            }
+            setPollCount(i + 1);
+
             if (statusData.status === 'SUCCEEDED' && statusData.video_url) {
               setVideoUrl(statusData.video_url);
+              setProgressStatus(null);
               toast({ title: tr('success'), description: tr('successDesc') });
               return;
             }
 
             if (statusData.status === 'FAILED') {
+              setProgressStatus(null);
               toast({ title: tr('error'), description: statusData.failure || tr('errorDesc'), variant: 'destructive' });
               return;
             }
