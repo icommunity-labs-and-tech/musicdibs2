@@ -1787,6 +1787,79 @@ allLangs.forEach((lang) => {
   }
 });
 
+// ── Voice Tools Tour translations ──
+const voiceToolsTourTranslations: Record<string, any> = {
+  es: {
+    voiceToolsTour: {
+      step1Title: 'Tu estudio vocal con IA 🎤',
+      step1Content: 'Clona tu voz, canta en 29 idiomas y crea versiones vocales profesionales de cualquier letra.\n\nFuncionalidades:\n• Clonar tu voz en segundos\n• Generar pistas vocales con tu voz clonada\n• Traducir audio a cualquier idioma\n• Cantar letras que tú escribas\n\nTe mostramos cómo funciona paso a paso.',
+      step2Title: 'Clona tu voz',
+      step2Content: 'Para usar tu propia voz, primero necesitas clonarla.\n\nRequisitos del audio:\n✓ Mínimo 1 minuto de grabación\n✓ Solo tu voz (sin música de fondo)\n✓ Habla clara y natural\n✓ MP3, WAV o FLAC\n\nConsejo: Graba en un lugar silencioso y habla de forma natural, como si estuvieras contando una historia.',
+      step3Title: 'Tus voces clonadas',
+      step3Content: 'Una vez clonada tu voz, aparecerá en esta lista.\n\nPuedes:\n• Ver todas tus voces clonadas\n• Escuchar previews de cada voz\n• Eliminar voces que no uses\n• Seleccionar una voz para usar en "Cantar"\n\nLa clonación toma ~2-3 minutos. Se te notificará cuando esté lista.',
+      step4Title: 'Genera pistas vocales',
+      step4Content: 'Con tu voz clonada, puedes generar canciones completas:\n\n1️⃣ Selecciona una voz clonada\n2️⃣ Escribe o pega la letra\n3️⃣ Escoge género musical y mood\n4️⃣ Genera tu pista vocal\n\nLa IA cantará tu letra usando tu voz con calidad profesional.',
+      step5Title: '¿No tienes letra? Genérala aquí',
+      step5Content: 'No necesitas escribir la letra tú mismo.\n\nClick en "Generación gratis" para:\n• Describir el tema de la canción\n• Seleccionar género y mood\n• Generar letra completa con IA\n• Usar la letra generada directamente\n\nLa letra se carga automáticamente en el campo de texto.',
+      step6Title: 'Personaliza el estilo musical',
+      step6Content: 'Ajusta cómo suena tu canción:\n\n🎵 Tema central\nAmor, Desamor, Fiesta, Superación, etc.\n\n🎸 Género musical\nPop, Rock, Reggaeton, Hip-Hop, y más\n\n🎭 Mood / Tono\nAlegre, Melancólico, Épico, Enérgico, etc.\n\nEstos parámetros definen el estilo de la pista vocal generada.',
+      step7Title: 'Traduce audio a cualquier idioma',
+      step7Content: 'Convierte cualquier audio a otro idioma manteniendo la voz original:\n\n1️⃣ Sube un archivo de audio\n2️⃣ Selecciona idioma de destino (29 disponibles)\n3️⃣ La IA traduce y genera nueva versión\n\nPerfecto para crear versiones internacionales de tus canciones.\n\nCoste: 5 créditos por traducción',
+      finish: '¡Empezar!',
+      rewatch: 'Ver tutorial',
+    },
+  },
+  en: {
+    voiceToolsTour: {
+      step1Title: 'Your AI vocal studio 🎤',
+      step1Content: 'Clone your voice, sing in 29 languages and create professional vocal versions of any lyrics.\n\nFeatures:\n• Clone your voice in seconds\n• Generate vocal tracks with your cloned voice\n• Translate audio to any language\n• Sing lyrics you write\n\nLet us show you how it works step by step.',
+      step2Title: 'Clone your voice',
+      step2Content: 'To use your own voice, you need to clone it first.\n\nAudio requirements:\n✓ At least 1 minute of recording\n✓ Your voice only (no background music)\n✓ Clear and natural speech\n✓ MP3, WAV or FLAC\n\nTip: Record in a quiet place and speak naturally, as if you were telling a story.',
+      step3Title: 'Your cloned voices',
+      step3Content: 'Once your voice is cloned, it will appear in this list.\n\nYou can:\n• View all your cloned voices\n• Listen to previews of each voice\n• Delete voices you don\'t use\n• Select a voice to use in "Sing"\n\nCloning takes ~2-3 minutes. You\'ll be notified when it\'s ready.',
+      step4Title: 'Generate vocal tracks',
+      step4Content: 'With your cloned voice, you can generate complete songs:\n\n1️⃣ Select a cloned voice\n2️⃣ Write or paste the lyrics\n3️⃣ Choose musical genre and mood\n4️⃣ Generate your vocal track\n\nThe AI will sing your lyrics using your voice with professional quality.',
+      step5Title: 'No lyrics? Generate them here',
+      step5Content: 'You don\'t need to write the lyrics yourself.\n\nClick "Free generation" to:\n• Describe the song theme\n• Select genre and mood\n• Generate complete lyrics with AI\n• Use the generated lyrics directly\n\nThe lyrics are automatically loaded into the text field.',
+      step6Title: 'Customize the musical style',
+      step6Content: 'Adjust how your song sounds:\n\n🎵 Central theme\nLove, Heartbreak, Party, Overcoming, etc.\n\n🎸 Musical genre\nPop, Rock, Reggaeton, Hip-Hop, and more\n\n🎭 Mood / Tone\nHappy, Melancholic, Epic, Energetic, etc.\n\nThese parameters define the style of the generated vocal track.',
+      step7Title: 'Translate audio to any language',
+      step7Content: 'Convert any audio to another language while keeping the original voice:\n\n1️⃣ Upload an audio file\n2️⃣ Select target language (29 available)\n3️⃣ AI translates and generates a new version\n\nPerfect for creating international versions of your songs.\n\nCost: 5 credits per translation',
+      finish: 'Let\'s go!',
+      rewatch: 'View tutorial',
+    },
+  },
+  'pt-BR': {
+    voiceToolsTour: {
+      step1Title: 'Seu estúdio vocal com IA 🎤',
+      step1Content: 'Clone sua voz, cante em 29 idiomas e crie versões vocais profissionais de qualquer letra.\n\nFuncionalidades:\n• Clonar sua voz em segundos\n• Gerar faixas vocais com sua voz clonada\n• Traduzir áudio para qualquer idioma\n• Cantar letras que você escrever\n\nVamos mostrar como funciona passo a passo.',
+      step2Title: 'Clone sua voz',
+      step2Content: 'Para usar sua própria voz, primeiro você precisa cloná-la.\n\nRequisitos do áudio:\n✓ Mínimo 1 minuto de gravação\n✓ Apenas sua voz (sem música de fundo)\n✓ Fala clara e natural\n✓ MP3, WAV ou FLAC\n\nDica: Grave em um lugar silencioso e fale naturalmente, como se estivesse contando uma história.',
+      step3Title: 'Suas vozes clonadas',
+      step3Content: 'Uma vez clonada sua voz, ela aparecerá nesta lista.\n\nVocê pode:\n• Ver todas as suas vozes clonadas\n• Ouvir previews de cada voz\n• Excluir vozes que não usa\n• Selecionar uma voz para usar em "Cantar"\n\nA clonagem leva ~2-3 minutos. Você será notificado quando estiver pronta.',
+      step4Title: 'Gere faixas vocais',
+      step4Content: 'Com sua voz clonada, você pode gerar músicas completas:\n\n1️⃣ Selecione uma voz clonada\n2️⃣ Escreva ou cole a letra\n3️⃣ Escolha gênero musical e mood\n4️⃣ Gere sua faixa vocal\n\nA IA cantará sua letra usando sua voz com qualidade profissional.',
+      step5Title: 'Sem letra? Gere aqui',
+      step5Content: 'Você não precisa escrever a letra.\n\nClique em "Geração grátis" para:\n• Descrever o tema da música\n• Selecionar gênero e mood\n• Gerar letra completa com IA\n• Usar a letra gerada diretamente\n\nA letra é carregada automaticamente no campo de texto.',
+      step6Title: 'Personalize o estilo musical',
+      step6Content: 'Ajuste como sua música soa:\n\n🎵 Tema central\nAmor, Desamor, Festa, Superação, etc.\n\n🎸 Gênero musical\nPop, Rock, Reggaeton, Hip-Hop e mais\n\n🎭 Mood / Tom\nAlegre, Melancólico, Épico, Enérgico, etc.\n\nEstes parâmetros definem o estilo da faixa vocal gerada.',
+      step7Title: 'Traduza áudio para qualquer idioma',
+      step7Content: 'Converta qualquer áudio para outro idioma mantendo a voz original:\n\n1️⃣ Envie um arquivo de áudio\n2️⃣ Selecione o idioma de destino (29 disponíveis)\n3️⃣ A IA traduz e gera uma nova versão\n\nPerfeito para criar versões internacionais das suas músicas.\n\nCusto: 5 créditos por tradução',
+      finish: 'Vamos lá!',
+      rewatch: 'Ver tutorial',
+    },
+  },
+};
+
+allLangs.forEach((lang) => {
+  const translation = resources[lang]?.translation as Record<string, any> | undefined;
+  if (!translation) return;
+  const vtt = voiceToolsTourTranslations[lang]?.voiceToolsTour;
+  if (vtt) {
+    translation.voiceToolsTour = vtt;
+  }
+});
+
 // Safety fix: in some locales aiStudio was accidentally nested under privacy
 allLangs.forEach((lang) => {
   const translation = resources[lang]?.translation as Record<string, any> | undefined;

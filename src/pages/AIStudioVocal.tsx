@@ -25,6 +25,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { VoiceTranslator } from '@/components/voice/VoiceTranslator';
+import { VoiceToolsTour } from '@/components/ai-studio/VoiceToolsTour';
+import { HelpCircle } from 'lucide-react';
 
 const THEMES = ["Amor", "Desamor", "Superación", "Fiesta", "Calle", "Familia", "Libertad", "Nostalgia", "Éxito", "Identidad"];
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
