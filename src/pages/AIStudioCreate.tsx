@@ -903,7 +903,7 @@ const AIStudioCreate = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Artist profile selector */}
-                      <div className="space-y-2">
+                      <div className="space-y-2" data-tour="mc-artist-profile">
                         <div className="flex items-center justify-between">
                           <Label className="text-sm font-medium">🎤 {t('aiCreate.artistProfile')}</Label>
                           <button
