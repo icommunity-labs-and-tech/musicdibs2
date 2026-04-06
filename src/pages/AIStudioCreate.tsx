@@ -59,12 +59,7 @@ const STRUCTURES = [
   { value: "V+V+C+V+C", label: "Verso · Verso · Coro · Verso · Coro" },
   { value: "V+C+P+C", label: "Verso · Coro · Puente · Coro" },
 ];
-const ARTIST_REFS = [
-  "Bad Bunny", "Rosalía", "C. Tangana", "J Balvin",
-  "Bizarrap", "Shakira", "Residente", "Anuel AA",
-  "Eminem", "Drake", "Kendrick Lamar", "Taylor Swift",
-  "The Weeknd", "Beyoncé", "Radiohead", "Arctic Monkeys",
-];
+// Artist presets removed — users can type freely in description
 const THEMES = ["Amor", "Desamor", "Superación", "Fiesta", "Calle", "Familia", "Libertad", "Nostalgia", "Éxito", "Identidad"];
 const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
@@ -172,7 +167,7 @@ const AIStudioCreate = () => {
   const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
   const [selectedTheme, setSelectedTheme] = useState<string>('');
-  const [selectedArtistRefs, setSelectedArtistRefs] = useState<string[]>([]);
+  const [selectedArtistRefs] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
    const [showCloneModal, setShowCloneModal] = useState(false);
    const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
@@ -1188,27 +1183,6 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
-                      {/* Artistas de referencia */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          {t('aiCreate.artistRefs')}
-                          <span className="text-xs text-muted-foreground font-normal ml-2">{t('aiCreate.customArtistHint')}</span>
-                        </Label>
-                        <div className="flex flex-wrap gap-2">
-                          {ARTIST_REFS.map(a => (
-                            <Badge
-                              key={a}
-                              variant={selectedArtistRefs.includes(a) ? 'default' : 'outline'}
-                              className="cursor-pointer text-xs"
-                              onClick={() => setSelectedArtistRefs(prev =>
-                                prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]
-                              )}
-                            >
-                              {a}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Idioma de la letra */}
                       {mode === 'song' && (
@@ -1694,21 +1668,6 @@ const AIStudioCreate = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                       <Label className="text-sm">
-                         {t('aiCreate.artistRefsLabel')}
-                         <span className="text-muted-foreground ml-1 font-normal">{t('aiCreate.customArtistHint')}</span>
-                       </Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ARTIST_REFS.map(a => (
-                          <Badge key={a} variant={lyricsArtistRefs.includes(a) ? "default" : "outline"}
-                            className={cn("cursor-pointer text-xs transition-colors", lyricsArtistRefs.length >= 3 && !lyricsArtistRefs.includes(a) && "opacity-40 cursor-not-allowed")}
-                            onClick={() => { if (lyricsArtistRefs.length >= 3 && !lyricsArtistRefs.includes(a)) return; toggleArtistRef(a); }}>
-                            {a}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">
