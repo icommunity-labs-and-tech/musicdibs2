@@ -19,8 +19,13 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
         {/* MRR Evolution */}
         <Card className="border-border/40">
           <CardHeader>
-            <CardTitle className="text-base">📈 MRR Evolution</CardTitle>
-            <CardDescription>Últimos 12 meses</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base">📈 Revenue Evolution</CardTitle>
+              {m._dataSource === "stripe_real" && (
+                <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-500">Stripe Live</Badge>
+              )}
+            </div>
+            <CardDescription>Ingresos reales últimos 12 meses</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
