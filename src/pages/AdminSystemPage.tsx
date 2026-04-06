@@ -171,7 +171,7 @@ export default function AdminSystemPage() {
             <ScrollText className="h-4 w-4" /> Log de auditoría
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Select value={auditFilter || 'all'} onValueChange={v => setAuditFilter(v === 'all' ? '' : v)}>
+            <Select value={auditFilter || 'all'} onValueChange={v => { setAuditFilter(v === 'all' ? '' : v); setAuditPage(0); }}>
               <SelectTrigger className="w-[180px] h-8 text-sm">
                 <SelectValue placeholder="Todas las acciones" />
               </SelectTrigger>
