@@ -216,6 +216,9 @@ serve(async (req) => {
       case "activity.updated":
         result = await handleActivityUpdate(payload);
         break;
+      case "cart.abandoned":
+        result = await handleCartAbandoned(payload);
+        break;
       default:
         return new Response(
           JSON.stringify({ error: `Unknown event: ${event}` }),
