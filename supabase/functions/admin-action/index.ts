@@ -618,7 +618,7 @@ serve(async (req) => {
           const lastMonthTs = Math.floor(new Date(lastMonthStart).getTime() / 1000);
           const nowTs = Math.floor(now.getTime() / 1000);
 
-          const cancelledSubs: any[] = [];
+          cancelledSubs = [];
           hasMore = true;
           startingAfter = undefined;
           while (hasMore) {
