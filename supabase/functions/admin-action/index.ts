@@ -570,7 +570,7 @@ serve(async (req) => {
         admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", lastMonthStart).lt("created_at", thisMonthStart),
         admin.from("profiles").select("*", { count: "exact", head: true }).eq("kyc_status", "verified"),
         admin.from("profiles").select("subscription_plan, created_at"),
-        totalWorksRes2 = worksQuery,
+        worksQuery,
         admin.from("works").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
       ]);
 
