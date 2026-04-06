@@ -131,8 +131,7 @@ serve(async (req) => {
       if (userId && credits > 0) {
         await addCredits(supabase, userId, credits, `Compra plan ${planId}: +${credits} créditos`);
 
-        const planMap: Record<string, string> = { annual: "Annual", monthly: "Monthly" };
-        const planName = planMap[planId];
+        const planName = PLAN_ID_TO_PLAN_NAME[planId];
         if (planName) {
           await supabase
             .from("profiles")
