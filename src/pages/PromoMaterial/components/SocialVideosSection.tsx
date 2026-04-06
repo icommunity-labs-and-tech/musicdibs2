@@ -244,7 +244,7 @@ export const SocialVideosSection = () => {
 
           <Button
             onClick={handleGenerate}
-            disabled={generating || !description.trim() || !style || !hasEnough(VIDEO_COST)}
+            disabled={generating || !description.trim() || !hasEnough(VIDEO_COST)}
             className="w-full"
           >
             {generating ? (
