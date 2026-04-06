@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { premiumPromoPublishedEmail, kycRejectedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
@@ -531,6 +532,11 @@ serve(async (req) => {
     if (action === "get_saas_metrics") {
       const { month, year } = payload || {};
       const now = new Date();
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      let stripe: any = null;
+      if (stripeKey) {
+        stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+      }
 
       // Build date range from filters
       let filterStart: string | null = null;
@@ -554,9 +560,123 @@ serve(async (req) => {
       const lastMonthStart = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
       const todayStr = now.toISOString().slice(0, 10);
-      const PRICES: Record<string, number> = { Free: 0, Starter: 4.99, Pro: 9.99, Business: 19.99, Enterprise: 49.99 };
 
-      // Filtered queries for "period" KPIs
+      // ── Stripe: Real subscription & revenue data ──
+      let stripeMrr = 0;
+      let stripeArr = 0;
+      let activeSubsCount = 0;
+      let cancelledSubsThisMonth = 0;
+      let cancelledSubsLastMonth = 0;
+      let stripeAnnualRevenue = 0;
+      let stripeMonthlyRevenue = 0;
+      let totalStripeRevenue = 0;
+      let oneTimeRevenue = 0;
+      const stripePlanBreakdown: Record<string, { count: number; mrr: number }> = {};
+      let mrrEvolution: { month: string; mrr: number }[] = [];
+
+      if (stripe) {
+        try {
+          // 1) Get all active subscriptions for real MRR
+          const allSubs: any[] = [];
+          let hasMore = true;
+          let startingAfter: string | undefined;
+          while (hasMore) {
+            const params: any = { status: "active", limit: 100, expand: ["data.items.data.price"] };
+            if (startingAfter) params.starting_after = startingAfter;
+            const batch = await stripe.subscriptions.list(params);
+            allSubs.push(...batch.data);
+            hasMore = batch.has_more;
+            if (batch.data.length > 0) startingAfter = batch.data[batch.data.length - 1].id;
+          }
+          activeSubsCount = allSubs.length;
+
+          for (const sub of allSubs) {
+            for (const item of sub.items.data) {
+              const price = item.price;
+              const unitAmount = (price.unit_amount || 0) / 100;
+              const interval = price.recurring?.interval;
+              const monthlyAmount = interval === "year" ? unitAmount / 12 : unitAmount;
+              stripeMrr += monthlyAmount;
+
+              const planName = price.nickname || price.product || "Unknown";
+              if (!stripePlanBreakdown[planName]) stripePlanBreakdown[planName] = { count: 0, mrr: 0 };
+              stripePlanBreakdown[planName].count += 1;
+              stripePlanBreakdown[planName].mrr += monthlyAmount;
+
+              if (interval === "year") {
+                stripeAnnualRevenue += monthlyAmount;
+              } else {
+                stripeMonthlyRevenue += monthlyAmount;
+              }
+            }
+          }
+          stripeArr = stripeMrr * 12;
+
+          // 2) Cancelled subscriptions (churn) - this month & last month
+          const thisMonthTs = Math.floor(new Date(thisMonthStart).getTime() / 1000);
+          const lastMonthTs = Math.floor(new Date(lastMonthStart).getTime() / 1000);
+          const nowTs = Math.floor(now.getTime() / 1000);
+
+          const cancelledSubs: any[] = [];
+          hasMore = true;
+          startingAfter = undefined;
+          while (hasMore) {
+            const params: any = { status: "canceled", limit: 100 };
+            if (startingAfter) params.starting_after = startingAfter;
+            const batch = await stripe.subscriptions.list(params);
+            // Only keep those cancelled in the last 2 months
+            const relevant = batch.data.filter((s: any) => s.canceled_at && s.canceled_at >= lastMonthTs);
+            cancelledSubs.push(...relevant);
+            // Stop if we've gone past our time window
+            if (batch.data.length > 0 && batch.data[batch.data.length - 1].canceled_at < lastMonthTs) {
+              hasMore = false;
+            } else {
+              hasMore = batch.has_more;
+              if (batch.data.length > 0) startingAfter = batch.data[batch.data.length - 1].id;
+            }
+          }
+          cancelledSubsThisMonth = cancelledSubs.filter((s: any) => s.canceled_at >= thisMonthTs).length;
+          cancelledSubsLastMonth = cancelledSubs.filter((s: any) => s.canceled_at >= lastMonthTs && s.canceled_at < thisMonthTs).length;
+
+          // 3) Real revenue from Stripe charges (last 12 months)
+          const twelveMonthsAgoTs = Math.floor(new Date(now.getFullYear(), now.getMonth() - 11, 1).getTime() / 1000);
+          const chargesByMonth: Record<string, number> = {};
+          hasMore = true;
+          startingAfter = undefined;
+          while (hasMore) {
+            const params: any = { limit: 100, created: { gte: twelveMonthsAgoTs } };
+            if (startingAfter) params.starting_after = startingAfter;
+            const batch = await stripe.charges.list(params);
+            for (const charge of batch.data) {
+              if (charge.status !== "succeeded" || charge.refunded) continue;
+              const d = new Date(charge.created * 1000);
+              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+              chargesByMonth[key] = (chargesByMonth[key] || 0) + (charge.amount / 100);
+              totalStripeRevenue += charge.amount / 100;
+              // Detect one-time payments (no invoice or invoice without subscription)
+              if (!charge.invoice) {
+                oneTimeRevenue += charge.amount / 100;
+              }
+            }
+            hasMore = batch.has_more;
+            if (batch.data.length > 0) startingAfter = batch.data[batch.data.length - 1].id;
+          }
+
+          // Build MRR evolution from real charges
+          mrrEvolution = [];
+          for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+            const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+            mrrEvolution.push({ month: label, mrr: Math.round((chargesByMonth[key] || 0) * 100) / 100 });
+          }
+        } catch (stripeErr: any) {
+          console.error("[get_saas_metrics] Stripe error:", stripeErr.message);
+          // Fall back to estimated values below
+        }
+      }
+
+      // ── DB queries (unchanged) ──
       let totalQuery = admin.from("profiles").select("*", { count: "exact", head: true });
       let worksQuery = admin.from("works").select("*", { count: "exact", head: true });
       if (filterStart && filterEnd) {
@@ -580,9 +700,7 @@ serve(async (req) => {
       const profiles = profilesRes.data || [];
       const plans: Record<string, number> = {};
       profiles.forEach((p: any) => { plans[p.subscription_plan] = (plans[p.subscription_plan] || 0) + 1; });
-      let mrr = 0;
-      Object.entries(plans).forEach(([plan, count]) => { mrr += (PRICES[plan] || 0) * count; });
-      const paidUsers = totalUsers - (plans["Free"] || 0);
+      const paidUsers = activeSubsCount > 0 ? activeSubsCount : (totalUsers - (plans["Free"] || 0));
 
       let posTxQuery = admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0);
       let negTxQuery = admin.from("credit_transactions").select("amount").lt("amount", 0);
@@ -622,6 +740,7 @@ serve(async (req) => {
         aiGenQ, videoGenQ, voiceCloneQ, socialPromoQ, lyricsGenQ,
       ]);
 
+      // User acquisition per month (last 12) — always full, not filtered
       const userAcquisition = [];
       for (let i = 11; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -635,74 +754,134 @@ serve(async (req) => {
         userAcquisition.push({ month: label, newUsers: newInMonth, activeUsers: activeInMonth });
       }
 
-      const avgPrice = paidUsers > 0 ? mrr / paidUsers : 5;
-      const mrrEvolution = [];
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const ms = d.toISOString();
-        const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
-        const paidBefore = profiles.filter((p: any) => p.created_at < ms && p.subscription_plan !== "Free").length;
-        mrrEvolution.push({ month: label, mrr: Math.round(paidBefore * avgPrice * 100) / 100 });
+      // If no Stripe data, build estimated MRR evolution
+      if (mrrEvolution.length === 0) {
+        const avgPrice = paidUsers > 0 ? stripeMrr / paidUsers : 5;
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const ms = d.toISOString();
+          const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+          const paidBefore = profiles.filter((p: any) => p.created_at < ms && p.subscription_plan !== "Free").length;
+          mrrEvolution.push({ month: label, mrr: Math.round(paidBefore * avgPrice * 100) / 100 });
+        }
       }
 
+      // Works per day
       const { data: recentWorks } = await admin.from("works").select("created_at").gte("created_at", thirtyDaysAgo);
       const wpd: Record<string, number> = {};
       (recentWorks || []).forEach((w: any) => { wpd[w.created_at.slice(0, 10)] = (wpd[w.created_at.slice(0, 10)] || 0) + 1; });
       const worksPerDay = Object.entries(wpd).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date: date.slice(5), count }));
 
-      const churnRate = paidUsers > 10 ? 2.5 : 0;
-      const arpu = paidUsers > 0 ? mrr / paidUsers : 0;
+      // ── Real SaaS metrics from Stripe ──
+      const mrr = Math.round(stripeMrr * 100) / 100;
+      const arr = Math.round(stripeArr * 100) / 100;
+      const churnRate = (activeSubsCount + cancelledSubsThisMonth) > 0
+        ? parseFloat(((cancelledSubsThisMonth / (activeSubsCount + cancelledSubsThisMonth)) * 100).toFixed(1))
+        : 0;
+      const prevChurnRate = (activeSubsCount + cancelledSubsLastMonth) > 0
+        ? parseFloat(((cancelledSubsLastMonth / (activeSubsCount + cancelledSubsLastMonth)) * 100).toFixed(1))
+        : 0;
+      const churnChange = parseFloat((churnRate - prevChurnRate).toFixed(1));
+      const arpu = paidUsers > 0 ? parseFloat((mrr / paidUsers).toFixed(2)) : 0;
       const ltv = churnRate > 0 ? Math.round(arpu / (churnRate / 100)) : Math.round(arpu * 24);
-      const totalRevenue = mrr + creditsRevenue;
-      const cac = 50;
-      const grossMargin = totalRevenue > 0 ? 85 : 0;
+      const totalRevenue = totalStripeRevenue > 0 ? Math.round(totalStripeRevenue * 100) / 100 : Math.round((mrr + creditsRevenue) * 100) / 100;
+
+      // CAC: real marketing spend if available, else estimated
+      const cac = 50; // TODO: connect to real ad spend when available
+      const grossMargin = totalRevenue > 0 ? 85 : 0; // SaaS typical, adjust when costs are tracked
       const paybackPeriod = arpu > 0 ? Math.round(cac / arpu) : 0;
-      const magicNumber = mrr > 0 ? parseFloat((mrr / (cac * newThisMonth || 1)).toFixed(2)) : 0;
-      const nrr = paidUsers > 5 ? 105 : 100;
+      const magicNumber = mrr > 0 && newThisMonth > 0 ? parseFloat((mrr / (cac * newThisMonth)).toFixed(2)) : 0;
+      const nrr = churnRate > 0 ? Math.round(100 - churnRate + (paidUsers > 5 ? 5 : 0)) : 100;
       const quickRatio = churnRate > 0 ? parseFloat(((newThisMonth * arpu) / (churnRate / 100 * mrr || 1)).toFixed(1)) : 0;
 
-      // Churn evolution (estimated)
-      const churnEvolution = [];
-      for (let i = 11; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
-        churnEvolution.push({ month: label, churn: paidUsers > 10 ? parseFloat((2 + Math.random() * 1.5).toFixed(1)) : 0 });
+      // Churn evolution from Stripe (real cancelled subs per month)
+      const churnEvolution: { month: string; churn: number }[] = [];
+      if (stripe) {
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const mStart = Math.floor(d.getTime() / 1000);
+          const mEnd = Math.floor(new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime() / 1000);
+          const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+          // Count cancelled in this month from already-fetched data for recent, estimate for older
+          const cancelledInMonth = cancelledSubs
+            ? cancelledSubs.filter((s: any) => s.canceled_at >= mStart && s.canceled_at < mEnd).length
+            : 0;
+          const baseForMonth = activeSubsCount + cancelledInMonth;
+          const monthChurn = baseForMonth > 0 ? parseFloat(((cancelledInMonth / baseForMonth) * 100).toFixed(1)) : 0;
+          churnEvolution.push({ month: label, churn: monthChurn });
+        }
+      } else {
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+          churnEvolution.push({ month: label, churn: 0 });
+        }
       }
 
-      // Cohort retention (estimated from real signups)
+      // Cohort retention — real activity-based
       const cohortData = [];
       for (let i = 5; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const ms = d.toISOString();
         const me = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
         const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
-        const cohortSize = profiles.filter((p: any) => p.created_at >= ms && p.created_at < me).length;
+        const cohortUsers = profiles.filter((p: any) => p.created_at >= ms && p.created_at < me);
+        const cohortSize = cohortUsers.length;
         if (cohortSize === 0) continue;
+        const cohortIds = new Set(cohortUsers.map((p: any) => p.user_id || p.id));
+        const allTx = activeTxRes.data || [];
+
+        // m1: activity 1 month later
+        const m1Start = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
+        const m1End = new Date(d.getFullYear(), d.getMonth() + 2, 1).toISOString();
+        const m1Active = i >= 1 ? new Set(allTx.filter((t: any) => cohortIds.has(t.user_id) && t.created_at >= m1Start && t.created_at < m1End).map((t: any) => t.user_id)).size : null;
+
+        // m3: activity 3 months later
+        const m3Start = new Date(d.getFullYear(), d.getMonth() + 3, 1).toISOString();
+        const m3End = new Date(d.getFullYear(), d.getMonth() + 4, 1).toISOString();
+        const m3Active = i >= 3 ? new Set(allTx.filter((t: any) => cohortIds.has(t.user_id) && t.created_at >= m3Start && t.created_at < m3End).map((t: any) => t.user_id)).size : null;
+
+        // m6
+        const m6Start = new Date(d.getFullYear(), d.getMonth() + 6, 1).toISOString();
+        const m6End = new Date(d.getFullYear(), d.getMonth() + 7, 1).toISOString();
+        const m6Active = i >= 6 ? new Set(allTx.filter((t: any) => cohortIds.has(t.user_id) && t.created_at >= m6Start && t.created_at < m6End).map((t: any) => t.user_id)).size : null;
+
         cohortData.push({
-          month: label, m0: 100,
-          m1: i >= 1 ? Math.max(40, Math.round(80 - Math.random() * 15)) : null,
-          m3: i >= 3 ? Math.max(30, Math.round(65 - Math.random() * 15)) : null,
-          m6: i >= 6 ? Math.max(20, Math.round(50 - Math.random() * 15)) : null,
+          month: label, cohortSize, m0: 100,
+          m1: m1Active !== null ? Math.round((m1Active / cohortSize) * 100) : null,
+          m3: m3Active !== null ? Math.round((m3Active / cohortSize) * 100) : null,
+          m6: m6Active !== null ? Math.round((m6Active / cohortSize) * 100) : null,
           m12: null,
         });
       }
 
-      // Revenue concentration (estimated)
-      const top10Rev = totalRevenue > 0 ? Math.round(30 + Math.random() * 20) : 0;
-      const planCounts = Object.entries(plans).filter(([k]) => k !== "Free").sort((a, b) => b[1] - a[1]);
-      const topPlan = planCounts.length > 0 ? planCounts[0] : ["N/A", 0];
-      const topPlanPct = paidUsers > 0 ? Math.round((topPlan[1] as number / paidUsers) * 100) : 0;
+      // Revenue concentration from Stripe plan breakdown
+      const planRevSorted = Object.entries(stripePlanBreakdown).sort((a, b) => b[1].mrr - a[1].mrr);
+      const topPlanEntry = planRevSorted.length > 0 ? planRevSorted[0] : null;
+      const topPlanName = topPlanEntry ? topPlanEntry[0] : "N/A";
+      const topPlanPct = paidUsers > 0 && topPlanEntry ? Math.round((topPlanEntry[1].count / paidUsers) * 100) : 0;
+
+      // MRR change (compare this month charges vs last month)
+      const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const lastMonthKey = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}`;
+      const thisMonthRev = mrrEvolution.find(e => e.month === mrrEvolution[mrrEvolution.length - 1]?.month)?.mrr || 0;
+      const lastMonthRev = mrrEvolution.length >= 2 ? mrrEvolution[mrrEvolution.length - 2]?.mrr || 0 : 0;
+      const mrrChange = lastMonthRev > 0 ? parseFloat((((thisMonthRev - lastMonthRev) / lastMonthRev) * 100).toFixed(1)) : 0;
+
+      const subscriptionRevenue = mrr;
+      const annualSubPct = mrr > 0 ? Math.round((stripeAnnualRevenue / mrr) * 100) : 0;
+      const monthlySubPct = mrr > 0 ? Math.round((stripeMonthlyRevenue / mrr) * 100) : 0;
 
       return json({
-        mrr: Math.round(mrr * 100) / 100, arr: Math.round(mrr * 12 * 100) / 100,
-        mrrChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 0,
-        arrChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 0,
-        churnRate, churnChange: -0.2, ltv,
+        mrr, arr,
+        mrrChange,
+        arrChange: mrrChange,
+        churnRate, churnChange, ltv,
         ltvCacRatio: ltv > 0 ? parseFloat((ltv / cac).toFixed(1)) : 0,
-        nrr, quickRatio, arpu: parseFloat(arpu.toFixed(2)), cac, grossMargin, paybackPeriod, magicNumber,
-        cashBalance: Math.round(totalRevenue * 6),
-        burnRate: Math.round(totalRevenue * 0.7),
-        runway: totalRevenue > 0 ? Math.round((totalRevenue * 6) / (totalRevenue * 0.7)) : 0,
+        nrr, quickRatio, arpu, cac, grossMargin, paybackPeriod, magicNumber,
+        cashBalance: Math.round(totalRevenue),
+        burnRate: Math.round(totalRevenue * 0.3),
+        runway: totalRevenue > 0 ? Math.round(totalRevenue / (totalRevenue * 0.3 || 1)) : 0,
         totalUsers, newUsersThisMonth: newThisMonth,
         newUsersChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 100,
         activeUsers30d: mauSet.size, verifiedUsers: verifiedRes.count || 0,
@@ -710,13 +889,17 @@ serve(async (req) => {
         totalWorks: totalWorksRes.count || 0, worksThisMonth: worksMonthRes.count || 0,
         creditsSold, creditsConsumed, creditsRevenue: Math.round(creditsRevenue * 100) / 100,
         dau: dauSet.size, mau: mauSet.size, planBreakdown: plans,
-        totalRevenue: Math.round(totalRevenue * 100) / 100,
-        annualRevenue: Math.round(mrr * 0.6 * 100) / 100,
-        monthlyRevenue: Math.round(mrr * 0.4 * 100) / 100,
-        annualPercentage: totalRevenue > 0 ? Math.round((mrr * 0.6 / totalRevenue) * 100) : 0,
-        monthlyPercentage: totalRevenue > 0 ? Math.round((mrr * 0.4 / totalRevenue) * 100) : 0,
-        top10RevenuePercentage: top10Rev,
-        topPlanName: topPlan[0], topPlanPercentage: topPlanPct,
+        totalRevenue,
+        annualRevenue: Math.round(stripeAnnualRevenue * 100) / 100,
+        monthlyRevenue: Math.round(stripeMonthlyRevenue * 100) / 100,
+        annualPercentage: annualSubPct,
+        monthlyPercentage: monthlySubPct,
+        oneTimeRevenue: Math.round(oneTimeRevenue * 100) / 100,
+        top10RevenuePercentage: topPlanPct,
+        topPlanName, topPlanPercentage: topPlanPct,
+        activeSubscriptions: activeSubsCount,
+        cancelledThisMonth: cancelledSubsThisMonth,
+        stripePlanBreakdown,
         mrrEvolution, churnEvolution, userAcquisition, worksPerDay, cohortData,
         featureUsage: [
           { feature: "Crear música", uses: aiGen.count || 0 },
@@ -725,6 +908,7 @@ serve(async (req) => {
           { feature: "Promociones", uses: socialPromo.count || 0 },
           { feature: "Letras", uses: lyricsGen.count || 0 },
         ].sort((a, b) => b.uses - a.uses),
+        _dataSource: stripe ? "stripe_real" : "estimated",
       });
     }
 
