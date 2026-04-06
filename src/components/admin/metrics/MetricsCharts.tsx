@@ -111,8 +111,16 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
       {/* Revenue Breakdown */}
       <Card className="border-border/40">
         <CardHeader>
-          <CardTitle className="text-base">💳 MRR por Plan</CardTitle>
-          <CardDescription>Distribución de ingresos por tipo de suscripción</CardDescription>
+          <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">💳 MRR por Plan</CardTitle>
+                <CardDescription>Distribución de ingresos por tipo de suscripción</CardDescription>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold">€{m.totalRevenue?.toLocaleString() ?? '0'}</p>
+                <p className="text-[10px] text-muted-foreground">Revenue total</p>
+              </div>
+            </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
