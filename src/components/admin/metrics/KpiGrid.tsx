@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/
 import {
   TrendingUp, TrendingDown, Users, UserPlus, Activity, ShieldCheck,
   Music, ShoppingBag, Zap, Calendar, CalendarRange, DollarSign, BarChart3, Target,
+  Gauge, Rocket,
 } from 'lucide-react';
 
 interface KpiGridProps {
@@ -63,18 +64,32 @@ export default function KpiGrid({ metrics }: KpiGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Row 1: SaaS KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {/* Row 1: SaaS Financial KPIs (7 cards) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         <TrendKpi label="MRR" value={`€${m.mrr.toLocaleString()}`} icon={DollarSign} change={m.mrrChange} />
         <TrendKpi label="ARR" value={`€${m.arr.toLocaleString()}`} icon={DollarSign} change={m.arrChange} suffix="YoY" />
         <TrendKpi label="Churn Rate" value={`${m.churnRate}%`} icon={BarChart3} change={m.churnChange} invertColor />
-        <KpiCard label="LTV" value={`€${m.ltv}`} icon={Target} sub="Customer Lifetime Value" />
+        <KpiCard label="LTV" value={`€${m.ltv}`} icon={Target} sub="Lifetime Value" />
         <KpiCard
           label="LTV:CAC"
           value={`${m.ltvCacRatio}x`}
           icon={Target}
           sub={m.ltvCacRatio >= 3 ? '✓ Healthy' : '⚠ Watch'}
           subColor={m.ltvCacRatio >= 3 ? 'text-green-600' : 'text-orange-600'}
+        />
+        <KpiCard
+          label="NRR"
+          value={`${m.nrr}%`}
+          icon={Gauge}
+          sub={m.nrr >= 120 ? '🔥 Best-in-class' : m.nrr >= 100 ? '✓ Good' : '⚠ Risk'}
+          subColor={m.nrr >= 120 ? 'text-green-600' : m.nrr >= 100 ? 'text-blue-600' : 'text-red-600'}
+        />
+        <KpiCard
+          label="Quick Ratio"
+          value={`${m.quickRatio}x`}
+          icon={Rocket}
+          sub={m.quickRatio >= 4 ? '✓ Healthy' : '○ Monitor'}
+          subColor={m.quickRatio >= 4 ? 'text-green-600' : 'text-orange-600'}
         />
       </div>
 

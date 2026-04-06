@@ -35,20 +35,20 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
           </CardContent>
         </Card>
 
-        {/* Works per day */}
+        {/* Churn Rate Evolution */}
         <Card className="border-border/40">
           <CardHeader>
-            <CardTitle className="text-base">📊 Obras por día (30d)</CardTitle>
-            <CardDescription>Evolución de registros</CardDescription>
+            <CardTitle className="text-base">📊 Churn Rate</CardTitle>
+            <CardDescription>Evolución mensual</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={m.worksPerDay}>
+              <LineChart data={m.churnEvolution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                 <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                <Line type="monotone" dataKey="count" stroke="hsl(var(--accent-foreground))" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="churn" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={{ fill: 'hsl(0, 84%, 60%)' }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -119,6 +119,15 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
               gradient="from-emerald-500 to-teal-600"
               sub="One-time purchases"
             />
+          </div>
+
+          {/* Revenue Concentration Risk */}
+          <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/40">
+            <p className="text-xs font-medium mb-2">📍 Revenue Concentration</p>
+            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+              <span>Top 10 usuarios: <strong className="text-foreground">{m.top10RevenuePercentage}%</strong> del revenue</span>
+              <span>Plan más usado: <strong className="text-foreground">{m.topPlanName} ({m.topPlanPercentage}%)</strong></span>
+            </div>
           </div>
         </CardContent>
       </Card>
