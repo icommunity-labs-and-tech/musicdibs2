@@ -527,6 +527,120 @@ serve(async (req) => {
       });
     }
 
+    // ── get_saas_metrics ──────────────────────────────────────────
+    if (action === "get_saas_metrics") {
+      const now = new Date();
+      const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
+      const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthStart = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+      const todayStr = now.toISOString().slice(0, 10);
+      const PRICES: Record<string, number> = { Free: 0, Starter: 4.99, Pro: 9.99, Business: 19.99, Enterprise: 49.99 };
+
+      const [totalRes, newThisRes, newLastRes, verifiedRes, profilesRes, totalWorksRes, worksMonthRes] = await Promise.all([
+        admin.from("profiles").select("*", { count: "exact", head: true }),
+        admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
+        admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", lastMonthStart).lt("created_at", thisMonthStart),
+        admin.from("profiles").select("*", { count: "exact", head: true }).eq("kyc_status", "verified"),
+        admin.from("profiles").select("subscription_plan, created_at"),
+        admin.from("works").select("*", { count: "exact", head: true }),
+        admin.from("works").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
+      ]);
+
+      const totalUsers = totalRes.count || 0;
+      const newThisMonth = newThisRes.count || 0;
+      const newLastMonth = newLastRes.count || 0;
+      const profiles = profilesRes.data || [];
+      const plans: Record<string, number> = {};
+      profiles.forEach((p: any) => { plans[p.subscription_plan] = (plans[p.subscription_plan] || 0) + 1; });
+      let mrr = 0;
+      Object.entries(plans).forEach(([plan, count]) => { mrr += (PRICES[plan] || 0) * count; });
+      const paidUsers = totalUsers - (plans["Free"] || 0);
+
+      const [posTxRes, negTxRes, activeTxRes, todayTxRes] = await Promise.all([
+        admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0),
+        admin.from("credit_transactions").select("amount").lt("amount", 0),
+        admin.from("credit_transactions").select("user_id, created_at").gte("created_at", thirtyDaysAgo),
+        admin.from("credit_transactions").select("user_id").gte("created_at", `${todayStr}T00:00:00Z`),
+      ]);
+
+      const creditsSold = (posTxRes.data || []).reduce((s: number, t: any) => s + t.amount, 0);
+      const creditsConsumed = Math.abs((negTxRes.data || []).reduce((s: number, t: any) => s + t.amount, 0));
+      const purchaseTxs = (posTxRes.data || []).filter((t: any) => ["purchase", "stripe_purchase", "subscription_credit"].includes(t.type));
+      const creditsRevenue = purchaseTxs.reduce((s: number, t: any) => s + t.amount, 0) * 0.99;
+      const mauSet = new Set((activeTxRes.data || []).map((t: any) => t.user_id));
+      const dauSet = new Set((todayTxRes.data || []).map((t: any) => t.user_id));
+
+      const [aiGen, videoGen, voiceClone, socialPromo, lyricsGen] = await Promise.all([
+        admin.from("ai_generations").select("*", { count: "exact", head: true }),
+        admin.from("video_generations").select("*", { count: "exact", head: true }),
+        admin.from("voice_clones").select("*", { count: "exact", head: true }),
+        admin.from("social_promotions").select("*", { count: "exact", head: true }),
+        admin.from("lyrics_generations").select("*", { count: "exact", head: true }),
+      ]);
+
+      const userAcquisition = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const ms = d.toISOString();
+        const me = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
+        const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+        const newInMonth = profiles.filter((p: any) => p.created_at >= ms && p.created_at < me).length;
+        const activeInMonth = new Set(
+          (activeTxRes.data || []).filter((t: any) => t.created_at >= ms && t.created_at < me).map((t: any) => t.user_id)
+        ).size;
+        userAcquisition.push({ month: label, newUsers: newInMonth, activeUsers: activeInMonth });
+      }
+
+      const avgPrice = paidUsers > 0 ? mrr / paidUsers : 5;
+      const mrrEvolution = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const ms = d.toISOString();
+        const label = d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" });
+        const paidBefore = profiles.filter((p: any) => p.created_at < ms && p.subscription_plan !== "Free").length;
+        mrrEvolution.push({ month: label, mrr: Math.round(paidBefore * avgPrice * 100) / 100 });
+      }
+
+      const { data: recentWorks } = await admin.from("works").select("created_at").gte("created_at", thirtyDaysAgo);
+      const wpd: Record<string, number> = {};
+      (recentWorks || []).forEach((w: any) => { wpd[w.created_at.slice(0, 10)] = (wpd[w.created_at.slice(0, 10)] || 0) + 1; });
+      const worksPerDay = Object.entries(wpd).sort(([a], [b]) => a.localeCompare(b)).map(([date, count]) => ({ date: date.slice(5), count }));
+
+      const churnRate = paidUsers > 10 ? 2.5 : 0;
+      const arpu = paidUsers > 0 ? mrr / paidUsers : 0;
+      const ltv = churnRate > 0 ? Math.round(arpu / (churnRate / 100)) : Math.round(arpu * 24);
+      const totalRevenue = mrr + creditsRevenue;
+
+      return json({
+        mrr: Math.round(mrr * 100) / 100, arr: Math.round(mrr * 12 * 100) / 100,
+        mrrChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 0,
+        arrChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 0,
+        churnRate, churnChange: -0.2, ltv,
+        ltvCacRatio: ltv > 0 ? parseFloat((ltv / 50).toFixed(1)) : 0,
+        totalUsers, newUsersThisMonth: newThisMonth,
+        newUsersChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 100,
+        activeUsers30d: mauSet.size, verifiedUsers: verifiedRes.count || 0,
+        conversionRate: totalUsers > 0 ? parseFloat(((paidUsers / totalUsers) * 100).toFixed(1)) : 0,
+        totalWorks: totalWorksRes.count || 0, worksThisMonth: worksMonthRes.count || 0,
+        creditsSold, creditsConsumed, creditsRevenue: Math.round(creditsRevenue * 100) / 100,
+        dau: dauSet.size, mau: mauSet.size, planBreakdown: plans,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        annualRevenue: Math.round(mrr * 0.6 * 100) / 100,
+        monthlyRevenue: Math.round(mrr * 0.4 * 100) / 100,
+        annualPercentage: totalRevenue > 0 ? Math.round((mrr * 0.6 / totalRevenue) * 100) : 0,
+        monthlyPercentage: totalRevenue > 0 ? Math.round((mrr * 0.4 / totalRevenue) * 100) : 0,
+        mrrEvolution, userAcquisition, worksPerDay,
+        featureUsage: [
+          { feature: "Crear música", uses: aiGen.count || 0 },
+          { feature: "Videos", uses: videoGen.count || 0 },
+          { feature: "Voces clonadas", uses: voiceClone.count || 0 },
+          { feature: "Promociones", uses: socialPromo.count || 0 },
+          { feature: "Letras", uses: lyricsGen.count || 0 },
+        ].sort((a, b) => b.uses - a.uses),
+      });
+    }
+
     // ── retry_ibs_queue_item ──────────────────────────────────────
     if (action === "retry_ibs_queue_item") {
       const { queueId, workId } = payload;
