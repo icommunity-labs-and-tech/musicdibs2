@@ -113,7 +113,32 @@ export default function AdminMetricsPage() {
           <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
         </div>
 
-        <div className="flex items-center gap-2 sm:ml-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5" />
+            Filtrar:
+          </div>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue placeholder="Mes" />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS.map(m => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-28 h-8 text-xs">
+              <SelectValue placeholder="Año" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" size="sm" onClick={() => loadMetrics(true)} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Actualizar
