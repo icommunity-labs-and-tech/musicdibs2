@@ -175,12 +175,13 @@ async function handleActivityUpdate(p: any) {
 }
 
 async function handleCartAbandoned(p: any) {
-  const email = encodeURIComponent(p.email);
   console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}`);
 
-  await callMailerLite("PUT", `/subscribers/${email}`, {
+  // Use POST /subscribers to upsert (works even if subscriber doesn't exist yet)
+  await callMailerLite("POST", `/subscribers`, {
+    email: p.email,
     fields: {
-      cart_abandoned: true,
+      cart_abandoned: "true",
       cart_plan: p.plan_type || "unknown",
       cart_amount: p.amount || "0",
       cart_currency: p.currency || "EUR",
