@@ -573,6 +573,7 @@ serve(async (req) => {
       let oneTimeRevenue = 0;
       const stripePlanBreakdown: Record<string, { count: number; mrr: number }> = {};
       let mrrEvolution: { month: string; mrr: number }[] = [];
+      let cancelledSubs: any[] = [];
 
       if (stripe) {
         try {
@@ -617,7 +618,7 @@ serve(async (req) => {
           const lastMonthTs = Math.floor(new Date(lastMonthStart).getTime() / 1000);
           const nowTs = Math.floor(now.getTime() / 1000);
 
-          const cancelledSubs: any[] = [];
+          cancelledSubs = [];
           hasMore = true;
           startingAfter = undefined;
           while (hasMore) {
