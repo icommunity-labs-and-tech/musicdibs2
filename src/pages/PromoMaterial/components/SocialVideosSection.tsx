@@ -25,7 +25,7 @@ export const SocialVideosSection = () => {
 
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('10');
-  const [style, setStyle] = useState('');
+  
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
@@ -59,7 +59,7 @@ export const SocialVideosSection = () => {
   };
 
   const handleGenerate = async () => {
-    if (!description.trim() || !duration || !style || !user) return;
+    if (!description.trim() || !duration || !user) return;
 
     if (!hasEnough(VIDEO_COST)) {
       toast({
@@ -223,38 +223,18 @@ export const SocialVideosSection = () => {
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>{tr('durationLabel')}</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">{tr('duration5')}</SelectItem>
-                  <SelectItem value="10">{tr('duration10')}</SelectItem>
-                  <SelectItem value="15">{tr('duration15')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>{tr('styleLabel')}</Label>
-              <Select value={style} onValueChange={setStyle}>
-                <SelectTrigger>
-                  <SelectValue placeholder={tr('stylePlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cinematic">{tr('styleCinematic')}</SelectItem>
-                  <SelectItem value="abstract">{tr('styleAbstract')}</SelectItem>
-                  <SelectItem value="performance">{tr('stylePerformance')}</SelectItem>
-                  <SelectItem value="animated">{tr('styleAnimated')}</SelectItem>
-                  <SelectItem value="lofi">{tr('styleLofi')}</SelectItem>
-                  <SelectItem value="nature">{tr('styleNature')}</SelectItem>
-                  <SelectItem value="urban">{tr('styleUrban')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>{tr('durationLabel')}</Label>
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger className="max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">{tr('duration5')}</SelectItem>
+                <SelectItem value="10">{tr('duration10')}</SelectItem>
+                <SelectItem value="15">{tr('duration15')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -264,7 +244,7 @@ export const SocialVideosSection = () => {
 
           <Button
             onClick={handleGenerate}
-            disabled={generating || !description.trim() || !style || !hasEnough(VIDEO_COST)}
+            disabled={generating || !description.trim() || !hasEnough(VIDEO_COST)}
             className="w-full"
           >
             {generating ? (
@@ -329,7 +309,7 @@ export const SocialVideosSection = () => {
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => { setVideoUrl(null); setDescription(''); setStyle(''); }}
+                  onClick={() => { setVideoUrl(null); setDescription(''); }}
                   className="flex-1"
                 >
                   {tr('regenerate')}

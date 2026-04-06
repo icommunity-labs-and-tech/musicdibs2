@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Sparkles, Video, Megaphone, ArrowLeft, Palette, HelpCircle } from 'lucide-react';
+import { Image, Sparkles, Video, ArrowLeft, Palette, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { CoversSection } from './components/CoversSection';
 import { CreativesSection } from './components/CreativesSection';
 import { SocialVideosSection } from './components/SocialVideosSection';
-import { PostersSection } from './components/PostersSection';
+
 import { PromoMaterialTour } from '@/components/ai-studio/PromoMaterialTour';
 
 const PromoMaterialPage = () => {
@@ -49,7 +49,7 @@ const PromoMaterialPage = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-xl">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="covers" className="gap-1.5 text-xs sm:text-sm" data-tour="pm-covers-tab">
               <Image className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabCovers')}</span>
@@ -61,10 +61,6 @@ const PromoMaterialPage = () => {
             <TabsTrigger value="videos" className="gap-1.5 text-xs sm:text-sm" data-tour="pm-videos-tab">
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabVideos')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="posters" className="gap-1.5 text-xs sm:text-sm" data-tour="pm-posters-tab">
-              <Megaphone className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabPosters')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -78,10 +74,6 @@ const PromoMaterialPage = () => {
 
           <TabsContent value="videos">
             <SocialVideosSection />
-          </TabsContent>
-
-          <TabsContent value="posters">
-            <PostersSection />
           </TabsContent>
         </Tabs>
       </main>
