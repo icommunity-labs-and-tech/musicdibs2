@@ -475,7 +475,7 @@ export const PostersSection = () => {
                         variant="ghost"
                         size="sm"
                         disabled={(!soDescription.trim() && !soPhoto) || improvingSoPrompt}
-                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto)}
+                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto, 'social_poster')}
                         className="h-7 text-xs gap-1"
                       >
                         {improvingSoPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
