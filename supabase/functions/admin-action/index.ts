@@ -449,6 +449,23 @@ serve(async (req) => {
         );
         return json({ csv: [header, ...rows].join("\n") });
       }
+      if (dataset === "revenue") {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (!stripeKey) return json({ error: "STRIPE_SECRET_KEY not set" }, 500);
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+        const charges: any[] = [];
+        for await (const charge of stripe.charges.list({ limit: 100 })) {
+          charges.push(charge);
+          if (charges.length >= 1000) break;
+        }
+
+        const header = "date,amount,currency,status,customer,description";
+        const rows = charges.map((c: any) =>
+          `${new Date(c.created * 1000).toISOString().slice(0, 10)},${(c.amount / 100).toFixed(2)},${c.currency},${c.status},${c.customer || ""},\"${(c.description || "").replace(/"/g, '""')}\"`
+        );
+        return json({ csv: [header, ...rows].join("\n") });
+      }
 
       return json({ error: "Invalid dataset" }, 400);
     }
