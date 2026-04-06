@@ -135,12 +135,33 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
             />
           </div>
 
-          {/* Revenue Concentration Risk */}
-          <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/40">
-            <p className="text-xs font-medium mb-2">📍 Revenue Concentration</p>
-            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-              <span>Top 10 usuarios: <strong className="text-foreground">{m.top10RevenuePercentage}%</strong> del revenue</span>
-              <span>Plan más usado: <strong className="text-foreground">{m.topPlanName} ({m.topPlanPercentage}%)</strong></span>
+          <Separator className="my-4" />
+
+          {/* Revenue Concentration */}
+          <div className="p-3 rounded-lg bg-muted/50 border border-border/40">
+            <p className="text-xs font-medium mb-3">📍 Revenue Concentration</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div>
+                <span className="text-muted-foreground">Plan más usado</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Badge variant="secondary" className="text-[10px]">{m.topPlanName}</Badge>
+                  <span className="font-medium">{m.topPlanPercentage}% usuarios</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Suscripciones activas</span>
+                <p className="text-lg font-bold mt-0.5">{m.activeSubscriptions}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Canceladas este mes</span>
+                <p className={`text-lg font-bold mt-0.5 ${m.cancelledThisMonth > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                  {m.cancelledThisMonth}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Top 10 usuarios</span>
+                <p className="text-lg font-bold mt-0.5">{m.top10RevenuePercentage}%<span className="text-xs font-normal text-muted-foreground ml-1">del revenue</span></p>
+              </div>
             </div>
           </div>
         </CardContent>
