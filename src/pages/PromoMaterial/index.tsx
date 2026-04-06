@@ -49,7 +49,7 @@ const PromoMaterialPage = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-xl">
+          <TabsList className="grid w-full grid-cols-3 max-w-lg">
             <TabsTrigger value="covers" className="gap-1.5 text-xs sm:text-sm" data-tour="pm-covers-tab">
               <Image className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabCovers')}</span>
