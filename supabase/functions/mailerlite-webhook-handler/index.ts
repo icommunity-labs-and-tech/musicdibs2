@@ -18,6 +18,7 @@ const MAILERLITE_GROUPS: Record<string, Record<string, string>> = {
     anuales: "179655929185175246",
     single: "179655957217805955",
     baja: "180549266623694014",
+    cart_abandoned: "184043608840602848",
   },
   en: {
     registrados: "180552563766068699",
@@ -25,6 +26,7 @@ const MAILERLITE_GROUPS: Record<string, Record<string, string>> = {
     anuales: "179655937992165159",
     single: "179655967666865903",
     baja: "180549280191218751",
+    cart_abandoned: "184043614299489447",
   },
   "pt-br": {
     registrados: "180552569505974164",
@@ -32,6 +34,7 @@ const MAILERLITE_GROUPS: Record<string, Record<string, string>> = {
     anuales: "179655947115824759",
     single: "179655975825835602",
     baja: "180549290870965583",
+    cart_abandoned: "184043618346992923",
   },
 };
 
@@ -175,10 +178,12 @@ async function handleActivityUpdate(p: any) {
 }
 
 async function handleCartAbandoned(p: any) {
-  console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}`);
+  const locale = normalizeLocale(p.locale);
+  const cartGroup = MAILERLITE_GROUPS[locale].cart_abandoned;
+  console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}, locale=${locale}`);
 
-  // Use POST /subscribers to upsert (works even if subscriber doesn't exist yet)
-  await callMailerLite("POST", `/subscribers`, {
+  // Upsert subscriber with cart fields
+  const sub = await callMailerLite("POST", `/subscribers`, {
     email: p.email,
     fields: {
       cart_abandoned: "true",
@@ -187,8 +192,10 @@ async function handleCartAbandoned(p: any) {
       cart_currency: p.currency || "EUR",
       cart_date: new Date().toISOString().slice(0, 10),
     },
+    groups: [cartGroup],
   });
-  console.log(`[ML:cart_abandoned] ✅`);
+
+  console.log(`[ML:cart_abandoned] ✅ assigned to group ${cartGroup}`);
   return { success: true };
 }
 
