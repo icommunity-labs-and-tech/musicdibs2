@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import KpiGrid from '@/components/admin/metrics/KpiGrid';
 import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
+import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
+import CohortRetention from '@/components/admin/metrics/CohortRetention';
 
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
