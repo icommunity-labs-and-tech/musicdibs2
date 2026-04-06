@@ -15,7 +15,13 @@ const PRICE_CREDITS: Record<string, number> = {
   "price_1THT7jF9ZCIiqrz6i02J4bj4": 300,  // annual_300
   "price_1THT7nF9ZCIiqrz6r1ZcqH8L": 500,  // annual_500
   "price_1THT7rF9ZCIiqrz6UmJDkBNZ": 1000, // annual_1000
-  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 3,    // monthly
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 8,    // monthly
+  "price_1THULsF9ZCIiqrz64SbA3AK6": 1,    // individual
+  "price_1THT7xF9ZCIiqrz60FfiGbfv": 10,   // topup_10
+  "price_1THT80F9ZCIiqrz6H31dYDMG": 25,   // topup_25
+  "price_1THT83F9ZCIiqrz6BD2wmUaO": 50,   // topup_50
+  "price_1THT86F9ZCIiqrz6C548DJnT": 100,  // topup_100
+  "price_1THT8AF9ZCIiqrz626wSH9Rz": 200,  // topup_200
 };
 
 const PRICE_PLAN: Record<string, string> = {
@@ -26,6 +32,12 @@ const PRICE_PLAN: Record<string, string> = {
   "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "Annual",
   "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "Annual",
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
+};
+
+// Map plan_id metadata → subscription plan name
+const PLAN_ID_TO_PLAN_NAME: Record<string, string> = {
+  annual_100: "Annual", annual_200: "Annual", annual_300: "Annual",
+  annual_500: "Annual", annual_1000: "Annual", monthly: "Monthly",
 };
 
 // Helper: find profile by stripe_customer_id with email fallback
