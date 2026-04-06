@@ -35,6 +35,9 @@ const AIStudio = () => {
       featureKey: 'edit_audio' as const,
       color: "from-blue-500 to-cyan-500"
     },
+  ];
+
+  const bottomRowModules = [
     {
       titleKey: "aiStudio.modules.singYourSong.title",
       descKey: "aiStudio.modules.singYourSong.desc",
@@ -44,10 +47,7 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_audio' as const,
       color: "from-violet-500 to-purple-600"
-    }
-  ];
-
-  const bottomRowModules = [
+    },
     {
       titleKey: "aiStudio.modules.createCovers.title",
       descKey: "aiStudio.modules.createCovers.desc",
@@ -95,8 +95,8 @@ const AIStudio = () => {
           </p>
         </div>
 
-        {/* Row 1 - 3 columns: Crear música, Remasterizar, Herramientas de Voz */}
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
+        {/* Row 1 - 2 columns: Crear música + Masterizado */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
           {topRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
@@ -157,8 +157,8 @@ const AIStudio = () => {
           })}
         </div>
 
-        {/* Row 2 - 2 columns: Material promocional, Inspiración */}
-        <div className="grid md:grid-cols-2 gap-6 mb-10">
+        {/* Row 2 - 3 columns: Voz, Material promocional, Inspiración */}
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
           {bottomRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
