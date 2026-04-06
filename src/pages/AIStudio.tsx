@@ -95,8 +95,8 @@ const AIStudio = () => {
           </p>
         </div>
 
-        {/* Row 1 - 3 columns: Crear música, Remasterizar, Herramientas de Voz */}
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
+        {/* Row 1 - 2 columns: Crear música + Masterizado */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
           {topRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
