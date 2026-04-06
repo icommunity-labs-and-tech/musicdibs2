@@ -176,7 +176,7 @@ serve(async (req) => {
             }
             const email = creditPurchaseEmail({
               name: displayName,
-              planName: planMap[planId] || planId,
+              planName: planName || planId,
               credits,
               invoiceUrl,
               lang: userLang,
