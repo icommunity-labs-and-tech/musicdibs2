@@ -37,6 +37,9 @@ export default function AdminSystemPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditFilter, setAuditFilter] = useState('');
+  const [auditPage, setAuditPage] = useState(0);
+  const [auditHasMore, setAuditHasMore] = useState(false);
+  const AUDIT_PAGE_SIZE = 20;
 
   const load = async () => {
     setLoading(true);
@@ -47,14 +50,16 @@ export default function AdminSystemPage() {
     setLoading(false);
   };
 
-  const loadAudit = async () => {
+  const loadAudit = useCallback(async () => {
     setAuditLoading(true);
     try {
-      const res = await adminApi.getAuditLog(0, auditFilter);
-      setAuditLogs(res.logs || []);
+      const res = await adminApi.getAuditLog(auditPage * AUDIT_PAGE_SIZE, auditFilter);
+      const logs = res.logs || [];
+      setAuditLogs(logs);
+      setAuditHasMore(logs.length >= AUDIT_PAGE_SIZE);
     } catch (e: any) { toast.error(e.message); }
     setAuditLoading(false);
-  };
+  }, [auditPage, auditFilter]);
 
   useEffect(() => { load(); }, []);
   useEffect(() => { loadAudit(); }, [auditFilter]);
