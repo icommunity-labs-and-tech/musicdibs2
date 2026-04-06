@@ -17,18 +17,21 @@ const MAILERLITE_GROUPS: Record<string, Record<string, string>> = {
     mensuales: "179653836933170957",
     anuales: "179655929185175246",
     single: "179655957217805955",
+    baja: "180549266623694014",
   },
   en: {
     registrados: "180552563766068699",
     mensuales: "179655903760353011",
     anuales: "179655937992165159",
     single: "179655967666865903",
+    baja: "180549280191218751",
   },
   "pt-br": {
     registrados: "180552569505974164",
     mensuales: "179655918471874176",
     anuales: "179655947115824759",
     single: "179655975825835602",
+    baja: "180549290870965583",
   },
 };
 
