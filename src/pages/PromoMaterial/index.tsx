@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Sparkles, Video, Megaphone, ArrowLeft, Palette, HelpCircle } from 'lucide-react';
+import { Image, Sparkles, Video, ArrowLeft, Palette, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
