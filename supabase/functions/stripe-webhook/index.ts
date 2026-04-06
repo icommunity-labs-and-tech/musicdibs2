@@ -8,6 +8,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ── MailerLite sync helper ────────────────────────────────────────────────
+async function syncMailerLite(event: string, payload: Record<string, unknown>) {
+  try {
+    const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/mailerlite-webhook-handler`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({ event, ...payload }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn(`[ML-SYNC] ${event} failed ${res.status}: ${txt}`);
+    } else {
+      await res.text(); // consume body
+      console.log(`[ML-SYNC] ✅ ${event}`);
+    }
+  } catch (e) {
+    console.warn(`[ML-SYNC] ${event} error:`, e);
+  }
+}
+
+// Map subscription plan name → MailerLite plan_type
+function planToMailerLiteType(plan: string | undefined): string {
+  if (!plan) return "single";
+  const p = plan.toLowerCase();
+  if (p.includes("annual") || p.includes("anual")) return "anuales";
+  if (p.includes("month") || p.includes("mensual")) return "mensuales";
+  return "single";
+}
+
 const PRICE_CREDITS: Record<string, number> = {
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120,  // annual (legacy)
   "price_1THT7cF9ZCIiqrz6sWS67Q4V": 100,  // annual_100
@@ -200,6 +233,28 @@ serve(async (req) => {
           }
         } catch (emailErr) {
           console.error("[WEBHOOK] Error enqueuing purchase email:", emailErr);
+        }
+        // ── MailerLite sync: purchase ──
+        try {
+          const { data: { user: mlUser } } = await supabase.auth.admin.getUserById(userId);
+          if (mlUser?.email) {
+            const { data: mlProfile } = await supabase
+              .from("profiles")
+              .select("language")
+              .eq("user_id", userId)
+              .single();
+            const mlCustId = session.customer
+              ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id)
+              : "";
+            await syncMailerLite("purchase.completed", {
+              email: mlUser.email,
+              locale: mlProfile?.language || "es",
+              plan_type: planToMailerLiteType(planName || planId),
+              stripe_customer_id: mlCustId,
+            });
+          }
+        } catch (mlErr) {
+          console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr);
         }
       }
     }
@@ -421,11 +476,34 @@ serve(async (req) => {
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
       if (profile) {
+        // Get current plan before resetting
+        const { data: cancelProfile } = await supabase
+          .from("profiles")
+          .select("subscription_plan, language")
+          .eq("user_id", profile.user_id)
+          .single();
+        const oldPlan = cancelProfile?.subscription_plan;
+
         await supabase
           .from("profiles")
           .update({ subscription_plan: "Free" })
           .eq("user_id", profile.user_id);
         console.log(`[WEBHOOK] Reset to Free for user ${profile.user_id} (cancellation)`);
+
+        // ── MailerLite sync: cancellation ──
+        try {
+          const { data: { user: cancelUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+          if (cancelUser?.email) {
+            await syncMailerLite("subscription.cancelled", {
+              email: cancelUser.email,
+              locale: cancelProfile?.language || "es",
+              plan_type: planToMailerLiteType(oldPlan),
+              cancellation_reason: "stripe_deleted",
+            });
+          }
+        } catch (mlErr) {
+          console.warn("[WEBHOOK] MailerLite cancellation sync error:", mlErr);
+        }
       } else {
         console.warn(`[WEBHOOK] subscription.deleted: no profile found for customer ${customerId}`);
       }
