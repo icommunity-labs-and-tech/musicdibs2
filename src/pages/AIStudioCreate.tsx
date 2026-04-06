@@ -1183,27 +1183,6 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
-                      {/* Artistas de referencia */}
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium">
-                          {t('aiCreate.artistRefs')}
-                          <span className="text-xs text-muted-foreground font-normal ml-2">{t('aiCreate.customArtistHint')}</span>
-                        </Label>
-                        <div className="flex flex-wrap gap-2">
-                          {ARTIST_REFS.map(a => (
-                            <Badge
-                              key={a}
-                              variant={selectedArtistRefs.includes(a) ? 'default' : 'outline'}
-                              className="cursor-pointer text-xs"
-                              onClick={() => setSelectedArtistRefs(prev =>
-                                prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]
-                              )}
-                            >
-                              {a}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Idioma de la letra */}
                       {mode === 'song' && (
