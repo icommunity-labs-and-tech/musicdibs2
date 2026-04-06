@@ -375,7 +375,7 @@ export const PostersSection = () => {
                         variant="ghost"
                         size="sm"
                         disabled={(!evAdditionalInfo.trim() && !evPhoto) || improvingEvPrompt}
-                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto)}
+                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto, 'event_poster')}
                         className="h-7 text-xs gap-1"
                       >
                         {improvingEvPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
