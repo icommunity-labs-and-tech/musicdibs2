@@ -95,7 +95,7 @@ serve(async (req) => {
   }
 
   const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-    apiVersion: "2026-02-25.clover",
+    apiVersion: "2025-08-27.basil",
   });
 
   const supabase = createClient(
