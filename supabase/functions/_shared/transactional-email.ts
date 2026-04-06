@@ -371,3 +371,44 @@ export function premiumPromoPublishedEmail(data: { name: string; artistName: str
 
   return { subject: i.subject, html: wrap("🏆", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
 }
+
+// ─── 9. Metric Alert Notification (Admin) ───────────────────────────────────
+
+export function metricAlertEmail(data: { alerts: Array<{ title: string; description: string; severity: string }> }) {
+  const alertRows = data.alerts.map(a => {
+    const icon = a.severity === "critical" ? "🔴" : "🟡";
+    const color = a.severity === "critical"
+      ? "rgba(239,68,68,0.12)"
+      : "rgba(245,158,11,0.12)";
+    const borderColor = a.severity === "critical"
+      ? "rgba(239,68,68,0.25)"
+      : "rgba(245,158,11,0.25)";
+    return `<div style="background:linear-gradient(135deg,${color},${color});border:1px solid ${borderColor};border-radius:12px;padding:16px 20px;margin-bottom:12px;">
+      <p style="margin:0 0 6px;color:#f3f4f6;font-size:14px;font-weight:600;">${icon} ${escapeHtml(a.title)}</p>
+      <p style="margin:0;color:#d1d5db;font-size:13px;line-height:1.5;">${escapeHtml(a.description)}</p>
+    </div>`;
+  }).join("");
+
+  const critCount = data.alerts.filter(a => a.severity === "critical").length;
+  const warnCount = data.alerts.filter(a => a.severity === "warning").length;
+  const summary = critCount > 0
+    ? `${critCount} alerta${critCount > 1 ? "s" : ""} crítica${critCount > 1 ? "s" : ""}${warnCount > 0 ? ` y ${warnCount} aviso${warnCount > 1 ? "s" : ""}` : ""}`
+    : `${warnCount} aviso${warnCount > 1 ? "s" : ""}`;
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">
+      Se han detectado <strong style="color:#f3f4f6;">${summary}</strong> en las métricas de MusicDibs que requieren atención.
+    </p>
+    ${alertRows}
+    <p style="margin:16px 0 0;color:#9ca3af;font-size:12px;text-align:center;">
+      Esta notificación no se repetirá en los próximos 7 días si las alertas persisten.
+    </p>
+    ${cta("https://musicdibs.com/dashboard/admin/metrics", "Ver dashboard de métricas →")}`;
+
+  const subjectPrefix = critCount > 0 ? "🚨" : "⚠️";
+  return {
+    subject: `${subjectPrefix} Alertas métricas MusicDibs — ${summary}`,
+    html: wrap("📊", "Alertas de Métricas", body, "es"),
+    text: `Se han detectado ${summary} en las métricas de MusicDibs. Revisa el dashboard: https://musicdibs.com/dashboard/admin/metrics`,
+  };
+}
