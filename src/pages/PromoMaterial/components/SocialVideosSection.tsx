@@ -25,7 +25,7 @@ export const SocialVideosSection = () => {
 
   const [description, setDescription] = useState('');
   const [duration, setDuration] = useState('10');
-  const [style, setStyle] = useState('');
+  
   const [generating, setGenerating] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [improvingPrompt, setImprovingPrompt] = useState(false);
