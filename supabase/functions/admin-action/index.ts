@@ -908,8 +908,8 @@ serve(async (req) => {
       const mrrChange = lastMonthRev > 0 ? parseFloat((((thisMonthRev - lastMonthRev) / lastMonthRev) * 100).toFixed(1)) : 0;
 
       const subscriptionRevenue = mrr;
-      const annualSubPct = mrr > 0 ? Math.round((stripeAnnualRevenue / mrr) * 100) : 0;
-      const monthlySubPct = mrr > 0 ? Math.round((stripeMonthlyRevenue / mrr) * 100) : 0;
+      const annualSubPct = totalRevenue > 0 ? parseFloat(((stripeAnnualRevenue / totalRevenue) * 100).toFixed(1)) : 0;
+      const monthlySubPct = totalRevenue > 0 ? parseFloat(((stripeMonthlyRevenue / totalRevenue) * 100).toFixed(1)) : 0;
 
       return json({
         mrr, arr,
