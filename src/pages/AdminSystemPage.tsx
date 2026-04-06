@@ -62,7 +62,7 @@ export default function AdminSystemPage() {
   }, [auditPage, auditFilter]);
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { loadAudit(); }, [auditFilter]);
+  useEffect(() => { loadAudit(); }, [loadAudit]);
 
   const handleAddAdmin = async () => {
     if (!newAdminEmail.trim()) return;
