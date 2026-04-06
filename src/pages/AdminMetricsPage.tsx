@@ -174,6 +174,9 @@ export default function AdminMetricsPage() {
       {/* KPI Rows */}
       <KpiGrid metrics={metrics} />
 
+      {/* Financial Alerts */}
+      <FinancialAlerts metrics={metrics} />
+
       {/* Charts + Revenue */}
       <MetricsCharts metrics={metrics} />
 
