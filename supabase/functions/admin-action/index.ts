@@ -582,7 +582,7 @@ serve(async (req) => {
           let hasMore = true;
           let startingAfter: string | undefined;
           while (hasMore) {
-            const params: any = { status: "active", limit: 100, expand: ["data.items.data.price"] };
+            const params: any = { status: "active", limit: 100, expand: ["data.items.data.price", "data.items.data.price.product"] };
             if (startingAfter) params.starting_after = startingAfter;
             const batch = await stripe.subscriptions.list(params);
             allSubs.push(...batch.data);
