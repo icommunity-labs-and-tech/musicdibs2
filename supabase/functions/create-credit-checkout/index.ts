@@ -145,7 +145,7 @@ serve(async (req) => {
 
     // When customer already exists, allow Stripe to update their name for tax_id_collection
     if (customerId) {
-      (sessionParams as any).customer_update = { name: "auto" };
+      (sessionParams as any).customer_update = { name: "auto", address: "auto" };
     }
 
     // For one-time payments, enable invoice creation so Stripe generates a proper invoice with number
