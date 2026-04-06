@@ -134,6 +134,12 @@ export default function AdminMetricsPage() {
       {/* Charts + Revenue */}
       <MetricsCharts metrics={metrics} />
 
+      {/* Unit Economics + Cash/Runway */}
+      <UnitEconomics metrics={metrics} />
+
+      {/* Cohort Retention */}
+      <CohortRetention cohortData={metrics.cohortData || []} />
+
       {/* Export section */}
       <Card className="border-border/40">
         <CardHeader>
