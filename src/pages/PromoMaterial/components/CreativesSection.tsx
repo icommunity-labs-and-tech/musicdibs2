@@ -95,10 +95,11 @@ export const CreativesSection = () => {
       let image_base64: string | null = null;
       if (basePhoto) image_base64 = await fileToBase64(basePhoto);
 
+      const visualMode = platform === 'instagram' ? 'instagram_creative' : 'youtube_thumbnail';
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
         body: {
           prompt: imageDescription.trim() || '',
-          mode: 'visual_creative',
+          mode: visualMode,
           image_base64,
         },
       });

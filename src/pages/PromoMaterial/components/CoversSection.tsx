@@ -108,7 +108,7 @@ export const CoversSection = () => {
     setIsImprovingDesc(true);
     try {
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
-        body: { prompt: description, genre: '', mood: '', mode: 'instrumental' },
+        body: { prompt: description, mode: 'cover_design' },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       if (data?.improved) {

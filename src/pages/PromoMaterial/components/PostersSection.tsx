@@ -81,12 +81,13 @@ export const PostersSection = () => {
     setText: (v: string) => void,
     setLoading: (v: boolean) => void,
     photo?: File | null,
+    visualMode: string = 'event_poster',
   ) => {
     if (!text.trim() && !photo) return;
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const body: any = { prompt: text, mode: 'visual_creative' };
+      const body: any = { prompt: text, mode: visualMode };
       if (photo) body.image_base64 = await fileToBase64(photo);
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/improve-prompt`,
