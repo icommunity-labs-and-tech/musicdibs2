@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { Settings2, Shield, UserPlus, ScrollText, Download } from 'lucide-react';
+import { Settings2, Shield, UserPlus, ScrollText, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -37,6 +37,9 @@ export default function AdminSystemPage() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [auditLoading, setAuditLoading] = useState(true);
   const [auditFilter, setAuditFilter] = useState('');
+  const [auditPage, setAuditPage] = useState(0);
+  const [auditHasMore, setAuditHasMore] = useState(false);
+  const AUDIT_PAGE_SIZE = 20;
 
   const load = async () => {
     setLoading(true);
@@ -47,17 +50,19 @@ export default function AdminSystemPage() {
     setLoading(false);
   };
 
-  const loadAudit = async () => {
+  const loadAudit = useCallback(async () => {
     setAuditLoading(true);
     try {
-      const res = await adminApi.getAuditLog(0, auditFilter);
-      setAuditLogs(res.logs || []);
+      const res = await adminApi.getAuditLog(auditPage * AUDIT_PAGE_SIZE, auditFilter);
+      const logs = res.logs || [];
+      setAuditLogs(logs);
+      setAuditHasMore(logs.length >= AUDIT_PAGE_SIZE);
     } catch (e: any) { toast.error(e.message); }
     setAuditLoading(false);
-  };
+  }, [auditPage, auditFilter]);
 
   useEffect(() => { load(); }, []);
-  useEffect(() => { loadAudit(); }, [auditFilter]);
+  useEffect(() => { loadAudit(); }, [loadAudit]);
 
   const handleAddAdmin = async () => {
     if (!newAdminEmail.trim()) return;
@@ -166,7 +171,7 @@ export default function AdminSystemPage() {
             <ScrollText className="h-4 w-4" /> Log de auditoría
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Select value={auditFilter || 'all'} onValueChange={v => setAuditFilter(v === 'all' ? '' : v)}>
+            <Select value={auditFilter || 'all'} onValueChange={v => { setAuditFilter(v === 'all' ? '' : v); setAuditPage(0); }}>
               <SelectTrigger className="w-[180px] h-8 text-sm">
                 <SelectValue placeholder="Todas las acciones" />
               </SelectTrigger>
@@ -216,6 +221,31 @@ export default function AdminSystemPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Paginación */}
+          <div className="flex items-center justify-between pt-4">
+            <p className="text-xs text-muted-foreground">
+              Página {auditPage + 1}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={auditPage === 0}
+                onClick={() => setAuditPage(p => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!auditHasMore}
+                onClick={() => setAuditPage(p => p + 1)}
+              >
+                Siguiente <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
