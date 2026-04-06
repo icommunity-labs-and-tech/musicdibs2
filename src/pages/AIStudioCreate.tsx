@@ -1668,21 +1668,6 @@ const AIStudioCreate = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                       <Label className="text-sm">
-                         {t('aiCreate.artistRefsLabel')}
-                         <span className="text-muted-foreground ml-1 font-normal">{t('aiCreate.customArtistHint')}</span>
-                       </Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {ARTIST_REFS.map(a => (
-                          <Badge key={a} variant={lyricsArtistRefs.includes(a) ? "default" : "outline"}
-                            className={cn("cursor-pointer text-xs transition-colors", lyricsArtistRefs.length >= 3 && !lyricsArtistRefs.includes(a) && "opacity-40 cursor-not-allowed")}
-                            onClick={() => { if (lyricsArtistRefs.length >= 3 && !lyricsArtistRefs.includes(a)) return; toggleArtistRef(a); }}>
-                            {a}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1.5">

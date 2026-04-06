@@ -1,16 +1,13 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
@@ -18,10 +15,8 @@ import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import {
   Wand2, Loader2, Download, RefreshCw, ImageIcon, Sparkles,
-  Camera, Upload, AlertTriangle, Info, X,
 } from 'lucide-react';
 
 const STYLE_KEYS = [
@@ -48,14 +43,7 @@ const COLOR_KEYS = [
   { value: 'pastel soft colors', key: 'pastel' },
 ];
 
-const ARTIST_REFS = [
-  'Bad Bunny', 'Rosalía', 'C. Tangana', 'J Balvin',
-  'Drake', 'Kendrick Lamar', 'Taylor Swift', 'The Weeknd',
-  'Billie Eilish', 'Tyler the Creator', 'Frank Ocean',
-  'Karol G', 'Rauw Alejandro', 'Bizarrap',
-];
-
-type ReferenceMode = 'none' | 'artist' | 'reference' | 'photomontage';
+type CoverMode = 'none' | 'artist';
 
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -75,74 +63,44 @@ export const CoversSection = () => {
   const { user } = useAuth();
   const { hasEnough } = useCredits();
 
-  // Existing states
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
   const [style, setStyle] = useState('');
   const [colorPalette, setColorPalette] = useState('');
-  const [artistRef, setArtistRef] = useState('');
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [genError, setGenError] = useState<string | null>(null);
   const [isImprovingDesc, setIsImprovingDesc] = useState(false);
 
-  // Reference image states
-  const [referenceMode, setReferenceMode] = useState<ReferenceMode>('none');
+  const [coverMode, setCoverMode] = useState<CoverMode>('none');
   const [artistPhoto, setArtistPhoto] = useState<File | null>(null);
   const [artistPhotoPreview, setArtistPhotoPreview] = useState<string | null>(null);
-  const [artistPhotoStrength, setArtistPhotoStrength] = useState(50);
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
-  const [referenceImagePreview, setReferenceImagePreview] = useState<string | null>(null);
-  const [referenceStrength, setReferenceStrength] = useState(50);
 
-  // Photomontage states
-  const [photomontageStep, setPhotomontageStep] = useState<1 | 2>(1);
-  const [photomontageProgress, setPhotomontageProgress] = useState(0);
-
-  const artistPhotoRef = useRef<HTMLInputElement>(null);
-  const referenceImageRef = useRef<HTMLInputElement>(null);
-
-  // Cleanup URLs on unmount
   useEffect(() => {
     return () => {
       if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
-      if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
     };
   }, []);
 
-  // Reset images when mode changes
   useEffect(() => {
-    if (referenceMode === 'none') {
-      setArtistPhoto(null);
-      setArtistPhotoPreview(p => { if (p) URL.revokeObjectURL(p); return null; });
-      setReferenceImage(null);
-      setReferenceImagePreview(p => { if (p) URL.revokeObjectURL(p); return null; });
-    } else if (referenceMode === 'artist') {
-      setReferenceImage(null);
-      setReferenceImagePreview(p => { if (p) URL.revokeObjectURL(p); return null; });
-    } else if (referenceMode === 'reference') {
+    if (coverMode === 'none') {
       setArtistPhoto(null);
       setArtistPhotoPreview(p => { if (p) URL.revokeObjectURL(p); return null; });
     }
-    // photomontage keeps both images
-  }, [referenceMode]);
+  }, [coverMode]);
 
-  const validateAndSetImage = (
-    file: File,
-    setFile: (f: File | null) => void,
-    setPreview: (p: string | null) => void,
-  ) => {
+  const validateAndSetImage = (file: File) => {
     if (file.size > 10 * 1024 * 1024) {
-      toast.error(tr('imageTooBig'), { description: tr('imageTooBigDesc') });
+      toast.error(tr('imageTooBig'));
       return;
     }
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      toast.error(tr('invalidImageFormat'), { description: tr('invalidImageFormatDesc') });
+      toast.error(tr('invalidImageFormat'));
       return;
     }
-    setFile(file);
-    setPreview(URL.createObjectURL(file));
+    setArtistPhoto(file);
+    setArtistPhotoPreview(URL.createObjectURL(file));
   };
 
   const handleImproveDescription = async () => {
@@ -173,27 +131,16 @@ export const CoversSection = () => {
       toast.error(t('aiShared.noCredits'));
       return;
     }
-    if (referenceMode === 'artist' && !artistPhoto) {
-      toast.error(tr('artistPhotoTitle'), { description: tr('artistPhotoUpload') });
-      return;
-    }
-    if (referenceMode === 'reference' && !referenceImage) {
-      toast.error(tr('referenceTitle'), { description: tr('referenceUpload') });
-      return;
-    }
-    if (referenceMode === 'photomontage' && (!artistPhoto || !referenceImage)) {
-      toast.error(tr('photomontageMissingPhotos'), { description: tr('photomontageMissingPhotosDesc') });
+    if (coverMode === 'artist' && !artistPhoto) {
+      toast.error(tr('artistPhotoTitle'));
       return;
     }
 
     setIsGenerating(true);
     setGenError(null);
     setImageUrl(null);
-    setPhotomontageStep(1);
-    setPhotomontageProgress(0);
 
     try {
-      // Pre-validate credits
       const { data: spend, error: spendErr } = await supabase.functions.invoke('spend-credits', {
         body: {
           feature: 'generate_cover',
@@ -202,21 +149,9 @@ export const CoversSection = () => {
       });
       if (spendErr || spend?.error) throw new Error(spend?.message || t('aiShared.error'));
 
-      // Convert images to base64 based on mode
       let artistPhotoBase64: string | null = null;
-      let referenceImageBase64: string | null = null;
-      let strengthValue = 0;
-
-      if (referenceMode === 'artist' && artistPhoto) {
+      if (coverMode === 'artist' && artistPhoto) {
         artistPhotoBase64 = await fileToBase64(artistPhoto);
-        strengthValue = artistPhotoStrength / 100;
-      } else if (referenceMode === 'reference' && referenceImage) {
-        referenceImageBase64 = await fileToBase64(referenceImage);
-        strengthValue = referenceStrength / 100;
-      } else if (referenceMode === 'photomontage' && artistPhoto && referenceImage) {
-        artistPhotoBase64 = await fileToBase64(artistPhoto);
-        referenceImageBase64 = await fileToBase64(referenceImage);
-        strengthValue = 0.6;
       }
 
       const { data, error } = await supabase.functions.invoke('generate-cover', {
@@ -225,12 +160,9 @@ export const CoversSection = () => {
           trackTitle,
           style,
           colorPalette,
-          artistRef,
           description,
           artistPhotoBase64,
-          referenceImageBase64,
-          referenceStrength: strengthValue,
-          referenceMode,
+          referenceMode: coverMode,
         },
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
@@ -262,18 +194,6 @@ export const CoversSection = () => {
     }
   };
 
-  const promptLabel =
-    referenceMode === 'artist' ? tr('promptLabelArtist') :
-    referenceMode === 'reference' ? tr('promptLabelReference') :
-    referenceMode === 'photomontage' ? tr('promptLabelPhotomontage') :
-    tr('promptLabelNone');
-
-  const promptPlaceholder =
-    referenceMode === 'artist' ? tr('promptPlaceholderArtist') :
-    referenceMode === 'reference' ? tr('promptPlaceholderReference') :
-    referenceMode === 'photomontage' ? tr('promptPlaceholderPhotomontage') :
-    tr('promptPlaceholderNone');
-
   return (
     <div className="space-y-6">
       <div>
@@ -293,6 +213,50 @@ export const CoversSection = () => {
               <CardDescription>{t('aiCovers.configDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              {/* Mode selector */}
+              <div className="space-y-3 rounded-lg border border-border p-4">
+                <Label className="text-sm font-medium">{tr('modeLabel') || t('aiCovers.mode')}</Label>
+                <RadioGroup
+                  value={coverMode}
+                  onValueChange={(v) => setCoverMode(v as CoverMode)}
+                  className="flex flex-col gap-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id="mode-none" />
+                    <Label htmlFor="mode-none" className="text-sm cursor-pointer">
+                      {tr('modeNone')}
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="artist" id="mode-artist" />
+                    <Label htmlFor="mode-artist" className="text-sm cursor-pointer">
+                      {tr('modeArtist')}
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Artist photo upload — only when mode is 'artist' */}
+              {coverMode === 'artist' && (
+                <div className="space-y-2" data-tour="pm-dropzone">
+                  <Label className="text-sm">{tr('artistPhotoTitle') || t('aiCovers.artistPhoto')}</Label>
+                  <p className="text-xs text-muted-foreground">{tr('artistPhotoDesc')}</p>
+                  <FileDropzone
+                    fileType="image"
+                    accept="image/jpeg,image/png,image/webp"
+                    maxSize={10}
+                    currentFile={artistPhoto}
+                    preview={artistPhotoPreview}
+                    onFileSelect={validateAndSetImage}
+                    onRemove={() => {
+                      setArtistPhoto(null);
+                      if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
+                      setArtistPhotoPreview(null);
+                    }}
+                  />
+                </div>
+              )}
+
               {/* Artist name + track title */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -315,203 +279,6 @@ export const CoversSection = () => {
                     className="h-9"
                   />
                 </div>
-              </div>
-
-              {/* === REFERENCE IMAGE SECTION === */}
-              <div className="space-y-3 rounded-lg border border-border p-4">
-                <div>
-                  <Label className="text-sm font-medium">{tr('referenceImageTitle')}</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">{tr('referenceImageDesc')}</p>
-                </div>
-
-                <Tabs value={referenceMode} onValueChange={(v) => setReferenceMode(v as ReferenceMode)}>
-                  <TabsList className="w-full grid grid-cols-4">
-                    <TabsTrigger value="none" className="text-xs">{tr('modeNone')}</TabsTrigger>
-                    <TabsTrigger value="artist" className="text-xs">{tr('modeArtist')}</TabsTrigger>
-                    <TabsTrigger value="reference" className="text-xs">{tr('modeReference')}</TabsTrigger>
-                    <TabsTrigger value="photomontage" className="text-xs flex flex-col items-center gap-0.5 py-1.5">
-                      <span>{tr('modePhotomontage')}</span>
-                      <Badge variant="secondary" className="text-[9px] px-1.5 py-0">{tr('photomontageCredits')}</Badge>
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="none" className="mt-3">
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertDescription className="text-xs">{tr('modeNoneAlert')}</AlertDescription>
-                    </Alert>
-                  </TabsContent>
-
-                  <TabsContent value="artist" className="mt-3 space-y-3">
-                    <p className="text-xs text-muted-foreground">{tr('artistPhotoDesc')}</p>
-                    <div data-tour="pm-dropzone">
-                    <FileDropzone
-                      fileType="image"
-                      accept="image/jpeg,image/png,image/webp"
-                      maxSize={10}
-                      currentFile={artistPhoto}
-                      preview={artistPhotoPreview}
-                      onFileSelect={(f) => validateAndSetImage(f, setArtistPhoto, setArtistPhotoPreview)}
-                      onRemove={() => {
-                        setArtistPhoto(null);
-                        if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
-                        setArtistPhotoPreview(null);
-                      }}
-                    />
-                    </div>
-
-                    {artistPhotoPreview && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs">{tr('artistPhotoStrength')}</Label>
-                          <span className="text-xs text-muted-foreground font-mono">{artistPhotoStrength}%</span>
-                        </div>
-                        <Slider
-                          value={[artistPhotoStrength]}
-                          onValueChange={([val]) => setArtistPhotoStrength(val)}
-                          min={20}
-                          max={90}
-                          step={10}
-                        />
-                        <div className="flex justify-between text-[10px] text-muted-foreground">
-                          <span>{tr('strengthLow')}</span>
-                          <span>{tr('strengthHigh')}</span>
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="reference" className="mt-3 space-y-3">
-                    <p className="text-xs text-muted-foreground">{tr('referenceDesc')}</p>
-                    <FileDropzone
-                      fileType="image"
-                      accept="image/jpeg,image/png,image/webp"
-                      maxSize={10}
-                      currentFile={referenceImage}
-                      preview={referenceImagePreview}
-                      onFileSelect={(f) => validateAndSetImage(f, setReferenceImage, setReferenceImagePreview)}
-                      onRemove={() => {
-                        setReferenceImage(null);
-                        if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
-                        setReferenceImagePreview(null);
-                      }}
-                    />
-
-                    {referenceImagePreview && (
-                      <>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-xs">{tr('referenceStrength')}</Label>
-                            <span className="text-xs text-muted-foreground font-mono">{referenceStrength}%</span>
-                          </div>
-                          <Slider
-                            value={[referenceStrength]}
-                            onValueChange={([val]) => setReferenceStrength(val)}
-                            min={20}
-                            max={90}
-                            step={10}
-                          />
-                          <div className="flex justify-between text-[10px] text-muted-foreground">
-                            <span>{tr('strengthInspiration')}</span>
-                            <span>{tr('strengthSimilar')}</span>
-                          </div>
-                        </div>
-
-                        <Alert variant="default" className="border-destructive/30 bg-destructive/5">
-                          <AlertTriangle className="h-4 w-4 text-destructive" />
-                          <AlertTitle className="text-xs">{tr('copyrightWarningTitle')}</AlertTitle>
-                          <AlertDescription className="text-[10px] space-y-1">
-                            <p>{tr('copyrightWarning1')}</p>
-                            <p>{tr('copyrightWarning2')}</p>
-                          </AlertDescription>
-                        </Alert>
-                      </>
-                    )}
-                  </TabsContent>
-
-                  {/* Photomontage tab */}
-                  <TabsContent value="photomontage" className="mt-3 space-y-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        <p className="text-sm font-medium">{tr('photomontageTitle')}</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{tr('photomontageDesc')}</p>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      {/* Your photo */}
-                      <Card>
-                        <CardHeader className="p-3 pb-1">
-                          <CardTitle className="text-xs flex items-center gap-1.5">
-                            <Camera className="h-3.5 w-3.5" />
-                            {tr('photomontageYourPhoto')}
-                          </CardTitle>
-                          <CardDescription className="text-[10px]">{tr('photomontageYourPhotoDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-3 pt-1">
-                          <FileDropzone
-                            fileType="image"
-                            accept="image/jpeg,image/png,image/webp"
-                            maxSize={10}
-                            currentFile={artistPhoto}
-                            preview={artistPhotoPreview}
-                            onFileSelect={(f) => validateAndSetImage(f, setArtistPhoto, setArtistPhotoPreview)}
-                            onRemove={() => {
-                              setArtistPhoto(null);
-                              if (artistPhotoPreview) URL.revokeObjectURL(artistPhotoPreview);
-                              setArtistPhotoPreview(null);
-                            }}
-                          />
-                        </CardContent>
-                      </Card>
-
-                      {/* Reference cover */}
-                      <Card>
-                        <CardHeader className="p-3 pb-1">
-                          <CardTitle className="text-xs flex items-center gap-1.5">
-                            <ImageIcon className="h-3.5 w-3.5" />
-                            {tr('photomontageReference')}
-                          </CardTitle>
-                          <CardDescription className="text-[10px]">{tr('photomontageReferenceDesc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-3 pt-1">
-                          <FileDropzone
-                            fileType="image"
-                            accept="image/jpeg,image/png,image/webp"
-                            maxSize={10}
-                            currentFile={referenceImage}
-                            preview={referenceImagePreview}
-                            onFileSelect={(f) => validateAndSetImage(f, setReferenceImage, setReferenceImagePreview)}
-                            onRemove={() => {
-                              setReferenceImage(null);
-                              if (referenceImagePreview) URL.revokeObjectURL(referenceImagePreview);
-                              setReferenceImagePreview(null);
-                            }}
-                          />
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <Alert>
-                      <Info className="h-4 w-4" />
-                      <AlertTitle className="text-xs">{tr('photomontageProcessInfo')}</AlertTitle>
-                      <AlertDescription className="text-[10px]">{tr('photomontageProcessDesc')}</AlertDescription>
-                    </Alert>
-
-                    {isGenerating && referenceMode === 'photomontage' && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                          <p className="text-xs font-medium">
-                            {photomontageStep === 1 ? tr('photomontageStep1') : tr('photomontageStep2')}
-                          </p>
-                        </div>
-                        <Progress value={photomontageProgress} className="h-2" />
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
               </div>
 
               {/* Visual style */}
@@ -548,30 +315,12 @@ export const CoversSection = () => {
                 </div>
               </div>
 
-              {/* Artist reference */}
-              <div className="space-y-2">
-                <Label className="text-sm">
-                  {t('aiCovers.visualInspired')}{' '}
-                  <span className="text-muted-foreground font-normal">{t('aiCovers.optional')}</span>
-                </Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {ARTIST_REFS.map(a => (
-                    <Badge
-                      key={a}
-                      variant={artistRef === a ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => setArtistRef(artistRef === a ? '' : a)}
-                    >
-                      {a}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
               {/* Description / prompt */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-sm">{promptLabel}</Label>
+                  <Label className="text-sm">
+                    {t('aiCovers.additionalDesc')}
+                  </Label>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -589,7 +338,10 @@ export const CoversSection = () => {
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={promptPlaceholder}
+                  placeholder={coverMode === 'artist'
+                    ? t('aiCovers.descPlaceholderArtist') || "Describe el estilo visual que quieres y cómo integrar la foto del artista en el diseño..."
+                    : t('aiCovers.descPlaceholder')
+                  }
                   rows={3}
                   className="resize-none text-sm"
                   maxLength={300}
@@ -611,7 +363,7 @@ export const CoversSection = () => {
                   {isGenerating ? (
                     <><Loader2 className="h-4 w-4 animate-spin" />{t('aiCovers.generatingCover')}</>
                   ) : (
-                    <><Wand2 className="h-4 w-4" />{t('aiCovers.generateBtn')}</>
+                    <><Wand2 className="h-4 w-4" />🎨 {t('aiCovers.generateBtn')}</>
                   )}
                 </Button>
               )}
