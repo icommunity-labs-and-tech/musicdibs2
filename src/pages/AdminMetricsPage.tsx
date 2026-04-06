@@ -147,7 +147,7 @@ export default function AdminMetricsPage() {
           <CardDescription>Descarga informes en formato CSV</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <Button variant="outline" className="gap-2" onClick={() => handleExport('users')}>
               <Users className="w-4 h-4" /> Usuarios
             </Button>
@@ -159,6 +159,9 @@ export default function AdminMetricsPage() {
             </Button>
             <Button variant="outline" className="gap-2" onClick={() => handleExport('audit')}>
               <TrendingUp className="w-4 h-4" /> Audit Log
+            </Button>
+            <Button variant="outline" className="gap-2" onClick={() => handleExport('revenue')}>
+              <BarChart3 className="w-4 h-4" /> Revenue
             </Button>
           </div>
         </CardContent>
