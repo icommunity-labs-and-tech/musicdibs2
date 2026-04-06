@@ -742,6 +742,48 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_metrics: {
+        Row: {
+          ad_spend: number
+          cash_balance: number
+          cogs: number
+          created_at: string
+          id: string
+          month: number
+          monthly_burn: number
+          notes: string | null
+          updated_at: string
+          updated_by: string | null
+          year: number
+        }
+        Insert: {
+          ad_spend?: number
+          cash_balance?: number
+          cogs?: number
+          created_at?: string
+          id?: string
+          month: number
+          monthly_burn?: number
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          year: number
+        }
+        Update: {
+          ad_spend?: number
+          cash_balance?: number
+          cogs?: number
+          created_at?: string
+          id?: string
+          month?: number
+          monthly_burn?: number
+          notes?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
       premium_social_promotions: {
         Row: {
           artist_name: string
