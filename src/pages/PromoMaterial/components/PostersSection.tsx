@@ -81,12 +81,13 @@ export const PostersSection = () => {
     setText: (v: string) => void,
     setLoading: (v: boolean) => void,
     photo?: File | null,
+    visualMode: string = 'event_poster',
   ) => {
     if (!text.trim() && !photo) return;
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const body: any = { prompt: text, mode: 'visual_creative' };
+      const body: any = { prompt: text, mode: visualMode };
       if (photo) body.image_base64 = await fileToBase64(photo);
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/improve-prompt`,
@@ -374,7 +375,7 @@ export const PostersSection = () => {
                         variant="ghost"
                         size="sm"
                         disabled={(!evAdditionalInfo.trim() && !evPhoto) || improvingEvPrompt}
-                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto)}
+                        onClick={() => handleImprovePrompt(evAdditionalInfo, setEvAdditionalInfo, setImprovingEvPrompt, evPhoto, 'event_poster')}
                         className="h-7 text-xs gap-1"
                       >
                         {improvingEvPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
@@ -474,7 +475,7 @@ export const PostersSection = () => {
                         variant="ghost"
                         size="sm"
                         disabled={(!soDescription.trim() && !soPhoto) || improvingSoPrompt}
-                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto)}
+                        onClick={() => handleImprovePrompt(soDescription, setSoDescription, setImprovingSoPrompt, soPhoto, 'social_poster')}
                         className="h-7 text-xs gap-1"
                       >
                         {improvingSoPrompt ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}

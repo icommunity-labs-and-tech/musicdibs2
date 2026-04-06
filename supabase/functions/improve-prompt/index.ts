@@ -5,6 +5,87 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const VISUAL_SYSTEM_PROMPTS: Record<string, string> = {
+  visual_creative: `You are an expert in visual design and AI image generation for music promotion (Instagram, YouTube, posters).
+Your task is to create or improve image generation prompts that produce stunning promotional visuals.
+
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.
+
+Rules:
+1. Create vivid, detailed image descriptions optimized for AI image generation
+2. Include: composition, lighting, colors, mood, textures, camera angle
+3. Keep the music promotion context (artist branding, song vibe)
+4. Description must be 40-100 words
+5. Return ONLY the image description, no explanations
+6. Never include text overlay instructions, focus on the visual scene
+7. If an image is provided, describe a creative variation or enhancement suitable for music promotion`,
+
+  cover_design: `You are a graphic designer specialized in album and single cover art.
+Improve the following description to generate a professional cover, adding details about:
+- Visual composition (centered, lateral, minimalist, complex)
+- Specific color palette
+- Typography style (serif/sans-serif, bold/light)
+- Visual style (minimalist/maximalist, retro/modern, abstract/photorealistic)
+- Graphic elements (shapes, textures, patterns)
+- Visual mood and atmosphere
+
+CRITICAL: Describe ONLY graphic design elements. Do NOT mention songs, musical genres, BPM, instruments, or music production.
+Description must be 40-100 words. Return ONLY the improved description, no explanations.
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
+
+  instagram_creative: `You are a social media content designer specialized in Instagram.
+Improve the following description to create an impactful creative, adding details about:
+- Visual composition for square/vertical format
+- Element hierarchy (what stands out first)
+- Text and typography usage (mobile-readable)
+- Visual call-to-action
+- Graphic style matching Instagram trends
+- Vibrant or minimalist colors as appropriate
+
+CRITICAL: Describe ONLY visual elements for social media. Do NOT mention music, songs, or music production.
+Description must be 40-100 words. Return ONLY the improved description, no explanations.
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
+
+  youtube_thumbnail: `You are an expert in YouTube thumbnails that generate clicks.
+Improve the following description to create an impactful thumbnail, adding details about:
+- High visual contrast
+- Clear focal points
+- Bold, readable text (max 3-4 words)
+- Impactful facial expressions (if applicable)
+- Curiosity-generating elements
+- Rule of thirds composition
+
+CRITICAL: Describe ONLY visual elements for a YouTube thumbnail. Do NOT mention music, songs, or music production.
+Description must be 40-100 words. Return ONLY the improved description, no explanations.
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
+
+  event_poster: `You are a designer of posters for music events.
+Improve the following description to create a professional promotional poster, adding details about:
+- Clear visual hierarchy (artist → date → venue)
+- Graphic style fitting the event theme
+- Relevant decorative elements
+- Impactful and readable typography
+- Balanced composition
+- Visual impact from a distance
+
+CRITICAL: Describe poster design elements. Do NOT mention specific songs, musical genres, BPM, or production details.
+Description must be 40-100 words. Return ONLY the improved description, no explanations.
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
+
+  social_poster: `You are a designer of graphics for social media (Facebook/Twitter).
+Improve the following description to create a digital poster, adding details about:
+- Optimized square format
+- Centered and simple composition
+- Large text readable on mobile
+- Vibrant attention-grabbing colors
+- Simple and clear graphic elements
+- Direct and visual message
+
+CRITICAL: Describe visual elements of a digital poster. Do NOT mention music, songs, or music production.
+Description must be 40-100 words. Return ONLY the improved description, no explanations.
+CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
@@ -18,14 +99,16 @@ serve(async (req) => {
 
     const { prompt, genre, mood, mode, image_base64 } = await req.json();
 
-    // For visual_creative mode, prompt can be empty if image is provided
-    if (!prompt?.trim() && mode !== 'visual_creative') {
+    const isVisualMode = mode in VISUAL_SYSTEM_PROMPTS;
+
+    // For visual modes, prompt can be empty if image is provided
+    if (!prompt?.trim() && !isVisualMode) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    if (mode === 'visual_creative' && !prompt?.trim() && !image_base64) {
+    if (isVisualMode && !prompt?.trim() && !image_base64) {
       return new Response(JSON.stringify({ error: 'Prompt or image is required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -34,20 +117,8 @@ serve(async (req) => {
     let systemPrompt: string;
     let userContent: any;
 
-    if (mode === 'visual_creative') {
-      systemPrompt = `You are an expert in visual design and AI image generation for music promotion (Instagram, YouTube, posters).
-Your task is to create or improve image generation prompts that produce stunning promotional visuals.
-
-CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.
-
-Rules:
-1. Create vivid, detailed image descriptions optimized for AI image generation
-2. Include: composition, lighting, colors, mood, textures, camera angle
-3. Keep the music promotion context (artist branding, song vibe)
-4. Description must be 40-100 words
-5. Return ONLY the image description, no explanations
-6. Never include text overlay instructions, focus on the visual scene
-7. If an image is provided, describe a creative variation or enhancement suitable for music promotion`;
+    if (isVisualMode) {
+      systemPrompt = VISUAL_SYSTEM_PROMPTS[mode];
 
       const parts: any[] = [];
 
