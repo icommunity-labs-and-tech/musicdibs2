@@ -529,7 +529,26 @@ serve(async (req) => {
 
     // ── get_saas_metrics ──────────────────────────────────────────
     if (action === "get_saas_metrics") {
+      const { month, year } = payload || {};
       const now = new Date();
+
+      // Build date range from filters
+      let filterStart: string | null = null;
+      let filterEnd: string | null = null;
+      if (month && month !== "all" && year && year !== "all") {
+        const y = parseInt(year), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      } else if (year && year !== "all") {
+        const y = parseInt(year);
+        filterStart = new Date(y, 0, 1).toISOString();
+        filterEnd = new Date(y + 1, 0, 1).toISOString();
+      } else if (month && month !== "all") {
+        const y = now.getFullYear(), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      }
+
       const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
       const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthStart = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
@@ -537,13 +556,21 @@ serve(async (req) => {
       const todayStr = now.toISOString().slice(0, 10);
       const PRICES: Record<string, number> = { Free: 0, Starter: 4.99, Pro: 9.99, Business: 19.99, Enterprise: 49.99 };
 
+      // Filtered queries for "period" KPIs
+      let totalQuery = admin.from("profiles").select("*", { count: "exact", head: true });
+      let worksQuery = admin.from("works").select("*", { count: "exact", head: true });
+      if (filterStart && filterEnd) {
+        totalQuery = totalQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+        worksQuery = worksQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [totalRes, newThisRes, newLastRes, verifiedRes, profilesRes, totalWorksRes, worksMonthRes] = await Promise.all([
-        admin.from("profiles").select("*", { count: "exact", head: true }),
+        totalQuery,
         admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
         admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", lastMonthStart).lt("created_at", thisMonthStart),
         admin.from("profiles").select("*", { count: "exact", head: true }).eq("kyc_status", "verified"),
         admin.from("profiles").select("subscription_plan, created_at"),
-        admin.from("works").select("*", { count: "exact", head: true }),
+        totalWorksRes2 = worksQuery,
         admin.from("works").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
       ]);
 
