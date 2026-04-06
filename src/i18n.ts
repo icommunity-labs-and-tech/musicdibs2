@@ -1432,6 +1432,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       pageSubtitle: 'Crea música, voces, portadas y videoclips desde un solo lugar.',
       noCredits: 'Sin créditos',
       comingSoon: 'Próximamente',
+      free: 'Gratis',
       creditPerUse: 'crédito por uso',
       creditsPerUse: 'créditos por uso',
       buyCredits: 'Comprar créditos',
@@ -1446,6 +1447,24 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
         createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
         singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
+      },
+      createMusic: {
+        feature1: 'Canciones originales con letra',
+        feature2: 'Bases instrumentales profesionales',
+        feature3: '29 idiomas y múltiples géneros',
+        credits: '2-10 créditos',
+      },
+      master: {
+        feature1: 'Optimización automática para streaming',
+        feature2: 'Limpieza de ruido y mejora estéreo',
+        feature3: 'Un clic → Resultado profesional',
+        credits: '1 crédito',
+      },
+      voiceTools: {
+        credits: '2-5 créditos',
+      },
+      promoMaterial: {
+        credits: '1-10 créditos',
       },
       features: {
         highQuality: { title: 'Alta calidad', desc: 'Resultados listos para iterar, presentar o publicar.' },
@@ -1463,6 +1482,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       pageSubtitle: 'Create music, voices, covers and videoclips from one place.',
       noCredits: 'No credits',
       comingSoon: 'Coming soon',
+      free: 'Free',
       creditPerUse: 'credit per use',
       creditsPerUse: 'credits per use',
       buyCredits: 'Buy credits',
@@ -1477,6 +1497,24 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
         createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
         singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
+      },
+      createMusic: {
+        feature1: 'Original songs with lyrics',
+        feature2: 'Professional instrumental tracks',
+        feature3: '29 languages and multiple genres',
+        credits: '2-10 credits',
+      },
+      master: {
+        feature1: 'Automatic streaming optimization',
+        feature2: 'Noise reduction and stereo enhancement',
+        feature3: 'One click → Professional result',
+        credits: '1 credit',
+      },
+      voiceTools: {
+        credits: '2-5 credits',
+      },
+      promoMaterial: {
+        credits: '1-10 credits',
       },
       features: {
         highQuality: { title: 'High quality', desc: 'Results ready to iterate, pitch or publish.' },
@@ -1494,6 +1532,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       pageSubtitle: 'Crie música, vozes, capas e videoclipes em um só lugar.',
       noCredits: 'Sem créditos',
       comingSoon: 'Em breve',
+      free: 'Grátis',
       creditPerUse: 'crédito por uso',
       creditsPerUse: 'créditos por uso',
       buyCredits: 'Comprar créditos',
@@ -1508,6 +1547,24 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
         singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
+      },
+      createMusic: {
+        feature1: 'Músicas originais com letra',
+        feature2: 'Bases instrumentais profissionais',
+        feature3: '29 idiomas e múltiplos gêneros',
+        credits: '2-10 créditos',
+      },
+      master: {
+        feature1: 'Otimização automática para streaming',
+        feature2: 'Redução de ruído e melhoria estéreo',
+        feature3: 'Um clique → Resultado profissional',
+        credits: '1 crédito',
+      },
+      voiceTools: {
+        credits: '2-5 créditos',
+      },
+      promoMaterial: {
+        credits: '1-10 créditos',
       },
       features: {
         highQuality: { title: 'Alta qualidade', desc: 'Resultados prontos para iterar, apresentar ou publicar.' },
