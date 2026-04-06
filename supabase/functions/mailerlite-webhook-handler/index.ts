@@ -65,8 +65,14 @@ async function callMailerLite(
   }
   const res = await fetch(url, options);
   if (!res.ok) {
-    const err = await res.text();
-    console.error(`[ML] ${method} ${endpoint} → ${res.status}: ${err}`);
+    const errText = await res.text();
+    console.error(`[ML] ${method} ${endpoint} → ${res.status}: ${errText}`);
+    // Return parsed error for caller to handle gracefully
+    if (res.status === 422) {
+      let parsed: any = {};
+      try { parsed = JSON.parse(errText); } catch (_) {}
+      return { _error: true, status: 422, body: parsed, subscriber: parsed.subscriber };
+    }
     throw new Error(`MailerLite API ${res.status}`);
   }
   if (res.status === 204 || res.headers.get("content-length") === "0") {
@@ -182,18 +188,38 @@ async function handleCartAbandoned(p: any) {
   const cartGroup = MAILERLITE_GROUPS[locale].cart_abandoned;
   console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}, locale=${locale}`);
 
-  // Upsert subscriber with cart fields
+  const cartFields = {
+    cart_abandoned: "true",
+    cart_plan: p.plan_type || "unknown",
+    cart_amount: p.amount || "0",
+    cart_currency: p.currency || "EUR",
+    cart_date: new Date().toISOString().slice(0, 10),
+  };
+
+  // Try upsert via POST first
   const sub = await callMailerLite("POST", `/subscribers`, {
     email: p.email,
-    fields: {
-      cart_abandoned: "true",
-      cart_plan: p.plan_type || "unknown",
-      cart_amount: p.amount || "0",
-      cart_currency: p.currency || "EUR",
-      cart_date: new Date().toISOString().slice(0, 10),
-    },
+    fields: cartFields,
     groups: [cartGroup],
   });
+
+  // If subscriber is unsubscribed (422), try PUT to update fields only
+  if (sub?._error && sub.status === 422) {
+    const errMsg = sub.body?.errors?.email?.[0] || "";
+    if (errMsg.includes("unsubscribed")) {
+      console.warn(`[ML:cart_abandoned] Subscriber ${p.email} is unsubscribed, updating fields via PUT`);
+      const email = encodeURIComponent(p.email);
+      await callMailerLite("PUT", `/subscribers/${email}`, { fields: cartFields });
+      // Try to add to group (best-effort, may fail for unsubscribed)
+      try {
+        await callMailerLite("POST", `/subscribers/${email}/groups/${cartGroup}`, {});
+      } catch (_) { /* unsubscribed users can't be added to groups */ }
+      console.log(`[ML:cart_abandoned] ✅ updated fields for unsubscribed user`);
+      return { success: true };
+    }
+    // Other 422 error — throw
+    throw new Error(`MailerLite API 422: ${JSON.stringify(sub.body)}`);
+  }
 
   console.log(`[ML:cart_abandoned] ✅ assigned to group ${cartGroup}`);
   return { success: true };
