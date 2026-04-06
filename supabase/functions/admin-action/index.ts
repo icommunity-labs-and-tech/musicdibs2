@@ -599,7 +599,8 @@ serve(async (req) => {
               const monthlyAmount = interval === "year" ? unitAmount / 12 : unitAmount;
               stripeMrr += monthlyAmount;
 
-              const planName = price.nickname || price.product || "Unknown";
+              const productObj = typeof price.product === "object" ? price.product : null;
+              const planName = price.nickname || productObj?.name || "Unknown";
               if (!stripePlanBreakdown[planName]) stripePlanBreakdown[planName] = { count: 0, mrr: 0 };
               stripePlanBreakdown[planName].count += 1;
               stripePlanBreakdown[planName].mrr += monthlyAmount;
