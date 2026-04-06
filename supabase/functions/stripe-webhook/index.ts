@@ -234,6 +234,28 @@ serve(async (req) => {
         } catch (emailErr) {
           console.error("[WEBHOOK] Error enqueuing purchase email:", emailErr);
         }
+        // ── MailerLite sync: purchase ──
+        try {
+          const { data: { user: mlUser } } = await supabase.auth.admin.getUserById(userId);
+          if (mlUser?.email) {
+            const { data: mlProfile } = await supabase
+              .from("profiles")
+              .select("language")
+              .eq("user_id", userId)
+              .single();
+            const mlCustId = session.customer
+              ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id)
+              : "";
+            await syncMailerLite("purchase.completed", {
+              email: mlUser.email,
+              locale: mlProfile?.language || "es",
+              plan_type: planToMailerLiteType(planName || planId),
+              stripe_customer_id: mlCustId,
+            });
+          }
+        } catch (mlErr) {
+          console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr);
+        }
       }
     }
 
