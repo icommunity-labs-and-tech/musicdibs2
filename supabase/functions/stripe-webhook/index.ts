@@ -509,6 +509,43 @@ serve(async (req) => {
       }
     }
 
+    // ── checkout.session.expired (carrito abandonado) ─────────────────────
+    if (event.type === "checkout.session.expired") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const userEmail = session.customer_email;
+      const userId = session.metadata?.user_id;
+
+      if (userEmail) {
+        console.log(`[WEBHOOK] checkout.session.expired → ${userEmail}`);
+
+        let locale = "en";
+        if (userId) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("language")
+            .eq("user_id", userId)
+            .single();
+          if (prof?.language) locale = prof.language;
+        }
+
+        const planType = session.metadata?.plan_type || "mensuales";
+
+        try {
+          await syncMailerLite("cart.abandoned", {
+            email: userEmail,
+            locale,
+            plan_type: planType,
+            amount: session.amount_total ? (session.amount_total / 100).toFixed(2) : "0",
+            currency: session.currency?.toUpperCase() || "EUR",
+          });
+        } catch (mlErr) {
+          console.warn("[WEBHOOK] MailerLite cart.abandoned sync error:", mlErr);
+        }
+      } else {
+        console.warn("[WEBHOOK] checkout.session.expired: no customer_email");
+      }
+    }
+
     return new Response(
       JSON.stringify({ received: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
