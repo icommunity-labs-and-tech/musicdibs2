@@ -44,19 +44,27 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
         {/* Churn Rate Evolution */}
         <Card className="border-border/40">
           <CardHeader>
-            <CardTitle className="text-base">📊 Churn Rate</CardTitle>
-            <CardDescription>Evolución mensual</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base">📉 Churn Rate Evolution</CardTitle>
+              {m._dataSource === "stripe_real" && (
+                <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-500">Stripe Live</Badge>
+              )}
+            </div>
+            <CardDescription>Evolución de cancelaciones (últimos 12 meses)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={m.churnEvolution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} unit="%" />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => [`${v}%`, 'Churn']} />
                 <Line type="monotone" dataKey="churn" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={{ fill: 'hsl(0, 84%, 60%)' }} />
               </LineChart>
             </ResponsiveContainer>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Datos reales de Stripe: cancelaciones / (activos + cancelados) por mes
+            </p>
           </CardContent>
         </Card>
 
