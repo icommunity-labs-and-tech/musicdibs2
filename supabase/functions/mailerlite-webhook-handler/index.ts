@@ -65,8 +65,14 @@ async function callMailerLite(
   }
   const res = await fetch(url, options);
   if (!res.ok) {
-    const err = await res.text();
-    console.error(`[ML] ${method} ${endpoint} → ${res.status}: ${err}`);
+    const errText = await res.text();
+    console.error(`[ML] ${method} ${endpoint} → ${res.status}: ${errText}`);
+    // Return parsed error for caller to handle gracefully
+    if (res.status === 422) {
+      let parsed: any = {};
+      try { parsed = JSON.parse(errText); } catch (_) {}
+      return { _error: true, status: 422, body: parsed, subscriber: parsed.subscriber };
+    }
     throw new Error(`MailerLite API ${res.status}`);
   }
   if (res.status === 204 || res.headers.get("content-length") === "0") {
