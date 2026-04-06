@@ -181,11 +181,6 @@ serve(async (req) => {
       case "activity.updated":
         result = await handleActivityUpdate(payload);
         break;
-      case "list_groups": {
-        const groups = await callMailerLite("GET", "/groups?limit=100");
-        result = groups;
-        break;
-      }
       default:
         return new Response(
           JSON.stringify({ error: `Unknown event: ${event}` }),
