@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Lightbulb, Coins, Image, Mic, ArrowRight, Headphones } from "lucide-react";
+import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Video, Coins, Image, Mic } from "lucide-react";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -14,42 +14,27 @@ const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const { t } = useTranslation();
 
-  const mainModules = [
+  const topRowModules = [
     {
       titleKey: "aiStudio.modules.createMusic.title",
       descKey: "aiStudio.modules.createMusic.desc",
-      features: [
-        "aiStudio.createMusic.feature1",
-        "aiStudio.createMusic.feature2",
-        "aiStudio.createMusic.feature3",
-      ],
-      icon: Music,
+      icon: Wand2,
       href: "/ai-studio/create",
       available: true,
       costsCredits: true,
       featureKey: 'generate_audio' as const,
-      color: "from-violet-500 to-purple-500",
-      creditsLabel: "aiStudio.createMusic.credits",
+      color: "from-purple-500 to-pink-500"
     },
     {
       titleKey: "aiStudio.modules.editModify.title",
       descKey: "aiStudio.modules.editModify.desc",
-      features: [
-        "aiStudio.master.feature1",
-        "aiStudio.master.feature2",
-        "aiStudio.master.feature3",
-      ],
-      icon: Headphones,
+      icon: Edit3,
       href: "/ai-studio/edit",
       available: true,
       costsCredits: true,
       featureKey: 'edit_audio' as const,
-      color: "from-blue-500 to-cyan-500",
-      creditsLabel: "aiStudio.master.credits",
+      color: "from-blue-500 to-cyan-500"
     },
-  ];
-
-  const secondaryModules = [
     {
       titleKey: "aiStudio.modules.singYourSong.title",
       descKey: "aiStudio.modules.singYourSong.desc",
@@ -58,9 +43,11 @@ const AIStudio = () => {
       available: true,
       costsCredits: true,
       featureKey: 'generate_audio' as const,
-      color: "from-violet-500 to-purple-600",
-      creditsLabel: "aiStudio.voiceTools.credits",
-    },
+      color: "from-violet-500 to-purple-600"
+    }
+  ];
+
+  const bottomRowModules = [
     {
       titleKey: "aiStudio.modules.createCovers.title",
       descKey: "aiStudio.modules.createCovers.desc",
@@ -69,8 +56,7 @@ const AIStudio = () => {
       available: true,
       costsCredits: true,
       featureKey: 'generate_cover' as const,
-      color: "from-emerald-500 to-teal-500",
-      creditsLabel: "aiStudio.promoMaterial.credits",
+      color: "from-emerald-500 to-teal-500"
     },
     {
       titleKey: "aiStudio.modules.inspire.title",
@@ -80,141 +66,14 @@ const AIStudio = () => {
       available: true,
       costsCredits: false,
       featureKey: 'inspiration' as const,
-      color: "from-amber-500 to-orange-500",
-      creditsLabel: "aiStudio.free",
+      color: "from-amber-500 to-orange-500"
     },
   ];
-
-  const renderMainCard = (module: typeof mainModules[0]) => {
-    const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
-    const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
-
-    return (
-      <Card
-        key={module.titleKey}
-        className={`relative overflow-hidden transition-all duration-300 flex flex-col ${
-          disabled ? 'opacity-60 grayscale' : 'hover:shadow-xl hover:-translate-y-1'
-        }`}
-      >
-        <div className={`absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r ${module.color}`} />
-
-        {module.costsCredits && !hasEnough(cost) && (
-          <Badge variant="destructive" className="absolute top-4 right-4 z-10 text-[10px]">
-            {t('aiStudio.noCredits')}
-          </Badge>
-        )}
-
-        <CardHeader className="flex-1 pb-2">
-          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
-            <module.icon className="w-7 h-7 text-white" />
-          </div>
-          <CardTitle className="text-xl">{t(module.titleKey)}</CardTitle>
-          <CardDescription className="text-sm">{t(module.descKey)}</CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4">
-          {/* Features list */}
-          <ul className="space-y-2">
-            {module.features.map((fKey, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                <Sparkles className="w-3.5 h-3.5 mt-0.5 text-primary shrink-0" />
-                <span>{t(fKey)}</span>
-              </li>
-            ))}
-          </ul>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/50">
-            <Badge variant="outline" className="text-xs font-normal">
-              {t(module.creditsLabel)}
-            </Badge>
-            {disabled ? (
-              <Button asChild size="sm" variant="default">
-                <Link to="/dashboard/credits">
-                  <Coins className="w-4 h-4 mr-1.5" />
-                  {t('aiStudio.buyCredits')}
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild size="sm" variant="default">
-                <Link to={module.href}>
-                  {t('aiStudio.startBtn')}
-                  <ArrowRight className="w-4 h-4 ml-1.5" />
-                </Link>
-              </Button>
-            )}
-          </div>
-
-          {module.costsCredits && cost > 0 && (
-            <span className="text-center"><PricingLink /></span>
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderSecondaryCard = (module: typeof secondaryModules[0]) => {
-    const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
-    const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
-
-    return (
-      <Card
-        key={module.titleKey}
-        className={`relative overflow-hidden transition-all duration-300 flex flex-col ${
-          disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'
-        }`}
-      >
-        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
-
-        {!module.costsCredits && (
-          <Badge className="absolute top-3 right-3 z-10 text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white border-0">
-            {t('aiStudio.free', 'Gratis')}
-          </Badge>
-        )}
-        {module.costsCredits && !hasEnough(cost) && (
-          <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
-            {t('aiStudio.noCredits')}
-          </Badge>
-        )}
-
-        <CardHeader className="flex-1 pb-2">
-          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${module.color} flex items-center justify-center mb-3`}>
-            <module.icon className="w-5 h-5 text-white" />
-          </div>
-          <CardTitle className="text-base">{t(module.titleKey)}</CardTitle>
-          <CardDescription className="text-sm line-clamp-2">{t(module.descKey)}</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="text-[10px] font-normal">
-              {t(module.creditsLabel)}
-            </Badge>
-            {disabled ? (
-              <Button asChild size="sm" variant="default">
-                <Link to="/dashboard/credits">
-                  <Coins className="w-3.5 h-3.5 mr-1" />
-                  {t('aiStudio.buyCredits')}
-                </Link>
-              </Button>
-            ) : (
-              <Button asChild size="sm" variant="default">
-                <Link to={module.href}>
-                  {t('aiStudio.startBtn')}
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </Link>
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-
+      
       <main className="container mx-auto px-4 py-12 pt-24">
         {/* Back Button */}
         <Link to="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
@@ -223,7 +82,7 @@ const AIStudio = () => {
         </Link>
 
         {/* Hero Section */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
             <Sparkles className="w-4 h-4" />
             <span className="text-sm font-medium">{t('aiStudio.poweredBy')}</span>
@@ -236,14 +95,125 @@ const AIStudio = () => {
           </p>
         </div>
 
-        {/* Row 1: Main modules — 2 large cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {mainModules.map(renderMainCard)}
+        {/* Row 1 - 3 columns: Crear música, Remasterizar, Herramientas de Voz */}
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
+          {topRowModules.map((module) => {
+            const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
+            const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
+            return (
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+              {!module.available && (
+                <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
+                  {t('aiStudio.comingSoon')}
+                </Badge>
+              )}
+              {module.available && !module.costsCredits && (
+                <Badge className="absolute top-3 right-3 z-10 text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white border-0">
+                  {t('aiStudio.free', 'Gratis')}
+                </Badge>
+              )}
+              {module.available && !hasEnough(cost) && module.costsCredits && (
+                <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
+                  {t('aiStudio.noCredits')}
+                </Badge>
+              )}
+              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
+              <CardHeader>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
+                  <module.icon className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle className="flex items-center gap-2">
+                  {t(module.titleKey)}
+                </CardTitle>
+                <CardDescription>{t(module.descKey)}</CardDescription>
+                {module.costsCredits && cost > 0 && (
+                  <span className="mt-1"><PricingLink /></span>
+                )}
+              </CardHeader>
+              <CardContent>
+                {!module.available ? (
+                  <Button className="w-full" variant="secondary" disabled>
+                    <Zap className="w-4 h-4 mr-2" />
+                    {t('aiStudio.comingSoon')}
+                  </Button>
+                ) : disabled ? (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to="/dashboard/credits">
+                      <Coins className="w-4 h-4 mr-2" />
+                      {t('aiStudio.buyCredits')}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to={module.href}>
+                      <Zap className="w-4 h-4 mr-2" />
+                      {t('aiStudio.startBtn')}
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+            );
+          })}
         </div>
 
-        {/* Row 2: Secondary modules — 3 compact cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-10">
-          {secondaryModules.map(renderSecondaryCard)}
+        {/* Row 2 - 2 columns: Material promocional, Inspiración */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+          {bottomRowModules.map((module) => {
+            const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
+            const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
+            return (
+            <Card key={module.titleKey} className={`relative overflow-hidden transition-all duration-300 flex flex-col ${!module.available ? 'opacity-50 grayscale pointer-events-none' : disabled ? 'opacity-60 grayscale' : 'hover:shadow-lg hover:-translate-y-1'}`}>
+              {!module.available && (
+                <Badge variant="secondary" className="absolute top-3 right-3 z-10 text-[10px]">
+                  {t('aiStudio.comingSoon')}
+                </Badge>
+              )}
+              {module.available && !hasEnough(cost) && module.costsCredits && (
+                <Badge variant="destructive" className="absolute top-3 right-3 z-10 text-[10px]">
+                  {t('aiStudio.noCredits')}
+                </Badge>
+              )}
+              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${module.color}`} />
+              <CardHeader className="flex-1">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${module.color} flex items-center justify-center mb-4`}>
+                  <module.icon className="w-6 h-6 text-white" />
+                </div>
+                <CardTitle className="flex items-center gap-2">
+                  {t(module.titleKey)}
+                </CardTitle>
+                <CardDescription>{t(module.descKey)}</CardDescription>
+                {module.costsCredits && cost > 0 ? (
+                  <span className="mt-1"><PricingLink /></span>
+                ) : !module.costsCredits ? (
+                  <span className="mt-1 self-start inline-flex items-center rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white shadow-sm">{t('aiStudio.free', 'Gratis')}</span>
+                ) : null}
+              </CardHeader>
+              <CardContent>
+                {!module.available ? (
+                  <Button className="w-full" variant="secondary" disabled>
+                    <Zap className="w-4 h-4 mr-2" />
+                    {t('aiStudio.comingSoon')}
+                  </Button>
+                ) : disabled ? (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to="/dashboard/credits">
+                      <Coins className="w-4 h-4 mr-2" />
+                      {t('aiStudio.buyCredits')}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button asChild className="w-full" variant="default">
+                    <Link to={module.href}>
+                      <Zap className="w-4 h-4 mr-2" />
+                      {t('aiStudio.startBtn')}
+                    </Link>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+            );
+          })}
         </div>
 
         {/* Features */}
