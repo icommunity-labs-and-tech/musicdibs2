@@ -242,7 +242,7 @@ export function MailerLiteTestButton() {
             <li>Verificar campos custom poblados</li>
             <li>Verificar que está en el grupo correcto</li>
           </ol>
-          <p className="text-red-500 font-medium mt-2">
+          <p className="text-destructive font-medium mt-2">
             ⚠️ ELIMINAR ESTE COMPONENTE después de testing
           </p>
         </div>
