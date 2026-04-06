@@ -309,7 +309,7 @@ export const SocialVideosSection = () => {
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => { setVideoUrl(null); setDescription(''); setStyle(''); }}
+                  onClick={() => { setVideoUrl(null); setDescription(''); }}
                   className="flex-1"
                 >
                   {tr('regenerate')}

@@ -62,10 +62,6 @@ const PromoMaterialPage = () => {
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">{tr('tabVideos')}</span>
             </TabsTrigger>
-            <TabsTrigger value="posters" className="gap-1.5 text-xs sm:text-sm" data-tour="pm-posters-tab">
-              <Megaphone className="w-4 h-4" />
-              <span className="hidden sm:inline">{tr('tabPosters')}</span>
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="covers">
@@ -78,10 +74,6 @@ const PromoMaterialPage = () => {
 
           <TabsContent value="videos">
             <SocialVideosSection />
-          </TabsContent>
-
-          <TabsContent value="posters">
-            <PostersSection />
           </TabsContent>
         </Tabs>
       </main>
