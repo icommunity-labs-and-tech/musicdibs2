@@ -35,6 +35,9 @@ const AIStudio = () => {
       featureKey: 'edit_audio' as const,
       color: "from-blue-500 to-cyan-500"
     },
+  ];
+
+  const bottomRowModules = [
     {
       titleKey: "aiStudio.modules.singYourSong.title",
       descKey: "aiStudio.modules.singYourSong.desc",
@@ -44,10 +47,7 @@ const AIStudio = () => {
       costsCredits: true,
       featureKey: 'generate_audio' as const,
       color: "from-violet-500 to-purple-600"
-    }
-  ];
-
-  const bottomRowModules = [
+    },
     {
       titleKey: "aiStudio.modules.createCovers.title",
       descKey: "aiStudio.modules.createCovers.desc",
