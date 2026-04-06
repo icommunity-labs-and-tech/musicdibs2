@@ -221,6 +221,31 @@ export default function AdminSystemPage() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Paginación */}
+          <div className="flex items-center justify-between pt-4">
+            <p className="text-xs text-muted-foreground">
+              Página {auditPage + 1}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={auditPage === 0}
+                onClick={() => setAuditPage(p => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!auditHasMore}
+                onClick={() => setAuditPage(p => p + 1)}
+              >
+                Siguiente <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
