@@ -178,10 +178,12 @@ async function handleActivityUpdate(p: any) {
 }
 
 async function handleCartAbandoned(p: any) {
-  console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}`);
+  const locale = normalizeLocale(p.locale);
+  const cartGroup = MAILERLITE_GROUPS[locale].cart_abandoned;
+  console.log(`[ML:cart_abandoned] ${p.email} → plan=${p.plan_type}, amount=${p.amount}, locale=${locale}`);
 
-  // Use POST /subscribers to upsert (works even if subscriber doesn't exist yet)
-  await callMailerLite("POST", `/subscribers`, {
+  // Upsert subscriber with cart fields
+  const sub = await callMailerLite("POST", `/subscribers`, {
     email: p.email,
     fields: {
       cart_abandoned: "true",
@@ -190,8 +192,10 @@ async function handleCartAbandoned(p: any) {
       cart_currency: p.currency || "EUR",
       cart_date: new Date().toISOString().slice(0, 10),
     },
+    groups: [cartGroup],
   });
-  console.log(`[ML:cart_abandoned] ✅`);
+
+  console.log(`[ML:cart_abandoned] ✅ assigned to group ${cartGroup}`);
   return { success: true };
 }
 
