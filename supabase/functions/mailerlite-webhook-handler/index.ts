@@ -17,18 +17,21 @@ const MAILERLITE_GROUPS: Record<string, Record<string, string>> = {
     mensuales: "179653836933170957",
     anuales: "179655929185175246",
     single: "179655957217805955",
+    baja: "180549266623694014",
   },
   en: {
     registrados: "180552563766068699",
     mensuales: "179655903760353011",
     anuales: "179655937992165159",
     single: "179655967666865903",
+    baja: "180549280191218751",
   },
   "pt-br": {
     registrados: "180552569505974164",
     mensuales: "179655918471874176",
     anuales: "179655947115824759",
     single: "179655975825835602",
+    baja: "180549290870965583",
   },
 };
 
@@ -103,10 +106,12 @@ async function handlePurchase(p: any) {
   const email = encodeURIComponent(p.email);
   console.log(`[ML:purchase] ${p.email} → plan=${p.plan_type}`);
 
-  // Remove from registrados (best-effort)
-  try {
-    await callMailerLite("DELETE", `/subscribers/${email}/groups/${oldGroup}`);
-  } catch (_) { /* may not be in group */ }
+  // Remove from registrados and baja groups (best-effort)
+  for (const gKey of ["registrados", "baja"]) {
+    try {
+      await callMailerLite("DELETE", `/subscribers/${email}/groups/${MAILERLITE_GROUPS[locale][gKey]}`);
+    } catch (_) { /* may not be in group */ }
+  }
 
   // Add to plan group
   if (newGroup) {
@@ -128,15 +133,28 @@ async function handlePurchase(p: any) {
 async function handleCancellation(p: any) {
   const locale = normalizeLocale(p.locale);
   const oldGroup = MAILERLITE_GROUPS[locale][p.plan_type];
+  const bajaGroup = MAILERLITE_GROUPS[locale].baja;
   const email = encodeURIComponent(p.email);
   console.log(`[ML:cancel] ${p.email} → plan=${p.plan_type}`);
 
+  // Remove from plan group
   if (oldGroup) {
     try {
       await callMailerLite("DELETE", `/subscribers/${email}/groups/${oldGroup}`);
     } catch (_) { /* may not be in group */ }
   }
 
+  // Add to "Baja suscripción" group
+  if (bajaGroup) {
+    try {
+      await callMailerLite("POST", `/subscribers/${email}/groups/${bajaGroup}`, {});
+      console.log(`[ML:cancel] Added to baja group`);
+    } catch (e) {
+      console.warn(`[ML:cancel] Could not add to baja group: ${(e as Error).message}`);
+    }
+  }
+
+  // Update fields
   await callMailerLite("PUT", `/subscribers/${email}`, {
     fields: {
       plan_type: "free",
