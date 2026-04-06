@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
@@ -43,19 +44,27 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
         {/* Churn Rate Evolution */}
         <Card className="border-border/40">
           <CardHeader>
-            <CardTitle className="text-base">📊 Churn Rate</CardTitle>
-            <CardDescription>Evolución mensual</CardDescription>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-base">📉 Churn Rate Evolution</CardTitle>
+              {m._dataSource === "stripe_real" && (
+                <Badge variant="outline" className="text-[10px] border-green-500/50 text-green-500">Stripe Live</Badge>
+              )}
+            </div>
+            <CardDescription>Evolución de cancelaciones (últimos 12 meses)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
               <LineChart data={m.churnEvolution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+                <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} unit="%" />
+                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} formatter={(v: number) => [`${v}%`, 'Churn']} />
                 <Line type="monotone" dataKey="churn" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={{ fill: 'hsl(0, 84%, 60%)' }} />
               </LineChart>
             </ResponsiveContainer>
+            <p className="text-[10px] text-muted-foreground mt-2">
+              Datos reales de Stripe: cancelaciones / (activos + cancelados) por mes
+            </p>
           </CardContent>
         </Card>
 
@@ -126,12 +135,33 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
             />
           </div>
 
-          {/* Revenue Concentration Risk */}
-          <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border/40">
-            <p className="text-xs font-medium mb-2">📍 Revenue Concentration</p>
-            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-              <span>Top 10 usuarios: <strong className="text-foreground">{m.top10RevenuePercentage}%</strong> del revenue</span>
-              <span>Plan más usado: <strong className="text-foreground">{m.topPlanName} ({m.topPlanPercentage}%)</strong></span>
+          <Separator className="my-4" />
+
+          {/* Revenue Concentration */}
+          <div className="p-3 rounded-lg bg-muted/50 border border-border/40">
+            <p className="text-xs font-medium mb-3">📍 Revenue Concentration</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+              <div>
+                <span className="text-muted-foreground">Plan más usado</span>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <Badge variant="secondary" className="text-[10px]">{m.topPlanName}</Badge>
+                  <span className="font-medium">{m.topPlanPercentage}% usuarios</span>
+                </div>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Suscripciones activas</span>
+                <p className="text-lg font-bold mt-0.5">{m.activeSubscriptions}</p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Canceladas este mes</span>
+                <p className={`text-lg font-bold mt-0.5 ${m.cancelledThisMonth > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                  {m.cancelledThisMonth}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Top 10 usuarios</span>
+                <p className="text-lg font-bold mt-0.5">{m.top10RevenuePercentage}%<span className="text-xs font-normal text-muted-foreground ml-1">del revenue</span></p>
+              </div>
             </div>
           </div>
         </CardContent>
