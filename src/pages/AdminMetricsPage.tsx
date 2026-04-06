@@ -182,6 +182,9 @@ export default function AdminMetricsPage() {
       {/* Cohort Retention */}
       <CohortRetention cohortData={metrics.cohortData || []} />
 
+      {/* Marketing Metrics Manual Input */}
+      <MarketingMetricsForm hasManualMetrics={metrics.hasManualMetrics} />
+
       {/* Export section */}
       <Card className="border-border/40">
         <CardHeader>
