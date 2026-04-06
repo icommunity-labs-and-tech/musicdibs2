@@ -17,6 +17,7 @@ import KpiGrid from '@/components/admin/metrics/KpiGrid';
 import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
 import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
+import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
 
 const MONTHS = [
   { value: 'all', label: 'Todos los meses' },
@@ -180,6 +181,9 @@ export default function AdminMetricsPage() {
 
       {/* Cohort Retention */}
       <CohortRetention cohortData={metrics.cohortData || []} />
+
+      {/* Marketing Metrics Manual Input */}
+      <MarketingMetricsForm hasManualMetrics={metrics.hasManualMetrics} />
 
       {/* Export section */}
       <Card className="border-border/40">

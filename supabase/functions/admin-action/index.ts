@@ -787,12 +787,32 @@ serve(async (req) => {
       const ltv = churnRate > 0 ? Math.round(arpu / (churnRate / 100)) : Math.round(arpu * 24);
       const totalRevenue = totalStripeRevenue > 0 ? Math.round(totalStripeRevenue * 100) / 100 : Math.round((mrr + creditsRevenue) * 100) / 100;
 
-      // CAC: real marketing spend if available, else estimated
-      const cac = 50; // TODO: connect to real ad spend when available
-      const grossMargin = totalRevenue > 0 ? 85 : 0; // SaaS typical, adjust when costs are tracked
+      // Fetch manual marketing metrics from DB for current month
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      const { data: marketingRow } = await admin
+        .from("marketing_metrics")
+        .select("*")
+        .eq("year", currentYear)
+        .eq("month", currentMonth)
+        .maybeSingle();
+
+      const adSpend = marketingRow ? parseFloat(marketingRow.ad_spend) : 0;
+      const cogsManual = marketingRow ? parseFloat(marketingRow.cogs) : 0;
+      const cashBalanceManual = marketingRow ? parseFloat(marketingRow.cash_balance) : 0;
+      const monthlyBurnManual = marketingRow ? parseFloat(marketingRow.monthly_burn) : 0;
+
+      // CAC: real if ad_spend is set, else estimated
+      const cac = adSpend > 0 && newThisMonth > 0
+        ? parseFloat((adSpend / newThisMonth).toFixed(2))
+        : (adSpend > 0 ? adSpend : 50);
+      const grossMargin = totalRevenue > 0 && cogsManual > 0
+        ? parseFloat((((totalRevenue - cogsManual) / totalRevenue) * 100).toFixed(1))
+        : (totalRevenue > 0 ? 85 : 0);
       const paybackPeriod = arpu > 0 ? Math.round(cac / arpu) : 0;
       const magicNumber = mrr > 0 && newThisMonth > 0 ? parseFloat((mrr / (cac * newThisMonth)).toFixed(2)) : 0;
       const nrr = churnRate > 0 ? Math.round(100 - churnRate + (paidUsers > 5 ? 5 : 0)) : 100;
+      const hasManualMetrics = !!marketingRow;
       const quickRatio = churnRate > 0 ? parseFloat(((newThisMonth * arpu) / (churnRate / 100 * mrr || 1)).toFixed(1)) : 0;
 
       // Churn evolution from Stripe (real cancelled subs per month)
@@ -880,9 +900,10 @@ serve(async (req) => {
         churnRate, churnChange, ltv,
         ltvCacRatio: ltv > 0 ? parseFloat((ltv / cac).toFixed(1)) : 0,
         nrr, quickRatio, arpu, cac, grossMargin, paybackPeriod, magicNumber,
-        cashBalance: Math.round(totalRevenue),
-        burnRate: Math.round(totalRevenue * 0.3),
-        runway: totalRevenue > 0 ? Math.round(totalRevenue / (totalRevenue * 0.3 || 1)) : 0,
+        cashBalance: cashBalanceManual > 0 ? cashBalanceManual : Math.round(totalRevenue),
+        burnRate: monthlyBurnManual > 0 ? monthlyBurnManual : Math.round(totalRevenue * 0.3),
+        runway: monthlyBurnManual > 0 ? Math.round(cashBalanceManual / monthlyBurnManual) : (totalRevenue > 0 ? Math.round(totalRevenue / (totalRevenue * 0.3 || 1)) : 0),
+        adSpend, cogsManual, hasManualMetrics,
         totalUsers, newUsersThisMonth: newThisMonth,
         newUsersChange: newLastMonth > 0 ? parseFloat((((newThisMonth - newLastMonth) / newLastMonth) * 100).toFixed(1)) : 100,
         activeUsers30d: mauSet.size, verifiedUsers: verifiedRes.count || 0,
@@ -911,6 +932,39 @@ serve(async (req) => {
         ].sort((a, b) => b.uses - a.uses),
         _dataSource: stripe ? "stripe_real" : "estimated",
       });
+    }
+
+    // ── save_marketing_metrics ────────────────────────────────────
+    if (action === "save_marketing_metrics") {
+      const { year, month, ad_spend, cogs, cash_balance, monthly_burn, notes } = payload;
+      if (!year || !month) throw new Error("year and month are required");
+      const { data, error } = await admin
+        .from("marketing_metrics")
+        .upsert({
+          year: parseInt(year),
+          month: parseInt(month),
+          ad_spend: parseFloat(ad_spend || "0"),
+          cogs: parseFloat(cogs || "0"),
+          cash_balance: parseFloat(cash_balance || "0"),
+          monthly_burn: parseFloat(monthly_burn || "0"),
+          notes: notes || null,
+          updated_by: userEmail,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "year,month" });
+      if (error) return json({ error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    // ── get_marketing_metrics ────────────────────────────────────
+    if (action === "get_marketing_metrics") {
+      const { data, error } = await admin
+        .from("marketing_metrics")
+        .select("*")
+        .order("year", { ascending: false })
+        .order("month", { ascending: false })
+        .limit(24);
+      if (error) return json({ error: error.message }, 500);
+      return json({ items: data || [] });
     }
 
     // ── retry_ibs_queue_item ──────────────────────────────────────
