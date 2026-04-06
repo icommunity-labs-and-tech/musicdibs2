@@ -17,6 +17,7 @@ import KpiGrid from '@/components/admin/metrics/KpiGrid';
 import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
 import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
+import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
 
 const MONTHS = [
   { value: 'all', label: 'Todos los meses' },
