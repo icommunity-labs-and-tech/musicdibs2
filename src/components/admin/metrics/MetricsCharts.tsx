@@ -111,7 +111,7 @@ export default function MetricsCharts({ metrics }: MetricsChartsProps) {
       {/* Revenue Breakdown */}
       <Card className="border-border/40">
         <CardHeader>
-          <CardTitle className="text-base">💳 Revenue by Plan</CardTitle>
+          <CardTitle className="text-base">💳 MRR por Plan</CardTitle>
           <CardDescription>Distribución de ingresos por tipo de suscripción</CardDescription>
         </CardHeader>
         <CardContent>
