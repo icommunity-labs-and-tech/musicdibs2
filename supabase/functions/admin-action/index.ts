@@ -584,9 +584,16 @@ serve(async (req) => {
       Object.entries(plans).forEach(([plan, count]) => { mrr += (PRICES[plan] || 0) * count; });
       const paidUsers = totalUsers - (plans["Free"] || 0);
 
+      let posTxQuery = admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0);
+      let negTxQuery = admin.from("credit_transactions").select("amount").lt("amount", 0);
+      if (filterStart && filterEnd) {
+        posTxQuery = posTxQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+        negTxQuery = negTxQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [posTxRes, negTxRes, activeTxRes, todayTxRes] = await Promise.all([
-        admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0),
-        admin.from("credit_transactions").select("amount").lt("amount", 0),
+        posTxQuery,
+        negTxQuery,
         admin.from("credit_transactions").select("user_id, created_at").gte("created_at", thirtyDaysAgo),
         admin.from("credit_transactions").select("user_id").gte("created_at", `${todayStr}T00:00:00Z`),
       ]);
@@ -598,12 +605,21 @@ serve(async (req) => {
       const mauSet = new Set((activeTxRes.data || []).map((t: any) => t.user_id));
       const dauSet = new Set((todayTxRes.data || []).map((t: any) => t.user_id));
 
+      let aiGenQ = admin.from("ai_generations").select("*", { count: "exact", head: true });
+      let videoGenQ = admin.from("video_generations").select("*", { count: "exact", head: true });
+      let voiceCloneQ = admin.from("voice_clones").select("*", { count: "exact", head: true });
+      let socialPromoQ = admin.from("social_promotions").select("*", { count: "exact", head: true });
+      let lyricsGenQ = admin.from("lyrics_generations").select("*", { count: "exact", head: true });
+      if (filterStart && filterEnd) {
+        aiGenQ = aiGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        videoGenQ = videoGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        voiceCloneQ = voiceCloneQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        socialPromoQ = socialPromoQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        lyricsGenQ = lyricsGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [aiGen, videoGen, voiceClone, socialPromo, lyricsGen] = await Promise.all([
-        admin.from("ai_generations").select("*", { count: "exact", head: true }),
-        admin.from("video_generations").select("*", { count: "exact", head: true }),
-        admin.from("voice_clones").select("*", { count: "exact", head: true }),
-        admin.from("social_promotions").select("*", { count: "exact", head: true }),
-        admin.from("lyrics_generations").select("*", { count: "exact", head: true }),
+        aiGenQ, videoGenQ, voiceCloneQ, socialPromoQ, lyricsGenQ,
       ]);
 
       const userAcquisition = [];
