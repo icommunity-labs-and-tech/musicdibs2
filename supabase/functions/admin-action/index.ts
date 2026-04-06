@@ -934,6 +934,39 @@ serve(async (req) => {
       });
     }
 
+    // ── save_marketing_metrics ────────────────────────────────────
+    if (action === "save_marketing_metrics") {
+      const { year, month, ad_spend, cogs, cash_balance, monthly_burn, notes } = payload;
+      if (!year || !month) throw new Error("year and month are required");
+      const { data, error } = await admin
+        .from("marketing_metrics")
+        .upsert({
+          year: parseInt(year),
+          month: parseInt(month),
+          ad_spend: parseFloat(ad_spend || "0"),
+          cogs: parseFloat(cogs || "0"),
+          cash_balance: parseFloat(cash_balance || "0"),
+          monthly_burn: parseFloat(monthly_burn || "0"),
+          notes: notes || null,
+          updated_by: userEmail,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "year,month" });
+      if (error) return json({ error: error.message }, 500);
+      return json({ success: true });
+    }
+
+    // ── get_marketing_metrics ────────────────────────────────────
+    if (action === "get_marketing_metrics") {
+      const { data, error } = await admin
+        .from("marketing_metrics")
+        .select("*")
+        .order("year", { ascending: false })
+        .order("month", { ascending: false })
+        .limit(24);
+      if (error) return json({ error: error.message }, 500);
+      return json({ items: data || [] });
+    }
+
     // ── retry_ibs_queue_item ──────────────────────────────────────
     if (action === "retry_ibs_queue_item") {
       const { queueId, workId } = payload;
