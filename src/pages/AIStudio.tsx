@@ -157,8 +157,8 @@ const AIStudio = () => {
           })}
         </div>
 
-        {/* Row 2 - 2 columns: Material promocional, Inspiración */}
-        <div className="grid md:grid-cols-2 gap-6 mb-10">
+        {/* Row 2 - 3 columns: Voz, Material promocional, Inspiración */}
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
           {bottomRowModules.map((module) => {
             const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
             const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
