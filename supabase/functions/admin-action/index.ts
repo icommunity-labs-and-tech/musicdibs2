@@ -529,7 +529,26 @@ serve(async (req) => {
 
     // ── get_saas_metrics ──────────────────────────────────────────
     if (action === "get_saas_metrics") {
+      const { month, year } = payload || {};
       const now = new Date();
+
+      // Build date range from filters
+      let filterStart: string | null = null;
+      let filterEnd: string | null = null;
+      if (month && month !== "all" && year && year !== "all") {
+        const y = parseInt(year), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      } else if (year && year !== "all") {
+        const y = parseInt(year);
+        filterStart = new Date(y, 0, 1).toISOString();
+        filterEnd = new Date(y + 1, 0, 1).toISOString();
+      } else if (month && month !== "all") {
+        const y = now.getFullYear(), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      }
+
       const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
       const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const lastMonthStart = `${prevMonth.getFullYear()}-${String(prevMonth.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
@@ -537,13 +556,21 @@ serve(async (req) => {
       const todayStr = now.toISOString().slice(0, 10);
       const PRICES: Record<string, number> = { Free: 0, Starter: 4.99, Pro: 9.99, Business: 19.99, Enterprise: 49.99 };
 
+      // Filtered queries for "period" KPIs
+      let totalQuery = admin.from("profiles").select("*", { count: "exact", head: true });
+      let worksQuery = admin.from("works").select("*", { count: "exact", head: true });
+      if (filterStart && filterEnd) {
+        totalQuery = totalQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+        worksQuery = worksQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [totalRes, newThisRes, newLastRes, verifiedRes, profilesRes, totalWorksRes, worksMonthRes] = await Promise.all([
-        admin.from("profiles").select("*", { count: "exact", head: true }),
+        totalQuery,
         admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
         admin.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", lastMonthStart).lt("created_at", thisMonthStart),
         admin.from("profiles").select("*", { count: "exact", head: true }).eq("kyc_status", "verified"),
         admin.from("profiles").select("subscription_plan, created_at"),
-        admin.from("works").select("*", { count: "exact", head: true }),
+        worksQuery,
         admin.from("works").select("*", { count: "exact", head: true }).gte("created_at", thisMonthStart),
       ]);
 
@@ -557,9 +584,16 @@ serve(async (req) => {
       Object.entries(plans).forEach(([plan, count]) => { mrr += (PRICES[plan] || 0) * count; });
       const paidUsers = totalUsers - (plans["Free"] || 0);
 
+      let posTxQuery = admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0);
+      let negTxQuery = admin.from("credit_transactions").select("amount").lt("amount", 0);
+      if (filterStart && filterEnd) {
+        posTxQuery = posTxQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+        negTxQuery = negTxQuery.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [posTxRes, negTxRes, activeTxRes, todayTxRes] = await Promise.all([
-        admin.from("credit_transactions").select("amount, type, created_at").gt("amount", 0),
-        admin.from("credit_transactions").select("amount").lt("amount", 0),
+        posTxQuery,
+        negTxQuery,
         admin.from("credit_transactions").select("user_id, created_at").gte("created_at", thirtyDaysAgo),
         admin.from("credit_transactions").select("user_id").gte("created_at", `${todayStr}T00:00:00Z`),
       ]);
@@ -571,12 +605,21 @@ serve(async (req) => {
       const mauSet = new Set((activeTxRes.data || []).map((t: any) => t.user_id));
       const dauSet = new Set((todayTxRes.data || []).map((t: any) => t.user_id));
 
+      let aiGenQ = admin.from("ai_generations").select("*", { count: "exact", head: true });
+      let videoGenQ = admin.from("video_generations").select("*", { count: "exact", head: true });
+      let voiceCloneQ = admin.from("voice_clones").select("*", { count: "exact", head: true });
+      let socialPromoQ = admin.from("social_promotions").select("*", { count: "exact", head: true });
+      let lyricsGenQ = admin.from("lyrics_generations").select("*", { count: "exact", head: true });
+      if (filterStart && filterEnd) {
+        aiGenQ = aiGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        videoGenQ = videoGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        voiceCloneQ = voiceCloneQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        socialPromoQ = socialPromoQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+        lyricsGenQ = lyricsGenQ.gte("created_at", filterStart).lt("created_at", filterEnd);
+      }
+
       const [aiGen, videoGen, voiceClone, socialPromo, lyricsGen] = await Promise.all([
-        admin.from("ai_generations").select("*", { count: "exact", head: true }),
-        admin.from("video_generations").select("*", { count: "exact", head: true }),
-        admin.from("voice_clones").select("*", { count: "exact", head: true }),
-        admin.from("social_promotions").select("*", { count: "exact", head: true }),
-        admin.from("lyrics_generations").select("*", { count: "exact", head: true }),
+        aiGenQ, videoGenQ, voiceCloneQ, socialPromoQ, lyricsGenQ,
       ]);
 
       const userAcquisition = [];

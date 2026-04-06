@@ -10,17 +10,30 @@ import { toast } from 'sonner';
 import {
   BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw,
   AlertTriangle, CheckCircle2, Clock, RotateCcw, XCircle, ChevronDown,
-  ChevronUp, Loader2,
+  ChevronUp, Loader2, Calendar,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import KpiGrid from '@/components/admin/metrics/KpiGrid';
 import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
 import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
 
+const MONTHS = [
+  { value: 'all', label: 'Todos los meses' },
+  { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
+  { value: '03', label: 'Marzo' }, { value: '04', label: 'Abril' },
+  { value: '05', label: 'Mayo' }, { value: '06', label: 'Junio' },
+  { value: '07', label: 'Julio' }, { value: '08', label: 'Agosto' },
+  { value: '09', label: 'Septiembre' }, { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' }, { value: '12', label: 'Diciembre' },
+];
+
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
 
   // iBS queue state
   const [ibsQueue, setIbsQueue] = useState<any>(null);
@@ -56,7 +69,10 @@ export default function AdminMetricsPage() {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [data] = await Promise.all([adminApi.getSaasMetrics(), loadIbsQueue()]);
+      const [data] = await Promise.all([
+        adminApi.getSaasMetrics({ month: selectedMonth, year: selectedYear }),
+        loadIbsQueue(),
+      ]);
       setMetrics(data);
     } catch (e: any) {
       toast.error(e.message);
@@ -64,7 +80,7 @@ export default function AdminMetricsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
@@ -97,7 +113,32 @@ export default function AdminMetricsPage() {
           <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
         </div>
 
-        <div className="flex items-center gap-2 sm:ml-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5" />
+            Filtrar:
+          </div>
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-40 h-8 text-xs">
+              <SelectValue placeholder="Mes" />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS.map(m => (
+                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-28 h-8 text-xs">
+              <SelectValue placeholder="Año" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button variant="outline" size="sm" onClick={() => loadMetrics(true)} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             Actualizar
