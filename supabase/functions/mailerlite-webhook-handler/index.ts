@@ -106,10 +106,12 @@ async function handlePurchase(p: any) {
   const email = encodeURIComponent(p.email);
   console.log(`[ML:purchase] ${p.email} → plan=${p.plan_type}`);
 
-  // Remove from registrados (best-effort)
-  try {
-    await callMailerLite("DELETE", `/subscribers/${email}/groups/${oldGroup}`);
-  } catch (_) { /* may not be in group */ }
+  // Remove from registrados and baja groups (best-effort)
+  for (const gKey of ["registrados", "baja"]) {
+    try {
+      await callMailerLite("DELETE", `/subscribers/${email}/groups/${MAILERLITE_GROUPS[locale][gKey]}`);
+    } catch (_) { /* may not be in group */ }
+  }
 
   // Add to plan group
   if (newGroup) {
