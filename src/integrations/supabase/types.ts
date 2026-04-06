@@ -784,6 +784,33 @@ export type Database = {
         }
         Relationships: []
       }
+      metric_alert_notifications: {
+        Row: {
+          alert_description: string | null
+          alert_key: string
+          alert_title: string
+          id: string
+          notified_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          alert_description?: string | null
+          alert_key: string
+          alert_title: string
+          id?: string
+          notified_at?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          alert_description?: string | null
+          alert_key?: string
+          alert_title?: string
+          id?: string
+          notified_at?: string
+          resolved_at?: string | null
+        }
+        Relationships: []
+      }
       premium_social_promotions: {
         Row: {
           artist_name: string
