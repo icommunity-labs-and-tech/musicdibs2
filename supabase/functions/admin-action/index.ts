@@ -591,6 +591,23 @@ serve(async (req) => {
           }
           activeSubsCount = allSubs.length;
 
+          // Collect unique product IDs to resolve names
+          const productIds = new Set<string>();
+          for (const sub of allSubs) {
+            for (const item of sub.items.data) {
+              const prodId = typeof item.price.product === "string" ? item.price.product : item.price.product?.id;
+              if (prodId) productIds.add(prodId);
+            }
+          }
+          // Fetch product names
+          const productNames: Record<string, string> = {};
+          for (const pid of productIds) {
+            try {
+              const prod = await stripe.products.retrieve(pid);
+              productNames[pid] = prod.name || pid;
+            } catch { productNames[pid] = pid; }
+          }
+
           for (const sub of allSubs) {
             for (const item of sub.items.data) {
               const price = item.price;
@@ -599,8 +616,8 @@ serve(async (req) => {
               const monthlyAmount = interval === "year" ? unitAmount / 12 : unitAmount;
               stripeMrr += monthlyAmount;
 
-              const productObj = typeof price.product === "object" ? price.product : null;
-              const planName = price.nickname || productObj?.name || "Unknown";
+              const prodId = typeof price.product === "string" ? price.product : price.product?.id || "unknown";
+              const planName = price.nickname || productNames[prodId] || prodId;
               if (!stripePlanBreakdown[planName]) stripePlanBreakdown[planName] = { count: 0, mrr: 0 };
               stripePlanBreakdown[planName].count += 1;
               stripePlanBreakdown[planName].mrr += monthlyAmount;
