@@ -232,6 +232,9 @@ export default function AdminSystemPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MailerLite Test Tool */}
+      <MailerLiteTestButton />
     </div>
   );
 }
