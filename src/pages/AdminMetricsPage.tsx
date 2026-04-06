@@ -18,6 +18,7 @@ import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
 import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
 import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
+import FinancialAlerts from '@/components/admin/metrics/FinancialAlerts';
 
 const MONTHS = [
   { value: 'all', label: 'Todos los meses' },
@@ -172,6 +173,9 @@ export default function AdminMetricsPage() {
 
       {/* KPI Rows */}
       <KpiGrid metrics={metrics} />
+
+      {/* Financial Alerts */}
+      <FinancialAlerts metrics={metrics} />
 
       {/* Charts + Revenue */}
       <MetricsCharts metrics={metrics} />
