@@ -1,18 +1,15 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Upload, Copy, Check, Download, Sparkles } from 'lucide-react';
+import { Loader2, Copy, Check, Download, Sparkles } from 'lucide-react';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 export const CreativesSection = () => {
@@ -25,22 +22,10 @@ export const CreativesSection = () => {
   const [platform, setPlatform] = useState<'instagram' | 'youtube'>('instagram');
   const [instagramFormat, setInstagramFormat] = useState<'feed' | 'story'>('feed');
 
-  // Common
-  const [visualStyle, setVisualStyle] = useState('vibrant');
+  // Simplified fields
   const [imageDescription, setImageDescription] = useState('');
   const [basePhoto, setBasePhoto] = useState<File | null>(null);
   const [basePhotoPreview, setBasePhotoPreview] = useState<string | null>(null);
-
-  // Instagram
-  const [artistName, setArtistName] = useState('');
-  const [trackTitle, setTrackTitle] = useState('');
-  const [copyTone, setCopyTone] = useState('exciting');
-  const [cta, setCta] = useState('listen_now');
-
-  // YouTube
-  const [videoTitle, setVideoTitle] = useState('');
-  const [includeText, setIncludeText] = useState(false);
-  const [highlightText, setHighlightText] = useState('');
 
   // Results
   const [generating, setGenerating] = useState(false);
@@ -52,30 +37,6 @@ export const CreativesSection = () => {
   const [copyCopied, setCopyCopied] = useState(false);
   const [hashtagsCopied, setHashtagsCopied] = useState(false);
   const [allCopied, setAllCopied] = useState(false);
-
-  const basePhotoRef = useRef<HTMLInputElement>(null);
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: t(`promoMaterial.creatives.${platform}.imageTooBig`), description: t(`promoMaterial.creatives.${platform}.imageTooBigDesc`), variant: 'destructive' });
-      return;
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      toast({ title: t(`promoMaterial.creatives.${platform}.invalidImageFormat`), description: t(`promoMaterial.creatives.${platform}.invalidImageFormatDesc`), variant: 'destructive' });
-      return;
-    }
-    setBasePhoto(file);
-    setBasePhotoPreview(URL.createObjectURL(file));
-  };
-
-  const clearPhoto = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setBasePhoto(null);
-    setBasePhotoPreview(null);
-    if (basePhotoRef.current) basePhotoRef.current.value = '';
-  };
 
   const fileToBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -97,11 +58,7 @@ export const CreativesSection = () => {
 
       const visualMode = platform === 'instagram' ? 'instagram_creative' : 'youtube_thumbnail';
       const { data, error } = await supabase.functions.invoke('improve-prompt', {
-        body: {
-          prompt: imageDescription.trim() || '',
-          mode: visualMode,
-          image_base64,
-        },
+        body: { prompt: imageDescription.trim() || '', mode: visualMode, image_base64 },
       });
 
       if (error) throw error;
@@ -118,16 +75,9 @@ export const CreativesSection = () => {
   };
 
   const handleGenerate = async () => {
-    if (platform === 'instagram') {
-      if (!artistName.trim() || !trackTitle.trim() || !imageDescription.trim()) {
-        toast({ title: trIg('missingFields'), description: trIg('missingFieldsDesc'), variant: 'destructive' });
-        return;
-      }
-    } else {
-      if (!videoTitle.trim() || !imageDescription.trim()) {
-        toast({ title: trYt('missingFields'), description: trYt('missingFieldsDesc'), variant: 'destructive' });
-        return;
-      }
+    if (!imageDescription.trim()) {
+      toast({ title: platform === 'instagram' ? trIg('missingFields') : trYt('missingFields'), description: 'Añade una descripción de la imagen', variant: 'destructive' });
+      return;
     }
 
     setGenerating(true);
@@ -147,8 +97,8 @@ export const CreativesSection = () => {
 
       const endpoint = platform === 'instagram' ? 'generate-instagram-creative' : 'generate-youtube-thumbnail';
       const payload = platform === 'instagram'
-        ? { artist_name: artistName, track_title: trackTitle, format: instagramFormat, visual_style: visualStyle, image_description: imageDescription, base_photo_base64: basePhotoBase64, copy_tone: copyTone, cta }
-        : { video_title: videoTitle, visual_style: visualStyle, thumbnail_description: imageDescription, base_photo_base64: basePhotoBase64, include_text: includeText, highlight_text: highlightText };
+        ? { format: instagramFormat, image_description: imageDescription, base_photo_base64: basePhotoBase64 }
+        : { thumbnail_description: imageDescription, base_photo_base64: basePhotoBase64 };
 
       const response = await supabase.functions.invoke(endpoint, { body: payload });
 
@@ -200,22 +150,50 @@ export const CreativesSection = () => {
     toast({ title: trIg('allCopied') });
   };
 
-  const photoUploadBlock = (labelKey: string, descKey: string, changeKey: string, uploadKey: string) => (
-    <FileDropzone
-      label={t(labelKey)}
-      description={t(descKey)}
-      fileType="image"
-      accept="image/jpeg,image/png,image/webp"
-      maxSize={10}
-      currentFile={basePhoto}
-      preview={basePhotoPreview}
-      onFileSelect={(file) => {
-        if (file.size > 10 * 1024 * 1024) { toast({ title: t('promoMaterial.creatives.instagram.imageTooBig'), variant: 'destructive' }); return; }
-        setBasePhoto(file);
-        setBasePhotoPreview(URL.createObjectURL(file));
-      }}
-      onRemove={() => { setBasePhoto(null); setBasePhotoPreview(null); }}
-    />
+  /* Shared description + photo block */
+  const descriptionBlock = (placeholderKey: string) => (
+    <>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label>{platform === 'instagram' ? trIg('imageDescription') : trYt('thumbnailDescription')}</Label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs gap-1 text-primary"
+            disabled={improvingPrompt || (!imageDescription.trim() && !basePhoto)}
+            onClick={handleImproveDescription}
+          >
+            {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+            {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
+          </Button>
+        </div>
+        <Textarea
+          value={imageDescription}
+          onChange={(e) => setImageDescription(e.target.value.slice(0, 300))}
+          placeholder={t(placeholderKey)}
+          rows={4}
+          maxLength={300}
+        />
+        <p className="text-xs text-muted-foreground text-right">{imageDescription.length}/300</p>
+      </div>
+
+      <FileDropzone
+        label={t(platform === 'instagram' ? 'promoMaterial.creatives.instagram.basePhoto' : 'promoMaterial.creatives.youtube.basePhoto')}
+        description={t(platform === 'instagram' ? 'promoMaterial.creatives.instagram.basePhotoDesc' : 'promoMaterial.creatives.youtube.basePhotoDesc')}
+        fileType="image"
+        accept="image/jpeg,image/png,image/webp"
+        maxSize={10}
+        currentFile={basePhoto}
+        preview={basePhotoPreview}
+        onFileSelect={(file) => {
+          if (file.size > 10 * 1024 * 1024) { toast({ title: trIg('imageTooBig'), variant: 'destructive' }); return; }
+          setBasePhoto(file);
+          setBasePhotoPreview(URL.createObjectURL(file));
+        }}
+        onRemove={() => { setBasePhoto(null); setBasePhotoPreview(null); }}
+      />
+    </>
   );
 
   return (
@@ -225,21 +203,19 @@ export const CreativesSection = () => {
         <p className="text-sm text-muted-foreground mt-1">{tr('subtitle')}</p>
       </div>
 
-      {/* Level 1: Platform */}
       <Tabs value={platform} onValueChange={(v) => { setPlatform(v as typeof platform); setGeneratedImage(null); setGeneratedCopy(''); setGeneratedHashtags([]); }}>
         <TabsList className="grid w-full grid-cols-2 max-w-md">
           <TabsTrigger value="instagram" className="gap-1.5 text-xs sm:text-sm">📱 {tr('platformInstagram')}</TabsTrigger>
           <TabsTrigger value="youtube" className="gap-1.5 text-xs sm:text-sm">🎬 {tr('platformYoutube')}</TabsTrigger>
         </TabsList>
 
-        {/* Instagram */}
+        {/* ─── Instagram ─── */}
         <TabsContent value="instagram" className="mt-6 space-y-4">
           <div>
             <h3 className="text-lg font-medium">{trIg('title')}</h3>
             <p className="text-sm text-muted-foreground">{trIg('subtitle')}</p>
           </div>
 
-          {/* Level 2: Format */}
           <Tabs value={instagramFormat} onValueChange={(v) => setInstagramFormat(v as typeof instagramFormat)}>
             <TabsList className="grid w-full grid-cols-2 max-w-sm" data-tour="pm-ig-formats">
               <TabsTrigger value="feed" className="gap-1.5 text-xs sm:text-sm">
@@ -252,93 +228,13 @@ export const CreativesSection = () => {
 
             <TabsContent value={instagramFormat} className="mt-6">
               <div className="grid gap-6 lg:grid-cols-2">
-                {/* Form */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">{trIg('formTitle')}</CardTitle>
                     <CardDescription>{trIg('formSubtitle')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>{trIg('artistName')}</Label>
-                        <Input value={artistName} onChange={(e) => setArtistName(e.target.value)} placeholder={trIg('artistNamePlaceholder')} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>{trIg('trackTitle')}</Label>
-                        <Input value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} placeholder={trIg('trackTitlePlaceholder')} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>{trIg('visualStyle')}</Label>
-                      <Select value={visualStyle} onValueChange={setVisualStyle}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="minimalist">{trIg('visualStyleMinimalist')}</SelectItem>
-                          <SelectItem value="vibrant">{trIg('visualStyleVibrant')}</SelectItem>
-                          <SelectItem value="elegant">{trIg('visualStyleElegant')}</SelectItem>
-                          <SelectItem value="urban">{trIg('visualStyleUrban')}</SelectItem>
-                          <SelectItem value="retro">{trIg('visualStyleRetro')}</SelectItem>
-                          <SelectItem value="neon">{trIg('visualStyleNeon')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>{trIg('imageDescription')}</Label>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs gap-1 text-primary"
-                          disabled={improvingPrompt || (!imageDescription.trim() && !basePhoto)}
-                          onClick={handleImproveDescription}
-                        >
-                          {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                          {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
-                        </Button>
-                      </div>
-                      <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trIg('imageDescriptionPlaceholder')} rows={3} />
-                    </div>
-
-                    {photoUploadBlock(
-                      'promoMaterial.creatives.instagram.basePhoto',
-                      'promoMaterial.creatives.instagram.basePhotoDesc',
-                      'promoMaterial.creatives.instagram.changePhoto',
-                      'promoMaterial.creatives.instagram.uploadPhoto'
-                    )}
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>{trIg('copyTone')}</Label>
-                        <Select value={copyTone} onValueChange={setCopyTone}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="exciting">{trIg('toneExciting')}</SelectItem>
-                            <SelectItem value="mysterious">{trIg('toneMysterious')}</SelectItem>
-                            <SelectItem value="fun">{trIg('toneFun')}</SelectItem>
-                            <SelectItem value="inspiring">{trIg('toneInspiring')}</SelectItem>
-                            <SelectItem value="casual">{trIg('toneCasual')}</SelectItem>
-                            <SelectItem value="professional">{trIg('toneProfessional')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>{trIg('cta')}</Label>
-                        <Select value={cta} onValueChange={setCta}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="listen_now">{trIg('ctaListenNow')}</SelectItem>
-                            <SelectItem value="out_now">{trIg('ctaOutNow')}</SelectItem>
-                            <SelectItem value="new_single">{trIg('ctaNewSingle')}</SelectItem>
-                            <SelectItem value="coming_soon">{trIg('ctaComingSoon')}</SelectItem>
-                            <SelectItem value="link_in_bio">{trIg('ctaLinkInBio')}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                    {descriptionBlock('promoMaterial.creatives.instagram.imageDescriptionPlaceholder')}
 
                     <Button onClick={handleGenerate} disabled={generating} className="w-full" size="lg">
                       {generating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{trIg('generating')}</>) : trIg('generateButton')}
@@ -355,7 +251,7 @@ export const CreativesSection = () => {
                         <CardHeader className="pb-2"><CardTitle className="text-base">{trIg('imageGenerated')}</CardTitle></CardHeader>
                         <CardContent className="space-y-3">
                           <img src={generatedImage} alt="Generated" className={`w-full rounded-lg ${instagramFormat === 'feed' ? 'aspect-square object-cover' : 'aspect-[9/16] object-cover max-w-xs mx-auto'}`} />
-                          <Button variant="outline" className="w-full" onClick={() => { const a = document.createElement('a'); a.href = generatedImage!; a.download = `${artistName}-${trackTitle}-${instagramFormat}.jpg`; a.target = '_blank'; a.click(); }}>
+                          <Button variant="outline" className="w-full" onClick={() => { const a = document.createElement('a'); a.href = generatedImage!; a.download = `creative-${instagramFormat}.jpg`; a.target = '_blank'; a.click(); }}>
                             <Download className="w-4 h-4 mr-2" />{trIg('downloadImage')}
                           </Button>
                         </CardContent>
@@ -404,7 +300,7 @@ export const CreativesSection = () => {
           </Tabs>
         </TabsContent>
 
-        {/* YouTube */}
+        {/* ─── YouTube ─── */}
         <TabsContent value="youtube" className="mt-6">
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
@@ -413,63 +309,7 @@ export const CreativesSection = () => {
                 <CardDescription>{trYt('subtitle')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>{trYt('videoTitle')}</Label>
-                  <Input value={videoTitle} onChange={(e) => setVideoTitle(e.target.value)} placeholder={trYt('videoTitlePlaceholder')} />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>{trYt('visualStyle')}</Label>
-                  <Select value={visualStyle} onValueChange={setVisualStyle}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="minimalist">{trYt('styleMinimalist')}</SelectItem>
-                      <SelectItem value="vibrant">{trYt('styleVibrant')}</SelectItem>
-                      <SelectItem value="clickbait">{trYt('styleClickbait')}</SelectItem>
-                      <SelectItem value="professional">{trYt('styleProfessional')}</SelectItem>
-                      <SelectItem value="retro">{trYt('styleRetro')}</SelectItem>
-                      <SelectItem value="neon">{trYt('styleNeon')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>{trYt('thumbnailDescription')}</Label>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1 text-primary"
-                      disabled={improvingPrompt || (!imageDescription.trim() && !basePhoto)}
-                      onClick={handleImproveDescription}
-                    >
-                      {improvingPrompt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      {improvingPrompt ? t('promoMaterial.creatives.aiDescribe.generating') : t('promoMaterial.creatives.aiDescribe.button')}
-                    </Button>
-                  </div>
-                  <Textarea value={imageDescription} onChange={(e) => setImageDescription(e.target.value)} placeholder={trYt('thumbnailDescriptionPlaceholder')} rows={3} />
-                </div>
-
-                {photoUploadBlock(
-                  'promoMaterial.creatives.youtube.basePhoto',
-                  'promoMaterial.creatives.youtube.basePhotoDesc',
-                  'promoMaterial.creatives.youtube.changePhoto',
-                  'promoMaterial.creatives.youtube.uploadPhoto'
-                )}
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="includeText" checked={includeText} onCheckedChange={(c) => setIncludeText(c as boolean)} />
-                  <Label htmlFor="includeText" className="cursor-pointer">{trYt('includeText')}</Label>
-                </div>
-
-                {includeText && (
-                  <div className="space-y-2">
-                    <Label>{trYt('textToHighlight')}</Label>
-                    <Input value={highlightText} onChange={(e) => setHighlightText(e.target.value.slice(0, 20))} placeholder={trYt('textPlaceholder')} maxLength={20} />
-                    <p className="text-xs text-muted-foreground">{trYt('textHelper')} ({highlightText.length}/20)</p>
-                  </div>
-                )}
+                {descriptionBlock('promoMaterial.creatives.youtube.thumbnailDescriptionPlaceholder')}
 
                 <Button onClick={handleGenerate} disabled={generating} className="w-full" size="lg">
                   {generating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{trYt('generating')}</>) : trYt('generateButton')}
@@ -485,7 +325,7 @@ export const CreativesSection = () => {
                   <CardHeader className="pb-2"><CardTitle className="text-base">{trYt('resultTitle')}</CardTitle></CardHeader>
                   <CardContent className="space-y-3">
                     <img src={generatedImage} alt="YouTube Thumbnail" className="w-full rounded-lg aspect-video object-cover" />
-                    <Button className="w-full" onClick={() => { const a = document.createElement('a'); a.href = generatedImage!; a.download = `${videoTitle}-thumbnail.jpg`; a.target = '_blank'; a.click(); }}>
+                    <Button className="w-full" onClick={() => { const a = document.createElement('a'); a.href = generatedImage!; a.download = `thumbnail.jpg`; a.target = '_blank'; a.click(); }}>
                       <Download className="w-4 h-4 mr-2" />{trYt('downloadThumbnail')}
                     </Button>
                   </CardContent>
