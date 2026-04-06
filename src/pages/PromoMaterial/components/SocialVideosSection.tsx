@@ -59,7 +59,7 @@ export const SocialVideosSection = () => {
   };
 
   const handleGenerate = async () => {
-    if (!description.trim() || !duration || !style || !user) return;
+    if (!description.trim() || !duration || !user) return;
 
     if (!hasEnough(VIDEO_COST)) {
       toast({
