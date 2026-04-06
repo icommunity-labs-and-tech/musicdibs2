@@ -573,6 +573,7 @@ serve(async (req) => {
       let oneTimeRevenue = 0;
       const stripePlanBreakdown: Record<string, { count: number; mrr: number }> = {};
       let mrrEvolution: { month: string; mrr: number }[] = [];
+      let cancelledSubs: any[] = [];
 
       if (stripe) {
         try {
