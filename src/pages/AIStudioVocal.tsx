@@ -45,7 +45,7 @@ const STRUCTURES = [
   { value: "V+V+C+V+C", label: "Verso · Verso · Coro · Verso · Coro" },
   { value: "V+C+P+C", label: "Verso · Coro · Puente · Coro" },
 ];
-const ARTIST_REFS = ["Bad Bunny", "Rosalía", "C. Tangana", "J Balvin", "Bizarrap", "Shakira", "Residente", "Anuel AA", "Eminem", "Drake", "Kendrick Lamar", "Taylor Swift", "The Weeknd", "Beyoncé", "Radiohead", "Arctic Monkeys"];
+// Artist presets removed — users can type freely
 const POVS = ["Primera persona", "Segunda persona", "Tercera persona"];
 
 export default function AIStudioVocal() {
