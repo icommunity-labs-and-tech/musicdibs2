@@ -10,17 +10,30 @@ import { toast } from 'sonner';
 import {
   BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw,
   AlertTriangle, CheckCircle2, Clock, RotateCcw, XCircle, ChevronDown,
-  ChevronUp, Loader2,
+  ChevronUp, Loader2, Calendar,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import KpiGrid from '@/components/admin/metrics/KpiGrid';
 import MetricsCharts from '@/components/admin/metrics/MetricsCharts';
 import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
 
+const MONTHS = [
+  { value: 'all', label: 'Todos los meses' },
+  { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
+  { value: '03', label: 'Marzo' }, { value: '04', label: 'Abril' },
+  { value: '05', label: 'Mayo' }, { value: '06', label: 'Junio' },
+  { value: '07', label: 'Julio' }, { value: '08', label: 'Agosto' },
+  { value: '09', label: 'Septiembre' }, { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' }, { value: '12', label: 'Diciembre' },
+];
+
 export default function AdminMetricsPage() {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
 
   // iBS queue state
   const [ibsQueue, setIbsQueue] = useState<any>(null);

@@ -18,7 +18,7 @@ export const adminApi = {
   setManagerRole: (user_id: string, is_manager: boolean) => adminAction('set_manager_role', { user_id, is_manager }),
   getAllWorks: (offset = 0, status_filter = '', search = '') => adminAction('get_all_works', { offset, status_filter, search }),
   getMetrics: () => adminAction('get_metrics'),
-  getSaasMetrics: () => adminAction('get_saas_metrics'),
+  getSaasMetrics: (filters?: { month?: string; year?: string }) => adminAction('get_saas_metrics', filters || {}),
   getAllTransactions: (offset = 0, type_filter = '', date_from = '', date_to = '') => adminAction('get_all_transactions', { offset, type_filter, date_from, date_to }),
   searchUserByEmail: (email: string) => adminAction('search_user_by_email', { email }),
   exportCsv: (dataset: string) => adminAction('export_csv', { dataset }),
