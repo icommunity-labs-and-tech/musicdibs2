@@ -8,6 +8,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// ── MailerLite sync helper ────────────────────────────────────────────────
+async function syncMailerLite(event: string, payload: Record<string, unknown>) {
+  try {
+    const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/mailerlite-webhook-handler`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+      },
+      body: JSON.stringify({ event, ...payload }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn(`[ML-SYNC] ${event} failed ${res.status}: ${txt}`);
+    } else {
+      await res.text(); // consume body
+      console.log(`[ML-SYNC] ✅ ${event}`);
+    }
+  } catch (e) {
+    console.warn(`[ML-SYNC] ${event} error:`, e);
+  }
+}
+
+// Map subscription plan name → MailerLite plan_type
+function planToMailerLiteType(plan: string | undefined): string {
+  if (!plan) return "single";
+  const p = plan.toLowerCase();
+  if (p.includes("annual") || p.includes("anual")) return "anuales";
+  if (p.includes("month") || p.includes("mensual")) return "mensuales";
+  return "single";
+}
+
 const PRICE_CREDITS: Record<string, number> = {
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120,  // annual (legacy)
   "price_1THT7cF9ZCIiqrz6sWS67Q4V": 100,  // annual_100
