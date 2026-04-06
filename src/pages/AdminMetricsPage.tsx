@@ -69,7 +69,10 @@ export default function AdminMetricsPage() {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const [data] = await Promise.all([adminApi.getSaasMetrics(), loadIbsQueue()]);
+      const [data] = await Promise.all([
+        adminApi.getSaasMetrics({ month: selectedMonth, year: selectedYear }),
+        loadIbsQueue(),
+      ]);
       setMetrics(data);
     } catch (e: any) {
       toast.error(e.message);
@@ -77,7 +80,7 @@ export default function AdminMetricsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
