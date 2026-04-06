@@ -787,12 +787,32 @@ serve(async (req) => {
       const ltv = churnRate > 0 ? Math.round(arpu / (churnRate / 100)) : Math.round(arpu * 24);
       const totalRevenue = totalStripeRevenue > 0 ? Math.round(totalStripeRevenue * 100) / 100 : Math.round((mrr + creditsRevenue) * 100) / 100;
 
-      // CAC: real marketing spend if available, else estimated
-      const cac = 50; // TODO: connect to real ad spend when available
-      const grossMargin = totalRevenue > 0 ? 85 : 0; // SaaS typical, adjust when costs are tracked
+      // Fetch manual marketing metrics from DB for current month
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      const { data: marketingRow } = await admin
+        .from("marketing_metrics")
+        .select("*")
+        .eq("year", currentYear)
+        .eq("month", currentMonth)
+        .maybeSingle();
+
+      const adSpend = marketingRow ? parseFloat(marketingRow.ad_spend) : 0;
+      const cogsManual = marketingRow ? parseFloat(marketingRow.cogs) : 0;
+      const cashBalanceManual = marketingRow ? parseFloat(marketingRow.cash_balance) : 0;
+      const monthlyBurnManual = marketingRow ? parseFloat(marketingRow.monthly_burn) : 0;
+
+      // CAC: real if ad_spend is set, else estimated
+      const cac = adSpend > 0 && newThisMonth > 0
+        ? parseFloat((adSpend / newThisMonth).toFixed(2))
+        : (adSpend > 0 ? adSpend : 50);
+      const grossMargin = totalRevenue > 0 && cogsManual > 0
+        ? parseFloat((((totalRevenue - cogsManual) / totalRevenue) * 100).toFixed(1))
+        : (totalRevenue > 0 ? 85 : 0);
       const paybackPeriod = arpu > 0 ? Math.round(cac / arpu) : 0;
       const magicNumber = mrr > 0 && newThisMonth > 0 ? parseFloat((mrr / (cac * newThisMonth)).toFixed(2)) : 0;
       const nrr = churnRate > 0 ? Math.round(100 - churnRate + (paidUsers > 5 ? 5 : 0)) : 100;
+      const hasManualMetrics = !!marketingRow;
       const quickRatio = churnRate > 0 ? parseFloat(((newThisMonth * arpu) / (churnRate / 100 * mrr || 1)).toFixed(1)) : 0;
 
       // Churn evolution from Stripe (real cancelled subs per month)
