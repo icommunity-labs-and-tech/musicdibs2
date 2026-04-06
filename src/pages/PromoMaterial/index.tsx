@@ -9,7 +9,7 @@ import { Footer } from '@/components/Footer';
 import { CoversSection } from './components/CoversSection';
 import { CreativesSection } from './components/CreativesSection';
 import { SocialVideosSection } from './components/SocialVideosSection';
-import { PostersSection } from './components/PostersSection';
+
 import { PromoMaterialTour } from '@/components/ai-studio/PromoMaterialTour';
 
 const PromoMaterialPage = () => {
