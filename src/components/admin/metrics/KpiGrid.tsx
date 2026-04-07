@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/
 import {
   TrendingUp, TrendingDown, Users, UserPlus, Activity, ShieldCheck,
   Music, ShoppingBag, Zap, DollarSign, BarChart3, Target, ShoppingCart,
-  Repeat, XCircle, ArrowRightLeft,
+  Repeat, XCircle, ArrowRightLeft, CheckCircle2,
 } from 'lucide-react';
 
 interface KpiGridProps {
