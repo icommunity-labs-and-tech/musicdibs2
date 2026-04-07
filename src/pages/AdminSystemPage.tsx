@@ -260,6 +260,7 @@ export default function AdminSystemPage() {
           <p className="text-sm text-muted-foreground">
             Genera registros en la tabla <code>orders</code> a partir de invoices y charges existentes en Stripe.
             Marca <code>is_first_purchase</code> automáticamente. UTMs quedan como null para datos históricos.
+            Excluye pagos reembolsados, fallidos, disputados o anulados.
           </p>
           <div className="flex gap-2">
             <Button
@@ -268,8 +269,10 @@ export default function AdminSystemPage() {
                 toast.info('Ejecutando dry-run…');
                 try {
                   const res = await adminApi.backfillOrdersFromStripe(true);
-                  toast.success(`Dry-run completado: ${res.stats?.orders_created || 0} orders se crearían`);
+                  const s = res.stats || {};
+                  toast.success(`Dry-run: ${s.orders_to_create || 0} orders se crearían, ${s.duplicates_skipped || 0} duplicados, ${s.missing_user || 0} sin usuario`);
                   console.log('[BACKFILL DRY-RUN]', res);
+                  console.table(s);
                 } catch (e: any) { toast.error(e.message); }
               }}
             >
@@ -282,8 +285,10 @@ export default function AdminSystemPage() {
                 toast.info('Ejecutando backfill real…');
                 try {
                   const res = await adminApi.backfillOrdersFromStripe(false);
-                  toast.success(`Backfill completado: ${res.stats?.orders_created || 0} orders creados, ${res.stats?.skipped_existing || 0} omitidos`);
+                  const s = res.stats || {};
+                  toast.success(`Backfill: ${s.orders_created || 0} creados (${s.invoice_based || 0} inv + ${s.charge_based || 0} ch), ${s.duplicates_skipped || 0} dup, ${s.unknown_product_type || 0} unknown`);
                   console.log('[BACKFILL]', res);
+                  console.table(s);
                 } catch (e: any) { toast.error(e.message); }
               }}
             >
