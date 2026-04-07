@@ -1663,11 +1663,36 @@ serve(async (req) => {
         return null;
       }
 
+      // Price -> plan ID mapping (same as stripe-webhook)
+      const BACKFILL_PRICE_TO_PLAN: Record<string, string> = {
+        "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "annual_legacy",
+        "price_1THT7cF9ZCIiqrz6sWS67Q4V": "annual_100",
+        "price_1THT7gF9ZCIiqrz6Acb2CkDC": "annual_200",
+        "price_1THT7jF9ZCIiqrz6i02J4bj4": "annual_300",
+        "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "annual_500",
+        "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "annual_1000",
+        "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "monthly",
+        "price_1THULsF9ZCIiqrz64SbA3AK6": "individual",
+        "price_1THT7xF9ZCIiqrz60FfiGbfv": "topup_10",
+        "price_1THT80F9ZCIiqrz6H31dYDMG": "topup_25",
+        "price_1THT83F9ZCIiqrz6BD2wmUaO": "topup_50",
+        "price_1THT86F9ZCIiqrz6C548DJnT": "topup_100",
+        "price_1THT8AF9ZCIiqrz626wSH9Rz": "topup_200",
+      };
+
+      function bfGetProductType(planId: string): string {
+        if (planId.startsWith("annual")) return "annual";
+        if (planId === "monthly") return "monthly";
+        if (planId === "individual") return "single";
+        if (planId.startsWith("topup_")) return "topup";
+        return "unknown";
+      }
+
       // Helper: determine product type from price/plan
-      function inferProductType(priceId: string | null, interval: string | null, amount: number): { productType: string; productCode: string; billingInterval: string | null; isSub: boolean } {
-        if (priceId && PRICE_TO_PLAN_ID[priceId]) {
-          const planId = PRICE_TO_PLAN_ID[priceId];
-          const pt = getProductType(planId);
+      function inferProductType(priceId: string | null, interval: string | null, _amount: number): { productType: string; productCode: string; billingInterval: string | null; isSub: boolean } {
+        if (priceId && BACKFILL_PRICE_TO_PLAN[priceId]) {
+          const planId = BACKFILL_PRICE_TO_PLAN[priceId];
+          const pt = bfGetProductType(planId);
           return {
             productType: pt,
             productCode: planId,
