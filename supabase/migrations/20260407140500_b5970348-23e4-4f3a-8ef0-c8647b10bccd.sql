@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_notification_log_user_type ON public.notification_log(user_id, notification_type, sent_at DESC);
