@@ -251,27 +251,6 @@ const AIStudioCreate = () => {
         });
     }
 
-    // Load artist profiles
-    if (user) {
-      supabase
-        .from('user_artist_profiles')
-        .select('*, voice_profiles(label, emoji)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .then(({ data }) => {
-          setArtistProfiles(data || []);
-          // Auto-select default profile
-          const defaultProfile = (data || []).find((p: any) => p.is_default);
-          if (defaultProfile) {
-            setSelectedProfile(defaultProfile.id);
-            if (defaultProfile.voice_profile_id) setSelectedVoice(defaultProfile.voice_profile_id);
-            if (defaultProfile.genre) setSelectedGenre(defaultProfile.genre);
-            if (defaultProfile.mood) setSelectedMood(defaultProfile.mood);
-            if (defaultProfile.default_duration) setDuration(defaultProfile.default_duration);
-            if (defaultProfile.style_notes) setPrompt(defaultProfile.style_notes);
-          }
-        });
-    }
   }, [user]);
 
   const loadHistory = async () => {
