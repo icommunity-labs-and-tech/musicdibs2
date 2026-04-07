@@ -136,7 +136,7 @@ const AIStudioCreate = () => {
   const [lyricsStructure, setLyricsStructure] = useState("V+C+V+C+P+C");
   const [lyricsArtistRefs, setLyricsArtistRefs] = useState<string[]>([]);
   const [lyricsPov, setLyricsPov] = useState("Primera persona");
-  const [lyricsTheme, setLyricsTheme] = useState("");
+  const [_lyricsTheme] = useState(""); // kept for type compat
   const [generatedLyrics, setGeneratedLyrics] = useState("");
   const [isGeneratingLyrics, setIsGeneratingLyrics] = useState(false);
   const [lyricsError, setLyricsError] = useState<string | null>(null);
@@ -628,7 +628,7 @@ const AIStudioCreate = () => {
   };
 
   const handleGenerateLyrics = async (regenerateSec?: string) => {
-    if (!lyricsDesc.trim() && !lyricsTheme) {
+    if (!lyricsDesc.trim()) {
       toast({ title: t('aiCreate.describeSongOrTheme'), variant: "destructive" });
       return;
     }
@@ -640,7 +640,7 @@ const AIStudioCreate = () => {
         body: {
           description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle,
           language: lyricsLanguage, rhymeScheme: lyricsRhyme, structure: lyricsStructure,
-          artistRefs: lyricsArtistRefs, pov: lyricsPov, theme: lyricsTheme,
+          artistRefs: lyricsArtistRefs, pov: lyricsPov,
           regenerateSection: regenerateSec || undefined,
           existingLyrics: regenerateSec ? generatedLyrics : undefined,
         },
@@ -1207,15 +1207,6 @@ const AIStudioCreate = () => {
                       <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/400</p>
                     </div>
 
-                    {/* Theme chips */}
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">{t('aiCreate.centralTheme')}</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {THEMES.map(t => (
-                          <Badge key={t} variant={lyricsTheme === t ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === t ? "" : t)}>{t}</Badge>
-                        ))}
-                      </div>
-                    </div>
 
                     {/* Mood chips */}
                     <div className="space-y-1.5">
@@ -1303,7 +1294,7 @@ const AIStudioCreate = () => {
                       </p>
                     )}
 
-                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)} className="w-full" size="lg">
+                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || !lyricsDesc.trim()} className="w-full" size="lg">
                       {isGeneratingLyrics
                          ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiCreate.composingLyrics')}</>
                          : <>📝 {t('aiCreate.generateLyricsFree')}</>

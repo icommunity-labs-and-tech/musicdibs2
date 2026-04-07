@@ -75,7 +75,7 @@ export default function AIStudioVocal() {
 
   // Lyrics generator
   const [lyricsDesc, setLyricsDesc] = useState('');
-  const [lyricsTheme, setLyricsTheme] = useState('');
+  const [_lyricsTheme] = useState(''); // kept for type compat
   const [lyricsGenre, setLyricsGenre] = useState('');
   const [lyricsMood, setLyricsMood] = useState('');
   const [lyricsStyle, setLyricsStyle] = useState('');
@@ -213,11 +213,11 @@ export default function AIStudioVocal() {
   };
 
   const handleGenerateLyrics = async () => {
-    if (!lyricsDesc.trim() && !lyricsTheme) { toast({ title: s('aiCreate.describeSongOrTheme'), variant: 'destructive' }); return; }
+    if (!lyricsDesc.trim()) { toast({ title: s('aiCreate.describeSongOrTheme'), variant: 'destructive' }); return; }
     setIsGeneratingLyrics(true);
     try {
       const { data, error } = await supabase.functions.invoke('lyrics-generator', {
-        body: { description: lyricsDesc, theme: lyricsTheme, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle, language: lyricsLanguage, structure: lyricsStructure, rhymeScheme: lyricsRhyme, pov: lyricsPov, artistRefs: lyricsArtistRefs }
+        body: { description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle, language: lyricsLanguage, structure: lyricsStructure, rhymeScheme: lyricsRhyme, pov: lyricsPov, artistRefs: lyricsArtistRefs }
       });
       if (error) throw error;
       if (data?.lyrics) { setLyrics(data.lyrics); toast({ title: tv('lyricsGenerated'), description: tv('lyricsGeneratedDesc') }); }
@@ -453,13 +453,6 @@ export default function AIStudioVocal() {
                       </div>
                     </div>
 
-                    {/* Theme chips */}
-                    <div className="space-y-2" data-tour="vt-music-settings">
-                      <Label className="text-xs font-medium">Tema central (opcional)</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {THEMES.map(th => <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)}
-                      </div>
-                    </div>
 
                     {/* Mood chips */}
                     <div className="space-y-2">
@@ -536,7 +529,7 @@ export default function AIStudioVocal() {
                     </Collapsible>
 
                     {/* Generate button */}
-                    <Button className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}>
+                    <Button className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || !lyricsDesc.trim()}>
                       {isGeneratingLyrics ? <><Loader2 className="w-4 h-4 animate-spin" />Generando letra...</> : <>📝 Generar letra (gratis)</>}
                     </Button>
 
