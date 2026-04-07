@@ -178,7 +178,7 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
           </div>
-          <Card data-tour="distribute" className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all" onClick={() => setShowDistributionModal(true)}>
+          <Card data-tour="distribute" className={`border-border/40 shadow-sm transition-all ${summary?.subscriptionPlan === 'Annual' ? 'cursor-pointer hover:shadow-lg hover:border-primary/50' : 'opacity-70'}`} onClick={() => summary?.subscriptionPlan === 'Annual' ? setShowDistributionModal(true) : undefined}>
             <CardContent className="p-6 flex flex-col items-center text-center gap-4 h-full justify-between">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10">
                 <Share2 className="h-6 w-6 text-blue-500" />
@@ -193,9 +193,19 @@ export default function DashboardHome() {
                   {t('dashboard.home.distributeRoyalties', 'Recibe el 95% de tus royalties.')}
                 </p>
               </div>
-              <Button variant="blue" className="w-full">
-                {t('dashboard.home.goToDistribute')}
-              </Button>
+              {summary?.subscriptionPlan === 'Annual' ? (
+                <Button variant="blue" className="w-full">
+                  {t('dashboard.home.goToDistribute')}
+                </Button>
+              ) : (
+                <div className="w-full space-y-2">
+                  <Button variant="outline" className="w-full gap-1.5 opacity-60" disabled>
+                    <Lock className="h-3.5 w-3.5" />
+                    {t('dashboard.home.goToDistribute')}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">{t('dashboard.distribute.annualOnly', { defaultValue: 'Disponible solo con suscripción anual' })}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
