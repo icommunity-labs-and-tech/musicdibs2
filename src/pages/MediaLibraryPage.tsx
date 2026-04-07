@@ -44,6 +44,8 @@ export default function MediaLibraryPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabType>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
