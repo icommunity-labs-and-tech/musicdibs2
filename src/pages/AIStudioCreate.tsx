@@ -183,6 +183,8 @@ const AIStudioCreate = () => {
   const [newProfileName, setNewProfileName] = useState('');
 
   // ── Derived values ──
+  const selectedGenre: string | null = null;
+  const selectedMood: string | null = null;
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
   const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
