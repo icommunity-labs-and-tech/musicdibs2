@@ -1791,7 +1791,7 @@ serve(async (req) => {
 
           const amount = ch.amount / 100;
           const planId = ch.metadata?.plan_id || "";
-          const pt = planId ? getProductType(planId) : "single";
+          const pt = planId ? bfGetProductType(planId) : "single";
 
           const paidAt = new Date(ch.created * 1000).toISOString();
 
