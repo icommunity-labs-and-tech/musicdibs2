@@ -921,7 +921,7 @@ const AIStudioCreate = () => {
                                 if (p.mood) setSelectedMood(p.mood);
                                 if (p.default_duration) setDuration(p.default_duration);
                                 if (p.style_notes) setPrompt(prev => prev || p.style_notes);
-                                if (p.theme) setSelectedTheme(p.theme);
+                                
                               }
                             }
                           }}
