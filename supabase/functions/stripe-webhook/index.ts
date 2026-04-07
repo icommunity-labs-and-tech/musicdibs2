@@ -162,6 +162,14 @@ serve(async (req) => {
       const planId   = session.metadata?.plan_id || "unknown";
 
       if (userId && credits > 0) {
+        // Fetch previous plan BEFORE updating (to detect first annual purchase)
+        const { data: prevProfile } = await supabase
+          .from("profiles")
+          .select("subscription_plan")
+          .eq("user_id", userId)
+          .single();
+        const previousPlan = prevProfile?.subscription_plan || "Free";
+
         await addCredits(supabase, userId, credits, `Compra plan ${planId}: +${credits} créditos`);
 
         const planName = PLAN_ID_TO_PLAN_NAME[planId];
@@ -255,6 +263,45 @@ serve(async (req) => {
           }
         } catch (mlErr) {
           console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr);
+        }
+
+        // ── Notify team: first annual subscription (distribution onboarding) ──
+        const ANNUAL_IDS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
+        if (ANNUAL_IDS.includes(planId) && previousPlan !== "Annual") {
+          try {
+            const { data: { user: distUser } } = await supabase.auth.admin.getUserById(userId);
+            const distEmail = distUser?.email || "desconocido";
+            const { data: distProfile } = await supabase
+              .from("profiles")
+              .select("display_name")
+              .eq("user_id", userId)
+              .single();
+            const distName = distProfile?.display_name || distEmail.split("@")[0];
+
+            const distHtml = `<h2>🎵 Nuevo alta en Distribución</h2><p>Un usuario ha contratado su primera suscripción anual y necesita ser dado de alta en la plataforma de distribución.</p><table style="border-collapse:collapse;margin:16px 0;"><tr><td style="padding:6px 12px;font-weight:bold;">Usuario:</td><td style="padding:6px 12px;">${distName}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Email:</td><td style="padding:6px 12px;">${distEmail}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Plan:</td><td style="padding:6px 12px;">${planId}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Créditos:</td><td style="padding:6px 12px;">${credits}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">User ID:</td><td style="padding:6px 12px;">${userId}</td></tr></table><p>👉 <a href="https://musicdibs.sonosuite.com/">Dar de alta en Sonosuite</a></p>`;
+            const distText = `Nuevo alta en Distribución\nUsuario: ${distName}\nEmail: ${distEmail}\nPlan: ${planId}\nCréditos: ${credits}\nUser ID: ${userId}\nDar de alta en: https://musicdibs.sonosuite.com/`;
+
+            const distMsgId = crypto.randomUUID();
+            await supabase.from("email_send_log").insert({
+              message_id: distMsgId, template_name: "distribution_onboarding", recipient_email: "marketing@musicdibs.com", status: "pending",
+            });
+            await supabase.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                idempotency_key: `dist-onboard-${userId}-${planId}`, message_id: distMsgId,
+                to: "marketing@musicdibs.com", cc: "info@musicdibs.com",
+                from: "MusicDibs <noreply@notify.musicdibs.com>",
+                sender_domain: "notify.musicdibs.com",
+                subject: "Nuevo alta en Distribución",
+                html: distHtml, text: distText,
+                purpose: "transactional", label: "distribution_onboarding",
+                queued_at: new Date().toISOString(),
+              },
+            });
+            console.log(`[WEBHOOK] ✅ Distribution onboarding email enqueued for user ${distEmail}`);
+          } catch (distErr) {
+            console.error("[WEBHOOK] Error enqueuing distribution onboarding email:", distErr);
+          }
         }
       }
     }
