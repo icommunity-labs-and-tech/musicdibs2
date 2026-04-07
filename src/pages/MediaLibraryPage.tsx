@@ -249,13 +249,11 @@ export default function MediaLibraryPage() {
   const deleteAsset = async (asset: MediaAsset) => {
     setDeleting(asset.id);
     try {
-      const tableMap: Record<string, string> = {
-        song: "ai_generations",
-        video: "video_generations",
-        cover: "social_promotions",
-        vocal: "voice_clones",
-      };
-      const { error } = await supabase.from(tableMap[asset.type]).delete().eq("id", asset.id);
+      const tbl = asset.type === "song" ? "ai_generations" as const
+        : asset.type === "video" ? "video_generations" as const
+        : asset.type === "cover" ? "social_promotions" as const
+        : "voice_clones" as const;
+      const { error } = await supabase.from(tbl).delete().eq("id", asset.id);
       if (error) throw error;
       setAssets((prev) => prev.filter((a) => a.id !== asset.id));
       setSelected((prev) => { const n = new Set(prev); n.delete(asset.id); return n; });
