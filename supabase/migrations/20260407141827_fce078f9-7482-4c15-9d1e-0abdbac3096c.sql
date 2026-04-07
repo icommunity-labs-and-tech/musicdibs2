@@ -1,0 +1,1 @@
+UPDATE profiles SET available_credits = 0 WHERE user_id = 'a3c156f7-a0b1-474a-9940-22074adb2d51'
