@@ -359,6 +359,14 @@ const AIStudioCreate = () => {
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
         toast({ title: t('aiCreate.musicGenerated'), description: mode === 'song' ? t('aiCreate.songReady') : t('aiCreate.instrReady') });
+
+        // Show save as virtual artist prompt (only if used a preset voice, not already from a VA)
+        if (mode === 'song' && selectedVoice && !selectedArtistId) {
+          const vp = voiceProfiles.find(v => v.id === selectedVoice);
+          setLastGeneratedVoiceId(selectedVoice);
+          setLastGeneratedVoiceName(vp?.label || '');
+          setShowSaveArtistPrompt(true);
+        }
       }
     } catch (error: any) {
       console.error('Generation error:', error);
