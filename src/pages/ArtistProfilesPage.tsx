@@ -38,7 +38,7 @@ const ArtistProfilesPage = () => {
 
   const [profiles, setProfiles] = useState<ArtistProfile[]>([]);
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
-  const [voiceClones, setVoiceClones] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
