@@ -53,9 +53,6 @@ const ArtistProfilesPage = () => {
   const [formDuration, setFormDuration] = useState(60);
   const [formNotes, setFormNotes] = useState("");
   const [formDefault, setFormDefault] = useState(false);
-  const [formVoiceType, setFormVoiceType] = useState<'preset' | 'clone'>('preset');
-  const [formVoiceCloneId, setFormVoiceCloneId] = useState<string>('');
-  const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [generatingNotes, setGeneratingNotes] = useState(false);
 
   // Audio preview
