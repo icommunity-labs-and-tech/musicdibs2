@@ -30,6 +30,7 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('Free');
   const { t, i18n } = useTranslation();
   const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
