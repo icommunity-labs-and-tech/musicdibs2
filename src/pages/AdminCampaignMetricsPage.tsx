@@ -93,7 +93,7 @@ export default function AdminCampaignMetricsPage() {
       if (periodType === 'week') filters.weekStart = weekStart;
       if (periodType === 'month') { filters.month = selectedMonth; filters.year = selectedYear; }
       if (periodType === 'year') filters.year = selectedYear;
-      const res = await adminApi.callAction('get_campaign_detail', filters);
+      const res = await adminApi.getCampaignDetail(campaignName);
       setDetailData(res);
     } catch (e: any) {
       toast.error(e.message);
