@@ -213,7 +213,7 @@ export default function AIStudioVocal() {
   };
 
   const handleGenerateLyrics = async () => {
-    if (!lyricsDesc.trim() && !lyricsTheme) { toast({ title: s('aiCreate.describeSongOrTheme'), variant: 'destructive' }); return; }
+    if (!lyricsDesc.trim()) { toast({ title: s('aiCreate.describeSongOrTheme'), variant: 'destructive' }); return; }
     setIsGeneratingLyrics(true);
     try {
       const { data, error } = await supabase.functions.invoke('lyrics-generator', {
