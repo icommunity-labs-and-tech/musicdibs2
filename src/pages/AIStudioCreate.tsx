@@ -40,8 +40,6 @@ import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
 
 // ── Music tab constants ──
-const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
-const MUSIC_MOODS = ['Alegre', 'Melancólico', 'Épico', 'Relajado', 'Enérgico', 'Romántico', 'Oscuro', 'Motivador'];
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
 
 // ── Lyrics tab constants ──
