@@ -73,8 +73,8 @@ export default function AdminCampaignMetricsPage() {
       if (periodType === 'year') filters.year = selectedYear;
 
       const [metricsRes, catalogRes] = await Promise.all([
-        adminApi.callAction('get_campaign_metrics', filters),
-        adminApi.callAction('get_campaigns_catalog', {}),
+        adminApi.getCampaignMetrics(filters),
+        adminApi.getCampaignsCatalog(),
       ]);
       setMetrics(metricsRes);
       setCampaigns(catalogRes.campaigns || []);
