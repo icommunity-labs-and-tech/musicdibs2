@@ -106,6 +106,7 @@ export function DashboardSidebar() {
         filter: `user_id=eq.${user.id}`,
       }, (payload: any) => {
         if (payload.new?.kyc_status) setKycStatus(payload.new.kyc_status);
+        if (payload.new?.subscription_plan) setSubscriptionPlan(payload.new.subscription_plan);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
