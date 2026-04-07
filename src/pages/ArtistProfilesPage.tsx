@@ -109,9 +109,9 @@ const ArtistProfilesPage = () => {
     const payload = {
       user_id: user.id,
       name: formName.trim(),
-      voice_profile_id: formVoiceType === 'preset' ? (formVoice || null) : null,
-      voice_type: formVoiceType,
-      voice_clone_id: formVoiceType === 'clone' ? formVoiceCloneId : null,
+      voice_profile_id: formVoice || null,
+      voice_type: 'preset' as const,
+      voice_clone_id: null,
       genre: formGenre,
       mood: formMood,
       default_duration: formDuration,
