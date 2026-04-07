@@ -310,8 +310,7 @@ const AIStudioCreate = () => {
           : '';
 
       const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
-      const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}${languageTag}`;
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}`;
 
 
 
