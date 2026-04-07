@@ -87,7 +87,6 @@ const ArtistProfilesPage = () => {
   const resetForm = () => {
     setFormName(""); setFormVoice(""); setFormGenre(null); setFormMood(null);
     setFormDuration(60); setFormNotes(""); setFormDefault(false);
-    setFormVoiceType('preset'); setFormVoiceCloneId(''); setVoiceTab('preset');
     setShowForm(false); setEditingId(null);
   };
 
