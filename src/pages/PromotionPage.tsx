@@ -182,15 +182,8 @@ export default function PromotionPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="social" className="gap-1.5 text-xs sm:text-sm">
-            📱 {t('promotion.tabSocial', 'Promoción en redes')}
-          </TabsTrigger>
-          <TabsTrigger value="press" className="gap-1.5 text-xs sm:text-sm">
-            📰 {t('promotion.tabPress', 'Prensa y medios')}
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value="social" className="space-y-6">
+        {/* Tab list hidden — single section, no need for tab navigation */}
 
         {/* ── TAB: Social ── */}
         <TabsContent value="social">
@@ -275,8 +268,8 @@ export default function PromotionPage() {
           </div>
         </TabsContent>
 
-        {/* ── TAB: Press ── */}
-        <TabsContent value="press">
+        {/* ── TAB: Press — hidden for v2.0, reactivate in v2.1 ── */}
+        <TabsContent value="press" className="hidden">
           <div className="space-y-6">
             {/* Press release generator */}
             <Card>
