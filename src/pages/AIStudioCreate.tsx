@@ -160,22 +160,20 @@ const AIStudioCreate = () => {
   const [playingVoice, setPlayingVoice] = useState<string>('');
   const [audioRef] = useState<Record<string, HTMLAudioElement>>({});
 
-  // ── Voice cloning state ──
-  const [voiceClones, setVoiceClones] = useState<any[]>([]);
-  const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
-  const [selectedCloneId, setSelectedCloneId] = useState<string>('');
-  
-  const [selectedArtistRefs] = useState<string[]>([]);
-   const [showCloneModal, setShowCloneModal] = useState(false);
-   const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
-   const [editingCloneName, setEditingCloneName] = useState('');
-  const [cloningName, setCloningName] = useState('');
-  const [cloningFile, setCloningFile] = useState<File | null>(null);
-  const [cloningDuration, setCloningDuration] = useState<number | null>(null);
-  const [cloningNoise, setCloningNoise] = useState(false);
-  const [isCloning, setIsCloning] = useState(false);
-  
-  const cloneFileRef = useRef<HTMLInputElement>(null);
+  // ── Virtual Artists state ──
+  const [voiceTab, setVoiceTab] = useState<'preset' | 'my_artists'>('preset');
+  const [virtualArtists, setVirtualArtists] = useState<any[]>([]);
+  const [virtualArtistsCount, setVirtualArtistsCount] = useState(0);
+  const [selectedArtistId, setSelectedArtistId] = useState<string>('');
+
+  // ── Save as Virtual Artist modal state ──
+  const [showSaveArtistPrompt, setShowSaveArtistPrompt] = useState(false);
+  const [showSaveArtistForm, setShowSaveArtistForm] = useState(false);
+  const [saveArtistName, setSaveArtistName] = useState('');
+  const [saveArtistStyle, setSaveArtistStyle] = useState('');
+  const [isSavingArtist, setIsSavingArtist] = useState(false);
+  const [lastGeneratedVoiceId, setLastGeneratedVoiceId] = useState<string>('');
+  const [lastGeneratedVoiceName, setLastGeneratedVoiceName] = useState<string>('');
 
 
 
