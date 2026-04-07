@@ -24,7 +24,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, Import, RotateCw, Sparkles, HelpCircle
+  Mic, Headphones, RotateCw, Sparkles, HelpCircle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,8 +40,6 @@ import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
 
 // ── Music tab constants ──
-const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
-const MUSIC_MOODS = ['Alegre', 'Melancólico', 'Épico', 'Relajado', 'Enérgico', 'Romántico', 'Oscuro', 'Motivador'];
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
 
 // ── Lyrics tab constants ──
@@ -102,8 +100,6 @@ const AIStudioCreate = () => {
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
   const [prompt, setPrompt] = useState("");
   const [duration, setDuration] = useState(60);
-  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
-  const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [lyricsText, setLyricsText] = useState("");
   const [lyricsExpanded, setLyricsExpanded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -168,7 +164,6 @@ const AIStudioCreate = () => {
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
   
   const [selectedArtistRefs] = useState<string[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
    const [showCloneModal, setShowCloneModal] = useState(false);
    const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
    const [editingCloneName, setEditingCloneName] = useState('');
@@ -180,14 +175,11 @@ const AIStudioCreate = () => {
   
   const cloneFileRef = useRef<HTMLInputElement>(null);
 
-  // ── Artist profile state ──
-  const [artistProfiles, setArtistProfiles] = useState<any[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<string>('');
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [showSaveProfile, setShowSaveProfile] = useState(false);
-  const [newProfileName, setNewProfileName] = useState('');
+
 
   // ── Derived values ──
+  const selectedGenre: string | null = null;
+  const selectedMood: string | null = null;
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
   const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
@@ -259,27 +251,6 @@ const AIStudioCreate = () => {
         });
     }
 
-    // Load artist profiles
-    if (user) {
-      supabase
-        .from('user_artist_profiles')
-        .select('*, voice_profiles(label, emoji)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .then(({ data }) => {
-          setArtistProfiles(data || []);
-          // Auto-select default profile
-          const defaultProfile = (data || []).find((p: any) => p.is_default);
-          if (defaultProfile) {
-            setSelectedProfile(defaultProfile.id);
-            if (defaultProfile.voice_profile_id) setSelectedVoice(defaultProfile.voice_profile_id);
-            if (defaultProfile.genre) setSelectedGenre(defaultProfile.genre);
-            if (defaultProfile.mood) setSelectedMood(defaultProfile.mood);
-            if (defaultProfile.default_duration) setDuration(defaultProfile.default_duration);
-            if (defaultProfile.style_notes) setPrompt(defaultProfile.style_notes);
-          }
-        });
-    }
   }, [user]);
 
   const loadHistory = async () => {
@@ -339,8 +310,7 @@ const AIStudioCreate = () => {
           : '';
 
       const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
-      const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}${languageTag}`;
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}`;
 
 
 
@@ -587,16 +557,8 @@ const AIStudioCreate = () => {
     });
   };
 
-  // ── Import lyrics from compositor ──
-  const importLyricsFromCompositor = () => {
-    if (!generatedLyrics) {
-      toast({ title: t('aiCreate.noLyrics'), description: t('aiCreate.noLyricsDesc'), variant: "destructive" });
-      return;
-    }
-    setLyricsText(generatedLyrics);
-    setLyricsExpanded(true);
-    toast({ title: t('aiCreate.lyricsImported'), description: t('aiCreate.lyricsImportedDesc') });
-  };
+
+
 
   // ── Regenerate with same params ──
   const handleRegenerate = () => {
@@ -724,8 +686,7 @@ const AIStudioCreate = () => {
   const sendLyricsToMusic = () => {
     setLyricsText(generatedLyrics);
     setLyricsExpanded(true);
-    if (lyricsGenre) setSelectedGenre(lyricsGenre);
-    if (lyricsMood) setSelectedMood(lyricsMood);
+    if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 400));
     if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 400));
     setMode('song');
     setActiveTab('music');
@@ -896,134 +857,6 @@ const AIStudioCreate = () => {
                       <CardDescription>{t('aiCreate.createDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* Artist profile selector */}
-                      <div className="space-y-2" data-tour="mc-artist-profile">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium">🎤 {t('aiCreate.artistProfile')}</Label>
-                          <button
-                            type="button"
-                            onClick={() => navigate('/dashboard/artist-profiles')}
-                            style={{ fontSize: '11px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
-                          >
-                             {t('aiCreate.manageProfiles')}
-                          </button>
-                        </div>
-                        <select
-                          value={selectedProfile}
-                          onChange={(e) => {
-                            const profileId = e.target.value;
-                            setSelectedProfile(profileId);
-                            if (profileId) {
-                              const p = artistProfiles.find(x => x.id === profileId);
-                              if (p) {
-                                if (p.voice_profile_id) setSelectedVoice(p.voice_profile_id);
-                                if (p.genre) setSelectedGenre(p.genre);
-                                if (p.mood) setSelectedMood(p.mood);
-                                if (p.default_duration) setDuration(p.default_duration);
-                                if (p.style_notes) setPrompt(prev => prev || p.style_notes);
-                                
-                              }
-                            }
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '8px 12px',
-                            borderRadius: '8px',
-                            border: '1px solid hsl(var(--border))',
-                            background: 'hsl(var(--background))',
-                            color: 'hsl(var(--foreground))',
-                            fontSize: '13px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <option value="">{t('aiCreate.noProfile')}</option>
-                          {artistProfiles.map(p => (
-                            <option key={p.id} value={p.id}>
-                              {p.voice_profiles?.emoji || '🎤'} {p.name}
-                              {p.genre ? ` · ${p.genre}` : ''}
-                              {p.voice_profiles?.label ? ` · ${p.voice_profiles.label}` : ''}
-                            </option>
-                          ))}
-                        </select>
-                        {(selectedVoice || selectedGenre || selectedMood) && !selectedProfile && (
-                          <div>
-                            {!showSaveProfile ? (
-                              <button
-                                type="button"
-                                onClick={() => setShowSaveProfile(true)}
-                                style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer' }}
-                              >
-                                {t('aiCreate.saveAsProfile')}
-                              </button>
-                            ) : (
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <input
-                                  type="text"
-                                  placeholder={t('aiCreate.profilePlaceholder')}
-                                  value={newProfileName}
-                                  onChange={e => setNewProfileName(e.target.value)}
-                                  maxLength={50}
-                                  style={{
-                                    flex: 1,
-                                    padding: '6px 10px',
-                                    borderRadius: '6px',
-                                    border: '1px solid hsl(var(--border))',
-                                    background: 'hsl(var(--background))',
-                                    color: 'hsl(var(--foreground))',
-                                    fontSize: '12px',
-                                  }}
-                                />
-                                <button
-                                  type="button"
-                                  disabled={!newProfileName.trim() || savingProfile}
-                                  onClick={async () => {
-                                    if (!newProfileName.trim() || !user) return;
-                                    setSavingProfile(true);
-                                    const { data, error } = await supabase.from('user_artist_profiles').insert({
-                                      user_id: user.id,
-                                      name: newProfileName.trim(),
-                                      voice_profile_id: selectedVoice || null,
-                                      genre: selectedGenre || null,
-                                      mood: selectedMood || null,
-                                      default_duration: duration,
-                                      style_notes: prompt || null,
-                                    }).select('*, voice_profiles(label, emoji)').single();
-                                    setSavingProfile(false);
-                                    if (!error && data) {
-                                      setArtistProfiles(prev => [data, ...prev]);
-                                      setSelectedProfile(data.id);
-                                      setShowSaveProfile(false);
-                                      setNewProfileName('');
-                                      toast({ title: t('aiCreate.profileSaved'), description: `"${data.name}" ${t('aiCreate.profileSavedDesc')}` });
-                                    } else {
-                                      toast({ title: t('aiShared.error'), variant: 'destructive' });
-                                    }
-                                  }}
-                                  style={{
-                                    padding: '6px 12px',
-                                    borderRadius: '6px',
-                                    background: 'hsl(var(--primary))',
-                                    color: 'white',
-                                    border: 'none',
-                                    fontSize: '12px',
-                                    cursor: savingProfile ? 'not-allowed' : 'pointer',
-                                    opacity: savingProfile ? 0.6 : 1,
-                                  }}
-                                >
-                                   {savingProfile ? t('aiCreate.saving') : t('aiCreate.save')}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => { setShowSaveProfile(false); setNewProfileName(''); }}
-                                  style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
-                                >
-                                   {t('aiCreate.cancel')}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
 
                       {/* Mode toggle */}
                       <div className="flex rounded-full bg-muted p-1" data-tour="mc-creation-mode">
@@ -1038,10 +871,9 @@ const AIStudioCreate = () => {
                         >
                           <Mic className="h-4 w-4" />
                            {t('aiCreate.songWithVoice')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.songWithVoice')}</Badge>
                         </button>
                         <button
-                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedLanguage(''); }}
+                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); }}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
                             mode === 'instrumental'
@@ -1051,7 +883,6 @@ const AIStudioCreate = () => {
                         >
                           <Headphones className="h-4 w-4" />
                            {t('aiCreate.instrumentalBase')}
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t('aiCreate.instrumentalBase')}</Badge>
                         </button>
                       </div>
 
@@ -1089,14 +920,17 @@ const AIStudioCreate = () => {
                           </button>
                         </div>
                         <Textarea
-                          placeholder={t('aiCreate.promptPlaceholder')}
+                          placeholder={t('aiCreate.promptPlaceholder', 'Ej: Una canción pop alegre en español sobre amor, con un ritmo enérgico y romántico, voz femenina')}
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value.slice(0, 400))}
                           rows={4}
                           className="resize-none"
                           maxLength={400}
                         />
-                        <p className="text-xs text-muted-foreground text-right">{prompt.length}/400</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-muted-foreground">{t('aiCreate.descHint', 'Incluye: género musical, mood/tono, idioma, tema, ritmo, tipo de voz, referencias...')}</p>
+                          <p className="text-xs text-muted-foreground">{prompt.length}/400</p>
+                        </div>
                       </div>
 
                       {/* Collapsible lyrics section */}
@@ -1106,85 +940,28 @@ const AIStudioCreate = () => {
                           <Button variant="ghost" className="w-full justify-between px-3 h-10 text-sm text-muted-foreground hover:text-foreground">
                             <span className="flex items-center gap-2">
                               <FileText className="h-4 w-4" />
-                              {t('aiCreate.lyricsOptional')}
+                              📝 {t('aiCreate.lyricsOptional')}
                             </span>
                             <ChevronDown className={cn("h-4 w-4 transition-transform", lyricsExpanded && "rotate-180")} />
                           </Button>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="space-y-3 pt-2">
                           <Textarea
-                            placeholder={t('aiCreate.pasteLyrics')}
+                            placeholder={t('aiCreate.pasteLyrics', 'Escribe aquí la letra de tu canción...\n\nVerso 1:\n...\n\nCoro:\n...')}
                             value={lyricsText}
-                            onChange={(e) => setLyricsText(e.target.value)}
+                            onChange={(e) => setLyricsText(e.target.value.slice(0, 2000))}
                             rows={8}
                             className="resize-none font-mono text-sm"
+                            maxLength={2000}
                           />
-                          <p className="text-xs text-muted-foreground">
-                             {t('aiCreate.canUseLyrics')}
+                          <p className="text-xs text-muted-foreground text-right">
+                            {lyricsText.length}/2000
                           </p>
-                          <Button variant="outline" size="sm" onClick={importLyricsFromCompositor} className="gap-2">
-                             <Import className="h-3.5 w-3.5" />
-                             {t('aiCreate.importFromCompositor')}
-                          </Button>
                         </CollapsibleContent>
                       </Collapsible>
                       </div>
 
-                      {/* Genre chips */}
                       <div data-tour="mc-settings">
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.genre')}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {MUSIC_GENRES.map(genre => (
-                            <Badge
-                              key={genre}
-                              variant={selectedGenre === genre ? "default" : "outline"}
-                              className="cursor-pointer hover:bg-primary/80 transition-colors"
-                              onClick={() => setSelectedGenre(selectedGenre === genre ? null : genre)}
-                            >
-                              {genre}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-
-                      {/* Mood chips */}
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.moodLabel')}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {MUSIC_MOODS.map(m => (
-                            <Badge
-                              key={m}
-                              variant={selectedMood === m ? "default" : "outline"}
-                              className="cursor-pointer hover:bg-primary/80 transition-colors"
-                              onClick={() => setSelectedMood(selectedMood === m ? null : m)}
-                            >
-                              {m}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-
-                      {/* Idioma de la letra */}
-                      {mode === 'song' && (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">{t('aiCreate.lyricLanguage')}</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {LYRIC_LANGUAGES.map(l => (
-                              <Badge
-                                key={l}
-                                variant={selectedLanguage === l ? 'default' : 'outline'}
-                                className="cursor-pointer text-xs"
-                                onClick={() => setSelectedLanguage(selectedLanguage === l ? '' : l)}
-                              >
-                                {l}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Voice type selector */}
                       <div className="space-y-2">
