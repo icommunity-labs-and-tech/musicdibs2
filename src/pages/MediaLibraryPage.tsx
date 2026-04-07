@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   Download, Music, Video, Image, Mic, Loader2, Search,
@@ -43,6 +44,8 @@ export default function MediaLibraryPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloadingZip, setDownloadingZip] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deletingBulk, setDeletingBulk] = useState(false);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabType>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -242,6 +245,52 @@ export default function MediaLibraryPage() {
     setDownloadingZip(false);
   };
 
+  // ── Delete single ──
+  const deleteAsset = async (asset: MediaAsset) => {
+    setDeleting(asset.id);
+    try {
+      const tbl = asset.type === "song" ? "ai_generations" as const
+        : asset.type === "video" ? "video_generations" as const
+        : asset.type === "cover" ? "social_promotions" as const
+        : "voice_clones" as const;
+      const { error } = await supabase.from(tbl).delete().eq("id", asset.id);
+      if (error) throw error;
+      setAssets((prev) => prev.filter((a) => a.id !== asset.id));
+      setSelected((prev) => { const n = new Set(prev); n.delete(asset.id); return n; });
+      toast({ title: "Asset eliminado" });
+    } catch {
+      toast({ title: "Error al eliminar", variant: "destructive" });
+    }
+    setDeleting(null);
+  };
+
+  // ── Delete bulk ──
+  const deleteBulk = async () => {
+    const items = assets.filter((a) => selected.has(a.id));
+    if (!items.length) return;
+    setDeletingBulk(true);
+    let deleted = 0;
+
+    const byType = items.reduce((acc, a) => {
+      (acc[a.type] ??= []).push(a.id);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    for (const [type, ids] of Object.entries(byType)) {
+      let error: any = null;
+      if (type === "song") ({ error } = await supabase.from("ai_generations").delete().in("id", ids));
+      else if (type === "video") ({ error } = await supabase.from("video_generations").delete().in("id", ids));
+      else if (type === "cover") ({ error } = await supabase.from("social_promotions").delete().in("id", ids));
+      else if (type === "vocal") ({ error } = await supabase.from("voice_clones").delete().in("id", ids));
+      if (!error) deleted += ids.length;
+    }
+
+    setAssets((prev) => prev.filter((a) => !selected.has(a.id)));
+    setSelected(new Set());
+    toast({ title: `${deleted} assets eliminados` });
+    setDeletingBulk(false);
+  };
+
   // ── Playback ──
   const togglePlay = (asset: MediaAsset) => {
     if (!asset.url) return;
@@ -314,6 +363,37 @@ export default function MediaLibraryPage() {
               )}
               Descargar ZIP
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={deletingBulk}
+                  className="rounded-full"
+                >
+                  {deletingBulk ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-1" />
+                  )}
+                  Eliminar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Eliminar {selected.size} assets?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer. Los archivos seleccionados se eliminarán permanentemente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={deleteBulk} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Eliminar {selected.size} assets
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <Button
               size="sm"
               variant="ghost"
@@ -469,6 +549,36 @@ export default function MediaLibraryPage() {
                           </Button>
                         )}
                         <div className="flex-1" />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs text-destructive hover:text-destructive"
+                              disabled={deleting === asset.id}
+                            >
+                              {deleting === asset.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>¿Eliminar este asset?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                "{asset.title.substring(0, 60)}" se eliminará permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteAsset(asset)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                Eliminar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                         <Button
                           variant="ghost"
                           size="sm"
