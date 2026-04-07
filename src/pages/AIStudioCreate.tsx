@@ -164,7 +164,6 @@ const AIStudioCreate = () => {
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
   
   const [selectedArtistRefs] = useState<string[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
    const [showCloneModal, setShowCloneModal] = useState(false);
    const [editingCloneId, setEditingCloneId] = useState<string | null>(null);
    const [editingCloneName, setEditingCloneName] = useState('');
