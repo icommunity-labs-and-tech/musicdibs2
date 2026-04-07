@@ -694,8 +694,7 @@ const AIStudioCreate = () => {
   const sendLyricsToMusic = () => {
     setLyricsText(generatedLyrics);
     setLyricsExpanded(true);
-    if (lyricsGenre) setSelectedGenre(lyricsGenre);
-    if (lyricsMood) setSelectedMood(lyricsMood);
+    if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 400));
     if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 400));
     setMode('song');
     setActiveTab('music');
