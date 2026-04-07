@@ -1,45 +1,16 @@
 import { Card, CardContent, CardHeader, CardDescription } from '@/components/ui/card';
 import {
   TrendingUp, TrendingDown, Users, UserPlus, Activity, ShieldCheck,
-  Music, ShoppingBag, Zap, Calendar, CalendarRange, DollarSign, BarChart3, Target,
-  Gauge, Rocket,
+  Music, ShoppingBag, Zap, DollarSign, BarChart3, Target, ShoppingCart,
+  Repeat, XCircle, ArrowRightLeft, CheckCircle2,
 } from 'lucide-react';
 
 interface KpiGridProps {
   metrics: any;
 }
 
-/* ── Tiny inline sparkline (pure SVG) ── */
-function Sparkline({ data, color = 'hsl(var(--primary))' }: { data: number[]; color?: string }) {
-  if (!data || data.length < 2) return null;
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const w = 60;
-  const h = 20;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
-    const y = h - ((v - min) / range) * (h - 2) - 1;
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <svg width={w} height={h} className="inline-block ml-1 opacity-70">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function KpiCard({ label, value, icon: Icon, sub, subColor, sparkData, sparkColor }: {
+function KpiCard({ label, value, icon: Icon, sub, subColor }: {
   label: string; value: string | number; icon: any; sub?: string; subColor?: string;
-  sparkData?: number[]; sparkColor?: string;
 }) {
   return (
     <Card className="border-border/40">
@@ -50,12 +21,9 @@ function KpiCard({ label, value, icon: Icon, sub, subColor, sparkData, sparkColo
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-1">
-          <span className="text-2xl font-bold">{value}</span>
-          {sparkData && <Sparkline data={sparkData} color={sparkColor} />}
-        </div>
+        <span className="text-2xl font-bold">{value}</span>
         {sub && (
-          <div className={`text-xs flex items-center gap-1 ${subColor || 'text-muted-foreground'}`}>
+          <div className={`text-xs mt-1 ${subColor || 'text-muted-foreground'}`}>
             {sub}
           </div>
         )}
@@ -64,27 +32,26 @@ function KpiCard({ label, value, icon: Icon, sub, subColor, sparkData, sparkColo
   );
 }
 
-function TrendKpi({ label, value, icon: Icon, change, suffix, invertColor, sparkData, sparkColor }: {
+function TrendKpi({ label, value, icon: Icon, change, suffix, invertColor }: {
   label: string; value: string | number; icon: any; change: number; suffix?: string; invertColor?: boolean;
-  sparkData?: number[]; sparkColor?: string;
 }) {
   const isPositive = invertColor ? change <= 0 : change >= 0;
   return (
     <Card className="border-border/40">
       <CardHeader className="pb-2">
-        <CardDescription className="text-xs">{label}</CardDescription>
+        <CardDescription className="text-xs flex items-center gap-1">
+          <Icon className="w-3 h-3" />
+          {label}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-1">
-          <span className="text-2xl font-bold">{value}</span>
-          {sparkData && <Sparkline data={sparkData} color={sparkColor} />}
-        </div>
-        <div className={`text-xs flex items-center gap-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+        <span className="text-2xl font-bold">{value}</span>
+        <div className={`text-xs flex items-center gap-1 mt-1 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
           {isPositive
             ? <TrendingUp className="w-3 h-3" />
             : <TrendingDown className="w-3 h-3" />
           }
-          {change >= 0 ? '+' : ''}{change}% {suffix || 'MoM'}
+          {change >= 0 ? '+' : ''}{change}% {suffix || 'vs anterior'}
         </div>
       </CardContent>
     </Card>
@@ -93,64 +60,93 @@ function TrendKpi({ label, value, icon: Icon, change, suffix, invertColor, spark
 
 export default function KpiGrid({ metrics }: KpiGridProps) {
   const m = metrics;
-  const stickiness = m.mau > 0 ? ((m.dau / m.mau) * 100).toFixed(1) : '0';
-  const creditUsage = m.creditsSold > 0 ? ((m.creditsConsumed / m.creditsSold) * 100).toFixed(1) : '0';
-  const mauPercent = m.totalUsers > 0 ? ((m.activeUsers30d / m.totalUsers) * 100).toFixed(1) : '0';
-  const verifiedPercent = m.totalUsers > 0 ? ((m.verifiedUsers / m.totalUsers) * 100).toFixed(1) : '0';
 
-  // Extract sparkline series from evolution arrays
-  const mrrSpark = m.mrrEvolution?.map((d: any) => d.mrr) ?? [];
-  const churnSpark = m.churnEvolution?.map((d: any) => d.churn) ?? [];
-  const newUsersSpark = m.userAcquisition?.map((d: any) => d.newUsers) ?? [];
-  const activeUsersSpark = m.userAcquisition?.map((d: any) => d.activeUsers) ?? [];
+  const convRate = m.totalUsers > 0
+    ? ((m.customersTotal || 0) / m.totalUsers * 100).toFixed(1)
+    : m.conversionRate || '0';
 
   return (
     <div className="space-y-4">
-      {/* Row 1: SaaS Financial KPIs (7 cards) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        <TrendKpi label="MRR" value={`€${m.mrr.toLocaleString()}`} icon={DollarSign} change={m.mrrChange} sparkData={mrrSpark} sparkColor="hsl(var(--primary))" />
-        <TrendKpi label="ARR" value={`€${m.arr.toLocaleString()}`} icon={DollarSign} change={m.arrChange} suffix="YoY" sparkData={mrrSpark} sparkColor="hsl(var(--primary))" />
-        <TrendKpi label="Churn Rate" value={`${m.churnRate}%`} icon={BarChart3} change={m.churnChange} invertColor sparkData={churnSpark} sparkColor="hsl(0, 84%, 60%)" />
-        <KpiCard label="LTV" value={`€${m.ltv}`} icon={Target} sub="Lifetime Value" />
-        <KpiCard
-          label="LTV:CAC"
-          value={`${m.ltvCacRatio}x`}
-          icon={Target}
-          sub={m.ltvCacRatio >= 3 ? '✓ Healthy' : '⚠ Watch'}
-          subColor={m.ltvCacRatio >= 3 ? 'text-green-600' : 'text-orange-600'}
-        />
-        <KpiCard
-          label="NRR"
-          value={`${m.nrr}%`}
-          icon={Gauge}
-          sub={m.nrr >= 120 ? '🔥 Best-in-class' : m.nrr >= 100 ? '✓ Good' : '⚠ Risk'}
-          subColor={m.nrr >= 120 ? 'text-green-600' : m.nrr >= 100 ? 'text-blue-600' : 'text-red-600'}
-        />
-        <KpiCard
-          label="Quick Ratio"
-          value={`${m.quickRatio}x`}
-          icon={Rocket}
-          sub={m.quickRatio >= 4 ? '✓ Healthy' : '○ Monitor'}
-          subColor={m.quickRatio >= 4 ? 'text-green-600' : 'text-orange-600'}
-        />
+      {/* ── Registrados ── */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Users className="w-3.5 h-3.5" /> Registrados
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <KpiCard label="Registrados totales" value={m.totalUsers} icon={Users} />
+          <TrendKpi
+            label="Nuevos registros"
+            value={m.newUsersThisMonth}
+            icon={UserPlus}
+            change={m.newUsersChange || 0}
+          />
+          <KpiCard label="Verificados KYC" value={m.verifiedUsers || 0} icon={ShieldCheck}
+            sub={m.totalUsers > 0 ? `${((m.verifiedUsers || 0) / m.totalUsers * 100).toFixed(1)}% del total` : undefined}
+          />
+          <KpiCard label="Activos (30d)" value={m.activeUsers30d || 0} icon={Activity}
+            sub={m.totalUsers > 0 ? `MAU: ${((m.activeUsers30d || 0) / m.totalUsers * 100).toFixed(1)}%` : undefined}
+          />
+        </div>
       </div>
 
-      {/* Row 2: User Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <KpiCard label="Usuarios Totales" value={m.totalUsers} icon={Users} sub={`+${m.newUsersThisMonth} este mes`} />
-        <TrendKpi label="Nuevos" value={m.newUsersThisMonth} icon={UserPlus} change={m.newUsersChange} suffix="vs mes anterior" sparkData={newUsersSpark} sparkColor="hsl(142, 76%, 36%)" />
-        <KpiCard label="Activos (30d)" value={m.activeUsers30d} icon={Activity} sub={`MAU: ${mauPercent}%`} sparkData={activeUsersSpark} sparkColor="hsl(217, 91%, 60%)" />
-        <KpiCard label="Verificados" value={m.verifiedUsers} icon={ShieldCheck} sub={`${verifiedPercent}% del total`} />
-        <KpiCard label="Conversión" value={`${m.conversionRate}%`} icon={TrendingUp} sub="Free → Paid" />
+      {/* ── Clientes ── */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <ShoppingBag className="w-3.5 h-3.5" /> Clientes
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <KpiCard label="Clientes totales" value={m.customersTotal ?? m.activeSubscriptions ?? 0} icon={ShoppingBag} />
+          <KpiCard label="Clientes nuevos" value={m.customersNew ?? 0} icon={UserPlus}
+            sub="En el periodo"
+          />
+          <KpiCard label="Clientes recurrentes" value={m.customersReturning ?? 0} icon={Repeat}
+            sub="Recompra en periodo"
+          />
+          <KpiCard label="Tasa registro → cliente" value={`${convRate}%`} icon={ArrowRightLeft}
+            sub="Conversión"
+          />
+          <KpiCard label="Ticket medio" value={`€${m.averageOrderValue ?? m.arpu ?? 0}`} icon={DollarSign}
+            sub="AOV del periodo"
+          />
+        </div>
       </div>
 
-      {/* Row 3: Product Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <KpiCard label="Obras Registradas" value={m.totalWorks} icon={Music} sub={`+${m.worksThisMonth} este mes`} />
-        <KpiCard label="Créditos Vendidos" value={m.creditsSold.toLocaleString()} icon={ShoppingBag} sub={`€${m.creditsRevenue.toLocaleString()} revenue`} />
-        <KpiCard label="Créditos Consumidos" value={m.creditsConsumed.toLocaleString()} icon={Zap} sub={`${creditUsage}% de uso`} />
-        <KpiCard label="DAU" value={m.dau} icon={Calendar} sub="Daily Active Users" />
-        <KpiCard label="MAU" value={m.mau} icon={CalendarRange} sub={`Stickiness: ${stickiness}%`} />
+      {/* ── Ventas ── */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <ShoppingCart className="w-3.5 h-3.5" /> Ventas
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <TrendKpi label="Revenue total" value={`€${(m.totalRevenue || 0).toLocaleString()}`} icon={DollarSign} change={m.mrrChange || 0} />
+          <KpiCard label="Órdenes" value={m.totalOrders ?? 0} icon={ShoppingCart} sub="En el periodo" />
+          <KpiCard label="Suscripciones anuales" value={m.unitsSoldAnnual ?? 0} icon={BarChart3}
+            sub={m.revenueAnnual ? `€${m.revenueAnnual.toLocaleString()}` : undefined}
+          />
+          <KpiCard label="Suscripciones mensuales" value={m.unitsSoldMonthly ?? 0} icon={BarChart3}
+            sub={m.revenueMonthly ? `€${m.revenueMonthly.toLocaleString()}` : undefined}
+          />
+          <KpiCard label="Singles / Topups" value={(m.unitsSoldSingle ?? 0) + (m.unitsSoldTopup ?? 0)} icon={Zap}
+            sub={`€${((m.revenueSingle ?? 0) + (m.revenueTopup ?? 0)).toLocaleString()}`}
+          />
+        </div>
+      </div>
+
+      {/* ── Suscripciones ── */}
+      <div>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <Target className="w-3.5 h-3.5" /> Suscripciones
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+          <TrendKpi label="MRR" value={`€${(m.mrr || 0).toLocaleString()}`} icon={DollarSign} change={m.mrrChange || 0} />
+          <KpiCard label="Activas" value={m.activeSubscriptions || 0} icon={CheckCircle2} />
+          <KpiCard label="Renov. mensuales" value={m.renewalsMonthly ?? 0} icon={Repeat} sub="En el periodo" />
+          <KpiCard label="Renov. anuales" value={m.renewalsAnnual ?? 0} icon={Repeat} sub="En el periodo" />
+          <TrendKpi label="Churn Rate" value={`${m.churnRate || 0}%`} icon={BarChart3} change={m.churnChange || 0} invertColor />
+          <KpiCard label="Cancelaciones" value={m.cancelledThisMonth || 0} icon={XCircle}
+            subColor={m.cancelledThisMonth > 0 ? 'text-destructive' : 'text-green-600'}
+            sub={m.cancelledThisMonth > 0 ? 'En el periodo' : 'Sin cancelaciones'}
+          />
+        </div>
       </div>
     </div>
   );

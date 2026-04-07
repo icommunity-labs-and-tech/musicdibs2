@@ -1,16 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip as UiTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
 import {
   BarChart3, Users, Music, CreditCard, Download, TrendingUp, RefreshCw,
   AlertTriangle, CheckCircle2, Clock, RotateCcw, XCircle, ChevronDown,
-  ChevronUp, Loader2, Calendar,
+  ChevronUp, Loader2, Calendar, ChevronLeft, ChevronRight, Megaphone,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import KpiGrid from '@/components/admin/metrics/KpiGrid';
@@ -19,9 +20,9 @@ import UnitEconomics from '@/components/admin/metrics/UnitEconomics';
 import CohortRetention from '@/components/admin/metrics/CohortRetention';
 import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
 import FinancialAlerts from '@/components/admin/metrics/FinancialAlerts';
+import MarketingSummary from '@/components/admin/metrics/MarketingSummary';
 
 const MONTHS = [
-  { value: 'all', label: 'Todos los meses' },
   { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
   { value: '03', label: 'Marzo' }, { value: '04', label: 'Abril' },
   { value: '05', label: 'Mayo' }, { value: '06', label: 'Junio' },
@@ -30,12 +31,40 @@ const MONTHS = [
   { value: '11', label: 'Noviembre' }, { value: '12', label: 'Diciembre' },
 ];
 
+// Get Monday of the current week
+function getCurrentMonday(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(d.setDate(diff));
+  return monday.toISOString().slice(0, 10);
+}
+
+function shiftWeek(weekStart: string, delta: number): string {
+  const d = new Date(weekStart);
+  d.setDate(d.getDate() + 7 * delta);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatWeekLabel(weekStart: string): string {
+  const start = new Date(weekStart);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const fmt = (d: Date) => d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+  return `${fmt(start)} — ${fmt(end)}`;
+}
+
 export default function AdminMetricsPage() {
+  const now = new Date();
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
-  const [selectedYear, setSelectedYear] = useState<string>('all');
+
+  // Period filter state
+  const [periodType, setPeriodType] = useState<'week' | 'month' | 'year'>('month');
+  const [weekStart, setWeekStart] = useState(getCurrentMonday());
+  const [selectedMonth, setSelectedMonth] = useState(String(now.getMonth() + 1).padStart(2, '0'));
+  const [selectedYear, setSelectedYear] = useState(String(now.getFullYear()));
 
   // iBS queue state
   const [ibsQueue, setIbsQueue] = useState<any>(null);
@@ -67,12 +96,19 @@ export default function AdminMetricsPage() {
     setRetrying(null);
   };
 
+  // Build filters based on period type
+  const filters = useMemo(() => {
+    if (periodType === 'week') return { periodType, weekStart };
+    if (periodType === 'month') return { periodType, month: selectedMonth, year: selectedYear };
+    return { periodType, year: selectedYear };
+  }, [periodType, weekStart, selectedMonth, selectedYear]);
+
   const loadMetrics = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     else setLoading(true);
     try {
       const [data] = await Promise.all([
-        adminApi.getSaasMetrics({ month: selectedMonth, year: selectedYear }),
+        adminApi.getSaasMetrics(filters),
         loadIbsQueue(),
       ]);
       setMetrics(data);
@@ -82,7 +118,7 @@ export default function AdminMetricsPage() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedMonth, selectedYear]);
+  }, [filters]);
 
   useEffect(() => { loadMetrics(); }, [loadMetrics]);
 
@@ -100,6 +136,16 @@ export default function AdminMetricsPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  // Period label for display
+  const periodLabel = useMemo(() => {
+    if (periodType === 'week') return formatWeekLabel(weekStart);
+    if (periodType === 'month') {
+      const m = MONTHS.find(m => m.value === selectedMonth);
+      return `${m?.label || ''} ${selectedYear}`;
+    }
+    return selectedYear;
+  }, [periodType, weekStart, selectedMonth, selectedYear]);
+
   if (loading) return <div className="flex items-center justify-center py-20 text-muted-foreground">Cargando métricas...</div>;
   if (!metrics) return null;
 
@@ -108,77 +154,107 @@ export default function AdminMetricsPage() {
   return (
     <div className="space-y-6">
       {/* Header + actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <BarChart3 className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">SaaS Analytics</h1>
           <Badge className="bg-pink-500/20 text-pink-400 border-pink-500/30">Admin</Badge>
+          <span className="ml-auto text-xs text-muted-foreground">{periodLabel}</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            Filtrar:
-          </div>
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-40 h-8 text-xs">
-              <SelectValue placeholder="Mes" />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map(m => (
-                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-28 h-8 text-xs">
-              <SelectValue placeholder="Año" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="2026">2026</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Period selector */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs value={periodType} onValueChange={(v) => setPeriodType(v as any)}>
+            <TabsList className="h-8">
+              <TabsTrigger value="week" className="text-xs px-3 h-7">Semana</TabsTrigger>
+              <TabsTrigger value="month" className="text-xs px-3 h-7">Mes</TabsTrigger>
+              <TabsTrigger value="year" className="text-xs px-3 h-7">Año</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-          <Button variant="outline" size="sm" onClick={() => loadMetrics(true)} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Actualizar
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
+          {periodType === 'week' && (
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setWeekStart(shiftWeek(weekStart, -1))}>
+                <ChevronLeft className="h-4 w-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport('users')}>
-                👥 Usuarios (CSV)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('transactions')}>
-                💳 Transacciones (CSV)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('works')}>
-                🎵 Obras (CSV)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport('audit')}>
-                📋 Audit Log (CSV)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <span className="text-xs font-medium min-w-[140px] text-center">{formatWeekLabel(weekStart)}</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setWeekStart(shiftWeek(weekStart, 1))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {periodType === 'month' && (
+            <>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-36 h-8 text-xs">
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map(m => (
+                    <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-24 h-8 text-xs">
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2026">2026</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          )}
+
+          {periodType === 'year' && (
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-24 h-8 text-xs">
+                <SelectValue placeholder="Año" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2026">2026</SelectItem>
+                <SelectItem value="2025">2025</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+
+          <div className="flex items-center gap-2 ml-auto">
+            <Button variant="outline" size="sm" onClick={() => loadMetrics(true)} disabled={refreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Actualizar
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('users')}>👥 Usuarios (CSV)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('transactions')}>💳 Transacciones (CSV)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('works')}>🎵 Obras (CSV)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('audit')}>📋 Audit Log (CSV)</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('revenue')}>📊 Revenue (CSV)</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
-      {/* KPI Rows */}
+      {/* KPI Rows — separated blocks */}
       <KpiGrid metrics={metrics} />
 
       {/* Financial Alerts */}
       <FinancialAlerts metrics={metrics} />
 
+      {/* Mini Marketing Summary */}
+      <MarketingSummary metrics={metrics} />
+
       {/* Charts + Revenue */}
-      <MetricsCharts metrics={metrics} />
+      <MetricsCharts metrics={metrics} periodType={periodType} />
 
       {/* Unit Economics + Cash/Runway */}
       <UnitEconomics metrics={metrics} />

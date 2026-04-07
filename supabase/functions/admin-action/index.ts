@@ -547,7 +547,7 @@ serve(async (req) => {
 
     // ── get_saas_metrics ──────────────────────────────────────────
     if (action === "get_saas_metrics") {
-      const { month, year } = payload || {};
+      const { periodType, weekStart, month, year } = payload || {};
       const now = new Date();
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       let stripe: any = null;
@@ -555,21 +555,32 @@ serve(async (req) => {
         stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
       }
 
-      // Build date range from filters
+      // Build date range from new period filters
       let filterStart: string | null = null;
       let filterEnd: string | null = null;
-      if (month && month !== "all" && year && year !== "all") {
+
+      if (periodType === "week" && weekStart) {
+        const ws = new Date(weekStart + "T00:00:00Z");
+        filterStart = ws.toISOString();
+        const we = new Date(ws);
+        we.setDate(we.getDate() + 7);
+        filterEnd = we.toISOString();
+      } else if (periodType === "year" && year) {
+        const y = parseInt(year);
+        filterStart = new Date(y, 0, 1).toISOString();
+        filterEnd = new Date(y + 1, 0, 1).toISOString();
+      } else if ((periodType === "month" || !periodType) && month && month !== "all" && year && year !== "all") {
         const y = parseInt(year), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      } else if (month && month !== "all" && (!year || year === "all")) {
+        const y = now.getFullYear(), m = parseInt(month);
         filterStart = new Date(y, m - 1, 1).toISOString();
         filterEnd = new Date(y, m, 1).toISOString();
       } else if (year && year !== "all") {
         const y = parseInt(year);
         filterStart = new Date(y, 0, 1).toISOString();
         filterEnd = new Date(y + 1, 0, 1).toISOString();
-      } else if (month && month !== "all") {
-        const y = now.getFullYear(), m = parseInt(month);
-        filterStart = new Date(y, m - 1, 1).toISOString();
-        filterEnd = new Date(y, m, 1).toISOString();
       }
 
       const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
@@ -928,6 +939,155 @@ serve(async (req) => {
       const annualSubPct = totalRevenue > 0 ? parseFloat(((stripeAnnualRevenue / totalRevenue) * 100).toFixed(1)) : 0;
       const monthlySubPct = totalRevenue > 0 ? parseFloat(((stripeMonthlyRevenue / totalRevenue) * 100).toFixed(1)) : 0;
 
+      // ── Orders-based metrics (new) ──
+      let ordersData: any[] = [];
+      let customersTotal = 0;
+      let customersNew = 0;
+      let customersReturning = 0;
+      let totalOrders = 0;
+      let averageOrderValue = 0;
+      let unitsSoldAnnual = 0;
+      let unitsSoldMonthly = 0;
+      let unitsSoldSingle = 0;
+      let unitsSoldTopup = 0;
+      let revenueAnnual = 0;
+      let revenueMonthly = 0;
+      let revenueSingle = 0;
+      let revenueTopup = 0;
+      let renewalsMonthlyCount = 0;
+      let renewalsAnnualCount = 0;
+      const productBreakdown: { name: string; units: number; revenue: number }[] = [];
+
+      try {
+        // Customers total = unique users with at least one paid order ever
+        const { count: custTotalCount } = await admin.from("orders").select("user_id", { count: "exact", head: true }).eq("order_status", "paid");
+        customersTotal = custTotalCount || 0;
+
+        // Orders in the period
+        if (filterStart && filterEnd) {
+          const { data: periodOrders } = await admin.from("orders").select("*").gte("paid_at", filterStart).lt("paid_at", filterEnd).eq("order_status", "paid");
+          ordersData = periodOrders || [];
+        } else {
+          const { data: allOrders } = await admin.from("orders").select("*").eq("order_status", "paid").order("paid_at", { ascending: false }).limit(1000);
+          ordersData = allOrders || [];
+        }
+
+        totalOrders = ordersData.length;
+        const orderRevenue = ordersData.reduce((s: number, o: any) => s + (parseFloat(o.amount_gross) || 0), 0);
+        averageOrderValue = totalOrders > 0 ? parseFloat((orderRevenue / totalOrders).toFixed(2)) : 0;
+
+        // Units/revenue by product type
+        const byType: Record<string, { units: number; revenue: number }> = {};
+        ordersData.forEach((o: any) => {
+          const pt = o.product_type || "unknown";
+          if (!byType[pt]) byType[pt] = { units: 0, revenue: 0 };
+          byType[pt].units++;
+          byType[pt].revenue += parseFloat(o.amount_gross) || 0;
+          if (o.is_renewal) {
+            if (o.billing_interval === "yearly") renewalsAnnualCount++;
+            else renewalsMonthlyCount++;
+          }
+        });
+        unitsSoldAnnual = byType["annual"]?.units || 0;
+        unitsSoldMonthly = byType["monthly"]?.units || 0;
+        unitsSoldSingle = byType["single"]?.units || 0;
+        unitsSoldTopup = byType["topup"]?.units || 0;
+        revenueAnnual = Math.round((byType["annual"]?.revenue || 0) * 100) / 100;
+        revenueMonthly = Math.round((byType["monthly"]?.revenue || 0) * 100) / 100;
+        revenueSingle = Math.round((byType["single"]?.revenue || 0) * 100) / 100;
+        revenueTopup = Math.round((byType["topup"]?.revenue || 0) * 100) / 100;
+
+        Object.entries(byType).forEach(([name, v]) => {
+          productBreakdown.push({ name, units: v.units, revenue: Math.round(v.revenue * 100) / 100 });
+        });
+        productBreakdown.sort((a, b) => b.revenue - a.revenue);
+
+        // New vs returning customers in period
+        const periodUserIds = [...new Set(ordersData.map((o: any) => o.user_id))];
+        if (periodUserIds.length > 0 && filterStart) {
+          const { data: priorOrders } = await admin.from("orders").select("user_id").lt("paid_at", filterStart).eq("order_status", "paid").in("user_id", periodUserIds);
+          const priorSet = new Set((priorOrders || []).map((o: any) => o.user_id));
+          const newCustSet = new Set<string>();
+          const retCustSet = new Set<string>();
+          periodUserIds.forEach(uid => {
+            if (priorSet.has(uid)) retCustSet.add(uid);
+            else newCustSet.add(uid);
+          });
+          customersNew = newCustSet.size;
+          customersReturning = retCustSet.size;
+        }
+      } catch (ordErr: any) {
+        console.error("[get_saas_metrics] Orders query error:", ordErr.message);
+      }
+
+      // ── Marketing summary (mini) ──
+      let marketingSummary: any = { attributed_registered: 0, attributed_customers: 0, ad_spend: adSpend, cac, top_campaigns: [] };
+      try {
+        if (filterStart && filterEnd) {
+          const { data: attrProfiles } = await admin.from("user_attribution").select("user_id, attributed_campaign_name").gte("created_at", filterStart).lt("created_at", filterEnd);
+          marketingSummary.attributed_registered = (attrProfiles || []).length;
+          // Attributed customers = users who both registered AND purchased in the period
+          const attrUserIds = (attrProfiles || []).map((a: any) => a.user_id);
+          const purchasedSet = new Set(ordersData.map((o: any) => o.user_id));
+          marketingSummary.attributed_customers = attrUserIds.filter((uid: string) => purchasedSet.has(uid)).length;
+        }
+        // Top campaigns by revenue
+        const campRevMap: Record<string, number> = {};
+        ordersData.forEach((o: any) => {
+          const cn = o.attributed_campaign_name;
+          if (cn) campRevMap[cn] = (campRevMap[cn] || 0) + (parseFloat(o.amount_gross) || 0);
+        });
+        marketingSummary.top_campaigns = Object.entries(campRevMap)
+          .map(([name, revenue]) => ({ name, revenue: Math.round(revenue * 100) / 100 }))
+          .sort((a, b) => b.revenue - a.revenue)
+          .slice(0, 5);
+      } catch {}
+
+      // ── Time series for charts ──
+      const timeSeries: any = { revenue: [], orders: [] };
+      if (filterStart && filterEnd) {
+        const start = new Date(filterStart);
+        const end = new Date(filterEnd);
+        const diffDays = Math.round((end.getTime() - start.getTime()) / 86400000);
+
+        if (diffDays <= 8) {
+          // Week: by day
+          for (let i = 0; i < diffDays; i++) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + i);
+            const dayStr = d.toISOString().slice(0, 10);
+            const dayNext = new Date(d);
+            dayNext.setDate(dayNext.getDate() + 1);
+            const dayOrders = ordersData.filter((o: any) => o.paid_at >= dayStr && o.paid_at < dayNext.toISOString().slice(0, 10));
+            const dayRev = dayOrders.reduce((s: number, o: any) => s + (parseFloat(o.amount_gross) || 0), 0);
+            timeSeries.revenue.push({ label: d.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" }), value: Math.round(dayRev * 100) / 100 });
+            timeSeries.orders.push({ label: d.toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" }), value: dayOrders.length });
+          }
+        } else if (diffDays <= 35) {
+          // Month: by day
+          for (let i = 0; i < diffDays; i++) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + i);
+            const dayStr = d.toISOString().slice(0, 10);
+            const dayOrders = ordersData.filter((o: any) => o.paid_at?.slice(0, 10) === dayStr);
+            const dayRev = dayOrders.reduce((s: number, o: any) => s + (parseFloat(o.amount_gross) || 0), 0);
+            timeSeries.revenue.push({ label: d.toLocaleDateString("es-ES", { day: "2-digit", month: "short" }), value: Math.round(dayRev * 100) / 100 });
+          }
+        } else {
+          // Year: by month
+          for (let m = 0; m < 12; m++) {
+            const mStart = new Date(start.getFullYear(), m, 1);
+            const mEnd = new Date(start.getFullYear(), m + 1, 1);
+            if (mStart >= end) break;
+            const mOrders = ordersData.filter((o: any) => o.paid_at >= mStart.toISOString() && o.paid_at < mEnd.toISOString());
+            const mRev = mOrders.reduce((s: number, o: any) => s + (parseFloat(o.amount_gross) || 0), 0);
+            timeSeries.revenue.push({ label: mStart.toLocaleDateString("es-ES", { month: "short" }), value: Math.round(mRev * 100) / 100 });
+          }
+        }
+      }
+
+      const creditsPercentage = totalRevenue > 0 ? parseFloat((((revenueSingle + revenueTopup + creditsRevenue) / totalRevenue) * 100).toFixed(1)) : 0;
+
       return json({
         mrr, arr,
         mrrChange,
@@ -951,12 +1111,22 @@ serve(async (req) => {
         monthlyRevenue: Math.round(stripeMonthlyRevenue * 100) / 100,
         annualPercentage: annualSubPct,
         monthlyPercentage: monthlySubPct,
+        creditsPercentage,
         oneTimeRevenue: Math.round(oneTimeRevenue * 100) / 100,
         top10RevenuePercentage: topPlanPct,
         topPlanName, topPlanPercentage: topPlanPct,
         activeSubscriptions: activeSubsCount,
         cancelledThisMonth: cancelledSubsThisMonth,
         stripePlanBreakdown,
+        // New orders-based fields
+        customersTotal, customersNew, customersReturning,
+        totalOrders, averageOrderValue,
+        unitsSoldAnnual, unitsSoldMonthly, unitsSoldSingle, unitsSoldTopup,
+        revenueAnnual, revenueMonthly, revenueSingle, revenueTopup,
+        renewalsMonthly: renewalsMonthlyCount, renewalsAnnual: renewalsAnnualCount,
+        productBreakdown,
+        marketingSummary,
+        timeSeries,
         mrrEvolution, churnEvolution, userAcquisition, worksPerDay, cohortData,
         featureUsage: [
           { feature: "Crear música", uses: aiGen.count || 0 },
