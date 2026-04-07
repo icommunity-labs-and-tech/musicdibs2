@@ -99,10 +99,6 @@ const ArtistProfilesPage = () => {
     setFormDuration(p.default_duration || 60);
     setFormNotes(p.style_notes || "");
     setFormDefault(p.is_default);
-    const vType = (p as any).voice_type || 'preset';
-    setFormVoiceType(vType);
-    setFormVoiceCloneId((p as any).voice_clone_id || '');
-    setVoiceTab(vType);
     setShowForm(true);
   };
 
