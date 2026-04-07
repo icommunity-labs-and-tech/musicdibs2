@@ -1207,15 +1207,6 @@ const AIStudioCreate = () => {
                       <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/400</p>
                     </div>
 
-                    {/* Theme chips */}
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">{t('aiCreate.centralTheme')}</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {THEMES.map(t => (
-                          <Badge key={t} variant={lyricsTheme === t ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === t ? "" : t)}>{t}</Badge>
-                        ))}
-                      </div>
-                    </div>
 
                     {/* Mood chips */}
                     <div className="space-y-1.5">
