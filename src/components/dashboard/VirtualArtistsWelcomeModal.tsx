@@ -47,7 +47,7 @@ export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }
               {t('virtualArtists.welcome.title', 'Crea tu propio artista y lanza música al mundo 🚀')}
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              {t('virtualArtists.welcome.subtitle', 'Genera canciones con IA, clona voces, registra la autoría en blockchain y distribuye tu música en plataformas como Spotify.')}
+              {t('virtualArtists.welcome.subtitle', 'Genera canciones con IA, registra la autoría en blockchain y distribuye tu música en plataformas como Spotify.')}
             </p>
           </div>
 
