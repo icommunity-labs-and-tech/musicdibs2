@@ -225,11 +225,48 @@ export default function DashboardHome() {
           </Card>
         </div>
 
-        {/* Col 3: Credit Store */}
+        {/* Col 3: Credit Store + Media Library */}
         <div className="space-y-4">
           <div data-tour="credit-store">
             <CreditStore compact cancelAtPeriodEnd={cancelAtPeriodEnd} />
           </div>
+          {/* Media Library quick access */}
+          <Card
+            className="border-border/40 shadow-sm cursor-pointer hover:shadow-lg hover:border-primary/50 transition-all"
+            onClick={() => navigate('/dashboard/media-library')}
+          >
+            <CardContent className="p-5 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <FolderOpen className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold">Biblioteca multimedia</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {assetCounts.songs + assetCounts.videos + assetCounts.covers + assetCounts.voices} assets creados
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { icon: Music, label: "Canciones", count: assetCounts.songs, color: "text-violet-500" },
+                  { icon: Film, label: "Vídeos", count: assetCounts.videos, color: "text-blue-500" },
+                  { icon: ImageIcon, label: "Portadas", count: assetCounts.covers, color: "text-pink-500" },
+                  { icon: Mic, label: "Voces", count: assetCounts.voices, color: "text-emerald-500" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center gap-2 rounded-md bg-muted/50 px-2.5 py-1.5">
+                    <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                    <span className="text-xs font-medium">{item.count}</span>
+                    <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" size="sm" className="w-full text-xs">
+                <FolderOpen className="h-3.5 w-3.5 mr-1" />
+                Abrir biblioteca
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Registrations spanning cols 1-2 */}
