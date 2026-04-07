@@ -21,6 +21,7 @@ import CohortRetention from '@/components/admin/metrics/CohortRetention';
 import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
 import FinancialAlerts from '@/components/admin/metrics/FinancialAlerts';
 import MarketingSummary from '@/components/admin/metrics/MarketingSummary';
+import HistoricalDataNotice from '@/components/admin/HistoricalDataNotice';
 
 const MONTHS = [
   { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
