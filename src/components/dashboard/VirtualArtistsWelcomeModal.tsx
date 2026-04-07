@@ -22,7 +22,7 @@ export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }
   const bullets = [
     t('virtualArtists.welcome.bullet1', 'Crea múltiples artistas virtuales'),
     t('virtualArtists.welcome.bullet2', 'Genera canciones completas en minutos'),
-    t('virtualArtists.welcome.bullet3', 'Usa voces personalizadas o clonadas'),
+    t('virtualArtists.welcome.bullet3', 'Usa voces predefinidas para tus canciones'),
     t('virtualArtists.welcome.bullet4', 'Registra y protege tu música automáticamente'),
     t('virtualArtists.welcome.bullet5', 'Distribuye y monetiza sin complicaciones'),
   ];
