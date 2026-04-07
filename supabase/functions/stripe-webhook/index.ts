@@ -299,8 +299,67 @@ serve(async (req) => {
               },
             });
             console.log(`[WEBHOOK] ✅ Distribution onboarding email enqueued for user ${distEmail}`);
+
+            // User-facing email: distribution access within 72h
+            const userMsgId = crypto.randomUUID();
+            const lang = distUser?.user_metadata?.language || "es";
+            const userName = distName !== distEmail ? distName : "";
+
+            const subjectByLang: Record<string, string> = {
+              es: "Tu acceso a distribución está en camino 🎶",
+              en: "Your distribution access is on its way 🎶",
+              pt: "Seu acesso à distribuição está a caminho 🎶",
+            };
+            const userSubject = subjectByLang[lang] || subjectByLang["es"];
+
+            const greetingByLang: Record<string, string> = {
+              es: userName ? `¡Hola ${userName}!` : "¡Hola!",
+              en: userName ? `Hi ${userName}!` : "Hi!",
+              pt: userName ? `Olá ${userName}!` : "Olá!",
+            };
+
+            const bodyByLang: Record<string, string> = {
+              es: `<h2>${greetingByLang["es"]}</h2>
+<p>¡Enhorabuena por activar tu suscripción anual! 🎉</p>
+<p>Estamos preparando tu cuenta en nuestra plataforma de distribución para que puedas llevar tu música a todas las tiendas digitales (Spotify, Apple Music, Amazon Music, y muchas más).</p>
+<p><strong>En un plazo máximo de 72 horas</strong> recibirás un correo electrónico con las instrucciones para generar tu contraseña y acceder a la plataforma de distribución.</p>
+<p>El proceso de alta requiere una configuración manual por parte de nuestro equipo para garantizar que todo esté correctamente vinculado a tu cuenta.</p>
+<p>Si tienes alguna pregunta mientras tanto, no dudes en escribirnos a <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>¡Gracias por confiar en MusicDibs!</p>
+<p>— El equipo de MusicDibs</p>`,
+              en: `<h2>${greetingByLang["en"]}</h2>
+<p>Congratulations on activating your annual subscription! 🎉</p>
+<p>We are setting up your account on our distribution platform so you can get your music on all major digital stores (Spotify, Apple Music, Amazon Music, and more).</p>
+<p><strong>Within a maximum of 72 hours</strong> you will receive an email with instructions to create your password and access the distribution platform.</p>
+<p>The onboarding process requires manual setup by our team to ensure everything is properly linked to your account.</p>
+<p>If you have any questions in the meantime, feel free to reach out at <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>Thank you for trusting MusicDibs!</p>
+<p>— The MusicDibs Team</p>`,
+              pt: `<h2>${greetingByLang["pt"]}</h2>
+<p>Parabéns por ativar sua assinatura anual! 🎉</p>
+<p>Estamos preparando sua conta em nossa plataforma de distribuição para que você possa levar sua música a todas as lojas digitais (Spotify, Apple Music, Amazon Music e muito mais).</p>
+<p><strong>Em um prazo máximo de 72 horas</strong> você receberá um e-mail com as instruções para gerar sua senha e acessar a plataforma de distribuição.</p>
+<p>O processo de integração requer uma configuração manual por parte da nossa equipe para garantir que tudo esteja corretamente vinculado à sua conta.</p>
+<p>Se tiver alguma dúvida, não hesite em nos escrever em <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>Obrigado por confiar na MusicDibs!</p>
+<p>— A equipe MusicDibs</p>`,
+            };
+            const userHtml = bodyByLang[lang] || bodyByLang["es"];
+
+            await supabase.rpc("enqueue_email", {
+              queue_name: "transactional_emails",
+              payload: {
+                to: distEmail,
+                subject: userSubject,
+                html: userHtml,
+                purpose: "transactional",
+                idempotency_key: `dist-welcome-${userId}-${planId}`,
+                message_id: userMsgId,
+              },
+            });
+            console.log(`[WEBHOOK] ✅ Distribution welcome email enqueued for ${distEmail}`);
           } catch (distErr) {
-            console.error("[WEBHOOK] Error enqueuing distribution onboarding email:", distErr);
+            console.error("[WEBHOOK] Error enqueuing distribution emails:", distErr);
           }
         }
       }
