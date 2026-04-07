@@ -459,61 +459,51 @@ const AIStudioCreate = () => {
     link.click();
   };
 
-  // ── Inline voice cloning ──
-  const handleInlineClone = async () => {
-    if (!cloningFile || !cloningName.trim() || !user) return;
-    if (cloningDuration !== null && cloningDuration < 30) {
-      toast({ title: t('aiCreate.audioTooShort', { dur: cloningDuration }), variant: 'destructive' });
+  // ── Save as Virtual Artist ──
+  const handleSaveVirtualArtist = async () => {
+    if (!saveArtistName.trim() || !lastGeneratedVoiceId || !user) return;
+    setIsSavingArtist(true);
+    try {
+      const { data: newArtist, error } = await supabase
+        .from('user_artist_profiles')
+        .insert({
+          user_id: user.id,
+          name: saveArtistName.trim(),
+          voice_profile_id: lastGeneratedVoiceId,
+          voice_type: 'preset',
+          genre: null,
+          mood: null,
+          default_duration: duration,
+          style_notes: saveArtistStyle.trim() || null,
+          is_default: false,
+        })
+        .select('*, voice_profiles(label, emoji, sample_url)')
+        .single();
+      if (error) throw error;
+      setVirtualArtists(prev => [newArtist, ...prev]);
+      setVirtualArtistsCount(prev => prev + 1);
+      toast({ title: `Artista "${saveArtistName.trim()}" guardado` });
+      setShowSaveArtistForm(false);
+      setShowSaveArtistPrompt(false);
+      setSaveArtistName('');
+      setSaveArtistStyle('');
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setIsSavingArtist(false);
+    }
+  };
+
+  // ── Select virtual artist ──
+  const handleSelectArtist = (artist: any) => {
+    if (selectedArtistId === artist.id) {
+      setSelectedArtistId('');
+      setSelectedVoice('');
       return;
     }
-    setIsCloning(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const form = new FormData();
-      form.append('audio', cloningFile);
-      form.append('name', cloningName.trim());
-      form.append('remove_background_noise', String(cloningNoise));
-      const cloneUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`;
-      const response = await fetch(
-        cloneUrl,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.access_token}`,
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: form,
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        toast({ title: t('aiShared.error'), description: data.error, variant: 'destructive' });
-        return;
-      }
-      const { data: newClones } = await supabase.from('voice_clones')
-        .select('*').eq('user_id', user.id).eq('status', 'active')
-        .order('created_at', { ascending: false });
-      const withUrls = await Promise.all((newClones || []).map(async (c: any) => {
-        if (c.sample_storage_path) {
-          const { data: urlData } = await supabase.storage
-            .from('voice-clone-samples')
-            .createSignedUrl(c.sample_storage_path, 3600);
-          return { ...c, sample_url: urlData?.signedUrl || null };
-        }
-        return { ...c, sample_url: null };
-      }));
-      setVoiceClones(withUrls);
-      setSelectedCloneId(data.clone_id);
-      setSelectedVoice('');
-      setShowCloneModal(false);
-      setCloningName(''); setCloningFile(null); setCloningDuration(null); setCloningNoise(false);
-      if (cloneFileRef.current) cloneFileRef.current.value = '';
-      toast({ title: t('aiCreate.voiceCloned'), description: t('aiCreate.voiceClonedDesc', { name: cloningName }) });
-    } catch {
-      toast({ title: t('aiShared.error'), variant: 'destructive' });
-    } finally {
-      setIsCloning(false);
-    }
+    setSelectedArtistId(artist.id);
+    setSelectedVoice(artist.voice_profile_id || '');
+    if (artist.default_duration) setDuration(artist.default_duration);
   };
 
   // ── Bulk helpers ──
