@@ -24,7 +24,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, RotateCw, Sparkles, HelpCircle, User, Save
+  Mic, Headphones, RotateCw, Sparkles, HelpCircle, User, Save, Info
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -950,35 +950,59 @@ const AIStudioCreate = () => {
                       <div className="space-y-2">
                          <Label className="text-sm font-medium">{t('aiCreate.voice')}</Label>
                         {/* Tabs: Voces IA / Mis artistas virtuales */}
+                        <TooltipProvider delayDuration={200}>
                         <div className="flex gap-2 mb-3">
-                          <button
-                            type="button"
-                            onClick={() => { setVoiceTab('preset'); setSelectedArtistId(''); }}
-                            className={cn(
-                              "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
-                              voiceTab === 'preset'
-                                ? "border-primary bg-primary/10 text-primary border-2"
-                                : "border-border text-muted-foreground hover:border-primary/50"
-                            )}
-                          >
-                            🎧 Voces IA
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => { if (virtualArtistsCount > 0) setVoiceTab('my_artists'); }}
-                            disabled={virtualArtistsCount === 0}
-                            className={cn(
-                              "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
-                              voiceTab === 'my_artists'
-                                ? "border-primary bg-primary/10 text-primary border-2"
-                                : virtualArtistsCount === 0
-                                  ? "border-border text-muted-foreground/40 cursor-not-allowed"
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => { setVoiceTab('preset'); setSelectedArtistId(''); }}
+                              className={cn(
+                                "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
+                                voiceTab === 'preset'
+                                  ? "border-primary bg-primary/10 text-primary border-2"
                                   : "border-border text-muted-foreground hover:border-primary/50"
-                            )}
-                          >
-                            👤 Mis artistas virtuales {virtualArtistsCount > 0 && `(${virtualArtistsCount})`}
-                          </button>
+                              )}
+                            >
+                              🎧 Voces IA
+                            </button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs text-sm">
+                                Elige una voz para tu canción. Después podrás guardarla como artista para reutilizarla.
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => { if (virtualArtistsCount > 0) setVoiceTab('my_artists'); }}
+                              disabled={virtualArtistsCount === 0}
+                              className={cn(
+                                "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
+                                voiceTab === 'my_artists'
+                                  ? "border-primary bg-primary/10 text-primary border-2"
+                                  : virtualArtistsCount === 0
+                                    ? "border-border text-muted-foreground/40 cursor-not-allowed"
+                                    : "border-border text-muted-foreground hover:border-primary/50"
+                              )}
+                            >
+                              👤 Mis artistas virtuales {virtualArtistsCount > 0 && `(${virtualArtistsCount})`}
+                            </button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs text-sm">
+                                {virtualArtistsCount > 0
+                                  ? "Los artistas virtuales son las voces que has guardado de otras canciones para crear nuevas con el mismo estilo."
+                                  : "Aquí aparecen tus artistas guardados. Úsalos para crear canciones con el mismo estilo."}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </div>
+                        </TooltipProvider>
 
                         {/* TAB: Voces IA del catálogo */}
                         {voiceTab === 'preset' && (
@@ -1018,7 +1042,7 @@ const AIStudioCreate = () => {
                               <div className="text-center py-6 border border-dashed border-border rounded-lg">
                                 <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                                 <p className="text-sm text-muted-foreground">Aún no tienes artistas guardados</p>
-                                <p className="text-xs text-muted-foreground mt-1">Genera una canción y guárdala como artista virtual</p>
+                                <p className="text-xs text-muted-foreground mt-1">Aquí aparecen tus artistas guardados. Úsalos para crear canciones con el mismo estilo.</p>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
