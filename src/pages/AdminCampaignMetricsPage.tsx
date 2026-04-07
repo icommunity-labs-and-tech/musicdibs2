@@ -207,6 +207,9 @@ export default function AdminCampaignMetricsPage() {
         </div>
       </div>
 
+      {/* Historical data quality notice */}
+      <HistoricalDataNotice compact collapsible storageKey="admin-campaigns-notice" />
+
       {/* Summary KPIs */}
       {metrics?.summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
