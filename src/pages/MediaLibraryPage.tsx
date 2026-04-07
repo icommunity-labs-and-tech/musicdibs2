@@ -270,20 +270,18 @@ export default function MediaLibraryPage() {
     if (!items.length) return;
     setDeletingBulk(true);
     let deleted = 0;
-    const tableMap: Record<string, string> = {
-      song: "ai_generations",
-      video: "video_generations",
-      cover: "social_promotions",
-      vocal: "voice_clones",
-    };
-    // Group by type for batch deletes
+
     const byType = items.reduce((acc, a) => {
       (acc[a.type] ??= []).push(a.id);
       return acc;
     }, {} as Record<string, string[]>);
 
     for (const [type, ids] of Object.entries(byType)) {
-      const { error } = await supabase.from(tableMap[type]).delete().in("id", ids);
+      let error: any = null;
+      if (type === "song") ({ error } = await supabase.from("ai_generations").delete().in("id", ids));
+      else if (type === "video") ({ error } = await supabase.from("video_generations").delete().in("id", ids));
+      else if (type === "cover") ({ error } = await supabase.from("social_promotions").delete().in("id", ids));
+      else if (type === "vocal") ({ error } = await supabase.from("voice_clones").delete().in("id", ids));
       if (!error) deleted += ids.length;
     }
 
