@@ -865,45 +865,7 @@ const AIStudioCreate = () => {
                       <CardDescription>{t('aiCreate.createDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {/* Artist profile selector */}
 
-
-                      {/* Mood chips */}
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.moodLabel')}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {MUSIC_MOODS.map(m => (
-                            <Badge
-                              key={m}
-                              variant={selectedMood === m ? "default" : "outline"}
-                              className="cursor-pointer hover:bg-primary/80 transition-colors"
-                              onClick={() => setSelectedMood(selectedMood === m ? null : m)}
-                            >
-                              {m}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-
-                      {/* Idioma de la letra */}
-                      {mode === 'song' && (
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium">{t('aiCreate.lyricLanguage')}</Label>
-                          <div className="flex flex-wrap gap-2">
-                            {LYRIC_LANGUAGES.map(l => (
-                              <Badge
-                                key={l}
-                                variant={selectedLanguage === l ? 'default' : 'outline'}
-                                className="cursor-pointer text-xs"
-                                onClick={() => setSelectedLanguage(selectedLanguage === l ? '' : l)}
-                              >
-                                {l}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Voice type selector */}
                       <div className="space-y-2">
