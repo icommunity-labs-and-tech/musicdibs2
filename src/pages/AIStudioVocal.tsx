@@ -453,13 +453,6 @@ export default function AIStudioVocal() {
                       </div>
                     </div>
 
-                    {/* Theme chips */}
-                    <div className="space-y-2" data-tour="vt-music-settings">
-                      <Label className="text-xs font-medium">Tema central (opcional)</Label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {THEMES.map(th => <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)}
-                      </div>
-                    </div>
 
                     {/* Mood chips */}
                     <div className="space-y-2">
