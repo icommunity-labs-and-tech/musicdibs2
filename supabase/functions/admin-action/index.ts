@@ -1207,6 +1207,244 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    // ── get_campaigns_catalog ─────────────────────────────────────
+    if (action === "get_campaigns_catalog") {
+      const { data: campaigns, error } = await admin
+        .from("marketing_campaigns")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) return json({ error: error.message }, 500);
+      return json({ campaigns: campaigns || [] });
+    }
+
+    // ── save_campaign ─────────────────────────────────────────────
+    if (action === "save_campaign") {
+      const { id: campId, name, type, owner, cost, start_date, end_date, coupon_code, utm_source, utm_medium, utm_campaign, notes, is_active } = payload;
+      if (!name) return json({ error: "name is required" }, 400);
+
+      const campData: Record<string, any> = {
+        name,
+        type: type || null,
+        owner: owner || null,
+        cost: parseFloat(cost || "0"),
+        start_date: start_date || null,
+        end_date: end_date || null,
+        coupon_code: coupon_code || null,
+        utm_source: utm_source || null,
+        utm_medium: utm_medium || null,
+        utm_campaign: utm_campaign || null,
+        notes: notes || null,
+        is_active: is_active !== undefined ? is_active : true,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (campId) {
+        const { error } = await admin.from("marketing_campaigns").update(campData).eq("id", campId);
+        if (error) return json({ error: error.message }, 500);
+        await audit({ action: "update_campaign", details: { campaign_id: campId, name } });
+      } else {
+        const { error } = await admin.from("marketing_campaigns").insert(campData);
+        if (error) return json({ error: error.message }, 500);
+        await audit({ action: "create_campaign", details: { name } });
+      }
+      return json({ success: true });
+    }
+
+    // ── get_campaign_metrics ──────────────────────────────────────
+    if (action === "get_campaign_metrics") {
+      const { periodType, weekStart, month, year } = payload || {};
+      const now = new Date();
+
+      // Build date range
+      let rangeStart: string;
+      let rangeEnd: string;
+
+      if (periodType === "week" && weekStart) {
+        const ws = new Date(weekStart);
+        rangeStart = ws.toISOString();
+        const we = new Date(ws);
+        we.setDate(we.getDate() + 7);
+        rangeEnd = we.toISOString();
+      } else if (periodType === "month" && month && year) {
+        const y = parseInt(year), m = parseInt(month);
+        rangeStart = new Date(y, m - 1, 1).toISOString();
+        rangeEnd = new Date(y, m, 1).toISOString();
+      } else if (periodType === "year" && year) {
+        const y = parseInt(year);
+        rangeStart = new Date(y, 0, 1).toISOString();
+        rangeEnd = new Date(y + 1, 0, 1).toISOString();
+      } else {
+        // Default: current month
+        rangeStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
+      }
+
+      // Fetch orders in range
+      const { data: orders } = await admin
+        .from("orders")
+        .select("*")
+        .gte("paid_at", rangeStart)
+        .lt("paid_at", rangeEnd)
+        .eq("order_status", "paid");
+
+      // Fetch campaigns catalog
+      const { data: campaigns } = await admin.from("marketing_campaigns").select("*");
+      const campaignMap: Record<string, any> = {};
+      (campaigns || []).forEach((c: any) => { campaignMap[c.id] = c; });
+
+      // Fetch user_attribution for users in orders
+      const userIds = [...new Set((orders || []).map((o: any) => o.user_id))];
+      const { data: attributions } = userIds.length > 0
+        ? await admin.from("user_attribution").select("*").in("user_id", userIds)
+        : { data: [] };
+      const attrMap: Record<string, any> = {};
+      (attributions || []).forEach((a: any) => { attrMap[a.user_id] = a; });
+
+      // Fetch registrations in range (for attributed_registered_users)
+      const { data: newProfiles } = await admin
+        .from("profiles")
+        .select("user_id")
+        .gte("created_at", rangeStart)
+        .lt("created_at", rangeEnd);
+      const newProfileIds = new Set((newProfiles || []).map((p: any) => p.user_id));
+
+      // Fetch user_attribution for new profiles
+      const newProfileIdsList = [...newProfileIds];
+      const { data: newAttrs } = newProfileIdsList.length > 0
+        ? await admin.from("user_attribution").select("*").in("user_id", newProfileIdsList)
+        : { data: [] };
+
+      // Build per-campaign metrics
+      const campMetrics: Record<string, {
+        name: string; type: string; registered: number; new_customers: number;
+        returning_customers: number; orders_count: number; revenue: number;
+        cost: number; coupon_uses: number; revenue_by_product: Record<string, number>;
+        units_by_product: Record<string, number>;
+      }> = {};
+
+      function ensureCamp(name: string) {
+        if (!campMetrics[name]) {
+          const matchedCamp = (campaigns || []).find((c: any) => c.name === name);
+          campMetrics[name] = {
+            name,
+            type: matchedCamp?.type || "unknown",
+            registered: 0, new_customers: 0, returning_customers: 0,
+            orders_count: 0, revenue: 0, cost: matchedCamp ? parseFloat(matchedCamp.cost) : 0,
+            coupon_uses: 0, revenue_by_product: {}, units_by_product: {},
+          };
+        }
+        return campMetrics[name];
+      }
+
+      // Count registrations by campaign
+      (newAttrs || []).forEach((a: any) => {
+        const campName = a.attributed_campaign_name || a.first_campaign || "unattributed";
+        ensureCamp(campName).registered++;
+      });
+
+      // Process orders
+      // First, find which users had orders before the range (for returning detection)
+      const { data: priorOrders } = userIds.length > 0
+        ? await admin.from("orders").select("user_id").lt("paid_at", rangeStart).eq("order_status", "paid").in("user_id", userIds)
+        : { data: [] };
+      const usersWithPriorOrders = new Set((priorOrders || []).map((o: any) => o.user_id));
+
+      // Track unique new/returning per campaign
+      const campNewCustomers: Record<string, Set<string>> = {};
+      const campReturning: Record<string, Set<string>> = {};
+
+      (orders || []).forEach((o: any) => {
+        const campName = o.attributed_campaign_name || "unattributed";
+        const m = ensureCamp(campName);
+        m.orders_count++;
+        m.revenue += parseFloat(o.amount_gross) || 0;
+        if (o.coupon_code) m.coupon_uses++;
+
+        const pt = o.product_type || "unknown";
+        m.revenue_by_product[pt] = (m.revenue_by_product[pt] || 0) + (parseFloat(o.amount_gross) || 0);
+        m.units_by_product[pt] = (m.units_by_product[pt] || 0) + 1;
+
+        // New vs returning
+        if (!campNewCustomers[campName]) campNewCustomers[campName] = new Set();
+        if (!campReturning[campName]) campReturning[campName] = new Set();
+
+        if (usersWithPriorOrders.has(o.user_id)) {
+          campReturning[campName].add(o.user_id);
+        } else {
+          campNewCustomers[campName].add(o.user_id);
+        }
+      });
+
+      // Finalize counts
+      Object.keys(campMetrics).forEach((name) => {
+        campMetrics[name].new_customers = campNewCustomers[name]?.size || 0;
+        campMetrics[name].returning_customers = campReturning[name]?.size || 0;
+        campMetrics[name].revenue = Math.round(campMetrics[name].revenue * 100) / 100;
+      });
+
+      // Build result array with derived metrics
+      const result = Object.values(campMetrics).map((c) => ({
+        ...c,
+        roi: c.cost > 0 ? parseFloat((((c.revenue - c.cost) / c.cost) * 100).toFixed(1)) : null,
+        cac: c.new_customers > 0 ? parseFloat((c.cost / c.new_customers).toFixed(2)) : null,
+        conversion_rate: c.registered > 0 ? parseFloat(((c.new_customers / c.registered) * 100).toFixed(1)) : null,
+      })).sort((a, b) => b.revenue - a.revenue);
+
+      // Summary KPIs
+      const totalRevenue = result.reduce((s, c) => s + c.revenue, 0);
+      const totalCost = result.reduce((s, c) => s + c.cost, 0);
+      const totalNewCustomers = result.reduce((s, c) => s + c.new_customers, 0);
+      const totalRegistered = result.reduce((s, c) => s + c.registered, 0);
+
+      return json({
+        campaigns: result,
+        summary: {
+          total_revenue: Math.round(totalRevenue * 100) / 100,
+          total_cost: Math.round(totalCost * 100) / 100,
+          total_new_customers: totalNewCustomers,
+          total_registered: totalRegistered,
+          overall_roi: totalCost > 0 ? parseFloat((((totalRevenue - totalCost) / totalCost) * 100).toFixed(1)) : null,
+          overall_cac: totalNewCustomers > 0 ? parseFloat((totalCost / totalNewCustomers).toFixed(2)) : null,
+        },
+        range: { start: rangeStart, end: rangeEnd },
+      });
+    }
+
+    // ── get_campaign_detail ───────────────────────────────────────
+    if (action === "get_campaign_detail") {
+      const { campaign_name } = payload;
+      if (!campaign_name) return json({ error: "campaign_name required" }, 400);
+
+      // Get all orders attributed to this campaign
+      const { data: orders } = await admin
+        .from("orders")
+        .select("*")
+        .eq("attributed_campaign_name", campaign_name)
+        .eq("order_status", "paid")
+        .order("paid_at", { ascending: false })
+        .limit(200);
+
+      // Get campaign metadata
+      const { data: campaign } = await admin
+        .from("marketing_campaigns")
+        .select("*")
+        .eq("name", campaign_name)
+        .maybeSingle();
+
+      // Get attributed users
+      const { data: attrUsers } = await admin
+        .from("user_attribution")
+        .select("user_id, first_source, first_medium, first_landing_path, created_at")
+        .eq("attributed_campaign_name", campaign_name)
+        .limit(200);
+
+      return json({
+        campaign: campaign || { name: campaign_name },
+        orders: orders || [],
+        attributed_users: attrUsers || [],
+      });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);

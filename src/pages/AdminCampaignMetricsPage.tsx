@@ -73,8 +73,8 @@ export default function AdminCampaignMetricsPage() {
       if (periodType === 'year') filters.year = selectedYear;
 
       const [metricsRes, catalogRes] = await Promise.all([
-        adminApi.callAction('get_campaign_metrics', filters),
-        adminApi.callAction('get_campaigns_catalog', {}),
+        adminApi.getCampaignMetrics(filters),
+        adminApi.getCampaignsCatalog(),
       ]);
       setMetrics(metricsRes);
       setCampaigns(catalogRes.campaigns || []);
@@ -93,7 +93,7 @@ export default function AdminCampaignMetricsPage() {
       if (periodType === 'week') filters.weekStart = weekStart;
       if (periodType === 'month') { filters.month = selectedMonth; filters.year = selectedYear; }
       if (periodType === 'year') filters.year = selectedYear;
-      const res = await adminApi.callAction('get_campaign_detail', filters);
+      const res = await adminApi.getCampaignDetail(campaignName);
       setDetailData(res);
     } catch (e: any) {
       toast.error(e.message);
@@ -102,7 +102,7 @@ export default function AdminCampaignMetricsPage() {
 
   const handleSaveCampaign = async () => {
     try {
-      await adminApi.callAction('save_campaign', {
+      await adminApi.saveCampaign({
         ...newCampaign,
         cost: parseFloat(newCampaign.cost) || 0,
       });

@@ -24,7 +24,7 @@ async function syncMailerLite(event: string, payload: Record<string, unknown>) {
       const txt = await res.text();
       console.warn(`[ML-SYNC] ${event} failed ${res.status}: ${txt}`);
     } else {
-      await res.text(); // consume body
+      await res.text();
       console.log(`[ML-SYNC] ✅ ${event}`);
     }
   } catch (e) {
@@ -32,7 +32,6 @@ async function syncMailerLite(event: string, payload: Record<string, unknown>) {
   }
 }
 
-// Map subscription plan name → MailerLite plan_type
 function planToMailerLiteType(plan: string | undefined): string {
   if (!plan) return "single";
   const p = plan.toLowerCase();
@@ -42,19 +41,19 @@ function planToMailerLiteType(plan: string | undefined): string {
 }
 
 const PRICE_CREDITS: Record<string, number> = {
-  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120,  // annual (legacy)
-  "price_1THT7cF9ZCIiqrz6sWS67Q4V": 100,  // annual_100
-  "price_1THT7gF9ZCIiqrz6Acb2CkDC": 200,  // annual_200
-  "price_1THT7jF9ZCIiqrz6i02J4bj4": 300,  // annual_300
-  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": 500,  // annual_500
-  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": 1000, // annual_1000
-  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 8,    // monthly
-  "price_1THULsF9ZCIiqrz64SbA3AK6": 1,    // individual
-  "price_1THT7xF9ZCIiqrz60FfiGbfv": 10,   // topup_10
-  "price_1THT80F9ZCIiqrz6H31dYDMG": 25,   // topup_25
-  "price_1THT83F9ZCIiqrz6BD2wmUaO": 50,   // topup_50
-  "price_1THT86F9ZCIiqrz6C548DJnT": 100,  // topup_100
-  "price_1THT8AF9ZCIiqrz626wSH9Rz": 200,  // topup_200
+  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": 120,
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": 100,
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": 200,
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": 300,
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": 500,
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": 1000,
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": 8,
+  "price_1THULsF9ZCIiqrz64SbA3AK6": 1,
+  "price_1THT7xF9ZCIiqrz60FfiGbfv": 10,
+  "price_1THT80F9ZCIiqrz6H31dYDMG": 25,
+  "price_1THT83F9ZCIiqrz6BD2wmUaO": 50,
+  "price_1THT86F9ZCIiqrz6C548DJnT": 100,
+  "price_1THT8AF9ZCIiqrz626wSH9Rz": 200,
 };
 
 const PRICE_PLAN: Record<string, string> = {
@@ -67,59 +66,179 @@ const PRICE_PLAN: Record<string, string> = {
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
 };
 
-// Map plan_id metadata → subscription plan name
+const PRICE_TO_PLAN_ID: Record<string, string> = {
+  "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "annual_legacy",
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": "annual_100",
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": "annual_200",
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": "annual_300",
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "annual_500",
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "annual_1000",
+  "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "monthly",
+  "price_1THULsF9ZCIiqrz64SbA3AK6": "individual",
+  "price_1THT7xF9ZCIiqrz60FfiGbfv": "topup_10",
+  "price_1THT80F9ZCIiqrz6H31dYDMG": "topup_25",
+  "price_1THT83F9ZCIiqrz6BD2wmUaO": "topup_50",
+  "price_1THT86F9ZCIiqrz6C548DJnT": "topup_100",
+  "price_1THT8AF9ZCIiqrz626wSH9Rz": "topup_200",
+};
+
 const PLAN_ID_TO_PLAN_NAME: Record<string, string> = {
   annual_100: "Annual", annual_200: "Annual", annual_300: "Annual",
   annual_500: "Annual", annual_1000: "Annual", monthly: "Monthly",
 };
 
-// Helper: find profile by stripe_customer_id with email fallback
+function getProductType(planId: string): string {
+  if (planId.startsWith("annual")) return "annual";
+  if (planId === "monthly") return "monthly";
+  if (planId === "individual") return "single";
+  if (planId.startsWith("topup_")) return "topup";
+  return "unknown";
+}
+
 async function findProfileByCustomerId(
-  supabase: any,
-  stripe: any,
-  customerId: string,
+  supabase: any, stripe: any, customerId: string,
 ): Promise<{ user_id: string; available_credits: number } | null> {
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("user_id, available_credits")
-    .eq("stripe_customer_id", customerId)
-    .single();
-
+    .from("profiles").select("user_id, available_credits")
+    .eq("stripe_customer_id", customerId).single();
   if (profile) return profile;
 
-  // Fallback: email lookup for legacy users
   console.warn(`[WEBHOOK] No profile for customer ${customerId} — trying email fallback`);
   const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
   if (customer.email) {
     const { data: authUser } = await supabase.auth.admin.getUserByEmail(customer.email);
     if (authUser?.user) {
-      // Save stripe_customer_id for future lookups
-      await supabase
-        .from("profiles")
-        .update({ stripe_customer_id: customerId })
-        .eq("user_id", authUser.user.id);
-      
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("user_id, available_credits")
-        .eq("user_id", authUser.user.id)
-        .single();
+      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("user_id", authUser.user.id);
+      const { data: p } = await supabase.from("profiles").select("user_id, available_credits").eq("user_id", authUser.user.id).single();
       return p;
     }
   }
   return null;
 }
 
-// Helper: get customer ID from an invoice (handles both old and new API shapes)
 function getInvoiceCustomerId(invoice: any): string {
-  return typeof invoice.customer === "string"
-    ? invoice.customer
-    : invoice.customer?.id ?? "";
+  return typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id ?? "";
 }
 
-// Helper: get price ID from invoice lines
 function getInvoicePriceId(invoice: any): string | undefined {
   return invoice.lines?.data?.[0]?.price?.id;
+}
+
+// ── Create order record in orders table ──
+async function createOrderRecord(
+  supabase: any,
+  params: {
+    userId: string;
+    stripeCheckoutSessionId?: string;
+    stripeInvoiceId?: string;
+    stripePaymentIntentId?: string;
+    stripeChargeId?: string;
+    stripeSubscriptionId?: string;
+    productType: string;
+    productCode: string;
+    productLabel: string;
+    billingInterval: string | null;
+    amountGross: number;
+    amountNet?: number;
+    currency: string;
+    isSubscription: boolean;
+    isRenewal: boolean;
+    couponCode?: string;
+    promotionCode?: string;
+    metadata?: Record<string, any>;
+    paidAt?: string;
+  }
+) {
+  try {
+    // Check if this is the first purchase for this user
+    const { count } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", params.userId);
+    const isFirstPurchase = (count || 0) === 0;
+
+    // Extract UTM data from metadata
+    const meta = params.metadata || {};
+
+    // Try to match a campaign
+    let campaignId: string | null = null;
+    let attributedCampaignName: string | null = meta.attributed_campaign_name || null;
+
+    // Try matching by utm_campaign, coupon_code, or attributed_campaign_name
+    const matchField = meta.utm_campaign || params.couponCode || attributedCampaignName;
+    if (matchField) {
+      let q = supabase.from("marketing_campaigns").select("id, name");
+      // Try utm_campaign match first
+      if (meta.utm_campaign) {
+        const { data: camp } = await q.eq("utm_campaign", meta.utm_campaign).limit(1).maybeSingle();
+        if (camp) { campaignId = camp.id; attributedCampaignName = camp.name; }
+      }
+      // Fallback: coupon match
+      if (!campaignId && params.couponCode) {
+        const { data: camp } = await supabase.from("marketing_campaigns").select("id, name").eq("coupon_code", params.couponCode).limit(1).maybeSingle();
+        if (camp) { campaignId = camp.id; attributedCampaignName = camp.name; }
+      }
+    }
+
+    const orderData = {
+      user_id: params.userId,
+      stripe_checkout_session_id: params.stripeCheckoutSessionId || null,
+      stripe_invoice_id: params.stripeInvoiceId || null,
+      stripe_payment_intent_id: params.stripePaymentIntentId || null,
+      stripe_charge_id: params.stripeChargeId || null,
+      stripe_subscription_id: params.stripeSubscriptionId || null,
+      product_type: params.productType,
+      product_code: params.productCode,
+      product_label: params.productLabel,
+      billing_interval: params.billingInterval,
+      quantity: 1,
+      amount_gross: params.amountGross,
+      amount_net: params.amountNet || null,
+      currency: params.currency,
+      is_subscription: params.isSubscription,
+      is_renewal: params.isRenewal,
+      is_first_purchase: isFirstPurchase,
+      coupon_code: params.couponCode || null,
+      promotion_code: params.promotionCode || null,
+      campaign_id: campaignId,
+      attributed_campaign_name: attributedCampaignName,
+      utm_source: meta.utm_source || null,
+      utm_medium: meta.utm_medium || null,
+      utm_campaign: meta.utm_campaign || null,
+      utm_content: meta.utm_content || null,
+      utm_term: meta.utm_term || null,
+      referrer: meta.referrer || null,
+      landing_path: meta.landing_path || null,
+      metadata: meta,
+      paid_at: params.paidAt || new Date().toISOString(),
+    };
+
+    const { data: order, error } = await supabase.from("orders").insert(orderData).select("id").single();
+    if (error) {
+      console.error("[WEBHOOK] Failed to create order:", error.message);
+      return null;
+    }
+
+    // Create order_attribution record
+    if (order) {
+      await supabase.from("order_attribution").insert({
+        order_id: order.id,
+        campaign_id: campaignId,
+        attributed_campaign_name: attributedCampaignName,
+        source: meta.utm_source || null,
+        medium: meta.utm_medium || null,
+        campaign: meta.utm_campaign || null,
+        content: meta.utm_content || null,
+        coupon_code: params.couponCode || null,
+      });
+    }
+
+    console.log(`[WEBHOOK] ✅ Order created: ${order?.id} (first_purchase=${isFirstPurchase}, renewal=${params.isRenewal})`);
+    return order;
+  } catch (err: any) {
+    console.error("[WEBHOOK] Error creating order:", err.message);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -149,9 +268,7 @@ serve(async (req) => {
       );
     }
 
-    // Use constructEventAsync for Deno compatibility
     const event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
-
     console.log(`[WEBHOOK] Received event: ${event.type}`);
 
     // ── checkout.session.completed ──────────────────────────────────────
@@ -164,77 +281,84 @@ serve(async (req) => {
       if (userId && credits > 0) {
         // Fetch previous plan BEFORE updating (to detect first annual purchase)
         const { data: prevProfile } = await supabase
-          .from("profiles")
-          .select("subscription_plan")
-          .eq("user_id", userId)
-          .single();
+          .from("profiles").select("subscription_plan").eq("user_id", userId).single();
         const previousPlan = prevProfile?.subscription_plan || "Free";
 
         await addCredits(supabase, userId, credits, `Compra plan ${planId}: +${credits} créditos`);
 
         const planName = PLAN_ID_TO_PLAN_NAME[planId];
         if (planName) {
-          await supabase
-            .from("profiles")
-            .update({ subscription_plan: planName })
-            .eq("user_id", userId);
+          await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", userId);
           console.log(`[WEBHOOK] Updated subscription_plan to ${planName} for user ${userId}`);
         }
 
-        // Guardar stripe_customer_id para evitar listUsers() en futuros eventos
+        // Save stripe_customer_id
         let resolvedCustomerId: string | undefined;
         if (session.customer) {
-          resolvedCustomerId = typeof session.customer === "string"
-            ? session.customer
-            : session.customer.id;
-          await supabase
-            .from("profiles")
-            .update({ stripe_customer_id: resolvedCustomerId })
-            .eq("user_id", userId);
+          resolvedCustomerId = typeof session.customer === "string" ? session.customer : session.customer.id;
+          await supabase.from("profiles").update({ stripe_customer_id: resolvedCustomerId }).eq("user_id", userId);
           console.log(`[WEBHOOK] Saved stripe_customer_id ${resolvedCustomerId} for user ${userId}`);
         }
+
+        // ── Create order record ──
+        const sessionMeta = session.metadata || {};
+        const amountTotal = session.amount_total ? session.amount_total / 100 : 0;
+        const stripeSubId = typeof session.subscription === "string" ? session.subscription : (session.subscription as any)?.id || null;
+        const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : (session.payment_intent as any)?.id || null;
+
+        // Check for discount/coupon
+        let couponCode: string | undefined;
+        let promotionCode: string | undefined;
+        try {
+          if (session.total_details && (session.total_details as any).breakdown?.discounts?.length > 0) {
+            const discount = (session.total_details as any).breakdown.discounts[0];
+            couponCode = discount?.discount?.coupon?.id;
+            promotionCode = discount?.discount?.promotion_code;
+          }
+        } catch { /* ignore */ }
+
+        await createOrderRecord(supabase, {
+          userId,
+          stripeCheckoutSessionId: session.id,
+          stripeSubscriptionId: stripeSubId,
+          stripePaymentIntentId: paymentIntentId,
+          productType: sessionMeta.product_type || getProductType(planId),
+          productCode: sessionMeta.product_code || planId,
+          productLabel: sessionMeta.product_label || planId,
+          billingInterval: sessionMeta.billing_interval || null,
+          amountGross: amountTotal,
+          currency: session.currency || "eur",
+          isSubscription: !!stripeSubId,
+          isRenewal: false,
+          couponCode: couponCode || sessionMeta.coupon_code,
+          promotionCode,
+          metadata: sessionMeta,
+        });
 
         // Send purchase confirmation email
         try {
           const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId);
           if (authUser?.email) {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("display_name, language")
-              .eq("user_id", userId)
-              .single();
+            const { data: profileData } = await supabase.from("profiles").select("display_name, language").eq("user_id", userId).single();
             const displayName = profileData?.display_name || authUser.user_metadata?.display_name || authUser.email.split("@")[0];
             const userLang = profileData?.language;
-            // Try to get invoice URL from Stripe
             let invoiceUrl: string | undefined;
             if (resolvedCustomerId) {
               try {
                 const invoices = await stripe.invoices.list({ customer: resolvedCustomerId, limit: 1 });
-                if (invoices.data[0]?.hosted_invoice_url) {
-                  invoiceUrl = invoices.data[0].hosted_invoice_url;
-                }
+                if (invoices.data[0]?.hosted_invoice_url) invoiceUrl = invoices.data[0].hosted_invoice_url;
               } catch (e) { console.warn("[WEBHOOK] Could not fetch invoice URL:", e); }
             }
-            const email = creditPurchaseEmail({
-              name: displayName,
-              planName: planName || planId,
-              credits,
-              invoiceUrl,
-              lang: userLang,
-            });
+            const email = creditPurchaseEmail({ name: displayName, planName: planName || planId, credits, invoiceUrl, lang: userLang });
             const messageId = crypto.randomUUID();
-            await supabase.from("email_send_log").insert({
-              message_id: messageId, template_name: "credit_purchase", recipient_email: authUser.email, status: "pending",
-            });
+            await supabase.from("email_send_log").insert({ message_id: messageId, template_name: "credit_purchase", recipient_email: authUser.email, status: "pending" });
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
                 idempotency_key: `credit-purchase-${messageId}`, message_id: messageId,
-                to: authUser.email, from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
+                to: authUser.email, from: "MusicDibs <noreply@notify.musicdibs.com>", sender_domain: "notify.musicdibs.com",
                 subject: email.subject, html: email.html, text: email.text,
-                purpose: "transactional", label: "credit_purchase",
-                queued_at: new Date().toISOString(),
+                purpose: "transactional", label: "credit_purchase", queued_at: new Date().toISOString(),
               },
             });
             console.log(`[WEBHOOK] Purchase confirmation email enqueued for ${authUser.email}`);
@@ -242,28 +366,19 @@ serve(async (req) => {
         } catch (emailErr) {
           console.error("[WEBHOOK] Error enqueuing purchase email:", emailErr);
         }
+
         // ── MailerLite sync: purchase ──
         try {
           const { data: { user: mlUser } } = await supabase.auth.admin.getUserById(userId);
           if (mlUser?.email) {
-            const { data: mlProfile } = await supabase
-              .from("profiles")
-              .select("language")
-              .eq("user_id", userId)
-              .single();
-            const mlCustId = session.customer
-              ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id)
-              : "";
+            const { data: mlProfile } = await supabase.from("profiles").select("language").eq("user_id", userId).single();
+            const mlCustId = session.customer ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id) : "";
             await syncMailerLite("purchase.completed", {
-              email: mlUser.email,
-              locale: mlProfile?.language || "es",
-              plan_type: planToMailerLiteType(planName || planId),
-              stripe_customer_id: mlCustId,
+              email: mlUser.email, locale: mlProfile?.language || "es",
+              plan_type: planToMailerLiteType(planName || planId), stripe_customer_id: mlCustId,
             });
           }
-        } catch (mlErr) {
-          console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr);
-        }
+        } catch (mlErr) { console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr); }
 
         // ── Notify team: first annual subscription (distribution onboarding) ──
         const ANNUAL_IDS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
@@ -271,31 +386,22 @@ serve(async (req) => {
           try {
             const { data: { user: distUser } } = await supabase.auth.admin.getUserById(userId);
             const distEmail = distUser?.email || "desconocido";
-            const { data: distProfile } = await supabase
-              .from("profiles")
-              .select("display_name")
-              .eq("user_id", userId)
-              .single();
+            const { data: distProfile } = await supabase.from("profiles").select("display_name").eq("user_id", userId).single();
             const distName = distProfile?.display_name || distEmail.split("@")[0];
 
             const distHtml = `<h2>🎵 Nuevo alta en Distribución</h2><p>Un usuario ha contratado su primera suscripción anual y necesita ser dado de alta en la plataforma de distribución.</p><table style="border-collapse:collapse;margin:16px 0;"><tr><td style="padding:6px 12px;font-weight:bold;">Usuario:</td><td style="padding:6px 12px;">${distName}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Email:</td><td style="padding:6px 12px;">${distEmail}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Plan:</td><td style="padding:6px 12px;">${planId}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Créditos:</td><td style="padding:6px 12px;">${credits}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">User ID:</td><td style="padding:6px 12px;">${userId}</td></tr></table><p>👉 <a href="https://musicdibs.sonosuite.com/">Dar de alta en Sonosuite</a></p>`;
             const distText = `Nuevo alta en Distribución\nUsuario: ${distName}\nEmail: ${distEmail}\nPlan: ${planId}\nCréditos: ${credits}\nUser ID: ${userId}\nDar de alta en: https://musicdibs.sonosuite.com/`;
 
             const distMsgId = crypto.randomUUID();
-            await supabase.from("email_send_log").insert({
-              message_id: distMsgId, template_name: "distribution_onboarding", recipient_email: "marketing@musicdibs.com", status: "pending",
-            });
+            await supabase.from("email_send_log").insert({ message_id: distMsgId, template_name: "distribution_onboarding", recipient_email: "marketing@musicdibs.com", status: "pending" });
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
                 idempotency_key: `dist-onboard-${userId}-${planId}`, message_id: distMsgId,
                 to: "marketing@musicdibs.com", cc: "info@musicdibs.com",
-                from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
-                subject: "Nuevo alta en Distribución",
-                html: distHtml, text: distText,
-                purpose: "transactional", label: "distribution_onboarding",
-                queued_at: new Date().toISOString(),
+                from: "MusicDibs <noreply@notify.musicdibs.com>", sender_domain: "notify.musicdibs.com",
+                subject: "Nuevo alta en Distribución", html: distHtml, text: distText,
+                purpose: "transactional", label: "distribution_onboarding", queued_at: new Date().toISOString(),
               },
             });
             console.log(`[WEBHOOK] ✅ Distribution onboarding email enqueued for user ${distEmail}`);
@@ -304,57 +410,23 @@ serve(async (req) => {
             const userMsgId = crypto.randomUUID();
             const lang = distUser?.user_metadata?.language || "es";
             const userName = distName !== distEmail ? distName : "";
-
             const subjectByLang: Record<string, string> = {
-              es: "Tu acceso a distribución está en camino 🎶",
-              en: "Your distribution access is on its way 🎶",
-              pt: "Seu acesso à distribuição está a caminho 🎶",
+              es: "Tu acceso a distribución está en camino 🎶", en: "Your distribution access is on its way 🎶", pt: "Seu acesso à distribuição está a caminho 🎶",
             };
-            const userSubject = subjectByLang[lang] || subjectByLang["es"];
-
             const greetingByLang: Record<string, string> = {
-              es: userName ? `¡Hola ${userName}!` : "¡Hola!",
-              en: userName ? `Hi ${userName}!` : "Hi!",
-              pt: userName ? `Olá ${userName}!` : "Olá!",
+              es: userName ? `¡Hola ${userName}!` : "¡Hola!", en: userName ? `Hi ${userName}!` : "Hi!", pt: userName ? `Olá ${userName}!` : "Olá!",
             };
-
             const bodyByLang: Record<string, string> = {
-              es: `<h2>${greetingByLang["es"]}</h2>
-<p>¡Enhorabuena por activar tu suscripción anual! 🎉</p>
-<p>Estamos preparando tu cuenta en nuestra plataforma de distribución para que puedas llevar tu música a todas las tiendas digitales (Spotify, Apple Music, Amazon Music, y muchas más).</p>
-<p><strong>En un plazo máximo de 72 horas</strong> recibirás un correo electrónico con las instrucciones para generar tu contraseña y acceder a la plataforma de distribución.</p>
-<p>El proceso de alta requiere una configuración manual por parte de nuestro equipo para garantizar que todo esté correctamente vinculado a tu cuenta.</p>
-<p>Si tienes alguna pregunta mientras tanto, no dudes en escribirnos a <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
-<p>¡Gracias por confiar en MusicDibs!</p>
-<p>— El equipo de MusicDibs</p>`,
-              en: `<h2>${greetingByLang["en"]}</h2>
-<p>Congratulations on activating your annual subscription! 🎉</p>
-<p>We are setting up your account on our distribution platform so you can get your music on all major digital stores (Spotify, Apple Music, Amazon Music, and more).</p>
-<p><strong>Within a maximum of 72 hours</strong> you will receive an email with instructions to create your password and access the distribution platform.</p>
-<p>The onboarding process requires manual setup by our team to ensure everything is properly linked to your account.</p>
-<p>If you have any questions in the meantime, feel free to reach out at <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
-<p>Thank you for trusting MusicDibs!</p>
-<p>— The MusicDibs Team</p>`,
-              pt: `<h2>${greetingByLang["pt"]}</h2>
-<p>Parabéns por ativar sua assinatura anual! 🎉</p>
-<p>Estamos preparando sua conta em nossa plataforma de distribuição para que você possa levar sua música a todas as lojas digitais (Spotify, Apple Music, Amazon Music e muito mais).</p>
-<p><strong>Em um prazo máximo de 72 horas</strong> você receberá um e-mail com as instruções para gerar sua senha e acessar a plataforma de distribuição.</p>
-<p>O processo de integração requer uma configuração manual por parte da nossa equipe para garantir que tudo esteja corretamente vinculado à sua conta.</p>
-<p>Se tiver alguma dúvida, não hesite em nos escrever em <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
-<p>Obrigado por confiar na MusicDibs!</p>
-<p>— A equipe MusicDibs</p>`,
+              es: `<h2>${greetingByLang["es"]}</h2><p>¡Enhorabuena por activar tu suscripción anual! 🎉</p><p>Estamos preparando tu cuenta en nuestra plataforma de distribución para que puedas llevar tu música a todas las tiendas digitales (Spotify, Apple Music, Amazon Music, y muchas más).</p><p><strong>En un plazo máximo de 72 horas</strong> recibirás un correo electrónico con las instrucciones para generar tu contraseña y acceder a la plataforma de distribución.</p><p>El proceso de alta requiere una configuración manual por parte de nuestro equipo para garantizar que todo esté correctamente vinculado a tu cuenta.</p><p>Si tienes alguna pregunta mientras tanto, no dudes en escribirnos a <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p><p>¡Gracias por confiar en MusicDibs!</p><p>— El equipo de MusicDibs</p>`,
+              en: `<h2>${greetingByLang["en"]}</h2><p>Congratulations on activating your annual subscription! 🎉</p><p>We are setting up your account on our distribution platform so you can get your music on all major digital stores (Spotify, Apple Music, Amazon Music, and more).</p><p><strong>Within a maximum of 72 hours</strong> you will receive an email with instructions to create your password and access the distribution platform.</p><p>The onboarding process requires manual setup by our team to ensure everything is properly linked to your account.</p><p>If you have any questions in the meantime, feel free to reach out at <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p><p>Thank you for trusting MusicDibs!</p><p>— The MusicDibs Team</p>`,
+              pt: `<h2>${greetingByLang["pt"]}</h2><p>Parabéns por ativar sua assinatura anual! 🎉</p><p>Estamos preparando sua conta em nossa plataforma de distribuição para que você possa levar sua música a todas as lojas digitais (Spotify, Apple Music, Amazon Music e muito mais).</p><p><strong>Em um prazo máximo de 72 horas</strong> você receberá um e-mail com as instruções para gerar sua senha e acessar a plataforma de distribuição.</p><p>O processo de integração requer uma configuração manual por parte da nossa equipe para garantir que tudo esteja corretamente vinculado à sua conta.</p><p>Se tiver alguma dúvida, não hesite em nos escrever em <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p><p>Obrigado por confiar na MusicDibs!</p><p>— A equipe MusicDibs</p>`,
             };
             const userHtml = bodyByLang[lang] || bodyByLang["es"];
-
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
-                to: distEmail,
-                subject: userSubject,
-                html: userHtml,
-                purpose: "transactional",
-                idempotency_key: `dist-welcome-${userId}-${planId}`,
-                message_id: userMsgId,
+                to: distEmail, subject: subjectByLang[lang] || subjectByLang["es"], html: userHtml,
+                purpose: "transactional", idempotency_key: `dist-welcome-${userId}-${planId}`, message_id: userMsgId,
               },
             });
             console.log(`[WEBHOOK] ✅ Distribution welcome email enqueued for ${distEmail}`);
@@ -369,31 +441,38 @@ serve(async (req) => {
     if (event.type === "invoice.payment_succeeded" || event.type === "invoice_payment.paid") {
       const obj = event.data.object as any;
 
-      // For invoice_payment.paid, we need to fetch the invoice to get customer & lines
       let customerId: string;
       let billingReason: string | null = null;
       let priceId: string | undefined;
+      let invoiceId: string | undefined;
+      let subscriptionId: string | undefined;
+      let invoiceAmount = 0;
+      let invoiceCurrency = "eur";
 
       if (event.type === "invoice_payment.paid") {
-        // New clover API: obj is an InvoicePayment, fetch the invoice
-        const invoiceId = typeof obj.invoice === "string" ? obj.invoice : obj.invoice?.id;
-        if (invoiceId) {
-          const invoice = await stripe.invoices.retrieve(invoiceId);
+        const invId = typeof obj.invoice === "string" ? obj.invoice : obj.invoice?.id;
+        if (invId) {
+          const invoice = await stripe.invoices.retrieve(invId);
           customerId = getInvoiceCustomerId(invoice);
           billingReason = invoice.billing_reason as string | null;
           priceId = getInvoicePriceId(invoice);
+          invoiceId = invId;
+          subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : (invoice.subscription as any)?.id;
+          invoiceAmount = (invoice.amount_paid || 0) / 100;
+          invoiceCurrency = invoice.currency || "eur";
         } else {
           console.warn("[WEBHOOK] invoice_payment.paid: no invoice ID found");
-          return new Response(JSON.stringify({ received: true }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return new Response(JSON.stringify({ received: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } else {
-        // Legacy API: obj is the invoice itself
         const invoice = obj;
         customerId = getInvoiceCustomerId(invoice);
         billingReason = invoice.billing_reason;
         priceId = getInvoicePriceId(invoice);
+        invoiceId = invoice.id;
+        subscriptionId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+        invoiceAmount = (invoice.amount_paid || 0) / 100;
+        invoiceCurrency = invoice.currency || "eur";
       }
 
       if (billingReason === "subscription_cycle") {
@@ -403,19 +482,33 @@ serve(async (req) => {
           const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
 
           if (credits > 0) {
-            await supabase
-              .from("profiles")
-              .update({ available_credits: credits })
-              .eq("user_id", profile.user_id);
-
+            await supabase.from("profiles").update({ available_credits: credits }).eq("user_id", profile.user_id);
             await supabase.from("credit_transactions").insert({
-              user_id:     profile.user_id,
-              amount:      credits,
-              type:        "renewal",
+              user_id: profile.user_id, amount: credits, type: "renewal",
               description: `Renovación de suscripción: créditos reiniciados a ${credits}`,
             });
             console.log(`[WEBHOOK] Reset credits to ${credits} for user ${profile.user_id} (renewal)`);
           }
+
+          // ── Create renewal order ──
+          const resolvedPlanId = priceId ? (PRICE_TO_PLAN_ID[priceId] || "unknown") : "unknown";
+          const productType = getProductType(resolvedPlanId);
+          const planLabel = PLAN_ID_TO_PLAN_NAME[resolvedPlanId] ? `Renovación ${resolvedPlanId}` : `Renovación ${resolvedPlanId}`;
+
+          await createOrderRecord(supabase, {
+            userId: profile.user_id,
+            stripeInvoiceId: invoiceId,
+            stripeSubscriptionId: subscriptionId,
+            productType,
+            productCode: resolvedPlanId,
+            productLabel: planLabel,
+            billingInterval: productType === "annual" ? "yearly" : productType === "monthly" ? "monthly" : null,
+            amountGross: invoiceAmount,
+            currency: invoiceCurrency,
+            isSubscription: true,
+            isRenewal: true,
+            metadata: {},
+          });
         } else {
           console.warn(`[WEBHOOK] payment_succeeded: no profile found for customer ${customerId}`);
         }
@@ -436,186 +529,109 @@ serve(async (req) => {
           const invoice = await stripe.invoices.retrieve(invoiceId);
           customerId = getInvoiceCustomerId(invoice);
           attemptCount = invoice.attempt_count ?? 0;
-          nextAttempt = invoice.next_payment_attempt
-            ? new Date((invoice.next_payment_attempt as number) * 1000).toISOString()
-            : null;
+          nextAttempt = invoice.next_payment_attempt ? new Date((invoice.next_payment_attempt as number) * 1000).toISOString() : null;
         } else {
           console.warn("[WEBHOOK] invoice_payment.failed: no invoice ID found");
-          return new Response(JSON.stringify({ received: true }), {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+          return new Response(JSON.stringify({ received: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } else {
         const invoice = obj;
         customerId = getInvoiceCustomerId(invoice);
         attemptCount = invoice.attempt_count;
-        nextAttempt = invoice.next_payment_attempt
-          ? new Date(invoice.next_payment_attempt * 1000).toISOString()
-          : null;
+        nextAttempt = invoice.next_payment_attempt ? new Date(invoice.next_payment_attempt * 1000).toISOString() : null;
       }
 
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
-
       if (profile) {
         const description = `Fallo en cobro de suscripción (intento ${attemptCount})${nextAttempt ? `. Próximo reintento: ${nextAttempt}` : ". No hay más reintentos."}`;
-
-        await supabase.from("credit_transactions").insert({
-          user_id:     profile.user_id,
-          amount:      0,
-          type:        "payment_failed",
-          description,
-        });
+        await supabase.from("credit_transactions").insert({ user_id: profile.user_id, amount: 0, type: "payment_failed", description });
         console.log(`[WEBHOOK] Payment failed for user ${profile.user_id} (attempt ${attemptCount})`);
 
-        // Send email notification via pgmq queue
         try {
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
           const userEmail = customer.email || "";
-          const userName  = customer.name || userEmail;
-
+          const userName = customer.name || userEmail;
           if (userEmail) {
-            // Fetch user language
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("language")
-              .eq("user_id", profile.user_id)
-              .single();
-            const userLang = profileData?.language;
-            const email = paymentFailedEmail({
-              name: userName,
-              description,
-              attemptCount,
-              nextAttempt,
-              lang: userLang,
-            });
+            const { data: profileData } = await supabase.from("profiles").select("language").eq("user_id", profile.user_id).single();
+            const email = paymentFailedEmail({ name: userName, description, attemptCount, nextAttempt, lang: profileData?.language });
             const messageId = crypto.randomUUID();
-            await supabase.from("email_send_log").insert({
-              message_id: messageId, template_name: "payment_failed", recipient_email: userEmail, status: "pending",
-            });
+            await supabase.from("email_send_log").insert({ message_id: messageId, template_name: "payment_failed", recipient_email: userEmail, status: "pending" });
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
                 idempotency_key: `payment-failed-${messageId}`, message_id: messageId,
-                to: userEmail, from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
+                to: userEmail, from: "MusicDibs <noreply@notify.musicdibs.com>", sender_domain: "notify.musicdibs.com",
                 subject: email.subject, html: email.html, text: email.text,
-                purpose: "transactional", label: "payment_failed",
-                queued_at: new Date().toISOString(),
+                purpose: "transactional", label: "payment_failed", queued_at: new Date().toISOString(),
               },
             });
-            console.log(`[WEBHOOK] Payment failure email enqueued for ${userEmail}`);
-
-            // Also notify admin
-            const adminMessageId = crypto.randomUUID();
-            await supabase.from("email_send_log").insert({
-              message_id: adminMessageId, template_name: "payment_failed_admin", recipient_email: "info@musicdibs.com", status: "pending",
-            });
+            const adminMsgId = crypto.randomUUID();
+            await supabase.from("email_send_log").insert({ message_id: adminMsgId, template_name: "payment_failed_admin", recipient_email: "info@musicdibs.com", status: "pending" });
             await supabase.rpc("enqueue_email", {
               queue_name: "transactional_emails",
               payload: {
-                idempotency_key: `payment-failed-admin-${adminMessageId}`, message_id: adminMessageId,
-                to: "info@musicdibs.com", from: "MusicDibs <noreply@notify.musicdibs.com>",
-                sender_domain: "notify.musicdibs.com",
-                subject: `⚠️ Fallo de pago — ${userEmail}`,
-                html: email.html, text: email.text,
-                purpose: "transactional", label: "payment_failed_admin",
-                queued_at: new Date().toISOString(),
+                idempotency_key: `payment-failed-admin-${adminMsgId}`, message_id: adminMsgId,
+                to: "info@musicdibs.com", from: "MusicDibs <noreply@notify.musicdibs.com>", sender_domain: "notify.musicdibs.com",
+                subject: `⚠️ Fallo de pago — ${userEmail}`, html: email.html, text: email.text,
+                purpose: "transactional", label: "payment_failed_admin", queued_at: new Date().toISOString(),
               },
             });
-            console.log(`[WEBHOOK] Payment failure admin notification enqueued`);
           }
-        } catch (emailErr) {
-          console.error("[WEBHOOK] Error enqueuing payment failure email:", emailErr);
-        }
+        } catch (emailErr) { console.error("[WEBHOOK] Error enqueuing payment failure email:", emailErr); }
       } else {
         console.warn(`[WEBHOOK] payment_failed: no profile found for customer ${customerId}`);
       }
     }
 
-    // ── customer.subscription.updated (cambio de plan externo) ──────────
+    // ── customer.subscription.updated ──────────────────────────────────
     if (event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId   = typeof subscription.customer === "string"
-        ? subscription.customer
-        : (subscription.customer as any)?.id ?? "";
-      const priceId      = subscription.items?.data?.[0]?.price?.id;
-      const status       = subscription.status;
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : (subscription.customer as any)?.id ?? "";
+      const priceId = subscription.items?.data?.[0]?.price?.id;
+      const status = subscription.status;
 
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
-
       if (profile) {
         const planName = priceId ? (PRICE_PLAN[priceId] || null) : null;
-
         if (status === "active" && planName) {
-          await supabase
-            .from("profiles")
-            .update({ subscription_plan: planName })
-            .eq("user_id", profile.user_id);
+          await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", profile.user_id);
           console.log(`[WEBHOOK] subscription.updated → plan set to ${planName} for user ${profile.user_id}`);
         } else if (status === "past_due" || status === "unpaid") {
           await supabase.from("credit_transactions").insert({
-            user_id:     profile.user_id,
-            amount:      0,
-            type:        "subscription_issue",
+            user_id: profile.user_id, amount: 0, type: "subscription_issue",
             description: `Suscripción en estado "${status}". Se requiere acción de pago.`,
           });
-          console.log(`[WEBHOOK] subscription.updated → status ${status} for user ${profile.user_id}`);
         } else if (status === "canceled" || status === "incomplete_expired") {
-          await supabase
-            .from("profiles")
-            .update({ subscription_plan: "Free" })
-            .eq("user_id", profile.user_id);
-          console.log(`[WEBHOOK] subscription.updated → reset to Free for user ${profile.user_id}`);
+          await supabase.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", profile.user_id);
         }
-      } else {
-        console.warn(`[WEBHOOK] subscription.updated: no profile found for customer ${customerId}`);
       }
     }
 
-    // ── customer.subscription.deleted (cancelación) ─────────────────────
+    // ── customer.subscription.deleted ─────────────────────────────────
     if (event.type === "customer.subscription.deleted") {
       const subscription = event.data.object as Stripe.Subscription;
-      const customerId   = typeof subscription.customer === "string"
-        ? subscription.customer
-        : (subscription.customer as any)?.id ?? "";
-
+      const customerId = typeof subscription.customer === "string" ? subscription.customer : (subscription.customer as any)?.id ?? "";
       const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
       if (profile) {
-        // Get current plan before resetting
-        const { data: cancelProfile } = await supabase
-          .from("profiles")
-          .select("subscription_plan, language")
-          .eq("user_id", profile.user_id)
-          .single();
+        const { data: cancelProfile } = await supabase.from("profiles").select("subscription_plan, language").eq("user_id", profile.user_id).single();
         const oldPlan = cancelProfile?.subscription_plan;
-
-        await supabase
-          .from("profiles")
-          .update({ subscription_plan: "Free" })
-          .eq("user_id", profile.user_id);
+        await supabase.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", profile.user_id);
         console.log(`[WEBHOOK] Reset to Free for user ${profile.user_id} (cancellation)`);
 
-        // ── MailerLite sync: cancellation ──
         try {
           const { data: { user: cancelUser } } = await supabase.auth.admin.getUserById(profile.user_id);
           if (cancelUser?.email) {
             await syncMailerLite("subscription.cancelled", {
-              email: cancelUser.email,
-              locale: cancelProfile?.language || "es",
-              plan_type: planToMailerLiteType(oldPlan),
-              cancellation_reason: "stripe_deleted",
+              email: cancelUser.email, locale: cancelProfile?.language || "es",
+              plan_type: planToMailerLiteType(oldPlan), cancellation_reason: "stripe_deleted",
             });
           }
-        } catch (mlErr) {
-          console.warn("[WEBHOOK] MailerLite cancellation sync error:", mlErr);
-        }
-      } else {
-        console.warn(`[WEBHOOK] subscription.deleted: no profile found for customer ${customerId}`);
+        } catch (mlErr) { console.warn("[WEBHOOK] MailerLite cancellation sync error:", mlErr); }
       }
     }
 
-    // ── checkout.session.expired (carrito abandonado) ─────────────────────
+    // ── checkout.session.expired ─────────────────────────────────────
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       const userEmail = session.customer_email;
@@ -623,79 +639,36 @@ serve(async (req) => {
 
       if (userEmail) {
         console.log(`[WEBHOOK] checkout.session.expired → ${userEmail}`);
-
         let locale = "en";
         if (userId) {
-          const { data: prof } = await supabase
-            .from("profiles")
-            .select("language")
-            .eq("user_id", userId)
-            .single();
+          const { data: prof } = await supabase.from("profiles").select("language").eq("user_id", userId).single();
           if (prof?.language) locale = prof.language;
         }
-
         const planType = session.metadata?.plan_type || "mensuales";
-
         try {
           await syncMailerLite("cart.abandoned", {
-            email: userEmail,
-            locale,
-            plan_type: planType,
+            email: userEmail, locale, plan_type: planType,
             amount: session.amount_total ? (session.amount_total / 100).toFixed(2) : "0",
             currency: session.currency?.toUpperCase() || "EUR",
           });
-        } catch (mlErr) {
-          console.warn("[WEBHOOK] MailerLite cart.abandoned sync error:", mlErr);
-        }
-      } else {
-        console.warn("[WEBHOOK] checkout.session.expired: no customer_email");
+        } catch (mlErr) { console.warn("[WEBHOOK] MailerLite cart.abandoned sync error:", mlErr); }
       }
     }
 
-    return new Response(
-      JSON.stringify({ received: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ received: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     console.error("[WEBHOOK] Error:", msg);
-    return new Response(
-      JSON.stringify({ error: msg }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-    );
+    return new Response(JSON.stringify({ error: msg }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 });
   }
 });
 
 async function addCredits(supabase: any, userId: string, credits: number, description: string) {
-  await supabase.from("credit_transactions").insert({
-    user_id:     userId,
-    amount:      credits,
-    type:        "purchase",
-    description,
-  });
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("available_credits")
-    .eq("user_id", userId)
-    .single();
-
+  await supabase.from("credit_transactions").insert({ user_id: userId, amount: credits, type: "purchase", description });
+  const { data: profile } = await supabase.from("profiles").select("available_credits").eq("user_id", userId).single();
   if (profile) {
-    await supabase
-      .from("profiles")
-      .update({ available_credits: profile.available_credits + credits })
-      .eq("user_id", userId);
+    await supabase.from("profiles").update({ available_credits: profile.available_credits + credits }).eq("user_id", userId);
   }
-
   console.log(`[WEBHOOK] Added ${credits} credits to user ${userId}`);
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
