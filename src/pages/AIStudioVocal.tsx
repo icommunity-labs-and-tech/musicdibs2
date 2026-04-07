@@ -75,7 +75,7 @@ export default function AIStudioVocal() {
 
   // Lyrics generator
   const [lyricsDesc, setLyricsDesc] = useState('');
-  const [lyricsTheme, setLyricsTheme] = useState('');
+  const [_lyricsTheme] = useState(''); // kept for type compat
   const [lyricsGenre, setLyricsGenre] = useState('');
   const [lyricsMood, setLyricsMood] = useState('');
   const [lyricsStyle, setLyricsStyle] = useState('');
