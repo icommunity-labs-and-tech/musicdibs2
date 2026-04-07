@@ -1622,12 +1622,25 @@ serve(async (req) => {
 
       const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
       const dryRun = payload.dry_run === true;
-      const limitCustomers = payload.limit ? Number(payload.limit) : 999;
 
-      const stats = { invoices_found: 0, charges_found: 0, orders_created: 0, skipped_existing: 0, skipped_no_user: 0, errors: 0 };
-
-      // Build user_id -> first paid_at map for is_first_purchase calculation
-      const firstPurchaseMap: Record<string, string> = {};
+      const stats = {
+        invoices_found: 0,
+        charges_found: 0,
+        orders_to_create: 0,
+        orders_created: 0,
+        duplicates_skipped: 0,
+        missing_user: 0,
+        resolved_by_customer_id: 0,
+        resolved_by_email_fallback: 0,
+        unknown_product_type: 0,
+        invoice_based: 0,
+        charge_based: 0,
+        skipped_refunded: 0,
+        skipped_failed: 0,
+        skipped_voided: 0,
+        skipped_disputed: 0,
+        errors: 0,
+      };
 
       // Collect all existing order stripe IDs to avoid duplicates
       const { data: existingOrders } = await admin
@@ -1645,22 +1658,25 @@ serve(async (req) => {
       const emailToUserId: Record<string, string> = {};
       (allAuthUsers || []).forEach((u: any) => { if (u.email) emailToUserId[u.email.toLowerCase()] = u.id; });
 
-      // Also build stripe_customer_id -> user_id map from profiles
+      // Build stripe_customer_id -> user_id map from profiles
       const { data: allProfiles } = await admin.from("profiles").select("user_id, stripe_customer_id");
       const custToUserId: Record<string, string> = {};
       (allProfiles || []).forEach((p: any) => { if (p.stripe_customer_id) custToUserId[p.stripe_customer_id] = p.user_id; });
 
-      // Helper: resolve user_id from Stripe customer
-      async function resolveUserId(customerId: string): Promise<string | null> {
-        if (custToUserId[customerId]) return custToUserId[customerId];
+      // Helper: resolve user_id from Stripe customer with traceability
+      async function resolveUserId(customerId: string): Promise<{ userId: string | null; via: string }> {
+        if (custToUserId[customerId]) return { userId: custToUserId[customerId], via: "stripe_customer_id" };
         try {
           const cust = await stripe.customers.retrieve(customerId) as any;
           if (cust.email) {
             const uid = emailToUserId[cust.email.toLowerCase()];
-            if (uid) { custToUserId[customerId] = uid; return uid; }
+            if (uid) {
+              custToUserId[customerId] = uid;
+              return { userId: uid, via: "email_fallback" };
+            }
           }
         } catch { /* deleted customer */ }
-        return null;
+        return { userId: null, via: "none" };
       }
 
       // Price -> plan ID mapping (same as stripe-webhook)
@@ -1685,35 +1701,28 @@ serve(async (req) => {
         if (planId === "monthly") return "monthly";
         if (planId === "individual") return "single";
         if (planId.startsWith("topup_")) return "topup";
-        return "unknown";
+        return "legacy_unknown";
       }
 
-      // Helper: determine product type from price/plan
       function inferProductType(priceId: string | null, interval: string | null, _amount: number): { productType: string; productCode: string; billingInterval: string | null; isSub: boolean } {
         if (priceId && BACKFILL_PRICE_TO_PLAN[priceId]) {
           const planId = BACKFILL_PRICE_TO_PLAN[priceId];
           const pt = bfGetProductType(planId);
-          return {
-            productType: pt,
-            productCode: planId,
-            billingInterval: pt === "annual" ? "yearly" : pt === "monthly" ? "monthly" : null,
-            isSub: pt === "annual" || pt === "monthly",
-          };
+          return { productType: pt, productCode: planId, billingInterval: pt === "annual" ? "yearly" : pt === "monthly" ? "monthly" : null, isSub: pt === "annual" || pt === "monthly" };
         }
         if (interval === "year") return { productType: "annual", productCode: "annual_unknown", billingInterval: "yearly", isSub: true };
         if (interval === "month") return { productType: "monthly", productCode: "monthly", billingInterval: "monthly", isSub: true };
-        return { productType: "single", productCode: "unknown", billingInterval: null, isSub: false };
+        return { productType: "legacy_unknown", productCode: "legacy_unknown", billingInterval: null, isSub: false };
       }
 
-      // Collect orders to insert
+      // Track charge IDs linked to invoices to prevent double-counting
+      const invoiceLinkedChargeIds = new Set<string>();
       const ordersToInsert: any[] = [];
 
-      // 1) Process invoices (paginated)
+      // ── 1) Process invoices (paginated) ──
       let hasMoreInv = true;
       let startingAfterInv: string | undefined;
-      let custProcessed = 0;
 
-      // We iterate all invoices across all customers
       while (hasMoreInv) {
         const params: any = { limit: 100, status: "paid" };
         if (startingAfterInv) params.starting_after = startingAfterInv;
@@ -1721,13 +1730,22 @@ serve(async (req) => {
 
         for (const inv of invoices.data) {
           stats.invoices_found++;
-          if (existingIds.has(inv.id)) { stats.skipped_existing++; continue; }
+
+          // Track linked charge to prevent double-count
+          const chargeId = typeof inv.charge === "string" ? inv.charge : null;
+          if (chargeId) invoiceLinkedChargeIds.add(chargeId);
+
+          // Idempotency: skip if invoice or its charge already exists
+          if (existingIds.has(inv.id)) { stats.duplicates_skipped++; continue; }
+          if (chargeId && existingIds.has(chargeId)) { stats.duplicates_skipped++; continue; }
 
           const customerId = typeof inv.customer === "string" ? inv.customer : (inv.customer as any)?.id;
           if (!customerId) continue;
 
-          const userId = await resolveUserId(customerId);
-          if (!userId) { stats.skipped_no_user++; continue; }
+          const { userId, via } = await resolveUserId(customerId);
+          if (!userId) { stats.missing_user++; continue; }
+          if (via === "stripe_customer_id") stats.resolved_by_customer_id++;
+          else if (via === "email_fallback") stats.resolved_by_email_fallback++;
 
           const lineItem = inv.lines?.data?.[0];
           const priceId = lineItem?.price?.id || null;
@@ -1735,16 +1753,19 @@ serve(async (req) => {
           const amount = (inv.amount_paid || 0) / 100;
 
           const { productType, productCode, billingInterval, isSub } = inferProductType(priceId, interval, amount);
+          if (productType === "legacy_unknown") stats.unknown_product_type++;
 
           const isRenewal = isSub && !!inv.subscription && (inv.billing_reason === "subscription_cycle" || inv.billing_reason === "subscription_update");
 
-          const paidAt = new Date((inv.status_transitions?.paid_at || inv.created) * 1000).toISOString();
+          // Use the most accurate payment timestamp
+          const paidAtTs = inv.status_transitions?.paid_at || inv.created;
+          const paidAt = new Date(paidAtTs * 1000).toISOString();
 
           ordersToInsert.push({
             user_id: userId,
             stripe_invoice_id: inv.id,
             stripe_subscription_id: typeof inv.subscription === "string" ? inv.subscription : null,
-            stripe_charge_id: typeof inv.charge === "string" ? inv.charge : null,
+            stripe_charge_id: chargeId,
             order_status: "paid",
             product_type: productType,
             product_code: productCode,
@@ -1753,22 +1774,24 @@ serve(async (req) => {
             currency: inv.currency || "eur",
             is_subscription: isSub,
             is_renewal: isRenewal,
-            is_first_purchase: false, // will be set below
+            is_first_purchase: false,
             coupon_code: inv.discount?.coupon?.id || null,
             promotion_code: inv.discount?.promotion_code ? (typeof inv.discount.promotion_code === "string" ? inv.discount.promotion_code : inv.discount.promotion_code.code) : null,
             paid_at: paidAt,
-            metadata: { backfill: true, source: "invoice" },
+            metadata: { backfill: true, backfill_source: "stripe_invoice", resolved_user_via: via },
           });
 
+          // Mark both IDs as seen
           existingIds.add(inv.id);
-          if (typeof inv.charge === "string") existingIds.add(inv.charge);
+          if (chargeId) existingIds.add(chargeId);
+          stats.invoice_based++;
         }
 
         hasMoreInv = invoices.has_more;
         if (invoices.data.length > 0) startingAfterInv = invoices.data[invoices.data.length - 1].id;
       }
 
-      // 2) Process standalone charges not linked to invoices
+      // ── 2) Process standalone charges not linked to invoices ──
       let hasMoreCh = true;
       let startingAfterCh: string | undefined;
 
@@ -1779,19 +1802,38 @@ serve(async (req) => {
 
         for (const ch of charges.data) {
           stats.charges_found++;
-          if (ch.status !== "succeeded") continue;
-          if (existingIds.has(ch.id)) { stats.skipped_existing++; continue; }
-          if (ch.invoice && existingIds.has(typeof ch.invoice === "string" ? ch.invoice : (ch.invoice as any).id)) { stats.skipped_existing++; continue; }
+
+          // Skip charges already linked to an invoice we processed
+          if (invoiceLinkedChargeIds.has(ch.id)) { stats.duplicates_skipped++; continue; }
+          if (ch.invoice) {
+            const invId = typeof ch.invoice === "string" ? ch.invoice : (ch.invoice as any).id;
+            if (existingIds.has(invId)) { stats.duplicates_skipped++; continue; }
+          }
+
+          // Skip non-successful statuses
+          if (ch.status !== "succeeded") { stats.skipped_failed++; continue; }
+
+          // Skip fully refunded charges
+          if (ch.refunded) { stats.skipped_refunded++; continue; }
+
+          // Skip disputed charges
+          if (ch.disputed) { stats.skipped_disputed++; continue; }
+
+          // Idempotency check
+          if (existingIds.has(ch.id)) { stats.duplicates_skipped++; continue; }
 
           const customerId = typeof ch.customer === "string" ? ch.customer : (ch.customer as any)?.id;
           if (!customerId) continue;
 
-          const userId = await resolveUserId(customerId);
-          if (!userId) { stats.skipped_no_user++; continue; }
+          const { userId, via } = await resolveUserId(customerId);
+          if (!userId) { stats.missing_user++; continue; }
+          if (via === "stripe_customer_id") stats.resolved_by_customer_id++;
+          else if (via === "email_fallback") stats.resolved_by_email_fallback++;
 
           const amount = ch.amount / 100;
           const planId = ch.metadata?.plan_id || "";
-          const pt = planId ? bfGetProductType(planId) : "single";
+          const pt = planId ? bfGetProductType(planId) : "legacy_unknown";
+          if (pt === "legacy_unknown") stats.unknown_product_type++;
 
           const paidAt = new Date(ch.created * 1000).toISOString();
 
@@ -1800,7 +1842,7 @@ serve(async (req) => {
             stripe_charge_id: ch.id,
             order_status: "paid",
             product_type: pt,
-            product_code: planId || "unknown",
+            product_code: planId || "legacy_unknown",
             billing_interval: pt === "annual" ? "yearly" : pt === "monthly" ? "monthly" : null,
             amount_gross: amount,
             currency: ch.currency || "eur",
@@ -1809,21 +1851,22 @@ serve(async (req) => {
             is_first_purchase: false,
             coupon_code: ch.metadata?.coupon_code || null,
             paid_at: paidAt,
-            metadata: { backfill: true, source: "charge" },
+            metadata: { backfill: true, backfill_source: "stripe_charge", resolved_user_via: via },
           });
 
           existingIds.add(ch.id);
+          stats.charge_based++;
         }
 
         hasMoreCh = charges.has_more;
         if (charges.data.length > 0) startingAfterCh = charges.data[charges.data.length - 1].id;
       }
 
-      // 3) Calculate is_first_purchase: sort by paid_at, first per user is true
+      // ── 3) Calculate is_first_purchase using paid_at timestamp ──
       ordersToInsert.sort((a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime());
       const userFirstSeen = new Set<string>();
 
-      // Also check already-existing orders to not mis-flag
+      // Load existing orders' users to avoid mis-flagging
       const { data: earliestExisting } = await admin
         .from("orders")
         .select("user_id, paid_at")
@@ -1838,7 +1881,9 @@ serve(async (req) => {
         }
       }
 
-      // 4) Insert in batches
+      stats.orders_to_create = ordersToInsert.length;
+
+      // ── 4) Insert in batches (or dry-run) ──
       if (!dryRun) {
         const BATCH = 50;
         for (let i = 0; i < ordersToInsert.length; i += BATCH) {
@@ -1864,7 +1909,16 @@ serve(async (req) => {
         success: true,
         dry_run: dryRun,
         stats,
-        sample: ordersToInsert.slice(0, 5).map(o => ({ user_id: o.user_id, product_type: o.product_type, amount: o.amount_gross, paid_at: o.paid_at, is_first_purchase: o.is_first_purchase })),
+        sample: ordersToInsert.slice(0, 5).map(o => ({
+          user_id: o.user_id,
+          product_type: o.product_type,
+          product_code: o.product_code,
+          amount: o.amount_gross,
+          paid_at: o.paid_at,
+          is_first_purchase: o.is_first_purchase,
+          backfill_source: o.metadata?.backfill_source,
+          resolved_user_via: o.metadata?.resolved_user_via,
+        })),
       });
     }
 
