@@ -49,6 +49,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
     { title: tr('dashboard.sidebar.promotion', 'Promoción y difusión'), url: '/dashboard/promotion', icon: Megaphone, hideForManager: true, tourId: 'promotion' },
     { title: tr('dashboard.sidebar.artistProfiles', 'Mis Artistas Virtuales'), url: '/dashboard/artist-profiles', icon: UserCircle, hideForManager: true, tourId: 'virtual-artists' },
+    { title: tr('dashboard.sidebar.mediaLibrary', 'Biblioteca multimedia'), url: '/dashboard/media-library', icon: FolderOpen, hideForManager: true },
   ], [i18n.resolvedLanguage, t]);
 
   const accountItems = useMemo(() => [
