@@ -249,7 +249,49 @@ export default function AdminSystemPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={addModal} onOpenChange={setAddModal}>
+      {/* Backfill Orders from Stripe */}
+      <Card className="border-border/40">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Database className="h-4 w-4" /> Backfill de pedidos históricos
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Genera registros en la tabla <code>orders</code> a partir de invoices y charges existentes en Stripe.
+            Marca <code>is_first_purchase</code> automáticamente. UTMs quedan como null para datos históricos.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                toast.info('Ejecutando dry-run…');
+                try {
+                  const res = await adminApi.backfillOrdersFromStripe(true);
+                  toast.success(`Dry-run completado: ${res.stats?.orders_created || 0} orders se crearían`);
+                  console.log('[BACKFILL DRY-RUN]', res);
+                } catch (e: any) { toast.error(e.message); }
+              }}
+            >
+              Dry-run (simulación)
+            </Button>
+            <Button
+              variant="default"
+              onClick={async () => {
+                if (!confirm('¿Ejecutar backfill REAL? Se crearán orders en la base de datos.')) return;
+                toast.info('Ejecutando backfill real…');
+                try {
+                  const res = await adminApi.backfillOrdersFromStripe(false);
+                  toast.success(`Backfill completado: ${res.stats?.orders_created || 0} orders creados, ${res.stats?.skipped_existing || 0} omitidos`);
+                  console.log('[BACKFILL]', res);
+                } catch (e: any) { toast.error(e.message); }
+              }}
+            >
+              Ejecutar backfill real
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
         <DialogContent>
           <DialogHeader><DialogTitle>Añadir administrador</DialogTitle></DialogHeader>
           <div>
