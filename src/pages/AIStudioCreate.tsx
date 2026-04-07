@@ -1207,6 +1207,7 @@ const AIStudioCreate = () => {
                       <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/400</p>
                     </div>
 
+                    {/* Theme chips */}
                     <div className="space-y-1.5">
                       <Label className="text-sm">{t('aiCreate.centralTheme')}</Label>
                       <div className="flex flex-wrap gap-1.5">
@@ -1216,76 +1217,85 @@ const AIStudioCreate = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.genreLabel')}</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(GENRES as readonly string[]).slice(0, 8).map(g => (
-                            <Badge key={g} variant={lyricsGenre === g ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}>{g}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.moodLabel')}</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {(MOODS as readonly string[]).slice(0, 8).map(m => (
-                            <Badge key={m} variant={lyricsMood === m ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? "" : m)}>{m}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.structureLabel')}</Label>
-                        <Select value={lyricsStructure} onValueChange={setLyricsStructure}>
-                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {STRUCTURES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.rhymeLabel')}</Label>
-                        <Select value={lyricsRhyme} onValueChange={setLyricsRhyme}>
-                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {RHYME_SCHEMES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.languageLabel')}</Label>
-                        <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
-                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {LYRIC_LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-sm">{t('aiCreate.povLabel')}</Label>
-                        <Select value={lyricsPov} onValueChange={setLyricsPov}>
-                          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {POVS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
+                    {/* Mood chips */}
                     <div className="space-y-1.5">
-                      <Label className="text-sm">{t('aiCreate.writingStyleLabel')}</Label>
+                      <Label className="text-sm">{t('aiCreate.moodLabel')}</Label>
                       <div className="flex flex-wrap gap-1.5">
-                        {LYRIC_STYLES.map(s => (
-                          <Badge key={s} variant={lyricsStyle === s ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === s ? "" : s)}>{s}</Badge>
+                        {(MOODS as readonly string[]).slice(0, 8).map(m => (
+                          <Badge key={m} variant={lyricsMood === m ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? "" : m)}>{m}</Badge>
                         ))}
                       </div>
                     </div>
+
+                    {/* Language */}
+                    <div className="space-y-1.5">
+                      <Label className="text-sm">{t('aiCreate.languageLabel')}</Label>
+                      <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
+                        <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {LYRIC_LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Advanced options */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1">
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                        ⚙️ {t('aiCreate.advancedOptions', 'Opciones avanzadas')}
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-3">
+                        {/* Genre */}
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">{t('aiCreate.genreLabel')}</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {(GENRES as readonly string[]).slice(0, 8).map(g => (
+                              <Badge key={g} variant={lyricsGenre === g ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}>{g}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Structure & Rhyme */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-sm">{t('aiCreate.structureLabel')}</Label>
+                            <Select value={lyricsStructure} onValueChange={setLyricsStructure}>
+                              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {STRUCTURES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-sm">{t('aiCreate.rhymeLabel')}</Label>
+                            <Select value={lyricsRhyme} onValueChange={setLyricsRhyme}>
+                              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {RHYME_SCHEMES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        {/* POV */}
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">{t('aiCreate.povLabel')}</Label>
+                          <Select value={lyricsPov} onValueChange={setLyricsPov}>
+                            <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {POVS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {/* Writing style */}
+                        <div className="space-y-1.5">
+                          <Label className="text-sm">{t('aiCreate.writingStyleLabel')}</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {LYRIC_STYLES.map(s => (
+                              <Badge key={s} variant={lyricsStyle === s ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === s ? "" : s)}>{s}</Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {lyricsError && (
                       <p className="text-xs text-destructive flex items-center gap-1.5">
@@ -1296,7 +1306,7 @@ const AIStudioCreate = () => {
                     <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)} className="w-full" size="lg">
                       {isGeneratingLyrics
                          ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiCreate.composingLyrics')}</>
-                         : <><FileText className="w-4 h-4 mr-2" />{t('aiCreate.generateLyricsFree')}</>
+                         : <>📝 {t('aiCreate.generateLyricsFree')}</>
                        }
                      </Button>
                      <p className="text-xs text-muted-foreground text-center">{t('aiCreate.lyricsFreeBadge')}</p>
