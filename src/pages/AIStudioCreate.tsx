@@ -1042,7 +1042,7 @@ const AIStudioCreate = () => {
                               <div className="text-center py-6 border border-dashed border-border rounded-lg">
                                 <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                                 <p className="text-sm text-muted-foreground">Aún no tienes artistas guardados</p>
-                                <p className="text-xs text-muted-foreground mt-1">Genera una canción y guárdala como artista virtual</p>
+                                <p className="text-xs text-muted-foreground mt-1">Aquí aparecen tus artistas guardados. Úsalos para crear canciones con el mismo estilo.</p>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
