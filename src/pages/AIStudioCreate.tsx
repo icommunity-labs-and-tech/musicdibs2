@@ -293,15 +293,8 @@ const AIStudioCreate = () => {
       if (spendResult?.error) throw { message: spendResult.error };
 
       const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
-      const selectedClone = voiceClones.find(v => v.id === selectedCloneId);
-      const voiceTag = selectedVoiceProfile
-        ? `, ${selectedVoiceProfile.prompt_tag}`
-        : selectedClone
-          ? `, voice resembling ${selectedClone.name}, personal voice clone`
-          : '';
-
-      const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}`;
+      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}`;
 
 
 
