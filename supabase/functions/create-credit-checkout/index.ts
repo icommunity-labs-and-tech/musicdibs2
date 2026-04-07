@@ -27,11 +27,16 @@ const PLANS: Record<string, { priceId: string; credits: number; mode: "subscript
   topup_200:   { priceId: "price_1THT8AF9ZCIiqrz626wSH9Rz", credits: 200,  mode: "payment",       label: "Top-up 200 créditos" },
 };
 
-const PRICE_TO_PLAN: Record<string, string> = Object.fromEntries(
-  Object.entries(PLANS).map(([id, p]) => [p.priceId, id])
-);
-
 const ANNUAL_PLANS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
+
+// Derive product_type from planId
+function getProductType(planId: string): string {
+  if (ANNUAL_PLANS.includes(planId)) return "annual";
+  if (planId === "monthly") return "monthly";
+  if (planId === "individual") return "single";
+  if (planId.startsWith("topup_")) return "topup";
+  return "unknown";
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -47,7 +52,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
 
     const body = await req.json();
-    const { planId, action } = body;
+    const { planId, action, attribution } = body;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -123,6 +128,20 @@ serve(async (req) => {
       }
     }
 
+    // ── Build attribution metadata for Stripe session ──
+    const attr = attribution || {};
+    const attrMetadata: Record<string, string> = {};
+    if (attr.utm_source) attrMetadata.utm_source = String(attr.utm_source).slice(0, 500);
+    if (attr.utm_medium) attrMetadata.utm_medium = String(attr.utm_medium).slice(0, 500);
+    if (attr.utm_campaign) attrMetadata.utm_campaign = String(attr.utm_campaign).slice(0, 500);
+    if (attr.utm_content) attrMetadata.utm_content = String(attr.utm_content).slice(0, 500);
+    if (attr.utm_term) attrMetadata.utm_term = String(attr.utm_term).slice(0, 500);
+    if (attr.coupon_code) attrMetadata.coupon_code = String(attr.coupon_code).slice(0, 500);
+    if (attr.referrer_code) attrMetadata.referrer_code = String(attr.referrer_code).slice(0, 500);
+    if (attr.referrer) attrMetadata.referrer = String(attr.referrer).slice(0, 500);
+    if (attr.landing_path) attrMetadata.landing_path = String(attr.landing_path).slice(0, 500);
+    if (attr.attributed_campaign_name) attrMetadata.attributed_campaign_name = String(attr.attributed_campaign_name).slice(0, 500);
+
     // Create Stripe Checkout session
     const origin = req.headers.get("origin") || "https://musicdibs.com";
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -130,7 +149,16 @@ serve(async (req) => {
       mode: plan.mode,
       success_url: `${origin}/dashboard/credits?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard/credits?payment=cancelled`,
-      metadata: { user_id: user.id, plan_id: planId, credits: String(plan.credits) },
+      metadata: {
+        user_id: user.id,
+        plan_id: planId,
+        credits: String(plan.credits),
+        product_type: getProductType(planId),
+        product_code: planId,
+        product_label: plan.label,
+        billing_interval: plan.mode === "subscription" ? (ANNUAL_PLANS.includes(planId) ? "yearly" : "monthly") : "",
+        ...attrMetadata,
+      },
       line_items: [{ price: plan.priceId, quantity: 1 }],
       automatic_tax: { enabled: true },
       billing_address_collection: "required",
