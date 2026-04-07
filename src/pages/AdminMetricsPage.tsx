@@ -245,6 +245,9 @@ export default function AdminMetricsPage() {
         </div>
       </div>
 
+      {/* Historical data quality notice */}
+      <HistoricalDataNotice collapsible storageKey="admin-metrics-notice" />
+
       {/* KPI Rows — separated blocks */}
       <KpiGrid metrics={metrics} />
 

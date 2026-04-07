@@ -283,7 +283,7 @@ export default function AdminCampaignMetricsPage() {
               )}
               {campaignRows.map((c: any) => (
                 <TableRow key={c.campaign_name}>
-                  <TableCell className="font-medium">{c.campaign_name || 'Sin atribuir'}</TableCell>
+                  <TableCell className="font-medium">{normalizeAttribution(c.campaign_name)}</TableCell>
                   <TableCell className="text-right">{c.registered}</TableCell>
                   <TableCell className="text-right">{c.new_customers}</TableCell>
                   <TableCell className="text-right">{c.returning_customers}</TableCell>
