@@ -91,10 +91,13 @@ export function DashboardSidebar() {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('kyc_status')
+      .select('kyc_status, subscription_plan')
       .eq('user_id', user.id)
       .single()
-      .then(({ data }) => setKycStatus(data?.kyc_status || 'unverified'));
+      .then(({ data }) => {
+        setKycStatus(data?.kyc_status || 'unverified');
+        setSubscriptionPlan(data?.subscription_plan || 'Free');
+      });
 
     const channel = supabase
       .channel('sidebar-kyc')
