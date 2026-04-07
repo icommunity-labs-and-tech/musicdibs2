@@ -1148,22 +1148,6 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
-                      {/* Tema central */}
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.centralTheme')}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {THEMES.map(t => (
-                            <Badge
-                              key={t}
-                              variant={selectedTheme === t ? 'default' : 'outline'}
-                              className="cursor-pointer text-xs"
-                              onClick={() => setSelectedTheme(selectedTheme === t ? '' : t)}
-                            >
-                              {t}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Mood chips */}
                       <div className="space-y-2">
