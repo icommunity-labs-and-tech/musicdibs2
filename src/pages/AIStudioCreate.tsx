@@ -175,12 +175,7 @@ const AIStudioCreate = () => {
   
   const cloneFileRef = useRef<HTMLInputElement>(null);
 
-  // ── Artist profile state ──
-  const [artistProfiles, setArtistProfiles] = useState<any[]>([]);
-  const [selectedProfile, setSelectedProfile] = useState<string>('');
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [showSaveProfile, setShowSaveProfile] = useState(false);
-  const [newProfileName, setNewProfileName] = useState('');
+
 
   // ── Derived values ──
   const selectedGenre: string | null = null;
