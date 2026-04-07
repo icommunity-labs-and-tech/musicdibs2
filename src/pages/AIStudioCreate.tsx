@@ -557,16 +557,8 @@ const AIStudioCreate = () => {
     });
   };
 
-  // ── Import lyrics from compositor ──
-  const importLyricsFromCompositor = () => {
-    if (!generatedLyrics) {
-      toast({ title: t('aiCreate.noLyrics'), description: t('aiCreate.noLyricsDesc'), variant: "destructive" });
-      return;
-    }
-    setLyricsText(generatedLyrics);
-    setLyricsExpanded(true);
-    toast({ title: t('aiCreate.lyricsImported'), description: t('aiCreate.lyricsImportedDesc') });
-  };
+
+
 
   // ── Regenerate with same params ──
   const handleRegenerate = () => {
