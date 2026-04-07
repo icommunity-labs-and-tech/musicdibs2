@@ -49,6 +49,21 @@ export default function DashboardHome() {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .then(({ count }) => setWorksCount(count ?? 0));
+
+    // Asset counts for media library widget
+    Promise.all([
+      supabase.from('ai_generations').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('video_generations').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'COMPLETED'),
+      supabase.from('social_promotions').select('id', { count: 'exact', head: true }).eq('user_id', user.id).not('image_url', 'is', null),
+      supabase.from('voice_clones').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'active'),
+    ]).then(([songs, videos, covers, voices]) => {
+      setAssetCounts({
+        songs: songs.count ?? 0,
+        videos: videos.count ?? 0,
+        covers: covers.count ?? 0,
+        voices: voices.count ?? 0,
+      });
+    });
   }, [user]);
 
   return (
