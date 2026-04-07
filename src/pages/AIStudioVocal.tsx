@@ -217,7 +217,7 @@ export default function AIStudioVocal() {
     setIsGeneratingLyrics(true);
     try {
       const { data, error } = await supabase.functions.invoke('lyrics-generator', {
-        body: { description: lyricsDesc, theme: lyricsTheme, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle, language: lyricsLanguage, structure: lyricsStructure, rhymeScheme: lyricsRhyme, pov: lyricsPov, artistRefs: lyricsArtistRefs }
+        body: { description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle, language: lyricsLanguage, structure: lyricsStructure, rhymeScheme: lyricsRhyme, pov: lyricsPov, artistRefs: lyricsArtistRefs }
       });
       if (error) throw error;
       if (data?.lyrics) { setLyrics(data.lyrics); toast({ title: tv('lyricsGenerated'), description: tv('lyricsGeneratedDesc') }); }
