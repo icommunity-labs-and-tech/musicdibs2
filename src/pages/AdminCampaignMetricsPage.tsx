@@ -87,6 +87,7 @@ export default function AdminCampaignMetricsPage() {
   useEffect(() => { loadData(); }, [loadData]);
 
   const loadDetail = async (campaignName: string) => {
+    if (!campaignName) { toast.error('Campaña sin nombre'); return; }
     setDetailCampaign(campaignName);
     try {
       const filters: any = { periodType, campaign_name: campaignName };
