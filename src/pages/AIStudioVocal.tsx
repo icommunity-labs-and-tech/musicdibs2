@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -440,67 +443,104 @@ export default function AIStudioVocal() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {/* Description */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">{tv('whatAbout')}</Label>
-                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={3} className="resize-none text-sm" maxLength={400} />
+                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={4} className="resize-none text-sm" maxLength={500} />
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground">Incluye: tema, mood, historia, referencias...</span>
+                        <span className="text-[11px] text-muted-foreground">{lyricsDesc.length}/500</span>
+                      </div>
                     </div>
+
+                    {/* Theme chips */}
                     <div className="space-y-2" data-tour="vt-music-settings">
-                      <Label className="text-xs font-medium">{tv('centralTheme')}</Label>
+                      <Label className="text-xs font-medium">Tema central (opcional)</Label>
                       <div className="flex flex-wrap gap-1.5">
                         {THEMES.map(th => <Badge key={th} variant={lyricsTheme === th ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsTheme(lyricsTheme === th ? '' : th)}>{th}</Badge>)}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium">{tv('genreLabel')}</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {MUSIC_GENRES.map(g => <Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? '' : g)}>{g}</Badge>)}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-medium">{tv('moodLabel')}</Label>
-                        <div className="flex flex-wrap gap-1.5">
-                          {MUSIC_MOODS.map(m => <Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? '' : m)}>{m}</Badge>)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">{tv('structureLabel')}</Label>
-                        <select value={lyricsStructure} onChange={e => setLyricsStructure(e.target.value)} className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
-                          {STRUCTURES.map(ss => <option key={ss.value} value={ss.value}>{ss.label}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">{tv('rhymeLabel')}</Label>
-                        <select value={lyricsRhyme} onChange={e => setLyricsRhyme(e.target.value)} className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
-                          {RHYME_SCHEMES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">{tv('languageLabel')}</Label>
-                        <select value={lyricsLanguage} onChange={e => setLyricsLanguage(e.target.value)} className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
-                          {LYRIC_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs font-medium">{tv('povLabel')}</Label>
-                        <select value={lyricsPov} onChange={e => setLyricsPov(e.target.value)} className="w-full text-xs p-2 rounded-md border border-border bg-background text-foreground">
-                          {POVS.map(p => <option key={p} value={p}>{p}</option>)}
-                        </select>
-                      </div>
-                    </div>
+
+                    {/* Mood chips */}
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">{tv('writingStyleLabel')}</Label>
+                      <Label className="text-xs font-medium">Mood / Tono (opcional)</Label>
                       <div className="flex flex-wrap gap-1.5">
-                        {LYRIC_STYLES.map(ls => <Badge key={ls} variant={lyricsStyle === ls ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === ls ? '' : ls)}>{ls}</Badge>)}
+                        {MUSIC_MOODS.map(m => <Badge key={m} variant={lyricsMood === m ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? '' : m)}>{m}</Badge>)}
                       </div>
                     </div>
-                    <Button variant="outline" className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}>
-                      {isGeneratingLyrics ? <><Loader2 className="w-4 h-4 animate-spin" />{tv('generatingLyrics')}</> : <><Sparkles className="w-4 h-4" />{tv('generateLyricsFree')}</>}
+
+                    {/* Language selector */}
+                    <div className="space-y-1">
+                      <Label className="text-xs font-medium">{tv('languageLabel')}</Label>
+                      <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
+                        <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {LYRIC_LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Advanced options */}
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full py-1">
+                        <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                        ⚙️ Opciones avanzadas
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-3 pt-3">
+                        {/* Genre */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">{tv('genreLabel')}</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {MUSIC_GENRES.map(g => <Badge key={g} variant={lyricsGenre === g ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? '' : g)}>{g}</Badge>)}
+                          </div>
+                        </div>
+                        {/* Structure & Rhyme */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium">{tv('structureLabel')}</Label>
+                            <Select value={lyricsStructure} onValueChange={setLyricsStructure}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {STRUCTURES.map(ss => <SelectItem key={ss.value} value={ss.value}>{ss.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-xs font-medium">{tv('rhymeLabel')}</Label>
+                            <Select value={lyricsRhyme} onValueChange={setLyricsRhyme}>
+                              <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {RHYME_SCHEMES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        {/* POV */}
+                        <div className="space-y-1">
+                          <Label className="text-xs font-medium">{tv('povLabel')}</Label>
+                          <Select value={lyricsPov} onValueChange={setLyricsPov}>
+                            <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {POVS.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {/* Writing style */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium">{tv('writingStyleLabel')}</Label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {LYRIC_STYLES.map(ls => <Badge key={ls} variant={lyricsStyle === ls ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setLyricsStyle(lyricsStyle === ls ? '' : ls)}>{ls}</Badge>)}
+                          </div>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Generate button */}
+                    <Button className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}>
+                      {isGeneratingLyrics ? <><Loader2 className="w-4 h-4 animate-spin" />Generando letra...</> : <>📝 Generar letra (gratis)</>}
                     </Button>
+
+                    {/* Divider */}
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
                       <div className="relative flex justify-center"><span className="bg-background px-2 text-xs text-muted-foreground">{tv('orWritePaste')}</span></div>
