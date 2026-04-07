@@ -78,6 +78,14 @@ const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
+// Capture UTM attribution on first load
+import { captureAttribution } from "@/lib/attribution";
+
+const AppInit = () => {
+  useEffect(() => { captureAttribution(); }, []);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
