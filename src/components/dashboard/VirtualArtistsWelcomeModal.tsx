@@ -22,7 +22,7 @@ export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }
   const bullets = [
     t('virtualArtists.welcome.bullet1', 'Crea múltiples artistas virtuales'),
     t('virtualArtists.welcome.bullet2', 'Genera canciones completas en minutos'),
-    t('virtualArtists.welcome.bullet3', 'Usa voces personalizadas o clonadas'),
+    t('virtualArtists.welcome.bullet3', 'Usa voces predefinidas para tus canciones'),
     t('virtualArtists.welcome.bullet4', 'Registra y protege tu música automáticamente'),
     t('virtualArtists.welcome.bullet5', 'Distribuye y monetiza sin complicaciones'),
   ];
@@ -47,7 +47,7 @@ export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }
               {t('virtualArtists.welcome.title', 'Crea tu propio artista y lanza música al mundo 🚀')}
             </h2>
             <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              {t('virtualArtists.welcome.subtitle', 'Genera canciones con IA, clona voces, registra la autoría en blockchain y distribuye tu música en plataformas como Spotify.')}
+              {t('virtualArtists.welcome.subtitle', 'Genera canciones con IA, registra la autoría en blockchain y distribuye tu música en plataformas como Spotify.')}
             </p>
           </div>
 

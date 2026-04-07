@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, Mic, HelpCircle } from "lucide-react";
+import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, HelpCircle } from "lucide-react";
 import { VirtualArtistsWelcomeModal } from "@/components/dashboard/VirtualArtistsWelcomeModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
@@ -38,7 +38,7 @@ const ArtistProfilesPage = () => {
 
   const [profiles, setProfiles] = useState<ArtistProfile[]>([]);
   const [voiceProfiles, setVoiceProfiles] = useState<any[]>([]);
-  const [voiceClones, setVoiceClones] = useState<any[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -53,9 +53,6 @@ const ArtistProfilesPage = () => {
   const [formDuration, setFormDuration] = useState(60);
   const [formNotes, setFormNotes] = useState("");
   const [formDefault, setFormDefault] = useState(false);
-  const [formVoiceType, setFormVoiceType] = useState<'preset' | 'clone'>('preset');
-  const [formVoiceCloneId, setFormVoiceCloneId] = useState<string>('');
-  const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [generatingNotes, setGeneratingNotes] = useState(false);
 
   // Audio preview
@@ -78,8 +75,6 @@ const ArtistProfilesPage = () => {
     supabase.from('voice_profiles').select('*').eq('active', true).order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
     if (user) {
-      supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
-        .then(({ data }) => setVoiceClones(data || []));
       // Show welcome modal on first visit
       const hasSeenKey = `virtual_artists_welcome_seen_${user.id}`;
       if (!localStorage.getItem(hasSeenKey)) {
@@ -92,7 +87,6 @@ const ArtistProfilesPage = () => {
   const resetForm = () => {
     setFormName(""); setFormVoice(""); setFormGenre(null); setFormMood(null);
     setFormDuration(60); setFormNotes(""); setFormDefault(false);
-    setFormVoiceType('preset'); setFormVoiceCloneId(''); setVoiceTab('preset');
     setShowForm(false); setEditingId(null);
   };
 
@@ -105,10 +99,6 @@ const ArtistProfilesPage = () => {
     setFormDuration(p.default_duration || 60);
     setFormNotes(p.style_notes || "");
     setFormDefault(p.is_default);
-    const vType = (p as any).voice_type || 'preset';
-    setFormVoiceType(vType);
-    setFormVoiceCloneId((p as any).voice_clone_id || '');
-    setVoiceTab(vType);
     setShowForm(true);
   };
 
@@ -119,9 +109,9 @@ const ArtistProfilesPage = () => {
     const payload = {
       user_id: user.id,
       name: formName.trim(),
-      voice_profile_id: formVoiceType === 'preset' ? (formVoice || null) : null,
-      voice_type: formVoiceType,
-      voice_clone_id: formVoiceType === 'clone' ? formVoiceCloneId : null,
+      voice_profile_id: formVoice || null,
+      voice_type: 'preset' as const,
+      voice_clone_id: null,
       genre: formGenre,
       mood: formMood,
       default_duration: formDuration,
@@ -285,96 +275,42 @@ const ArtistProfilesPage = () => {
               />
             </div>
 
-            {/* Voice selection with tabs */}
+            {/* Voice selection — preset only */}
             <div className="space-y-2">
-              <Label>Tipo de voz</Label>
-              <div className="flex gap-2 mb-3">
-                <button
-                  type="button"
-                  onClick={() => setVoiceTab('preset')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                    voiceTab === 'preset' ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  Voces predefinidas
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVoiceTab('clone')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all flex items-center gap-1.5 ${
-                    voiceTab === 'clone' ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:border-primary/50'
-                  }`}
-                >
-                  <Mic className="h-3.5 w-3.5" /> Mis voces clonadas
-                </button>
+              <Label>Voz del artista</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {voiceProfiles.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setFormVoice(formVoice === v.id ? '' : v.id)}
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                      padding: '8px 12px', borderRadius: '8px',
+                      border: formVoice === v.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
+                      background: formVoice === v.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
+                      cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left', width: '100%',
+                    }}
+                    title={v.description}
+                  >
+                    <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
+                    {v.sample_url && (
+                      <span
+                        onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: '3px',
+                          marginTop: '4px', fontSize: '11px',
+                          color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer',
+                        }}
+                      >
+                        {playingVoice === v.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
-
-              {voiceTab === 'preset' ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {voiceProfiles.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => { setFormVoice(formVoice === v.id ? '' : v.id); setFormVoiceType('preset'); setFormVoiceCloneId(''); }}
-                      style={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                        padding: '8px 12px', borderRadius: '8px',
-                        border: formVoiceType === 'preset' && formVoice === v.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                        background: formVoiceType === 'preset' && formVoice === v.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
-                        cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left', width: '100%',
-                      }}
-                      title={v.description}
-                    >
-                      <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
-                      <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
-                      {v.sample_url && (
-                        <span
-                          onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
-                          style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '3px',
-                            marginTop: '4px', fontSize: '11px',
-                            color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer',
-                          }}
-                        >
-                          {playingVoice === v.id ? <span>⏹ Detener</span> : <span>▶ Escuchar</span>}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {voiceClones.length === 0 ? (
-                    <div className="text-center py-6 space-y-2">
-                      <p className="text-sm text-muted-foreground">Aún no tienes voces clonadas</p>
-                      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => navigate('/ai-studio/vocal')}>
-                        <Mic className="h-3.5 w-3.5" /> Clonar mi voz
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {voiceClones.map(clone => (
-                        <button
-                          key={clone.id}
-                          type="button"
-                          onClick={() => { setFormVoice(clone.elevenlabs_voice_id); setFormVoiceType('clone'); setFormVoiceCloneId(clone.id); }}
-                          className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
-                            formVoiceType === 'clone' && formVoiceCloneId === clone.id
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <Mic className="h-4 w-4 text-primary shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{clone.name}</p>
-                            {clone.description && <p className="text-xs text-muted-foreground truncate">{clone.description}</p>}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+              <p className="text-xs text-muted-foreground">Esta voz se usará por defecto al generar música con este perfil</p>
             </div>
 
             {/* Genre chips */}
