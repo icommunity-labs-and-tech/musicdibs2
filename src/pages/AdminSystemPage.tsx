@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { Settings2, Shield, UserPlus, ScrollText, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings2, Shield, UserPlus, ScrollText, Download, ChevronLeft, ChevronRight, Database } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const ACTION_LABELS: Record<string, string> = {
