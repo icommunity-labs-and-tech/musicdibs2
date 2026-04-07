@@ -123,7 +123,7 @@ export default function AdminCampaignMetricsPage() {
     setWeekStart(d.toISOString().slice(0, 10));
   };
 
-  const campaignRows = metrics?.campaigns || [];
+  const campaignRows = (metrics?.campaigns || []).map((c: any) => ({ ...c, campaign_name: normalizeAttribution(c.campaign_name) }));
   const topByRevenue = [...campaignRows].sort((a: any, b: any) => b.revenue - a.revenue).slice(0, 5);
   const topByCustomers = [...campaignRows].sort((a: any, b: any) => b.new_customers - a.new_customers).slice(0, 5);
 
