@@ -70,6 +70,7 @@ const ManagerWorks = lazyWithRetry(() => import("./pages/ManagerWorks"));
 const ManagerRegisterWork = lazyWithRetry(() => import("./pages/ManagerRegisterWork"));
 const ManagerLanding = lazyWithRetry(() => import("./pages/ManagerLanding"));
 const ArtistProfilesPage = lazyWithRetry(() => import("./pages/ArtistProfilesPage"));
+const MediaLibraryPage = lazyWithRetry(() => import("./pages/MediaLibraryPage"));
 const PressPage = lazyWithRetry(() => import("./pages/PressPage"));
 
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
@@ -127,6 +128,7 @@ const App = () => (
                 <Route path="blockchain" element={<BlockchainEvidencePage />} />
                 <Route path="verify-identity" element={<IdentityVerificationPage />} />
                 <Route path="artist-profiles" element={<ArtistProfilesPage />} />
+                <Route path="media-library" element={<MediaLibraryPage />} />
                 <Route path="press" element={<PressPage />} />
                 
                 <Route path="admin/users" element={<Suspense fallback={null}><AdminGuard><AdminUsersPage /></AdminGuard></Suspense>} />
