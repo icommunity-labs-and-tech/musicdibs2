@@ -228,26 +228,17 @@ const AIStudioCreate = () => {
       .order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
 
-    // Load voice clones (with signed sample URLs)
+    // Load virtual artists
     if (user) {
-      supabase.from('voice_clones')
-        .select('*')
+      supabase.from('user_artist_profiles')
+        .select('*, voice_profiles(label, emoji, sample_url)')
         .eq('user_id', user.id)
-        .eq('status', 'active')
         .order('created_at', { ascending: false })
-        .then(async ({ data }) => {
-          const clones = data || [];
-          // Generate signed URLs for samples
-          const withUrls = await Promise.all(clones.map(async (c: any) => {
-            if (c.sample_storage_path) {
-              const { data: urlData } = await supabase.storage
-                .from('voice-clone-samples')
-                .createSignedUrl(c.sample_storage_path, 3600);
-              return { ...c, sample_url: urlData?.signedUrl || null };
-            }
-            return { ...c, sample_url: null };
-          }));
-          setVoiceClones(withUrls);
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setVirtualArtists(data);
+            setVirtualArtistsCount(data.length);
+          }
         });
     }
 
