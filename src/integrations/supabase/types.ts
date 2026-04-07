@@ -742,6 +742,60 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_campaigns: {
+        Row: {
+          cost: number
+          coupon_code: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          owner: string | null
+          start_date: string | null
+          type: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          cost?: number
+          coupon_code?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          owner?: string | null
+          start_date?: string | null
+          type?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          cost?: number
+          coupon_code?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          owner?: string | null
+          start_date?: string | null
+          type?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       marketing_metrics: {
         Row: {
           ad_spend: number
@@ -832,6 +886,177 @@ export type Database = {
           notification_type?: string
           sent_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      order_attribution: {
+        Row: {
+          attributed_campaign_name: string | null
+          attribution_model: string
+          campaign: string | null
+          campaign_id: string | null
+          content: string | null
+          coupon_code: string | null
+          created_at: string
+          id: string
+          medium: string | null
+          order_id: string
+          source: string | null
+        }
+        Insert: {
+          attributed_campaign_name?: string | null
+          attribution_model?: string
+          campaign?: string | null
+          campaign_id?: string | null
+          content?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          medium?: string | null
+          order_id: string
+          source?: string | null
+        }
+        Update: {
+          attributed_campaign_name?: string | null
+          attribution_model?: string
+          campaign?: string | null
+          campaign_id?: string | null
+          content?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          id?: string
+          medium?: string | null
+          order_id?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_attribution_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_attribution_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          amount_gross: number
+          amount_net: number | null
+          attributed_campaign_name: string | null
+          billing_interval: string | null
+          campaign_id: string | null
+          coupon_code: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_first_purchase: boolean
+          is_renewal: boolean
+          is_subscription: boolean
+          landing_path: string | null
+          metadata: Json
+          order_source: string | null
+          order_status: string
+          paid_at: string
+          product_code: string | null
+          product_label: string | null
+          product_type: string
+          promotion_code: string | null
+          quantity: number
+          referrer: string | null
+          stripe_charge_id: string | null
+          stripe_checkout_session_id: string | null
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          amount_gross?: number
+          amount_net?: number | null
+          attributed_campaign_name?: string | null
+          billing_interval?: string | null
+          campaign_id?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_first_purchase?: boolean
+          is_renewal?: boolean
+          is_subscription?: boolean
+          landing_path?: string | null
+          metadata?: Json
+          order_source?: string | null
+          order_status?: string
+          paid_at?: string
+          product_code?: string | null
+          product_label?: string | null
+          product_type: string
+          promotion_code?: string | null
+          quantity?: number
+          referrer?: string | null
+          stripe_charge_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          amount_gross?: number
+          amount_net?: number | null
+          attributed_campaign_name?: string | null
+          billing_interval?: string | null
+          campaign_id?: string | null
+          coupon_code?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_first_purchase?: boolean
+          is_renewal?: boolean
+          is_subscription?: boolean
+          landing_path?: string | null
+          metadata?: Json
+          order_source?: string | null
+          order_status?: string
+          paid_at?: string
+          product_code?: string | null
+          product_label?: string | null
+          product_type?: string
+          promotion_code?: string | null
+          quantity?: number
+          referrer?: string | null
+          stripe_charge_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
@@ -1158,6 +1383,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_attribution: {
+        Row: {
+          attributed_campaign_name: string | null
+          created_at: string
+          first_campaign: string | null
+          first_content: string | null
+          first_coupon_seen: string | null
+          first_landing_path: string | null
+          first_medium: string | null
+          first_referrer: string | null
+          first_source: string | null
+          first_term: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attributed_campaign_name?: string | null
+          created_at?: string
+          first_campaign?: string | null
+          first_content?: string | null
+          first_coupon_seen?: string | null
+          first_landing_path?: string | null
+          first_medium?: string | null
+          first_referrer?: string | null
+          first_source?: string | null
+          first_term?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attributed_campaign_name?: string | null
+          created_at?: string
+          first_campaign?: string | null
+          first_content?: string | null
+          first_coupon_seen?: string | null
+          first_landing_path?: string | null
+          first_medium?: string | null
+          first_referrer?: string | null
+          first_source?: string | null
+          first_term?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
