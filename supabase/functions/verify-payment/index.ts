@@ -119,6 +119,112 @@ serve(async (req) => {
 
     console.log(`[VERIFY-PAYMENT] Fulfilled: +${credits} credits for user ${user.id} (session ${session.id})`);
 
+    // ── Distribution onboarding notification (fallback if stripe-webhook missed it) ──
+    const ANNUAL_IDS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
+    if (ANNUAL_IDS.includes(planId)) {
+      // Check previous plan BEFORE this purchase (we already updated it above, so check credit_transactions for prior annual purchases)
+      const { data: priorAnnual } = await supabaseAdmin
+        .from("credit_transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("type", "purchase")
+        .like("description", "Compra annual_%")
+        .limit(2);
+
+      // Only notify if this is the FIRST annual purchase (the one we just inserted)
+      const isFirstAnnual = !priorAnnual || priorAnnual.length <= 1;
+
+      if (isFirstAnnual) {
+        const displayName = user.user_metadata?.display_name || user.email;
+        const userEmail = user.email || "unknown";
+        const distMsgId = crypto.randomUUID();
+
+        // 1) Internal notification to marketing team
+        const distHtml = `<h2>🎵 Nuevo alta en Distribución</h2><p>Un usuario ha contratado su primera suscripción anual y necesita ser dado de alta en la plataforma de distribución.</p><table style="border-collapse:collapse;margin:16px 0;"><tr><td style="padding:6px 12px;font-weight:bold;">Usuario:</td><td style="padding:6px 12px;">${displayName}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Email:</td><td style="padding:6px 12px;">${userEmail}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Plan:</td><td style="padding:6px 12px;">${planId}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">Créditos:</td><td style="padding:6px 12px;">${credits}</td></tr><tr><td style="padding:6px 12px;font-weight:bold;">User ID:</td><td style="padding:6px 12px;">${user.id}</td></tr></table><p>👉 <a href="https://musicdibs.sonosuite.com/">Dar de alta en Sonosuite</a></p>`;
+
+        try {
+          await supabaseAdmin.rpc("enqueue_email", {
+            queue_name: "transactional_emails",
+            payload: {
+              to: "marketing@musicdibs.com",
+              cc: "info@musicdibs.com",
+              subject: "Nuevo alta en Distribución",
+              html: distHtml,
+              purpose: "transactional",
+              idempotency_key: `dist-onboard-${user.id}-${planId}`,
+              message_id: distMsgId,
+            },
+          });
+          console.log(`[VERIFY-PAYMENT] ✅ Distribution onboarding email enqueued for ${userEmail}`);
+        } catch (e) {
+          console.warn("[VERIFY-PAYMENT] Distribution onboarding email failed:", e);
+        }
+
+        // 2) User-facing email: distribution access within 72h
+        const userMsgId = crypto.randomUUID();
+        const lang = user.user_metadata?.language || "es";
+        const userName = displayName !== userEmail ? displayName : "";
+
+        const subjectByLang: Record<string, string> = {
+          es: "Tu acceso a distribución está en camino 🎶",
+          en: "Your distribution access is on its way 🎶",
+          pt: "Seu acesso à distribuição está a caminho 🎶",
+        };
+        const userSubject = subjectByLang[lang] || subjectByLang["es"];
+
+        const greetingByLang: Record<string, string> = {
+          es: userName ? `¡Hola ${userName}!` : "¡Hola!",
+          en: userName ? `Hi ${userName}!` : "Hi!",
+          pt: userName ? `Olá ${userName}!` : "Olá!",
+        };
+
+        const bodyByLang: Record<string, string> = {
+          es: `<h2>${greetingByLang["es"]}</h2>
+<p>¡Enhorabuena por activar tu suscripción anual! 🎉</p>
+<p>Estamos preparando tu cuenta en nuestra plataforma de distribución para que puedas llevar tu música a todas las tiendas digitales (Spotify, Apple Music, Amazon Music, y muchas más).</p>
+<p><strong>En un plazo máximo de 72 horas</strong> recibirás un correo electrónico con las instrucciones para generar tu contraseña y acceder a la plataforma de distribución.</p>
+<p>El proceso de alta requiere una configuración manual por parte de nuestro equipo para garantizar que todo esté correctamente vinculado a tu cuenta.</p>
+<p>Si tienes alguna pregunta mientras tanto, no dudes en escribirnos a <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>¡Gracias por confiar en MusicDibs!</p>
+<p>— El equipo de MusicDibs</p>`,
+          en: `<h2>${greetingByLang["en"]}</h2>
+<p>Congratulations on activating your annual subscription! 🎉</p>
+<p>We are setting up your account on our distribution platform so you can get your music on all major digital stores (Spotify, Apple Music, Amazon Music, and more).</p>
+<p><strong>Within a maximum of 72 hours</strong> you will receive an email with instructions to create your password and access the distribution platform.</p>
+<p>The onboarding process requires manual setup by our team to ensure everything is properly linked to your account.</p>
+<p>If you have any questions in the meantime, feel free to reach out at <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>Thank you for trusting MusicDibs!</p>
+<p>— The MusicDibs Team</p>`,
+          pt: `<h2>${greetingByLang["pt"]}</h2>
+<p>Parabéns por ativar sua assinatura anual! 🎉</p>
+<p>Estamos preparando sua conta em nossa plataforma de distribuição para que você possa levar sua música a todas as lojas digitais (Spotify, Apple Music, Amazon Music e muito mais).</p>
+<p><strong>Em um prazo máximo de 72 horas</strong> você receberá um e-mail com as instruções para gerar sua senha e acessar a plataforma de distribuição.</p>
+<p>O processo de integração requer uma configuração manual por parte da nossa equipe para garantir que tudo esteja corretamente vinculado à sua conta.</p>
+<p>Se tiver alguma dúvida, não hesite em nos escrever em <a href="mailto:info@musicdibs.com">info@musicdibs.com</a>.</p>
+<p>Obrigado por confiar na MusicDibs!</p>
+<p>— A equipe MusicDibs</p>`,
+        };
+        const userHtml = bodyByLang[lang] || bodyByLang["es"];
+
+        try {
+          await supabaseAdmin.rpc("enqueue_email", {
+            queue_name: "transactional_emails",
+            payload: {
+              to: userEmail,
+              subject: userSubject,
+              html: userHtml,
+              purpose: "transactional",
+              idempotency_key: `dist-welcome-${user.id}-${planId}`,
+              message_id: userMsgId,
+            },
+          });
+          console.log(`[VERIFY-PAYMENT] ✅ Distribution welcome email enqueued for ${userEmail}`);
+        } catch (e) {
+          console.warn("[VERIFY-PAYMENT] Distribution welcome email failed:", e);
+        }
+      }
+    }
+
     return new Response(JSON.stringify({ fulfilled: true, credits }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
