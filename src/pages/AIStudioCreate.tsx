@@ -24,7 +24,7 @@ import {
   Heart, Clock, Music, Trash2, Filter, CalendarIcon, X,
   AlertCircle, RefreshCw, ShieldCheck, CheckSquare, Square,
   FileText, Copy, RotateCcw, Music2, CheckCircle2, ChevronDown,
-  Mic, Headphones, RotateCw, Sparkles, HelpCircle, User, Save
+  Mic, Headphones, RotateCw, Sparkles, HelpCircle, User, Save, Info
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
