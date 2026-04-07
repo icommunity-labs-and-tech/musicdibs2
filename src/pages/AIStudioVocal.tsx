@@ -529,7 +529,7 @@ export default function AIStudioVocal() {
                     </Collapsible>
 
                     {/* Generate button */}
-                    <Button className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || (!lyricsDesc.trim() && !lyricsTheme)}>
+                    <Button className="w-full gap-2" onClick={handleGenerateLyrics} disabled={isGeneratingLyrics || !lyricsDesc.trim()}>
                       {isGeneratingLyrics ? <><Loader2 className="w-4 h-4 animate-spin" />Generando letra...</> : <>📝 Generar letra (gratis)</>}
                     </Button>
 
