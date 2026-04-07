@@ -162,6 +162,14 @@ serve(async (req) => {
       const planId   = session.metadata?.plan_id || "unknown";
 
       if (userId && credits > 0) {
+        // Fetch previous plan BEFORE updating (to detect first annual purchase)
+        const { data: prevProfile } = await supabase
+          .from("profiles")
+          .select("subscription_plan")
+          .eq("user_id", userId)
+          .single();
+        const previousPlan = prevProfile?.subscription_plan || "Free";
+
         await addCredits(supabase, userId, credits, `Compra plan ${planId}: +${credits} créditos`);
 
         const planName = PLAN_ID_TO_PLAN_NAME[planId];
