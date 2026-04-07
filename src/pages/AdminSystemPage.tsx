@@ -292,6 +292,7 @@ export default function AdminSystemPage() {
           </div>
         </CardContent>
       </Card>
+      <Dialog open={addModal} onOpenChange={setAddModal}>
         <DialogContent>
           <DialogHeader><DialogTitle>Añadir administrador</DialogTitle></DialogHeader>
           <div>
