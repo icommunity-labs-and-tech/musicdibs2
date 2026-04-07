@@ -292,11 +292,13 @@ const AIStudioCreate = () => {
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
-      const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
-      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}`;
-
-
+      // Only enrich with voice tag in song mode
+      let enrichedPrompt = prompt.trim();
+      if (mode === 'song') {
+        const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+        const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+        enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
+      }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
@@ -304,7 +306,7 @@ const AIStudioCreate = () => {
           duration,
           genre: selectedGenre || undefined,
           mood: selectedMood || undefined,
-          lyrics: lyricsText || undefined,
+          lyrics: mode === 'song' ? (lyricsText || undefined) : undefined,
           mode,
         }
       });
