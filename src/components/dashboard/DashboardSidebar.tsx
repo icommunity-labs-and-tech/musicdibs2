@@ -129,15 +129,19 @@ export function DashboardSidebar() {
     const isDistribute = !!(item as any).isDistribute;
 
     if (isDistribute) {
+      const isAnnual = subscriptionPlan === 'Annual';
       return (
         <SidebarMenuItem key={item.title}>
           <SidebarMenuButton asChild>
             <button
-              onClick={() => setShowDistributionModal(true)}
-              className="flex items-center w-full hover:bg-muted/50 rounded-md px-2 py-1.5 text-sm"
+              onClick={() => isAnnual ? setShowDistributionModal(true) : undefined}
+              disabled={!isAnnual}
+              className={`flex items-center w-full rounded-md px-2 py-1.5 text-sm ${isAnnual ? 'hover:bg-muted/50' : 'opacity-50 cursor-not-allowed'}`}
+              title={!isAnnual ? t('dashboard.distribute.annualOnly', { defaultValue: 'Disponible solo con suscripción anual' }) : undefined}
             >
               <item.icon className="mr-2 h-4 w-4" />
               {!collapsed && <span>{item.title}</span>}
+              {!collapsed && !isAnnual && <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground" />}
             </button>
           </SidebarMenuButton>
         </SidebarMenuItem>
