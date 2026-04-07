@@ -547,7 +547,7 @@ serve(async (req) => {
 
     // ── get_saas_metrics ──────────────────────────────────────────
     if (action === "get_saas_metrics") {
-      const { month, year } = payload || {};
+      const { periodType, weekStart, month, year } = payload || {};
       const now = new Date();
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       let stripe: any = null;
@@ -555,21 +555,32 @@ serve(async (req) => {
         stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
       }
 
-      // Build date range from filters
+      // Build date range from new period filters
       let filterStart: string | null = null;
       let filterEnd: string | null = null;
-      if (month && month !== "all" && year && year !== "all") {
+
+      if (periodType === "week" && weekStart) {
+        const ws = new Date(weekStart + "T00:00:00Z");
+        filterStart = ws.toISOString();
+        const we = new Date(ws);
+        we.setDate(we.getDate() + 7);
+        filterEnd = we.toISOString();
+      } else if (periodType === "year" && year) {
+        const y = parseInt(year);
+        filterStart = new Date(y, 0, 1).toISOString();
+        filterEnd = new Date(y + 1, 0, 1).toISOString();
+      } else if ((periodType === "month" || !periodType) && month && month !== "all" && year && year !== "all") {
         const y = parseInt(year), m = parseInt(month);
+        filterStart = new Date(y, m - 1, 1).toISOString();
+        filterEnd = new Date(y, m, 1).toISOString();
+      } else if (month && month !== "all" && (!year || year === "all")) {
+        const y = now.getFullYear(), m = parseInt(month);
         filterStart = new Date(y, m - 1, 1).toISOString();
         filterEnd = new Date(y, m, 1).toISOString();
       } else if (year && year !== "all") {
         const y = parseInt(year);
         filterStart = new Date(y, 0, 1).toISOString();
         filterEnd = new Date(y + 1, 0, 1).toISOString();
-      } else if (month && month !== "all") {
-        const y = now.getFullYear(), m = parseInt(month);
-        filterStart = new Date(y, m - 1, 1).toISOString();
-        filterEnd = new Date(y, m, 1).toISOString();
       }
 
       const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00Z`;
