@@ -268,8 +268,8 @@ export default function PromotionPage() {
           </div>
         </TabsContent>
 
-        {/* ── TAB: Press ── */}
-        <TabsContent value="press">
+        {/* ── TAB: Press — hidden for v2.0, reactivate in v2.1 ── */}
+        <TabsContent value="press" className="hidden">
           <div className="space-y-6">
             {/* Press release generator */}
             <Card>
