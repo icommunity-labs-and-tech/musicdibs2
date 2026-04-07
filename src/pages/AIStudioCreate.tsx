@@ -915,7 +915,8 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
-                      {/* Collapsible lyrics section */}
+                      {/* Collapsible lyrics section — only for songs with voice */}
+                      {mode === 'song' && (
                       <div data-tour="mc-lyrics">
                       <Collapsible open={lyricsExpanded} onOpenChange={setLyricsExpanded}>
                         <CollapsibleTrigger asChild>
@@ -942,6 +943,7 @@ const AIStudioCreate = () => {
                         </CollapsibleContent>
                       </Collapsible>
                       </div>
+                      )}
 
                       <div data-tour="mc-settings">
 
