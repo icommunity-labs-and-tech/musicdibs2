@@ -77,7 +77,7 @@ const AIStudio = () => {
     },
   ];
 
-  const renderModuleCard = (module: typeof topRowModules[0], extraClass = '') => {
+  const renderModuleCard = (module: { titleKey: string; descKey: string; icon: any; href: string; available: boolean; costsCredits: boolean; featureKey: string; color: string }, extraClass = '') => {
     const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
     const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
     return (
