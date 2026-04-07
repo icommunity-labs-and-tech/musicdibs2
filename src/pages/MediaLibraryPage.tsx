@@ -245,6 +245,56 @@ export default function MediaLibraryPage() {
     setDownloadingZip(false);
   };
 
+  // ── Delete single ──
+  const deleteAsset = async (asset: MediaAsset) => {
+    setDeleting(asset.id);
+    try {
+      const tableMap: Record<string, string> = {
+        song: "ai_generations",
+        video: "video_generations",
+        cover: "social_promotions",
+        vocal: "voice_clones",
+      };
+      const { error } = await supabase.from(tableMap[asset.type]).delete().eq("id", asset.id);
+      if (error) throw error;
+      setAssets((prev) => prev.filter((a) => a.id !== asset.id));
+      setSelected((prev) => { const n = new Set(prev); n.delete(asset.id); return n; });
+      toast({ title: "Asset eliminado" });
+    } catch {
+      toast({ title: "Error al eliminar", variant: "destructive" });
+    }
+    setDeleting(null);
+  };
+
+  // ── Delete bulk ──
+  const deleteBulk = async () => {
+    const items = assets.filter((a) => selected.has(a.id));
+    if (!items.length) return;
+    setDeletingBulk(true);
+    let deleted = 0;
+    const tableMap: Record<string, string> = {
+      song: "ai_generations",
+      video: "video_generations",
+      cover: "social_promotions",
+      vocal: "voice_clones",
+    };
+    // Group by type for batch deletes
+    const byType = items.reduce((acc, a) => {
+      (acc[a.type] ??= []).push(a.id);
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    for (const [type, ids] of Object.entries(byType)) {
+      const { error } = await supabase.from(tableMap[type]).delete().in("id", ids);
+      if (!error) deleted += ids.length;
+    }
+
+    setAssets((prev) => prev.filter((a) => !selected.has(a.id)));
+    setSelected(new Set());
+    toast({ title: `${deleted} assets eliminados` });
+    setDeletingBulk(false);
+  };
+
   // ── Playback ──
   const togglePlay = (asset: MediaAsset) => {
     if (!asset.url) return;
