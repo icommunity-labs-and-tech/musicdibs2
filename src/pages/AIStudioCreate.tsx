@@ -640,7 +640,7 @@ const AIStudioCreate = () => {
         body: {
           description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle,
           language: lyricsLanguage, rhymeScheme: lyricsRhyme, structure: lyricsStructure,
-          artistRefs: lyricsArtistRefs, pov: lyricsPov, theme: lyricsTheme,
+          artistRefs: lyricsArtistRefs, pov: lyricsPov,
           regenerateSection: regenerateSec || undefined,
           existingLyrics: regenerateSec ? generatedLyrics : undefined,
         },
