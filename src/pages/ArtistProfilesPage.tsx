@@ -75,8 +75,6 @@ const ArtistProfilesPage = () => {
     supabase.from('voice_profiles').select('*').eq('active', true).order('sort_order')
       .then(({ data }) => setVoiceProfiles(data || []));
     if (user) {
-      supabase.from('voice_clones').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false })
-        .then(({ data }) => setVoiceClones(data || []));
       // Show welcome modal on first visit
       const hasSeenKey = `virtual_artists_welcome_seen_${user.id}`;
       if (!localStorage.getItem(hasSeenKey)) {
