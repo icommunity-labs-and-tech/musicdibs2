@@ -73,6 +73,7 @@ const ArtistProfilesPage = lazyWithRetry(() => import("./pages/ArtistProfilesPag
 const MediaLibraryPage = lazyWithRetry(() => import("./pages/MediaLibraryPage"));
 const PressPage = lazyWithRetry(() => import("./pages/PressPage"));
 
+const AdminCampaignMetricsPage = lazyWithRetry(() => import("./pages/AdminCampaignMetricsPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
