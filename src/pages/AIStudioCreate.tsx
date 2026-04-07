@@ -166,7 +166,7 @@ const AIStudioCreate = () => {
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
   const [voiceTab, setVoiceTab] = useState<'preset' | 'clone'>('preset');
   const [selectedCloneId, setSelectedCloneId] = useState<string>('');
-  const [selectedTheme, setSelectedTheme] = useState<string>('');
+  
   const [selectedArtistRefs] = useState<string[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
    const [showCloneModal, setShowCloneModal] = useState(false);
@@ -338,10 +338,9 @@ const AIStudioCreate = () => {
           ? `, voice resembling ${selectedClone.name}, personal voice clone`
           : '';
 
-      const themeTag = selectedTheme ? `, theme: ${selectedTheme}` : '';
       const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
       const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}${languageTag}`;
 
 
 
@@ -922,7 +921,7 @@ const AIStudioCreate = () => {
                                 if (p.mood) setSelectedMood(p.mood);
                                 if (p.default_duration) setDuration(p.default_duration);
                                 if (p.style_notes) setPrompt(prev => prev || p.style_notes);
-                                if (p.theme) setSelectedTheme(p.theme);
+                                
                               }
                             }
                           }}
@@ -1149,22 +1148,6 @@ const AIStudioCreate = () => {
                         </div>
                       </div>
 
-                      {/* Tema central */}
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.centralTheme')}</Label>
-                        <div className="flex flex-wrap gap-2">
-                          {THEMES.map(t => (
-                            <Badge
-                              key={t}
-                              variant={selectedTheme === t ? 'default' : 'outline'}
-                              className="cursor-pointer text-xs"
-                              onClick={() => setSelectedTheme(selectedTheme === t ? '' : t)}
-                            >
-                              {t}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Mood chips */}
                       <div className="space-y-2">
