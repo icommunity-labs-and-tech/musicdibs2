@@ -946,325 +946,122 @@ const AIStudioCreate = () => {
                       <div data-tour="mc-settings">
 
                       {/* Voice type selector */}
+                      {mode === 'song' && (
                       <div className="space-y-2">
                          <Label className="text-sm font-medium">{t('aiCreate.voice')}</Label>
-                        <p className="text-xs text-muted-foreground">{t('aiCreate.songWithVoice')}</p>
-                        {/* Tabs preset / mi voz */}
-                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                        {/* Tabs: Voces IA / Mis artistas virtuales */}
+                        <div className="flex gap-2 mb-3">
                           <button
                             type="button"
-                            onClick={() => setVoiceTab('preset')}
-                            style={{
-                              padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
-                              border: voiceTab === 'preset' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                              background: voiceTab === 'preset' ? 'hsl(var(--primary) / 0.1)' : 'transparent',
-                              color: voiceTab === 'preset' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                              cursor: 'pointer',
-                            }}
+                            onClick={() => { setVoiceTab('preset'); setSelectedArtistId(''); }}
+                            className={cn(
+                              "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
+                              voiceTab === 'preset'
+                                ? "border-primary bg-primary/10 text-primary border-2"
+                                : "border-border text-muted-foreground hover:border-primary/50"
+                            )}
                           >
-                            {t('aiCreate.presetVoices')}
+                            🎧 Voces IA
                           </button>
                           <button
                             type="button"
-                            onClick={() => setVoiceTab('clone')}
-                            style={{
-                              padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 500,
-                              border: voiceTab === 'clone' ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                              background: voiceTab === 'clone' ? 'hsl(var(--primary) / 0.1)' : 'transparent',
-                              color: voiceTab === 'clone' ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))',
-                              cursor: 'pointer',
-                            }}
+                            onClick={() => { if (virtualArtistsCount > 0) setVoiceTab('my_artists'); }}
+                            disabled={virtualArtistsCount === 0}
+                            className={cn(
+                              "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
+                              voiceTab === 'my_artists'
+                                ? "border-primary bg-primary/10 text-primary border-2"
+                                : virtualArtistsCount === 0
+                                  ? "border-border text-muted-foreground/40 cursor-not-allowed"
+                                  : "border-border text-muted-foreground hover:border-primary/50"
+                            )}
                           >
-                            {t('aiCreate.myVoice')} {voiceClones.length > 0 && `(${voiceClones.length})`}
+                            👤 Mis artistas virtuales {virtualArtistsCount > 0 && `(${virtualArtistsCount})`}
                           </button>
                         </div>
-                        {/* TAB: Voces predefinidas */}
+
+                        {/* TAB: Voces IA del catálogo */}
                         {voiceTab === 'preset' && (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {voiceProfiles.map((v) => (
                               <button
                                 key={v.id}
                                 type="button"
-                                onClick={() => { setSelectedVoice(selectedVoice === v.id ? '' : v.id); setSelectedCloneId(''); }}
-                                disabled={mode === 'instrumental'}
-                                style={{
-                                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                                  padding: '8px 12px', borderRadius: '8px',
-                                  border: selectedVoice === v.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                                  background: selectedVoice === v.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
-                                  cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
-                                  opacity: mode === 'instrumental' ? 0.4 : 1,
-                                  transition: 'all 0.15s', textAlign: 'left', width: '100%',
-                                }}
+                                onClick={() => { setSelectedVoice(selectedVoice === v.id ? '' : v.id); setSelectedArtistId(''); }}
+                                className={cn(
+                                  "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
+                                  selectedVoice === v.id && !selectedArtistId
+                                    ? "border-2 border-primary bg-primary/5"
+                                    : "border-border hover:border-primary/30"
+                                )}
                                 title={v.description}
                               >
-                                <span style={{ fontSize: '16px', marginBottom: '2px' }}>{v.emoji}</span>
-                                <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--foreground)' }}>{v.label}</span>
+                                <span className="text-base mb-0.5">{v.emoji}</span>
+                                <span className="text-xs font-medium text-foreground">{v.label}</span>
                                 {v.sample_url && (
                                   <span
                                     onClick={(e) => handlePreviewVoice(e, v.id, v.sample_url)}
-                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === v.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
+                                    className={cn("inline-flex items-center gap-1 mt-1 text-[11px] cursor-pointer", playingVoice === v.id ? "text-primary" : "text-muted-foreground")}
                                   >
-                                    {playingVoice === v.id ? <span>{t('aiCreate.stop')}</span> : <span>{t('aiCreate.listen')}</span>}
+                                    {playingVoice === v.id ? '⏹ Detener' : '▶ Escuchar'}
                                   </span>
                                 )}
                               </button>
                             ))}
                           </div>
                         )}
-                        {/* TAB: Mi voz clonada */}
-                        {voiceTab === 'clone' && (
-                          <div className="space-y-3">
-                            {voiceClones.length === 0 ? (
-                              <div style={{ textAlign: 'center', padding: '24px 16px', border: '1px dashed hsl(var(--border))', borderRadius: '8px' }}>
-                                <p style={{ fontSize: '13px', color: 'hsl(var(--muted-foreground))', marginBottom: '12px' }}>
-                                  {t('aiCreate.noClones')}
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowCloneModal(true)}
-                                  style={{
-                                    padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: 500,
-                                    background: 'hsl(var(--primary))', color: 'white', border: 'none', cursor: 'pointer',
-                                  }}
-                                >
-                                  {t('aiCreate.cloneNow')}
-                                </button>
+
+                        {/* TAB: Mis artistas virtuales */}
+                        {voiceTab === 'my_artists' && (
+                          <div className="space-y-2">
+                            {virtualArtistsCount === 0 ? (
+                              <div className="text-center py-6 border border-dashed border-border rounded-lg">
+                                <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">Aún no tienes artistas guardados</p>
+                                <p className="text-xs text-muted-foreground mt-1">Genera una canción y guárdala como artista virtual</p>
                               </div>
                             ) : (
-                              <>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                  {voiceClones.map((c) => (
-                                    <div
-                                      key={c.id}
-                                      style={{
-                                        position: 'relative',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                                        padding: '8px 12px', borderRadius: '8px',
-                                        border: selectedCloneId === c.id ? '2px solid hsl(var(--primary))' : '1px solid hsl(var(--border))',
-                                        background: selectedCloneId === c.id ? 'hsl(var(--primary) / 0.08)' : 'transparent',
-                                        cursor: mode === 'instrumental' ? 'not-allowed' : 'pointer',
-                                        opacity: mode === 'instrumental' ? 0.4 : 1,
-                                        transition: 'all 0.15s', textAlign: 'left', width: '100%',
-                                      }}
-                                      onClick={() => { if (mode !== 'instrumental') { setSelectedCloneId(selectedCloneId === c.id ? '' : c.id); setSelectedVoice(''); } }}
-                                    >
-                                      {/* Action buttons */}
-                                      <div style={{ position: 'absolute', top: '4px', right: '4px', display: 'flex', gap: '2px' }}>
-                                        <span
-                                          title={t('aiCreate.renameVoice')}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingCloneId(c.id);
-                                            setEditingCloneName(c.name);
-                                          }}
-                                          style={{
-                                            fontSize: '12px', color: 'hsl(var(--muted-foreground))',
-                                            cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', lineHeight: 1,
-                                          }}
-                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--primary))')}
-                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
-                                        >✏️</span>
-                                        <span
-                                          title={t('aiCreate.deleteVoice')}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (confirm(t('aiCreate.deleteVoiceConfirm', { name: c.name }))) {
-                                              supabase.from('voice_clones').update({ status: 'deleted' }).eq('id', c.id).then(() => {
-                                                setVoiceClones(prev => prev.filter(v => v.id !== c.id));
-                                                if (selectedCloneId === c.id) setSelectedCloneId('');
-                                                toast({ title: t('aiCreate.voiceDeleted') });
-                                              });
-                                            }
-                                          }}
-                                          style={{
-                                            fontSize: '12px', color: 'hsl(var(--muted-foreground))',
-                                            cursor: 'pointer', padding: '2px 4px', borderRadius: '4px', lineHeight: 1,
-                                          }}
-                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--destructive))')}
-                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--muted-foreground))')}
-                                        >🗑</span>
-                                      </div>
-                                      <span style={{ fontSize: '16px', marginBottom: '2px' }}>🎤</span>
-                                      {editingCloneId === c.id ? (
-                                        <form
-                                          onSubmit={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            const trimmed = editingCloneName.trim();
-                                            if (!trimmed) return;
-                                            supabase.from('voice_clones').update({ name: trimmed }).eq('id', c.id).then(({ error }) => {
-                                              if (!error) {
-                                                setVoiceClones(prev => prev.map(v => v.id === c.id ? { ...v, name: trimmed } : v));
-                                                toast({ title: t('aiCreate.voiceRenamed') });
-                                              }
-                                              setEditingCloneId(null);
-                                            });
-                                          }}
-                                          onClick={(e) => e.stopPropagation()}
-                                          style={{ display: 'flex', gap: '4px', alignItems: 'center', width: '100%' }}
-                                        >
-                                          <input
-                                            autoFocus
-                                            value={editingCloneName}
-                                            onChange={(e) => setEditingCloneName(e.target.value)}
-                                            maxLength={50}
-                                            style={{
-                                              fontSize: '12px', fontWeight: 500, padding: '2px 4px',
-                                              border: '1px solid hsl(var(--border))', borderRadius: '4px',
-                                              background: 'hsl(var(--background))', color: 'hsl(var(--foreground))',
-                                              width: '100%', outline: 'none',
-                                            }}
-                                            onKeyDown={(e) => { if (e.key === 'Escape') setEditingCloneId(null); }}
-                                          />
-                                          <button type="submit" style={{ fontSize: '12px', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>✓</button>
-                                        </form>
-                                      ) : (
-                                        <span style={{ fontSize: '12px', fontWeight: 500, color: 'hsl(var(--foreground))' }}>{c.name}</span>
-                                      )}
-                                      <span style={{ fontSize: '10px', color: 'hsl(var(--muted-foreground))', marginTop: '2px' }}>{t('aiCreate.clonedVoice')}</span>
-                                      {c.sample_url && (
-                                        <span
-                                          onClick={(e) => handlePreviewVoice(e, c.id, c.sample_url)}
-                                          style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', marginTop: '4px', fontSize: '11px', color: playingVoice === c.id ? 'hsl(var(--primary))' : '#6b7280', cursor: 'pointer' }}
-                                        >
-                                          {playingVoice === c.id ? <span>{t('aiCreate.stop')}</span> : <span>{t('aiCreate.listen')}</span>}
-                                        </span>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowCloneModal(true)}
-                                  style={{ fontSize: '12px', color: 'hsl(var(--primary))', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
-                                >
-                                  {t('aiCreate.addVoice')}
-                                </button>
-                              </>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {virtualArtists.map((artist) => (
+                                  <button
+                                    key={artist.id}
+                                    type="button"
+                                    onClick={() => handleSelectArtist(artist)}
+                                    className={cn(
+                                      "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
+                                      selectedArtistId === artist.id
+                                        ? "border-2 border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/30"
+                                    )}
+                                  >
+                                    <span className="text-base mb-0.5">{artist.voice_profiles?.emoji || '👤'}</span>
+                                    <span className="text-xs font-medium text-foreground">{artist.name}</span>
+                                    {artist.style_notes && (
+                                      <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{artist.style_notes}</span>
+                                    )}
+                                    {artist.voice_profiles?.label && (
+                                      <Badge variant="outline" className="text-[9px] h-4 mt-1">{artist.voice_profiles.label}</Badge>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
                             )}
                           </div>
                         )}
-                        {(selectedVoice || selectedCloneId) && (
-                          <p className="text-xs text-muted-foreground">
-                            {selectedVoice
-                              ? voiceProfiles.find(v => v.id === selectedVoice)?.description
-                              : `${t('aiCreate.usingClone')} ${voiceClones.find(c => c.id === selectedCloneId)?.name}`
-                            }
+
+                        {/* Micro-copy */}
+                        {voiceTab === 'my_artists' && virtualArtistsCount === 0 && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-2">
+                            💡 Los artistas virtuales son voces que has guardado de otras canciones para crear nuevas con el mismo estilo
+                          </p>
+                        )}
+
+                        {selectedVoice && !selectedArtistId && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {voiceProfiles.find(v => v.id === selectedVoice)?.description}
                           </p>
                         )}
                       </div>
-
-                      {/* MODAL DE CLONACIÓN INLINE */}
-                      {showCloneModal && (
-                        <div style={{
-                          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 50,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
-                        }}>
-                          <div style={{
-                            background: 'hsl(var(--background))', borderRadius: '16px', padding: '32px',
-                            width: '100%', maxWidth: '480px', border: '1px solid hsl(var(--border))',
-                          }}>
-                            <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 700, color: 'hsl(var(--foreground))' }}>
-                               {t('aiCreate.cloneTitle')}
-                             </h2>
-                             <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'hsl(var(--muted-foreground))' }}>
-                               {t('aiCreate.cloneDesc')}
-                             </p>
-                             <div style={{ background: 'hsl(var(--primary) / 0.06)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: 'hsl(var(--muted-foreground))' }}>
-                               {t('aiCreate.cloneTips')}
-                            </div>
-                            <div style={{ marginBottom: '16px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
-                                {t('aiCreate.voiceName')}
-                              </label>
-                              <input
-                                type="text"
-                                value={cloningName}
-                                onChange={e => setCloningName(e.target.value)}
-                                placeholder={t('aiCreate.voiceNamePlaceholder')}
-                                maxLength={50}
-                                style={{
-                                  width: '100%', padding: '8px 12px', borderRadius: '8px', fontSize: '13px',
-                                  border: '1px solid hsl(var(--border))', background: 'hsl(var(--background))',
-                                  color: 'hsl(var(--foreground))', boxSizing: 'border-box',
-                                }}
-                              />
-                            </div>
-                            <div style={{ marginBottom: '16px' }}>
-                              <label style={{ fontSize: '12px', fontWeight: 500, display: 'block', marginBottom: '6px', color: 'hsl(var(--foreground))' }}>
-                                {t('aiCreate.voiceAudio')}
-                              </label>
-                              <input
-                                ref={cloneFileRef}
-                                type="file"
-                                accept="audio/mp3,audio/mpeg,audio/wav,audio/x-wav,audio/m4a,audio/mp4,.mp3,.wav,.m4a"
-                                onChange={e => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  setCloningFile(file);
-                                  const audio = new Audio(URL.createObjectURL(file));
-                                  audio.onloadedmetadata = () => setCloningDuration(Math.round(audio.duration));
-                                }}
-                                style={{ width: '100%', fontSize: '13px', color: 'hsl(var(--foreground))' }}
-                              />
-                              {cloningDuration !== null && (
-                                <p style={{
-                                  marginTop: '6px', fontSize: '12px',
-                                  color: cloningDuration < 30 ? '#ef4444' : cloningDuration < 60 ? '#eab308' : '#22c55e'
-                                }}>
-                                   {cloningDuration < 30
-                                     ? t('aiCreate.audioTooShort', { dur: cloningDuration })
-                                     : cloningDuration < 60
-                                       ? t('aiCreate.audioOk', { dur: cloningDuration })
-                                       : t('aiCreate.audioOptimal', { dur: cloningDuration })
-                                  }
-                                </p>
-                              )}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                              <input
-                                type="checkbox"
-                                id="clone-noise"
-                                checked={cloningNoise}
-                                onChange={e => setCloningNoise(e.target.checked)}
-                              />
-                              <label htmlFor="clone-noise" style={{ fontSize: '12px', color: 'hsl(var(--muted-foreground))', cursor: 'pointer' }}>
-                                {t('aiCreate.removeNoise')}
-                              </label>
-                            </div>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <button
-                                type="button"
-                                onClick={handleInlineClone}
-                                disabled={!cloningFile || !cloningName.trim() || isCloning || (cloningDuration !== null && cloningDuration < 30)}
-                                style={{
-                                  flex: 1, padding: '10px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
-                                  background: 'hsl(var(--primary))', color: 'white', border: 'none',
-                                  cursor: (!cloningFile || !cloningName.trim() || isCloning) ? 'not-allowed' : 'pointer',
-                                  opacity: (!cloningFile || !cloningName.trim() || isCloning) ? 0.6 : 1,
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                }}
-                              >
-                                 {isCloning
-                                   ? <><Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />{t('aiCreate.cloning')}</>
-                                   : t('aiCreate.cloneBtn')
-                                }
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => { setShowCloneModal(false); setCloningName(''); setCloningFile(null); setCloningDuration(null); if (cloneFileRef.current) cloneFileRef.current.value = ''; }}
-                                style={{
-                                  padding: '10px 20px', borderRadius: '8px', fontSize: '14px',
-                                  background: 'transparent', color: 'hsl(var(--muted-foreground))',
-                                  border: '1px solid hsl(var(--border))', cursor: 'pointer',
-                                }}
-                              >
-                                 {t('aiCreate.cancel')}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
                       )}
                       </div>{/* close data-tour="mc-settings" */}
 
