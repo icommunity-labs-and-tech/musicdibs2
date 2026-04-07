@@ -32,4 +32,5 @@ export const adminApi = {
   saveCampaign: (campaign: Record<string, any>) => adminAction('save_campaign', campaign),
   getCampaignMetrics: (filters: { periodType?: string; weekStart?: string; month?: string; year?: string }) => adminAction('get_campaign_metrics', filters),
   getCampaignDetail: (campaign_name: string) => adminAction('get_campaign_detail', { campaign_name }),
+  backfillOrdersFromStripe: (dry_run = false, limit?: number) => adminAction('backfill_orders_from_stripe', { dry_run, limit }),
 };

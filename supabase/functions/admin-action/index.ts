@@ -1615,6 +1615,259 @@ serve(async (req) => {
       });
     }
 
+    // ── backfill_orders_from_stripe ──────────────────────────────
+    if (action === "backfill_orders_from_stripe") {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (!stripeKey) return json({ error: "STRIPE_SECRET_KEY not set" }, 500);
+
+      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+      const dryRun = payload.dry_run === true;
+      const limitCustomers = payload.limit ? Number(payload.limit) : 999;
+
+      const stats = { invoices_found: 0, charges_found: 0, orders_created: 0, skipped_existing: 0, skipped_no_user: 0, errors: 0 };
+
+      // Build user_id -> first paid_at map for is_first_purchase calculation
+      const firstPurchaseMap: Record<string, string> = {};
+
+      // Collect all existing order stripe IDs to avoid duplicates
+      const { data: existingOrders } = await admin
+        .from("orders")
+        .select("stripe_invoice_id, stripe_charge_id, stripe_checkout_session_id");
+      const existingIds = new Set<string>();
+      (existingOrders || []).forEach((o: any) => {
+        if (o.stripe_invoice_id) existingIds.add(o.stripe_invoice_id);
+        if (o.stripe_charge_id) existingIds.add(o.stripe_charge_id);
+        if (o.stripe_checkout_session_id) existingIds.add(o.stripe_checkout_session_id);
+      });
+
+      // Build email -> user_id map
+      const { data: { users: allAuthUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      const emailToUserId: Record<string, string> = {};
+      (allAuthUsers || []).forEach((u: any) => { if (u.email) emailToUserId[u.email.toLowerCase()] = u.id; });
+
+      // Also build stripe_customer_id -> user_id map from profiles
+      const { data: allProfiles } = await admin.from("profiles").select("user_id, stripe_customer_id");
+      const custToUserId: Record<string, string> = {};
+      (allProfiles || []).forEach((p: any) => { if (p.stripe_customer_id) custToUserId[p.stripe_customer_id] = p.user_id; });
+
+      // Helper: resolve user_id from Stripe customer
+      async function resolveUserId(customerId: string): Promise<string | null> {
+        if (custToUserId[customerId]) return custToUserId[customerId];
+        try {
+          const cust = await stripe.customers.retrieve(customerId) as any;
+          if (cust.email) {
+            const uid = emailToUserId[cust.email.toLowerCase()];
+            if (uid) { custToUserId[customerId] = uid; return uid; }
+          }
+        } catch { /* deleted customer */ }
+        return null;
+      }
+
+      // Price -> plan ID mapping (same as stripe-webhook)
+      const BACKFILL_PRICE_TO_PLAN: Record<string, string> = {
+        "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "annual_legacy",
+        "price_1THT7cF9ZCIiqrz6sWS67Q4V": "annual_100",
+        "price_1THT7gF9ZCIiqrz6Acb2CkDC": "annual_200",
+        "price_1THT7jF9ZCIiqrz6i02J4bj4": "annual_300",
+        "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "annual_500",
+        "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "annual_1000",
+        "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "monthly",
+        "price_1THULsF9ZCIiqrz64SbA3AK6": "individual",
+        "price_1THT7xF9ZCIiqrz60FfiGbfv": "topup_10",
+        "price_1THT80F9ZCIiqrz6H31dYDMG": "topup_25",
+        "price_1THT83F9ZCIiqrz6BD2wmUaO": "topup_50",
+        "price_1THT86F9ZCIiqrz6C548DJnT": "topup_100",
+        "price_1THT8AF9ZCIiqrz626wSH9Rz": "topup_200",
+      };
+
+      function bfGetProductType(planId: string): string {
+        if (planId.startsWith("annual")) return "annual";
+        if (planId === "monthly") return "monthly";
+        if (planId === "individual") return "single";
+        if (planId.startsWith("topup_")) return "topup";
+        return "unknown";
+      }
+
+      // Helper: determine product type from price/plan
+      function inferProductType(priceId: string | null, interval: string | null, _amount: number): { productType: string; productCode: string; billingInterval: string | null; isSub: boolean } {
+        if (priceId && BACKFILL_PRICE_TO_PLAN[priceId]) {
+          const planId = BACKFILL_PRICE_TO_PLAN[priceId];
+          const pt = bfGetProductType(planId);
+          return {
+            productType: pt,
+            productCode: planId,
+            billingInterval: pt === "annual" ? "yearly" : pt === "monthly" ? "monthly" : null,
+            isSub: pt === "annual" || pt === "monthly",
+          };
+        }
+        if (interval === "year") return { productType: "annual", productCode: "annual_unknown", billingInterval: "yearly", isSub: true };
+        if (interval === "month") return { productType: "monthly", productCode: "monthly", billingInterval: "monthly", isSub: true };
+        return { productType: "single", productCode: "unknown", billingInterval: null, isSub: false };
+      }
+
+      // Collect orders to insert
+      const ordersToInsert: any[] = [];
+
+      // 1) Process invoices (paginated)
+      let hasMoreInv = true;
+      let startingAfterInv: string | undefined;
+      let custProcessed = 0;
+
+      // We iterate all invoices across all customers
+      while (hasMoreInv) {
+        const params: any = { limit: 100, status: "paid" };
+        if (startingAfterInv) params.starting_after = startingAfterInv;
+        const invoices = await stripe.invoices.list(params);
+
+        for (const inv of invoices.data) {
+          stats.invoices_found++;
+          if (existingIds.has(inv.id)) { stats.skipped_existing++; continue; }
+
+          const customerId = typeof inv.customer === "string" ? inv.customer : (inv.customer as any)?.id;
+          if (!customerId) continue;
+
+          const userId = await resolveUserId(customerId);
+          if (!userId) { stats.skipped_no_user++; continue; }
+
+          const lineItem = inv.lines?.data?.[0];
+          const priceId = lineItem?.price?.id || null;
+          const interval = lineItem?.price?.recurring?.interval || null;
+          const amount = (inv.amount_paid || 0) / 100;
+
+          const { productType, productCode, billingInterval, isSub } = inferProductType(priceId, interval, amount);
+
+          const isRenewal = isSub && !!inv.subscription && (inv.billing_reason === "subscription_cycle" || inv.billing_reason === "subscription_update");
+
+          const paidAt = new Date((inv.status_transitions?.paid_at || inv.created) * 1000).toISOString();
+
+          ordersToInsert.push({
+            user_id: userId,
+            stripe_invoice_id: inv.id,
+            stripe_subscription_id: typeof inv.subscription === "string" ? inv.subscription : null,
+            stripe_charge_id: typeof inv.charge === "string" ? inv.charge : null,
+            order_status: "paid",
+            product_type: productType,
+            product_code: productCode,
+            billing_interval: billingInterval,
+            amount_gross: amount,
+            currency: inv.currency || "eur",
+            is_subscription: isSub,
+            is_renewal: isRenewal,
+            is_first_purchase: false, // will be set below
+            coupon_code: inv.discount?.coupon?.id || null,
+            promotion_code: inv.discount?.promotion_code ? (typeof inv.discount.promotion_code === "string" ? inv.discount.promotion_code : inv.discount.promotion_code.code) : null,
+            paid_at: paidAt,
+            metadata: { backfill: true, source: "invoice" },
+          });
+
+          existingIds.add(inv.id);
+          if (typeof inv.charge === "string") existingIds.add(inv.charge);
+        }
+
+        hasMoreInv = invoices.has_more;
+        if (invoices.data.length > 0) startingAfterInv = invoices.data[invoices.data.length - 1].id;
+      }
+
+      // 2) Process standalone charges not linked to invoices
+      let hasMoreCh = true;
+      let startingAfterCh: string | undefined;
+
+      while (hasMoreCh) {
+        const params: any = { limit: 100 };
+        if (startingAfterCh) params.starting_after = startingAfterCh;
+        const charges = await stripe.charges.list(params);
+
+        for (const ch of charges.data) {
+          stats.charges_found++;
+          if (ch.status !== "succeeded") continue;
+          if (existingIds.has(ch.id)) { stats.skipped_existing++; continue; }
+          if (ch.invoice && existingIds.has(typeof ch.invoice === "string" ? ch.invoice : (ch.invoice as any).id)) { stats.skipped_existing++; continue; }
+
+          const customerId = typeof ch.customer === "string" ? ch.customer : (ch.customer as any)?.id;
+          if (!customerId) continue;
+
+          const userId = await resolveUserId(customerId);
+          if (!userId) { stats.skipped_no_user++; continue; }
+
+          const amount = ch.amount / 100;
+          const planId = ch.metadata?.plan_id || "";
+          const pt = planId ? bfGetProductType(planId) : "single";
+
+          const paidAt = new Date(ch.created * 1000).toISOString();
+
+          ordersToInsert.push({
+            user_id: userId,
+            stripe_charge_id: ch.id,
+            order_status: "paid",
+            product_type: pt,
+            product_code: planId || "unknown",
+            billing_interval: pt === "annual" ? "yearly" : pt === "monthly" ? "monthly" : null,
+            amount_gross: amount,
+            currency: ch.currency || "eur",
+            is_subscription: pt === "annual" || pt === "monthly",
+            is_renewal: false,
+            is_first_purchase: false,
+            coupon_code: ch.metadata?.coupon_code || null,
+            paid_at: paidAt,
+            metadata: { backfill: true, source: "charge" },
+          });
+
+          existingIds.add(ch.id);
+        }
+
+        hasMoreCh = charges.has_more;
+        if (charges.data.length > 0) startingAfterCh = charges.data[charges.data.length - 1].id;
+      }
+
+      // 3) Calculate is_first_purchase: sort by paid_at, first per user is true
+      ordersToInsert.sort((a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime());
+      const userFirstSeen = new Set<string>();
+
+      // Also check already-existing orders to not mis-flag
+      const { data: earliestExisting } = await admin
+        .from("orders")
+        .select("user_id, paid_at")
+        .eq("order_status", "paid")
+        .order("paid_at", { ascending: true });
+      (earliestExisting || []).forEach((o: any) => userFirstSeen.add(o.user_id));
+
+      for (const order of ordersToInsert) {
+        if (!userFirstSeen.has(order.user_id)) {
+          order.is_first_purchase = true;
+          userFirstSeen.add(order.user_id);
+        }
+      }
+
+      // 4) Insert in batches
+      if (!dryRun) {
+        const BATCH = 50;
+        for (let i = 0; i < ordersToInsert.length; i += BATCH) {
+          const batch = ordersToInsert.slice(i, i + BATCH);
+          const { error: insertErr } = await admin.from("orders").insert(batch);
+          if (insertErr) {
+            console.error("[BACKFILL] Batch insert error:", insertErr);
+            stats.errors++;
+          } else {
+            stats.orders_created += batch.length;
+          }
+        }
+      } else {
+        stats.orders_created = ordersToInsert.length;
+      }
+
+      await audit({
+        action: "backfill_orders_from_stripe",
+        details: { dry_run: dryRun, stats },
+      });
+
+      return json({
+        success: true,
+        dry_run: dryRun,
+        stats,
+        sample: ordersToInsert.slice(0, 5).map(o => ({ user_id: o.user_id, product_type: o.product_type, amount: o.amount_gross, paid_at: o.paid_at, is_first_purchase: o.is_first_purchase })),
+      });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);
