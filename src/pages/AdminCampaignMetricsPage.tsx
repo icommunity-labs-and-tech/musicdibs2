@@ -14,6 +14,7 @@ import {
   Megaphone, RefreshCw, Plus, TrendingUp, DollarSign,
   Users, ShoppingBag, BarChart3, Eye, Calendar, Loader2,
 } from 'lucide-react';
+import HistoricalDataNotice, { normalizeAttribution } from '@/components/admin/HistoricalDataNotice';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -122,7 +123,7 @@ export default function AdminCampaignMetricsPage() {
     setWeekStart(d.toISOString().slice(0, 10));
   };
 
-  const campaignRows = metrics?.campaigns || [];
+  const campaignRows = (metrics?.campaigns || []).map((c: any) => ({ ...c, campaign_name: normalizeAttribution(c.campaign_name) }));
   const topByRevenue = [...campaignRows].sort((a: any, b: any) => b.revenue - a.revenue).slice(0, 5);
   const topByCustomers = [...campaignRows].sort((a: any, b: any) => b.new_customers - a.new_customers).slice(0, 5);
 
@@ -206,6 +207,9 @@ export default function AdminCampaignMetricsPage() {
         </div>
       </div>
 
+      {/* Historical data quality notice */}
+      <HistoricalDataNotice compact collapsible storageKey="admin-campaigns-notice" />
+
       {/* Summary KPIs */}
       {metrics?.summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -279,7 +283,7 @@ export default function AdminCampaignMetricsPage() {
               )}
               {campaignRows.map((c: any) => (
                 <TableRow key={c.campaign_name}>
-                  <TableCell className="font-medium">{c.campaign_name || 'Sin atribuir'}</TableCell>
+                  <TableCell className="font-medium">{normalizeAttribution(c.campaign_name)}</TableCell>
                   <TableCell className="text-right">{c.registered}</TableCell>
                   <TableCell className="text-right">{c.new_customers}</TableCell>
                   <TableCell className="text-right">{c.returning_customers}</TableCell>

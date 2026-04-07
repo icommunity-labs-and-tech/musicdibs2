@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Megaphone, Users, DollarSign, Target } from 'lucide-react';
+import { normalizeAttribution } from '@/components/admin/HistoricalDataNotice';
 
 interface MarketingSummaryProps {
   metrics: any;
@@ -57,7 +58,7 @@ export default function MarketingSummary({ metrics }: MarketingSummaryProps) {
               <div className="space-y-1">
                 {topCampaigns.slice(0, 3).map((c, i) => (
                   <div key={i} className="flex items-center justify-between text-xs">
-                    <Badge variant="outline" className="text-[10px] truncate max-w-[100px]">{c.name}</Badge>
+                    <Badge variant="outline" className="text-[10px] truncate max-w-[100px]">{normalizeAttribution(c.name)}</Badge>
                     <span className="font-medium">€{c.revenue.toLocaleString()}</span>
                   </div>
                 ))}

@@ -21,6 +21,7 @@ import CohortRetention from '@/components/admin/metrics/CohortRetention';
 import MarketingMetricsForm from '@/components/admin/metrics/MarketingMetricsForm';
 import FinancialAlerts from '@/components/admin/metrics/FinancialAlerts';
 import MarketingSummary from '@/components/admin/metrics/MarketingSummary';
+import HistoricalDataNotice from '@/components/admin/HistoricalDataNotice';
 
 const MONTHS = [
   { value: '01', label: 'Enero' }, { value: '02', label: 'Febrero' },
@@ -243,6 +244,9 @@ export default function AdminMetricsPage() {
           </div>
         </div>
       </div>
+
+      {/* Historical data quality notice */}
+      <HistoricalDataNotice collapsible storageKey="admin-metrics-notice" />
 
       {/* KPI Rows — separated blocks */}
       <KpiGrid metrics={metrics} />
