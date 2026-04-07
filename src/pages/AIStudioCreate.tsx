@@ -855,7 +855,7 @@ const AIStudioCreate = () => {
                            {t('aiCreate.songWithVoice')}
                         </button>
                         <button
-                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); }}
+                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedArtistId(''); }}
                           className={cn(
                             "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
                             mode === 'instrumental'
