@@ -73,11 +73,9 @@ serve(async (req) => {
   const authHeader = req.headers.get('authorization')?.replace('Bearer ', '');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const cronEnv = Deno.env.get('CRON_SECRET');
-  const testMode = req.headers.get('x-test-mode') === 'true';
   
   const isAuthorized = (cronSecret && cronSecret === cronEnv) ||
-                       (authHeader && authHeader === serviceRoleKey) ||
-                       testMode; // TEMPORARY: remove after testing
+                       (authHeader && authHeader === serviceRoleKey);
   if (!isAuthorized) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
