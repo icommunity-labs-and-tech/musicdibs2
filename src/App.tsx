@@ -95,6 +95,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <AppInit />
           <Suspense fallback={null}>
             <ChatWidget />
             <SocialProofPopup />
