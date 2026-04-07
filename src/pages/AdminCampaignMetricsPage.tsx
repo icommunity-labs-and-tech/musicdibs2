@@ -14,6 +14,7 @@ import {
   Megaphone, RefreshCw, Plus, TrendingUp, DollarSign,
   Users, ShoppingBag, BarChart3, Eye, Calendar, Loader2,
 } from 'lucide-react';
+import HistoricalDataNotice, { normalizeAttribution } from '@/components/admin/HistoricalDataNotice';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
