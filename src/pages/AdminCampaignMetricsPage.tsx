@@ -102,7 +102,7 @@ export default function AdminCampaignMetricsPage() {
 
   const handleSaveCampaign = async () => {
     try {
-      await adminApi.callAction('save_campaign', {
+      await adminApi.saveCampaign({
         ...newCampaign,
         cost: parseFloat(newCampaign.cost) || 0,
       });
