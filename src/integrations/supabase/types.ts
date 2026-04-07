@@ -811,6 +811,30 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_log: {
+        Row: {
+          id: string
+          metadata: Json | null
+          notification_type: string
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       premium_social_promotions: {
         Row: {
           artist_name: string

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Upload, Search, Megaphone, ShoppingBag, User,
   CreditCard, LifeBuoy, Music, LogOut, Mic, Sparkles, Shield,
   HelpCircle, Users, BarChart3, Settings2, Rocket, Briefcase,
-  ClipboardList, UserCircle, ChevronDown, Palette,
+  ClipboardList, UserCircle, ChevronDown, Palette, Lock,
 } from 'lucide-react';
 import { DistributionInfoModal } from '@/components/DistributionInfoModal';
 import {
@@ -30,6 +30,7 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string>('Free');
   const { t, i18n } = useTranslation();
   const tr = (key: string, fallback: string) => t(key, { defaultValue: fallback });
 
@@ -90,10 +91,13 @@ export function DashboardSidebar() {
     if (!user) return;
     supabase
       .from('profiles')
-      .select('kyc_status')
+      .select('kyc_status, subscription_plan')
       .eq('user_id', user.id)
       .single()
-      .then(({ data }) => setKycStatus(data?.kyc_status || 'unverified'));
+      .then(({ data }) => {
+        setKycStatus(data?.kyc_status || 'unverified');
+        setSubscriptionPlan(data?.subscription_plan || 'Free');
+      });
 
     const channel = supabase
       .channel('sidebar-kyc')
@@ -102,6 +106,7 @@ export function DashboardSidebar() {
         filter: `user_id=eq.${user.id}`,
       }, (payload: any) => {
         if (payload.new?.kyc_status) setKycStatus(payload.new.kyc_status);
+        if (payload.new?.subscription_plan) setSubscriptionPlan(payload.new.subscription_plan);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -124,15 +129,19 @@ export function DashboardSidebar() {
     const isDistribute = !!(item as any).isDistribute;
 
     if (isDistribute) {
+      const isAnnual = subscriptionPlan === 'Annual';
       return (
         <SidebarMenuItem key={item.title}>
           <SidebarMenuButton asChild>
             <button
-              onClick={() => setShowDistributionModal(true)}
-              className="flex items-center w-full hover:bg-muted/50 rounded-md px-2 py-1.5 text-sm"
+              onClick={() => isAnnual ? setShowDistributionModal(true) : undefined}
+              disabled={!isAnnual}
+              className={`flex items-center w-full rounded-md px-2 py-1.5 text-sm ${isAnnual ? 'hover:bg-muted/50' : 'opacity-50 cursor-not-allowed'}`}
+              title={!isAnnual ? t('dashboard.distribute.annualOnly', { defaultValue: 'Disponible solo con suscripción anual' }) : undefined}
             >
               <item.icon className="mr-2 h-4 w-4" />
               {!collapsed && <span>{item.title}</span>}
+              {!collapsed && !isAnnual && <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground" />}
             </button>
           </SidebarMenuButton>
         </SidebarMenuItem>
