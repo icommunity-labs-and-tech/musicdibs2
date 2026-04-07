@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Megaphone, Users, DollarSign, Target } from 'lucide-react';
+import { normalizeAttribution } from '@/components/admin/HistoricalDataNotice';
 
 interface MarketingSummaryProps {
   metrics: any;
