@@ -338,10 +338,9 @@ const AIStudioCreate = () => {
           ? `, voice resembling ${selectedClone.name}, personal voice clone`
           : '';
 
-      const themeTag = selectedTheme ? `, theme: ${selectedTheme}` : '';
       const artistTag = selectedArtistRefs.length > 0 ? `, inspired by ${selectedArtistRefs.join(', ')}` : '';
       const languageTag = selectedLanguage && mode === 'song' ? `, lyrics in ${selectedLanguage}` : '';
-      const enrichedPrompt = `${prompt.trim()}${voiceTag}${themeTag}${artistTag}${languageTag}`;
+      const enrichedPrompt = `${prompt.trim()}${voiceTag}${artistTag}${languageTag}`;
 
 
 
