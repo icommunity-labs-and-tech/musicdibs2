@@ -628,7 +628,7 @@ const AIStudioCreate = () => {
   };
 
   const handleGenerateLyrics = async (regenerateSec?: string) => {
-    if (!lyricsDesc.trim() && !lyricsTheme) {
+    if (!lyricsDesc.trim()) {
       toast({ title: t('aiCreate.describeSongOrTheme'), variant: "destructive" });
       return;
     }
