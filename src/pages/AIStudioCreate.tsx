@@ -614,7 +614,6 @@ const AIStudioCreate = () => {
         body: {
           prompt: lyricsDesc,
           genre: lyricsGenre || '',
-          mood: lyricsMood || '',
           mode: 'lyrics',
         },
       });
@@ -645,8 +644,8 @@ const AIStudioCreate = () => {
     try {
       const { data, error } = await supabase.functions.invoke("lyrics-generator", {
         body: {
-          description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle,
-          language: lyricsLanguage, rhymeScheme: lyricsRhyme, structure: lyricsStructure,
+          description: lyricsDesc, genre: lyricsGenre, style: lyricsStyle,
+          rhymeScheme: lyricsRhyme, structure: lyricsStructure,
           artistRefs: lyricsArtistRefs, pov: lyricsPov,
           regenerateSection: regenerateSec || undefined,
           existingLyrics: regenerateSec ? generatedLyrics : undefined,
@@ -1196,25 +1195,14 @@ const AIStudioCreate = () => {
                     </div>
 
 
-                    {/* Mood chips */}
+                    {/* Genre chips (primary) */}
                     <div className="space-y-1.5">
-                      <Label className="text-sm">{t('aiCreate.moodLabel')}</Label>
+                      <Label className="text-sm">{t('aiCreate.genreLabel')}</Label>
                       <div className="flex flex-wrap gap-1.5">
-                        {(MOODS as readonly string[]).slice(0, 8).map(m => (
-                          <Badge key={m} variant={lyricsMood === m ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsMood(lyricsMood === m ? "" : m)}>{m}</Badge>
+                        {(GENRES as readonly string[]).slice(0, 8).map(g => (
+                          <Badge key={g} variant={lyricsGenre === g ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}>{g}</Badge>
                         ))}
                       </div>
-                    </div>
-
-                    {/* Language */}
-                    <div className="space-y-1.5">
-                      <Label className="text-sm">{t('aiCreate.languageLabel')}</Label>
-                      <Select value={lyricsLanguage} onValueChange={setLyricsLanguage}>
-                        <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {LYRIC_LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
                     </div>
 
                     {/* Advanced options */}
@@ -1224,15 +1212,6 @@ const AIStudioCreate = () => {
                         ⚙️ {t('aiCreate.advancedOptions', 'Opciones avanzadas')}
                       </CollapsibleTrigger>
                       <CollapsibleContent className="space-y-4 pt-3">
-                        {/* Genre */}
-                        <div className="space-y-1.5">
-                          <Label className="text-sm">{t('aiCreate.genreLabel')}</Label>
-                          <div className="flex flex-wrap gap-1.5">
-                            {(GENRES as readonly string[]).slice(0, 8).map(g => (
-                              <Badge key={g} variant={lyricsGenre === g ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setLyricsGenre(lyricsGenre === g ? "" : g)}>{g}</Badge>
-                            ))}
-                          </div>
-                        </div>
                         {/* Structure & Rhyme */}
                         <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-1.5">
@@ -1282,7 +1261,7 @@ const AIStudioCreate = () => {
                       </p>
                     )}
 
-                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || !lyricsDesc.trim()} className="w-full" size="lg">
+                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || !lyricsDesc.trim() || !lyricsGenre} className="w-full" size="lg">
                       {isGeneratingLyrics
                          ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiCreate.composingLyrics')}</>
                          : <>📝 {t('aiCreate.generateLyricsFree')}</>
