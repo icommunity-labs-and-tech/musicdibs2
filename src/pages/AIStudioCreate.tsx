@@ -40,6 +40,7 @@ import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
+import { useProductTracking } from "@/hooks/useProductTracking";
 
 // ── Music tab constants ──
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
@@ -97,6 +98,7 @@ const AIStudioCreate = () => {
   const navigate = useNavigate();
   const { credits, hasEnough } = useCredits();
   const formRef = useRef<HTMLDivElement>(null);
+  const { track } = useProductTracking();
 
   // ── Music tab state ──
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
@@ -283,6 +285,7 @@ const AIStudioCreate = () => {
     setIsGenerating(true);
     setGenerationError(null);
     setLastResult(null);
+    track('generation_started', { feature: 'create_music', metadata: { mode, genre: selectedGenre, mood: selectedMood } });
 
     try {
       // Spend credits
@@ -361,6 +364,8 @@ const AIStudioCreate = () => {
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
         toast({ title: t('aiCreate.musicGenerated'), description: mode === 'song' ? t('aiCreate.songReady') : t('aiCreate.instrReady') });
+        track('generation_completed', { feature: 'create_music' });
+        sessionStorage.setItem('md_last_generation', Date.now().toString());
 
         // Show save as virtual artist prompt (only if used a preset voice, not already from a VA)
         if (mode === 'song' && selectedVoice && !selectedArtistId) {
@@ -376,6 +381,7 @@ const AIStudioCreate = () => {
         message: error.message || "No se pudo generar la música",
         details: error.details || "Intenta ajustar tu descripción o la duración."
       });
+      track('generation_failed', { feature: 'create_music', metadata: { error: error.message } });
     } finally {
       setIsGenerating(false);
     }
@@ -459,6 +465,7 @@ const AIStudioCreate = () => {
     link.href = result.audioUrl;
     link.download = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
     link.click();
+    track('audio_downloaded', { feature: 'create_music' });
   };
 
   // ── Save as Virtual Artist ──
@@ -652,6 +659,7 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.sectionRegenerated'), description: `[${regenerateSec}]` });
       } else {
         toast({ title: t('aiCreate.lyricsGenerated'), description: t('aiCreate.lyricsGeneratedDesc') });
+        track('lyrics_generated', { feature: 'lyrics', metadata: { genre: lyricsGenre, mood: lyricsMood, language: lyricsLanguage } });
       }
     } catch (err: any) {
       setLyricsError(err.message || "Error al generar la letra");

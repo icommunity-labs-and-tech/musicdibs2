@@ -5,6 +5,7 @@ import { ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 interface DistributionInfoModalProps {
   open: boolean;
@@ -15,6 +16,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
   const { t } = useTranslation();
   const { user } = useAuth();
   const userEmail = user?.email ?? '';
+  const { track } = useProductTracking();
 
   const [loading, setLoading] = useState(true);
   const [isReturningUser, setIsReturningUser] = useState(false);
@@ -46,6 +48,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
     : 'https://dist.musicdibs.com/';
 
   const handleContinue = () => {
+    track('distribution_clicked', { feature: 'distribution' });
     onOpenChange(false);
   };
 

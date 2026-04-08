@@ -22,12 +22,14 @@ import {
   Newspaper, Loader2, Copy, Check, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useProductTracking } from "@/hooks/useProductTracking";
 
 const PressPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { track } = useProductTracking();
 
   const [works, setWorks] = useState<any[]>([]);
   const [selectedWork, setSelectedWork] = useState<any>(null);
@@ -140,6 +142,7 @@ const PressPage = () => {
         title: t("dashboard.press.prGenerated"),
         description: t("dashboard.press.prGeneratedDesc"),
       });
+      track('press_release_generated', { feature: 'press' });
     } catch {
       toast({ title: t("dashboard.press.errorConnection"), variant: "destructive" });
     } finally {

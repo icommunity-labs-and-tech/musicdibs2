@@ -18,6 +18,7 @@ import { FEATURE_COSTS } from "@/lib/featureCosts"
 import { PricingLink } from "@/components/dashboard/PricingPopup"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
+import { useProductTracking } from "@/hooks/useProductTracking"
 import {
   ArrowLeft, Wand2, Loader2, Download,
   RefreshCw, ImageIcon, Sparkles,
@@ -61,6 +62,7 @@ const AIStudioCovers = () => {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { hasEnough } = useCredits()
+  const { track } = useProductTracking()
 
   const [artistName,   setArtistName]   = useState("")
   const [trackTitle,   setTrackTitle]   = useState("")
@@ -144,6 +146,7 @@ const AIStudioCovers = () => {
 
       setImageUrl(data.imageUrl)
       toast.success(t('aiCovers.coverGenerated'))
+      track('cover_generated', { feature: 'cover' })
     } catch (err: any) {
       setGenError(err.message || t('aiShared.error'))
       toast.error(err.message || t('aiShared.error'))

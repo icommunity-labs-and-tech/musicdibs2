@@ -23,6 +23,7 @@ import { registerWork } from '@/services/dashboardApi';
 import { supabase } from '@/integrations/supabase/client';
 import type { DashboardSummary } from '@/types/dashboard';
 import { initialWizardData, type WizardData } from './types';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 interface RegistrationWizardProps {
   summary: DashboardSummary | null;
@@ -32,6 +33,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { track } = useProductTracking();
   const prefill = (location.state as { prefill?: { title?: string; type?: string; description?: string; audioUrl?: string } })?.prefill;
 
   const STEPS_NEW = [
@@ -134,6 +136,18 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
       setResultId(res.registrationId);
       setResultHash(res.blockchainHash || '');
       setStep(steps.length - 1);
+
+      // Track work registration
+      track('work_registered', { feature: 'register', metadata: { work_id: res.registrationId } });
+
+      // Check if there was a recent generation in this session
+      const lastGen = sessionStorage.getItem('md_last_generation');
+      if (lastGen) {
+        const elapsed = Date.now() - parseInt(lastGen, 10);
+        if (elapsed < 24 * 60 * 60 * 1000) {
+          track('work_registered_after_generation', { feature: 'register', metadata: { work_id: res.registrationId } });
+        }
+      }
 
       if (res.registrationId) {
         const pollInterval = setInterval(async () => {

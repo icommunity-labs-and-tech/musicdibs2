@@ -30,6 +30,7 @@ import { Footer } from '@/components/Footer';
 import { VoiceTranslator } from '@/components/voice/VoiceTranslator';
 import { VoiceToolsTour } from '@/components/ai-studio/VoiceToolsTour';
 import { HelpCircle } from 'lucide-react';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 const THEMES = ["Amor", "Desamor", "Superación", "Fiesta", "Calle", "Familia", "Libertad", "Nostalgia", "Éxito", "Identidad"];
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -60,6 +61,7 @@ export default function AIStudioVocal() {
   const s = (key: string, fb?: string): string => String(t(key, { defaultValue: fb }));
   const vc = (key: string, opts?: any): string => String(t(`dashboard.voiceCloning.${key}`, opts));
   const tv = (key: string, opts?: any): string => String(t(`aiVocal.${key}`, opts));
+  const { track } = useProductTracking();
 
   // Voice clones
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
@@ -179,6 +181,7 @@ export default function AIStudioVocal() {
       const data = await response.json();
       if (!response.ok) { toast({ title: vc('cloneError'), description: data.error, variant: 'destructive' }); return; }
       toast({ title: vc('cloneSuccess'), description: vc('cloneSuccessDesc', { name: cloneName.trim() }) });
+      track('voice_cloned', { feature: 'voice_cloning' });
       setCloneName(''); setCloneDescription(''); setCloneAudioFile(null); setCloneAudioDuration(null); setCloneRemoveNoise(false); setShowCloneForm(false);
       if (cloneFileRef.current) cloneFileRef.current.value = '';
       await loadClones(); setActiveTab('sing');
@@ -244,6 +247,7 @@ export default function AIStudioVocal() {
       setAudioUrl(data.audioUrl);
       setHistory(prev => [{ id: data.generationId, audio_url: data.audioUrl, prompt: `Pista vocal: ${selectedClone.name}`, created_at: new Date().toISOString() }, ...prev]);
       toast({ title: tv('vocalGenerated'), description: tv('vocalGeneratedDesc') });
+      track('vocal_track_generated', { feature: 'vocal' });
     } catch { toast({ title: s('aiShared.error'), variant: 'destructive' }); }
     finally { setIsGenerating(false); }
   };

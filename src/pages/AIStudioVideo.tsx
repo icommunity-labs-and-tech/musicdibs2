@@ -32,6 +32,7 @@ import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
+import { useProductTracking } from "@/hooks/useProductTracking";
 
 const VIDEO_STYLE_KEYS = [
   { id: "cinematic", emoji: "🎬", prompt: "cinematic, dramatic lighting, film grain, anamorphic lens" },
@@ -73,6 +74,7 @@ const AIStudioVideo = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { mergeAudioVideo, progress: mergeProgress, loaded: ffmpegLoaded, resetProgress, loadFFmpeg } = useFFmpegMerge();
   const { hasEnough } = useCredits();
+  const { track } = useProductTracking();
 
   // Generation mode
   const [mode, setMode] = useState<'text_to_video' | 'image_to_video'>('text_to_video');
@@ -358,6 +360,7 @@ const AIStudioVideo = () => {
           }).eq('id', resultId);
 
           toast({ title: t('aiVideo.videoGenerated'), description: t('aiVideo.videoReady') });
+          track('video_generated', { feature: 'video' });
 
           if (preSelectedAudioId) {
             const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);

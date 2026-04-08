@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useProductTracking } from "@/hooks/useProductTracking";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,12 @@ type ActiveView = "grid" | "virtual-artists";
 const AIStudio = () => {
   const { credits, hasEnough } = useCredits();
   const { t } = useTranslation();
+  const { track } = useProductTracking();
   const [activeView, setActiveView] = useState<ActiveView>("grid");
+
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'create_music' });
+  }, []);
 
   const topRowModules = [
     {
