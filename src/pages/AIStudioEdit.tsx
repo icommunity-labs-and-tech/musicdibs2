@@ -15,7 +15,7 @@ import {
   Headphones, Volume2, Waves, Wind, Radio, RefreshCw, Upload
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
@@ -537,7 +537,7 @@ const AIStudioEdit = () => {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Navbar } from "@/components/Navbar"
-import { Footer } from "@/components/Footer"
+
 import { FileDropzone } from "@/components/FileDropzone"
 import { useAuth } from "@/hooks/useAuth"
 import { useCredits } from "@/hooks/useCredits"
@@ -302,7 +302,7 @@ const AIStudioCovers = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   )
 }

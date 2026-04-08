@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+
 import { VoiceTranslator } from '@/components/voice/VoiceTranslator';
 import { VoiceToolsTour } from '@/components/ai-studio/VoiceToolsTour';
 import { HelpCircle } from 'lucide-react';
@@ -373,7 +373,6 @@ export default function AIStudioVocal() {
             {comingSoonUI(true)}
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -688,7 +687,7 @@ export default function AIStudioVocal() {
 
         <div className="max-w-5xl mx-auto mt-12">{comingSoonUI(false)}</div>
       </main>
-      <Footer />
+      
     </div>
   );
 }

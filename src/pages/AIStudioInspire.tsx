@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+
 import { ArrowLeft, Lightbulb, Shuffle, Copy, Sparkles, Music, Palette, Zap } from "lucide-react";
 import { GENRES, MOODS } from "@/types/aiStudio";
 import { toast } from "sonner";
@@ -181,7 +181,7 @@ const AIStudioInspire = () => {
         </section>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };
