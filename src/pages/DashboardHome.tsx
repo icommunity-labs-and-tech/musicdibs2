@@ -189,7 +189,7 @@ export default function DashboardHome() {
                     {t('dashboard.home.registerNewDesc')}
                   </p>
                 </div>
-                <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                <Button variant="hero" onClick={() => guardRegister()} className="w-full">
                   {t('dashboard.home.goToRegister')}
                 </Button>
               </CardContent>
