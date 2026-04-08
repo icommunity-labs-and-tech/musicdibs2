@@ -62,6 +62,7 @@ const AIStudioCovers = () => {
   const { t } = useTranslation()
   const { user } = useAuth()
   const { hasEnough } = useCredits()
+  const { track } = useProductTracking()
 
   const [artistName,   setArtistName]   = useState("")
   const [trackTitle,   setTrackTitle]   = useState("")
