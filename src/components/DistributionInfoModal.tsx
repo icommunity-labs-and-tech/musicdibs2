@@ -42,7 +42,10 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
   }, [userEmail]);
 
   const handleContinue = () => {
-    window.open('https://dist.musicdibs.com/', '_blank', 'noopener');
+    const url = userEmail
+      ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
+      : 'https://dist.musicdibs.com/';
+    window.open(url, '_blank', 'noopener');
     onOpenChange(false);
   };
 
@@ -82,7 +85,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
               <p className="text-xs text-muted-foreground">
                 ¿No recuerdas tu contraseña?{' '}
                 <a
-                  href="https://dist.musicdibs.com/wp-login.php?action=lostpassword"
+                  href="https://dist.musicdibs.com/forgot_pwd"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline underline-offset-2"
@@ -94,7 +97,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-              <Button variant="hero" onClick={handleContinue} className="flex-1 gap-2">
+              <Button onClick={handleContinue} className="flex-1 gap-2">
                 Acceder a distribución <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
@@ -146,7 +149,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-              <Button variant="hero" onClick={handleContinue} className="flex-1 gap-2">
+              <Button onClick={handleContinue} className="flex-1 gap-2">
                 Comenzar distribución <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
