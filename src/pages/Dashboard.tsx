@@ -92,7 +92,7 @@ export default function Dashboard() {
                   Inicia el proceso de registro y protección de tu obra paso a paso.
                 </p>
               </div>
-              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+              <Button variant="hero" onClick={() => guardRegister()} className="w-full">
                 Ir al registro
               </Button>
             </CardContent>
