@@ -85,7 +85,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
               <p className="text-xs text-muted-foreground">
                 ¿No recuerdas tu contraseña?{' '}
                 <a
-                  href="https://dist.musicdibs.com/wp-login.php?action=lostpassword"
+                  href="https://dist.musicdibs.com/forgot_pwd"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline underline-offset-2"
