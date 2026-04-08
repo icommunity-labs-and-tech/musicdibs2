@@ -21,7 +21,7 @@ const DEFAULT_COSTS: Record<string, number> = {
   enhance_audio: 1,
   generate_cover: 2,
   inspiration: 0,
-  generate_video: 6,
+  generate_video: 3,
   voice_translation_per_min: 2,
   instagram_creative: 1,
   youtube_thumbnail: 1,
