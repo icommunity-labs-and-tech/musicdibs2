@@ -285,31 +285,6 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
 
           {/* Form fields */}
           <div className="space-y-4">
-            {/* Work selector */}
-            <div className="space-y-1.5">
-              <Label className="text-sm">{t('dashboard.premium.selectWork')} *</Label>
-              <Select value={selectedWorkId} onValueChange={handleWorkSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t('dashboard.premium.selectWorkPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {works.map(w => (
-                    <SelectItem key={w.id} value={w.id}>
-                      <div className="flex items-center gap-2">
-                        <Music className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="truncate">{w.title}</span>
-                        {w.source === 'ai_studio' && (
-                          <Badge variant="secondary" className="text-[9px] px-1 py-0">
-                            <Sparkles className="h-2 w-2" /> AI
-                          </Badge>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Artist + Song title row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
