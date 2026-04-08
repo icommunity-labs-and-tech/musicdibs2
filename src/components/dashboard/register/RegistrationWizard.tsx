@@ -23,6 +23,7 @@ import { registerWork } from '@/services/dashboardApi';
 import { supabase } from '@/integrations/supabase/client';
 import type { DashboardSummary } from '@/types/dashboard';
 import { initialWizardData, type WizardData } from './types';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 interface RegistrationWizardProps {
   summary: DashboardSummary | null;
