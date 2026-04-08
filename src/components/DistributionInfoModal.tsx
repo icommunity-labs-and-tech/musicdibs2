@@ -140,7 +140,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
               {/* Partner note */}
               <p className="text-xs text-muted-foreground rounded-lg border border-border/60 bg-muted/30 p-3">
-                La plataforma de distribución es gestionada por nuestro partner Sonosuite. Tu música llega a Spotify, Apple Music, Amazon Music, TikTok y 215+ plataformas más.
+                La distribución se gestiona a través de nuestra plataforma especializada. Tu música llegará a Spotify, Apple Music, Amazon Music, TikTok y 215+ plataformas más.
               </p>
             </div>
 
