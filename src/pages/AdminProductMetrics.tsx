@@ -40,6 +40,7 @@ export default function AdminProductMetrics() {
   const { user } = useAuth();
   const [range, setRange] = useState<Range>("30d");
   const [metrics, setMetrics] = useState<MetricRow[]>([]);
+  const [liveFeatureCounts, setLiveFeatureCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
 
@@ -52,12 +53,29 @@ export default function AdminProductMetrics() {
     const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
     const from = new Date();
     from.setDate(from.getDate() - days);
+    const fromStr = from.toISOString().split("T")[0];
+
+    // Load aggregated daily metrics
     const { data } = await supabase
       .from("product_metrics_daily")
       .select("*")
-      .gte("date", from.toISOString().split("T")[0])
+      .gte("date", fromStr)
       .order("date", { ascending: true });
+
     setMetrics((data as MetricRow[]) || []);
+
+    // Load live feature counts from product_events for ALL features
+    const { data: events } = await supabase
+      .from("product_events")
+      .select("feature")
+      .gte("created_at", `${fromStr}T00:00:00.000Z`);
+
+    const counts: Record<string, number> = {};
+    for (const e of events || []) {
+      counts[e.feature] = (counts[e.feature] || 0) + 1;
+    }
+    setLiveFeatureCounts(counts);
+
     setLoading(false);
   };
 
