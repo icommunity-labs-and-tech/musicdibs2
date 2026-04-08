@@ -201,6 +201,41 @@ serve(async (req) => {
         details: { requested_status: status, effective_status: effectiveStatus },
       });
 
+      // Send verified email when KYC is manually verified
+      if (status === "verified" && targetEmail) {
+        try {
+          const { data: profile } = await admin.from("profiles").select("display_name, language").eq("user_id", user_id).single();
+          const name = profile?.display_name || targetEmail.split("@")[0] || "Usuario";
+          const emailData = kycVerifiedEmail({ name, lang: profile?.language });
+          const messageId = crypto.randomUUID();
+          await admin.from("email_send_log").insert({
+            message_id: messageId,
+            template_name: "kyc_verified",
+            recipient_email: targetEmail,
+            status: "pending",
+          });
+          await admin.rpc("enqueue_email", {
+            queue_name: "transactional_emails",
+            payload: {
+              message_id: messageId,
+              to: targetEmail,
+              from: "MusicDibs <noreply@notify.musicdibs.com>",
+              sender_domain: "notify.musicdibs.com",
+              subject: emailData.subject,
+              html: emailData.html,
+              text: emailData.text,
+              purpose: "transactional",
+              label: "kyc_verified",
+              idempotency_key: `kyc-verified-${user_id}-${Date.now()}`,
+              queued_at: new Date().toISOString(),
+            },
+          });
+          console.log(`[ADMIN] Enqueued kyc_verified email to ${targetEmail}`);
+        } catch (emailErr) {
+          console.error("[ADMIN] Failed to enqueue verified email:", emailErr);
+        }
+      }
+
       // Send rejection email when KYC is rejected
       if (status === "rejected" && targetEmail) {
         try {
