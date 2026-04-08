@@ -435,7 +435,8 @@ export default function IdentityVerificationPage() {
                     <iframe
                       ref={iframeRef}
                       src={kycUrl}
-                      className="w-full h-[600px]"
+                      className="w-full"
+                      style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}
                       allow="camera; microphone; fullscreen"
                       title="Verificación de identidad"
                       onError={() => setIframeError(true)}
