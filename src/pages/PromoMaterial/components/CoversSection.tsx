@@ -56,7 +56,7 @@ export const CoversSection = () => {
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
   const [style, setStyle] = useState('');
-  const [colorPalette, setColorPalette] = useState('');
+  
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
