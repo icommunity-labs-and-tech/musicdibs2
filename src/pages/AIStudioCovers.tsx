@@ -139,6 +139,7 @@ const AIStudioCovers = () => {
           referenceMode: coverMode,
         },
       })
+      if (data?.fallback) throw new Error(data.message || "Servicio no disponible temporalmente. Tus créditos han sido reembolsados.")
       if (error || data?.error) throw new Error(data?.error || error?.message)
 
       setImageUrl(data.imageUrl)
