@@ -26,7 +26,7 @@ export const adminApi = {
   getAuditLog: (offset = 0, action_filter = '') => adminAction('get_audit_log', { offset, action_filter }),
   callAction: (action: string, payload: Record<string, any> = {}) => adminAction(action, payload),
   getPremiumPromos: (offset = 0, status_filter = '') => adminAction('get_premium_promos', { offset, status_filter }),
-  updatePremiumPromoStatus: (promo_id: string, new_status: string, rejection_reason?: string) => adminAction('update_premium_promo_status', { promo_id, new_status, ...(rejection_reason ? { rejection_reason } : {}) }),
+  updatePremiumPromoStatus: (promo_id: string, new_status: string, rejection_reason?: string, ig_url?: string, tiktok_url?: string) => adminAction('update_premium_promo_status', { promo_id, new_status, ...(rejection_reason ? { rejection_reason } : {}), ...(ig_url ? { ig_url } : {}), ...(tiktok_url ? { tiktok_url } : {}) }),
   deleteWork: (work_id: string) => adminAction('delete_work', { work_id }),
   getCampaignsCatalog: () => adminAction('get_campaigns_catalog'),
   saveCampaign: (campaign: Record<string, any>) => adminAction('save_campaign', campaign),
