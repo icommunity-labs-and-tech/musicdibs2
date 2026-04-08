@@ -329,7 +329,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
 
             {/* Media file upload */}
             <div className="space-y-1.5">
-              <Label className="text-sm">{t('dashboard.premium.mediaUpload')}</Label>
+              <Label className="text-sm">{t('dashboard.premium.mediaUpload')} *</Label>
               <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.mediaUploadHint')}</p>
               <p className="text-[10px] text-muted-foreground/70">{t('dashboard.premium.videoSpecs')}</p>
               {mediaFile ? (
