@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Navbar } from "@/components/Navbar"
 import { Footer } from "@/components/Footer"
@@ -20,33 +19,9 @@ import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 import { useProductTracking } from "@/hooks/useProductTracking"
 import {
-  ArrowLeft, Wand2, Loader2, Download,
+  ArrowLeft, Loader2, Download,
   RefreshCw, ImageIcon, Sparkles,
 } from "lucide-react"
-
-const STYLE_KEYS = [
-  { value: "photorealistic",      key: "photorealistic" },
-  { value: "digital illustration", key: "digitalIllustration" },
-  { value: "abstract art",        key: "abstract" },
-  { value: "vintage retro",       key: "vintage" },
-  { value: "anime manga",         key: "anime" },
-  { value: "minimalist",          key: "minimalist" },
-  { value: "dark atmospheric",    key: "dark" },
-  { value: "neon cyberpunk",      key: "neon" },
-  { value: "watercolor",          key: "watercolor" },
-  { value: "grunge urban",        key: "grunge" },
-]
-
-const COLOR_KEYS = [
-  { value: "vibrant multicolor",               key: "vibrant" },
-  { value: "dark moody blacks and deep blues",  key: "dark" },
-  { value: "warm golden sunset tones",          key: "warm" },
-  { value: "cold icy blues and whites",         key: "cold" },
-  { value: "neon pink and purple",              key: "neon" },
-  { value: "earth tones browns and greens",     key: "earth" },
-  { value: "black and white monochrome",        key: "bw" },
-  { value: "pastel soft colors",                key: "pastel" },
-]
 
 type CoverMode = "none" | "artist"
 
@@ -64,42 +39,22 @@ const AIStudioCovers = () => {
   const { hasEnough } = useCredits()
   const { track } = useProductTracking()
 
-  const [artistName,   setArtistName]   = useState("")
-  const [trackTitle,   setTrackTitle]   = useState("")
-  const [style,        setStyle]        = useState("")
-  const [colorPalette, setColorPalette] = useState("")
-  const [description,  setDescription]  = useState("")
+  const [artistName, setArtistName] = useState("")
+  const [trackTitle, setTrackTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
-  const [imageUrl,     setImageUrl]     = useState<string | null>(null)
-  const [genError,     setGenError]     = useState<string | null>(null)
-  const [isImprovingDesc, setIsImprovingDesc] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [genError, setGenError] = useState<string | null>(null)
 
   const [coverMode, setCoverMode] = useState<CoverMode>("none")
   const [artistPhoto, setArtistPhoto] = useState<File | null>(null)
   const [artistPhotoPreview, setArtistPhotoPreview] = useState<string | null>(null)
 
-  const handleImproveDescription = async () => {
-    if (!description.trim()) return
-    setIsImprovingDesc(true)
-    try {
-      const { data, error } = await supabase.functions.invoke("improve-prompt", {
-        body: { prompt: description, genre: "", mood: "", mode: "instrumental" },
-      })
-      if (error || data?.error) throw new Error(data?.error || error?.message)
-      if (data?.improved) {
-        setDescription(data.improved.slice(0, 300))
-        toast.success(t('aiCovers.descImproved'))
-      }
-    } catch {
-      toast.error(t('aiShared.error'))
-    } finally {
-      setIsImprovingDesc(false)
-    }
-  }
+  const canGenerate = artistName.trim() && trackTitle.trim() && hasEnough(FEATURE_COSTS.generate_cover)
 
   const handleGenerate = async () => {
-    if (!trackTitle.trim() && !description.trim()) {
-      toast.error(t('aiCovers.errorMinInput'))
+    if (!artistName.trim() || !trackTitle.trim()) {
+      toast.error("Introduce el nombre del artista y el título")
       return
     }
     if (!hasEnough(FEATURE_COSTS.generate_cover)) {
@@ -107,7 +62,7 @@ const AIStudioCovers = () => {
       return
     }
     if (coverMode === "artist" && !artistPhoto) {
-      toast.error(t('aiCovers.needArtistPhoto') || "Sube una foto del artista")
+      toast.error("Sube una foto del artista")
       return
     }
 
@@ -116,15 +71,6 @@ const AIStudioCovers = () => {
     setImageUrl(null)
 
     try {
-      const { data: spend, error: spendErr } =
-        await supabase.functions.invoke("spend-credits", {
-          body: {
-            feature: "generate_cover",
-            description: `Portada: ${trackTitle || description}`.slice(0, 80),
-          },
-        })
-      if (spendErr || spend?.error) throw new Error(spend?.message || t('aiShared.error'))
-
       let artistPhotoBase64: string | null = null
       if (coverMode === "artist" && artistPhoto) {
         artistPhotoBase64 = await fileToBase64(artistPhoto)
@@ -134,14 +80,12 @@ const AIStudioCovers = () => {
         body: {
           artistName,
           trackTitle,
-          style,
-          colorPalette,
           description,
           artistPhotoBase64,
-          referenceMode: coverMode,
         },
       })
-      if (data?.fallback) throw new Error(data.message || "Servicio no disponible temporalmente. Tus créditos han sido reembolsados.")
+
+      if (data?.fallback) throw new Error(data.message || "Servicio no disponible temporalmente.")
       if (error || data?.error) throw new Error(data?.error || error?.message)
 
       setImageUrl(data.imageUrl)
@@ -171,6 +115,11 @@ const AIStudioCovers = () => {
     } catch {
       toast.error(t('aiShared.error'))
     }
+  }
+
+  const handleReset = () => {
+    setImageUrl(null)
+    setGenError(null)
   }
 
   return (
@@ -203,9 +152,33 @@ const AIStudioCovers = () => {
                 <CardDescription>{t('aiCovers.configDesc')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
+                {/* Artist name + track title */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nombre del artista <span className="text-destructive">*</span></Label>
+                    <Input value={artistName} onChange={(e) => setArtistName(e.target.value)} placeholder="Ej: Bad Bunny" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Título del single / disco <span className="text-destructive">*</span></Label>
+                    <Input value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} placeholder="Ej: Un Preview" className="h-9" />
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Descripción adicional (opcional)</Label>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Ej: Portada minimalista con colores cálidos y tipografía moderna"
+                    rows={3} className="resize-none text-sm" maxLength={300}
+                  />
+                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
+                </div>
+
                 {/* Mode selector */}
                 <div className="space-y-3 rounded-lg border border-border p-4">
-                  <Label className="text-sm font-medium">{t('aiCovers.mode') || "Modo"}</Label>
+                  <Label className="text-sm font-medium">Modo de generación</Label>
                   <RadioGroup
                     value={coverMode}
                     onValueChange={(v) => {
@@ -221,13 +194,13 @@ const AIStudioCovers = () => {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="none" id="mode-none" />
                       <Label htmlFor="mode-none" className="text-sm cursor-pointer">
-                        {t('aiCovers.modeNone') || "Sin imagen"}
+                        Sin imagen (generación aleatoria)
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="artist" id="mode-artist" />
                       <Label htmlFor="mode-artist" className="text-sm cursor-pointer">
-                        {t('aiCovers.modeArtist') || "Con foto del artista"}
+                        Usar foto del artista
                       </Label>
                     </div>
                   </RadioGroup>
@@ -236,7 +209,7 @@ const AIStudioCovers = () => {
                 {/* Artist photo — conditional */}
                 {coverMode === "artist" && (
                   <div className="space-y-2">
-                    <Label className="text-sm">{t('aiCovers.artistPhoto') || "Foto del artista"}</Label>
+                    <Label className="text-sm">Foto del artista (opcional)</Label>
                     <FileDropzone
                       fileType="image"
                       accept="image/jpeg,image/png,image/webp"
@@ -244,7 +217,7 @@ const AIStudioCovers = () => {
                       currentFile={artistPhoto}
                       preview={artistPhotoPreview}
                       onFileSelect={(f) => {
-                        if (f.size > 10 * 1024 * 1024) { toast.error("Imagen demasiado grande"); return }
+                        if (f.size > 10 * 1024 * 1024) { toast.error("Imagen demasiado grande (máx 10MB)"); return }
                         setArtistPhoto(f)
                         setArtistPhotoPreview(URL.createObjectURL(f))
                       }}
@@ -257,80 +230,16 @@ const AIStudioCovers = () => {
                   </div>
                 )}
 
-                {/* Artist name + track title */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">{t('aiCovers.artistName')}</Label>
-                    <Input value={artistName} onChange={(e) => setArtistName(e.target.value)} placeholder={t('aiCovers.artistNamePlaceholder')} className="h-9" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">{t('aiCovers.trackTitle')} <span className="text-destructive">*</span></Label>
-                    <Input value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} placeholder={t('aiCovers.trackTitlePlaceholder')} className="h-9" />
-                  </div>
-                </div>
-
-                {/* Visual style */}
-                <div className="space-y-2">
-                  <Label className="text-sm">{t('aiCovers.visualStyle')}</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {STYLE_KEYS.map(s => (
-                      <Badge key={s.value} variant={style === s.value ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setStyle(style === s.value ? "" : s.value)}>
-                        {t(`aiCovers.styles.${s.key}`)}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Color palette */}
-                <div className="space-y-2">
-                  <Label className="text-sm">{t('aiCovers.dominantColor')}</Label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {COLOR_KEYS.map(c => (
-                      <Badge key={c.value} variant={colorPalette === c.value ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setColorPalette(colorPalette === c.value ? "" : c.value)}>
-                        {t(`aiCovers.colors.${c.key}`)}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm">{t('aiCovers.additionalDesc')}</Label>
-                    <Button
-                      variant="ghost" size="sm"
-                      onClick={handleImproveDescription}
-                      disabled={isImprovingDesc || !description.trim()}
-                      className="gap-1.5 h-7 text-xs"
-                    >
-                      {isImprovingDesc
-                        ? <><Loader2 className="h-3 w-3 animate-spin" />{t('aiCovers.improving')}</>
-                        : <><Sparkles className="h-3 w-3" />{t('aiCovers.improveWithAI')}</>
-                      }
-                    </Button>
-                  </div>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={coverMode === "artist"
-                      ? "Describe el estilo visual que quieres y cómo integrar la foto del artista en el diseño..."
-                      : t('aiCovers.descPlaceholder')
-                    }
-                    rows={3} className="resize-none text-sm" maxLength={300}
-                  />
-                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
-                </div>
-
                 {genError && <p className="text-xs text-destructive">{genError}</p>}
 
                 {!hasEnough(FEATURE_COSTS.generate_cover) ? (
-                  <NoCreditsAlert message={t('aiCovers.generateBtn')} />
+                  <NoCreditsAlert message="Generar portada (1 crédito)" />
                 ) : (
-                  <Button className="w-full gap-2" size="lg" onClick={handleGenerate} disabled={isGenerating || (!trackTitle.trim() && !description.trim())}>
+                  <Button className="w-full gap-2" size="lg" onClick={handleGenerate} disabled={isGenerating || !canGenerate}>
                     {isGenerating ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" />{t('aiCovers.generatingCover')}</>
+                      <><Loader2 className="h-4 w-4 animate-spin" />Generando tu portada...</>
                     ) : (
-                      <><Wand2 className="h-4 w-4" />🎨 {t('aiCovers.generateBtn')}</>
+                      <><Sparkles className="h-4 w-4" />Generar portada (1 crédito)</>
                     )}
                   </Button>
                 )}
@@ -350,25 +259,32 @@ const AIStudioCovers = () => {
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
                   </div>
                   <div className="text-center space-y-1">
-                    <p className="font-medium">{t('aiCovers.creatingCover')}</p>
-                    <p className="text-sm text-muted-foreground">{t('aiCovers.creatingCoverDesc')}</p>
+                    <p className="font-medium">Generando tu portada con IA...</p>
+                    <p className="text-sm text-muted-foreground">Esto puede tardar unos segundos</p>
                   </div>
                 </CardContent>
               </Card>
             ) : imageUrl ? (
               <div className="space-y-3">
                 <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-lg aspect-square">
-                  <img src={imageUrl} alt={`Portada: ${trackTitle || "Sin título"}`} className="w-full h-full object-cover" />
+                  <img src={imageUrl} alt={`Portada: ${trackTitle}`} className="w-full h-full object-cover" />
                 </div>
+
+                {/* Metadata */}
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="bg-muted px-2 py-1 rounded">{artistName}</span>
+                  <span className="bg-muted px-2 py-1 rounded">{trackTitle}</span>
+                  <span className="bg-muted px-2 py-1 rounded">1:1 (Cuadrado)</span>
+                </div>
+
                 <div className="flex gap-2">
                   <Button className="flex-1 gap-2" onClick={handleDownload}>
-                    <Download className="h-4 w-4" />{t('aiCovers.downloadCover')}
+                    <Download className="h-4 w-4" />Descargar portada
                   </Button>
-                  <Button variant="outline" className="gap-2" onClick={handleGenerate} disabled={isGenerating}>
-                    <RefreshCw className="h-4 w-4" />{t('aiCovers.regenerate')}
+                  <Button variant="outline" className="gap-2" onClick={handleReset}>
+                    <RefreshCw className="h-4 w-4" />Generar otra (1 crédito)
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground text-center">{t('aiCovers.hiRes')}</p>
               </div>
             ) : (
               <Card className="border-dashed border-border/40">
