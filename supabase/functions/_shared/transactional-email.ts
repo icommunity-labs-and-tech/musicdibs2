@@ -372,7 +372,41 @@ export function premiumPromoPublishedEmail(data: { name: string; artistName: str
   return { subject: i.subject, html: wrap("🏆", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
 }
 
-// ─── 9. Metric Alert Notification (Admin) ───────────────────────────────────
+// ─── 9. Premium Promo Rejected ──────────────────────────────────────────────
+
+const t9: Record<Lang, { greeting: string; title: string; artist: string; song: string; reasonLabel: string; note: string; contactUs: string; subject: string }> = {
+  es: { greeting: "lamentamos informarte de que tu solicitud de Promo Premium ha sido rechazada.", title: "Promo Premium rechazada", artist: "Artista", song: "Canción", reasonLabel: "Motivo", note: "Si tienes dudas o quieres enviar una nueva solicitud, no dudes en contactarnos.", contactUs: "Contactar con soporte →", subject: "❌ Promo Premium rechazada — MusicDibs" },
+  en: { greeting: "we regret to inform you that your Premium Promo request has been rejected.", title: "Premium Promo rejected", artist: "Artist", song: "Song", reasonLabel: "Reason", note: "If you have any questions or would like to submit a new request, please contact us.", contactUs: "Contact support →", subject: "❌ Premium Promo rejected — MusicDibs" },
+  pt: { greeting: "lamentamos informar que sua solicitação de Promo Premium foi rejeitada.", title: "Promo Premium rejeitada", artist: "Artista", song: "Música", reasonLabel: "Motivo", note: "Se tiver dúvidas ou quiser enviar uma nova solicitação, entre em contato conosco.", contactUs: "Entrar em contato →", subject: "❌ Promo Premium rejeitada — MusicDibs" },
+};
+
+export function premiumPromoRejectedEmail(data: { name: string; artistName: string; songTitle: string; reason: string; lang?: string }) {
+  const lang = normLang(data.lang);
+  const i = t9[lang];
+  const safeName = escapeHtml(data.name);
+  const safeArtist = escapeHtml(data.artistName);
+  const safeSong = escapeHtml(data.songTitle);
+  const safeReason = escapeHtml(data.reason);
+  const greeting = lang === "en" ? "Hi" : lang === "pt" ? "Olá" : "Hola";
+
+  const reasonBlock = safeReason
+    ? `<tr>${infoRow(i.reasonLabel, safeReason)}</tr>`
+    : "";
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">${greeting} <strong style="color:#f3f4f6;">${safeName}</strong>, ${i.greeting}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(220,38,38,0.12));border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow(i.artist, safeArtist)}
+      ${infoRow(i.song, safeSong)}
+      ${safeReason ? infoRow(i.reasonLabel, safeReason) : ""}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">${i.note}</p>
+    ${cta("https://musicdibs.com/contact", i.contactUs)}`;
+
+  return { subject: i.subject, html: wrap("❌", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
+}
+
+// ─── 10. Metric Alert Notification (Admin) ───────────────────────────────────
 
 export function metricAlertEmail(data: { alerts: Array<{ title: string; description: string; severity: string }> }) {
   const alertRows = data.alerts.map(a => {

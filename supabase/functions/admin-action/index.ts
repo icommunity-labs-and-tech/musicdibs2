@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { premiumPromoPublishedEmail, kycRejectedEmail } from "../_shared/transactional-email.ts";
+import { premiumPromoPublishedEmail, premiumPromoRejectedEmail, kycRejectedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1233,7 +1233,7 @@ serve(async (req) => {
 
     // ── update_premium_promo_status ───────────────────────────────
     if (action === "update_premium_promo_status") {
-      const { promo_id, new_status } = payload;
+      const { promo_id, new_status, rejection_reason } = payload;
       if (!promo_id || !new_status) return json({ error: "promo_id and new_status required" }, 400);
       const validStatuses = ["submitted", "under_review", "approved", "scheduled", "published", "rejected"];
       if (!validStatuses.includes(new_status)) return json({ error: "Invalid status" }, 400);
@@ -1245,20 +1245,25 @@ serve(async (req) => {
         .single();
       if (fetchErr || !promo) return json({ error: "Promo not found" }, 404);
 
+      const updateData: Record<string, unknown> = { status: new_status, updated_at: new Date().toISOString() };
+      if (new_status === "rejected" && rejection_reason) {
+        updateData.team_notes = rejection_reason;
+      }
+
       const { error: upErr } = await admin
         .from("premium_social_promotions")
-        .update({ status: new_status, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq("id", promo_id);
       if (upErr) return json({ error: upErr.message }, 500);
 
       await audit({
         action: "update_premium_promo",
         target_user_id: promo.user_id,
-        details: { promo_id, old_status: promo.status, new_status },
+        details: { promo_id, old_status: promo.status, new_status, ...(rejection_reason ? { rejection_reason } : {}) },
       });
 
-      // Clean up media file when published or rejected
-      if ((new_status === "published" || new_status === "rejected") && promo.media_file_path) {
+      // Clean up media file when approved or rejected
+      if ((new_status === "approved" || new_status === "rejected") && promo.media_file_path) {
         try {
           const { error: delErr } = await admin.storage
             .from("premium-promo-media")
@@ -1312,6 +1317,46 @@ serve(async (req) => {
             }
           } catch (emailErr) {
             console.error("[ADMIN] Failed to send published promo email:", emailErr);
+          }
+        }
+      }
+
+      // If rejected, send rejection email to user
+      if (new_status === "rejected") {
+        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+        if (RESEND_API_KEY) {
+          try {
+            const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
+            const userEmail = targetAuth?.user?.email;
+            const { data: userProfile } = await admin.from("profiles").select("display_name, language").eq("user_id", promo.user_id).single();
+            const displayName = userProfile?.display_name || userEmail || "Artista";
+
+            if (userEmail) {
+              const emailContent = premiumPromoRejectedEmail({
+                name: displayName,
+                artistName: promo.artist_name,
+                songTitle: promo.song_title,
+                reason: rejection_reason || "",
+                lang: userProfile?.language,
+              });
+
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${RESEND_API_KEY}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  from: "MusicDibs <noreply@notify.musicdibs.com>",
+                  to: [userEmail],
+                  subject: emailContent.subject,
+                  html: emailContent.html,
+                }),
+              });
+              console.log(`[ADMIN] Rejected promo email sent to ${userEmail}`);
+            }
+          } catch (emailErr) {
+            console.error("[ADMIN] Failed to send rejected promo email:", emailErr);
           }
         }
       }
