@@ -239,7 +239,7 @@ export default function AdminApiCostsPage() {
                       const cost = Number(c.api_cost_eur);
                       const margin = revenue - cost;
                       const pct = revenue > 0 ? (margin / revenue) * 100 : 0;
-                      return <span>{margin.toFixed(4)} € <span className="text-xs text-muted-foreground">({pct.toFixed(0)}%)</span></span>;
+                      return <span>{fmtEur(margin, 4)} € <span className="text-xs text-muted-foreground">({fmtPct(pct, 0)})</span></span>;
                     })()}
                   </TableCell>
                   <TableCell>{editingRow === c.feature_key
