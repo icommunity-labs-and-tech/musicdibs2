@@ -622,6 +622,7 @@ const resources = {
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
           singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
+          virtualArtists: { title: 'Mis Artistas Virtuales', desc: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' },
         },
         features: {
           highQuality: { title: 'Alta Calidad', desc: 'Audio de 44.1kHz estéreo' },
@@ -1110,6 +1111,7 @@ const resources = {
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
           singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
+          virtualArtists: { title: 'My Virtual Artists', desc: 'Save your voice and style settings to create consistent songs with your artists.' },
         },
         features: {
           highQuality: { title: 'High Quality', desc: '44.1kHz stereo audio' },
@@ -1409,6 +1411,7 @@ const resources = {
           createVideoclips: { title: 'Crie Videoclipes', desc: 'Gere videoclipes musicais com IA. Descreva o estilo visual, envie uma imagem ou crie a partir de texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
           singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
+          virtualArtists: { title: 'Meus Artistas Virtuais', desc: 'Salve a configuração de voz e estilo dos seus artistas para criar músicas consistentes.' },
         },
         features: {
           highQuality: { title: 'Alta Qualidade', desc: 'Áudio 44.1kHz estéreo' },
@@ -1446,6 +1449,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
         createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
         singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
+        virtualArtists: { title: 'Mis Artistas Virtuales', desc: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' },
       },
       features: {
         highQuality: { title: 'Alta calidad', desc: 'Resultados listos para iterar, presentar o publicar.' },
@@ -1477,6 +1481,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
         createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
         singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
+        virtualArtists: { title: 'My Virtual Artists', desc: 'Save your voice and style settings to create consistent songs with your artists.' },
       },
       features: {
         highQuality: { title: 'High quality', desc: 'Results ready to iterate, pitch or publish.' },
@@ -1508,6 +1513,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
         singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
+        virtualArtists: { title: 'Meus Artistas Virtuais', desc: 'Salve a configuração de voz e estilo dos seus artistas para criar músicas consistentes.' },
       },
       features: {
         highQuality: { title: 'Alta qualidade', desc: 'Resultados prontos para iterar, apresentar ou publicar.' },
