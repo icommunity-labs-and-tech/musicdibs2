@@ -985,7 +985,7 @@ const en: typeof es = {
       importLyricsDesc: 'Select lyrics previously generated with the lyrics generator.',
       noSavedLyrics: 'You have no saved lyrics.',
       lyricsImported: 'Lyrics imported',
-      mediaUpload: 'Your own audio or video (optional)',
+      mediaUpload: 'Your own audio or video',
       mediaUploadHint: 'Upload your own audio or video for our team to use in the promotion.',
       mediaUploadCta: 'Select audio or video file',
       fileTooLarge: 'File too large (max 50 MB)',
