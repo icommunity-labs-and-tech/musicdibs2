@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Coins, Image, Users } from "lucide-react";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+
 import { useCredits } from "@/hooks/useCredits";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
 import { useTranslation } from "react-i18next";
