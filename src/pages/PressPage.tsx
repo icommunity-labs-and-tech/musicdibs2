@@ -22,6 +22,7 @@ import {
   Newspaper, Loader2, Copy, Check, ChevronDown, ExternalLink,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useProductTracking } from "@/hooks/useProductTracking";
 
 const PressPage = () => {
   const { user } = useAuth();
