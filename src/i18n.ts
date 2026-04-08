@@ -1111,6 +1111,7 @@ const resources = {
           createVideoclips: { title: 'Create Videoclips', desc: 'Generate music videos with AI. Describe the visual style, upload an image or create from text.' },
           createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
           singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
+          virtualArtists: { title: 'My Virtual Artists', desc: 'Save your voice and style settings to create consistent songs with your artists.' },
         },
         features: {
           highQuality: { title: 'High Quality', desc: '44.1kHz stereo audio' },
