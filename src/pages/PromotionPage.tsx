@@ -26,6 +26,7 @@ import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 /* ─── Types ─── */
 interface Work {
