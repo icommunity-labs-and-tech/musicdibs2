@@ -437,6 +437,24 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_costs: {
+        Row: {
+          credit_cost: number
+          feature_key: string
+          label: string
+        }
+        Insert: {
+          credit_cost?: number
+          feature_key: string
+          label?: string
+        }
+        Update: {
+          credit_cost?: number
+          feature_key?: string
+          label?: string
+        }
+        Relationships: []
+      }
       ibs_signatures: {
         Row: {
           created_at: string
