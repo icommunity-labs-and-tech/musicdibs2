@@ -149,7 +149,6 @@ export const CoversSection = () => {
           artistName,
           trackTitle,
           style,
-          colorPalette,
           description,
           artistPhotoBase64,
           referenceMode: coverMode,
