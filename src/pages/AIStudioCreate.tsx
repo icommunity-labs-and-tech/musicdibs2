@@ -614,7 +614,6 @@ const AIStudioCreate = () => {
         body: {
           prompt: lyricsDesc,
           genre: lyricsGenre || '',
-          mood: lyricsMood || '',
           mode: 'lyrics',
         },
       });
