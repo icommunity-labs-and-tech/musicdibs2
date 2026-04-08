@@ -167,9 +167,24 @@ serve(async (req) => {
       }
     } catch (genErr) {
       console.error("[COVER] Generation error:", genErr)
-      await refundCredits(genErr instanceof Error ? genErr.message : String(genErr))
+      const errMsg = genErr instanceof Error ? genErr.message : String(genErr)
+      await refundCredits(errMsg)
+
+      // 5xx from external provider → graceful fallback (don't crash frontend)
+      const isServiceError = /5\d{2}/.test(errMsg)
+      if (isServiceError) {
+        return new Response(
+          JSON.stringify({
+            error: "SERVICE_UNAVAILABLE",
+            fallback: true,
+            message: "El servicio de generación de imágenes no está disponible temporalmente. Tus créditos han sido reembolsados. Inténtalo de nuevo en unos minutos.",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        )
+      }
+
       return new Response(
-        JSON.stringify({ error: genErr instanceof Error ? genErr.message : "Generation failed" }),
+        JSON.stringify({ error: errMsg }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       )
     }
