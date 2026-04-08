@@ -364,6 +364,8 @@ const AIStudioCreate = () => {
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
         toast({ title: t('aiCreate.musicGenerated'), description: mode === 'song' ? t('aiCreate.songReady') : t('aiCreate.instrReady') });
+        track('generation_completed', { feature: 'create_music' });
+        sessionStorage.setItem('md_last_generation', Date.now().toString());
 
         // Show save as virtual artist prompt (only if used a preset voice, not already from a VA)
         if (mode === 'song' && selectedVoice && !selectedArtistId) {
