@@ -1233,7 +1233,7 @@ serve(async (req) => {
 
     // ── update_premium_promo_status ───────────────────────────────
     if (action === "update_premium_promo_status") {
-      const { promo_id, new_status, rejection_reason } = payload;
+      const { promo_id, new_status, rejection_reason, ig_url, tiktok_url } = payload;
       if (!promo_id || !new_status) return json({ error: "promo_id and new_status required" }, 400);
       const validStatuses = ["submitted", "under_review", "approved", "scheduled", "published", "rejected"];
       if (!validStatuses.includes(new_status)) return json({ error: "Invalid status" }, 400);
@@ -1259,7 +1259,7 @@ serve(async (req) => {
       await audit({
         action: "update_premium_promo",
         target_user_id: promo.user_id,
-        details: { promo_id, old_status: promo.status, new_status, ...(rejection_reason ? { rejection_reason } : {}) },
+        details: { promo_id, old_status: promo.status, new_status, ...(rejection_reason ? { rejection_reason } : {}), ...(ig_url ? { ig_url } : {}), ...(tiktok_url ? { tiktok_url } : {}) },
       });
 
       // Clean up media file when approved or rejected
@@ -1282,83 +1282,72 @@ serve(async (req) => {
         }
       }
 
-      // If published, send email to user
-      if (new_status === "published") {
+      // Helper to send promo email
+      async function sendPromoEmail(emailContent: { subject: string; html: string }) {
         const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-        if (RESEND_API_KEY) {
-          try {
-            const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
-            const userEmail = targetAuth?.user?.email;
-            const { data: userProfile } = await admin.from("profiles").select("display_name, language").eq("user_id", promo.user_id).single();
-            const displayName = userProfile?.display_name || userEmail || "Artista";
-
-            if (userEmail) {
-              const emailContent = premiumPromoPublishedEmail({
-                name: displayName,
-                artistName: promo.artist_name,
-                songTitle: promo.song_title,
-                lang: userProfile?.language,
-              });
-
-              await fetch("https://api.resend.com/emails", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${RESEND_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  from: "MusicDibs <noreply@notify.musicdibs.com>",
-                  to: [userEmail],
-                  subject: emailContent.subject,
-                  html: emailContent.html,
-                }),
-              });
-              console.log(`[ADMIN] Published promo email sent to ${userEmail}`);
-            }
-          } catch (emailErr) {
-            console.error("[ADMIN] Failed to send published promo email:", emailErr);
-          }
+        if (!RESEND_API_KEY) return;
+        try {
+          const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
+          const userEmail = targetAuth?.user?.email;
+          if (!userEmail) return;
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "MusicDibs <noreply@notify.musicdibs.com>",
+              to: [userEmail],
+              subject: emailContent.subject,
+              html: emailContent.html,
+            }),
+          });
+          console.log(`[ADMIN] Promo ${new_status} email sent to ${userEmail}`);
+        } catch (emailErr) {
+          console.error(`[ADMIN] Failed to send ${new_status} promo email:`, emailErr);
         }
       }
 
-      // If rejected, send rejection email to user
+      // Get user profile for emails
+      const { data: userProfile } = await admin.from("profiles").select("display_name, language").eq("user_id", promo.user_id).single();
+      const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
+      const displayName = userProfile?.display_name || targetAuth?.user?.email || "Artista";
+
+      // Send approval email
+      if (new_status === "approved") {
+        const emailContent = premiumPromoApprovedEmail({
+          name: displayName,
+          artistName: promo.artist_name,
+          songTitle: promo.song_title,
+          lang: userProfile?.language,
+        });
+        await sendPromoEmail(emailContent);
+      }
+
+      // Send published email with social links
+      if (new_status === "published") {
+        const emailContent = premiumPromoPublishedEmail({
+          name: displayName,
+          artistName: promo.artist_name,
+          songTitle: promo.song_title,
+          igUrl: ig_url || undefined,
+          tiktokUrl: tiktok_url || undefined,
+          lang: userProfile?.language,
+        });
+        await sendPromoEmail(emailContent);
+      }
+
+      // Send rejection email
       if (new_status === "rejected") {
-        const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-        if (RESEND_API_KEY) {
-          try {
-            const { data: targetAuth } = await admin.auth.admin.getUserById(promo.user_id);
-            const userEmail = targetAuth?.user?.email;
-            const { data: userProfile } = await admin.from("profiles").select("display_name, language").eq("user_id", promo.user_id).single();
-            const displayName = userProfile?.display_name || userEmail || "Artista";
-
-            if (userEmail) {
-              const emailContent = premiumPromoRejectedEmail({
-                name: displayName,
-                artistName: promo.artist_name,
-                songTitle: promo.song_title,
-                reason: rejection_reason || "",
-                lang: userProfile?.language,
-              });
-
-              await fetch("https://api.resend.com/emails", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${RESEND_API_KEY}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  from: "MusicDibs <noreply@notify.musicdibs.com>",
-                  to: [userEmail],
-                  subject: emailContent.subject,
-                  html: emailContent.html,
-                }),
-              });
-              console.log(`[ADMIN] Rejected promo email sent to ${userEmail}`);
-            }
-          } catch (emailErr) {
-            console.error("[ADMIN] Failed to send rejected promo email:", emailErr);
-          }
-        }
+        const emailContent = premiumPromoRejectedEmail({
+          name: displayName,
+          artistName: promo.artist_name,
+          songTitle: promo.song_title,
+          reason: rejection_reason || "",
+          lang: userProfile?.language,
+        });
+        await sendPromoEmail(emailContent);
       }
 
       return json({ success: true });
