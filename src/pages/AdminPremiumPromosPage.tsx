@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
 import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
@@ -43,6 +45,12 @@ export default function AdminPremiumPromosPage() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejecting, setRejecting] = useState(false);
 
+  // Publish dialog state
+  const [publishTarget, setPublishTarget] = useState<any | null>(null);
+  const [igUrl, setIgUrl] = useState('');
+  const [tiktokUrl, setTiktokUrl] = useState('');
+  const [publishing, setPublishing] = useState(false);
+
   const load = async () => {
     setLoading(true);
     try {
@@ -54,9 +62,9 @@ export default function AdminPremiumPromosPage() {
 
   useEffect(() => { load(); }, [offset, statusFilter]);
 
-  const changeStatus = async (promoId: string, newStatus: string, reason?: string) => {
+  const changeStatus = async (promoId: string, newStatus: string, reason?: string, ig?: string, tiktok?: string) => {
     try {
-      await adminApi.updatePremiumPromoStatus(promoId, newStatus, reason);
+      await adminApi.updatePremiumPromoStatus(promoId, newStatus, reason, ig, tiktok);
       toast.success(`Estado cambiado a "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"`);
       load();
       if (selected?.id === promoId) setSelected((prev: any) => ({ ...prev, status: newStatus }));
@@ -75,6 +83,21 @@ export default function AdminPremiumPromosPage() {
     setRejecting(false);
     setRejectTarget(null);
     if (selected?.id === rejectTarget.id) setSelected(null);
+  };
+
+  const openPublishDialog = (promo: any) => {
+    setPublishTarget(promo);
+    setIgUrl('');
+    setTiktokUrl('');
+  };
+
+  const confirmPublish = async () => {
+    if (!publishTarget) return;
+    setPublishing(true);
+    await changeStatus(publishTarget.id, 'published', undefined, igUrl || undefined, tiktokUrl || undefined);
+    setPublishing(false);
+    setPublishTarget(null);
+    if (selected?.id === publishTarget.id) setSelected(null);
   };
 
   const downloadMedia = async (filePath: string) => {
@@ -162,7 +185,7 @@ export default function AdminPremiumPromosPage() {
                       <Button size="sm" variant="outline" onClick={() => changeStatus(p.id, 'approved')}>Aprobar</Button>
                     )}
                     {(p.status === 'approved' || p.status === 'scheduled') && (
-                      <Button size="sm" variant="hero" onClick={() => changeStatus(p.id, 'published')}>Publicar</Button>
+                      <Button size="sm" variant="hero" onClick={() => openPublishDialog(p)}>Publicar</Button>
                     )}
                     {p.status === 'submitted' && (
                       <Button size="sm" variant="destructive" onClick={() => openRejectDialog(p)}>Rechazar</Button>
@@ -232,7 +255,7 @@ export default function AdminPremiumPromosPage() {
               </>
             )}
             {(selected?.status === 'approved' || selected?.status === 'scheduled') && (
-              <Button variant="hero" onClick={() => changeStatus(selected.id, 'published')}>Marcar como Publicada</Button>
+              <Button variant="hero" onClick={() => { setSelected(null); openPublishDialog(selected); }}>Marcar como Publicada</Button>
             )}
           </DialogFooter>
         </DialogContent>
@@ -266,6 +289,50 @@ export default function AdminPremiumPromosPage() {
               onClick={confirmReject}
             >
               {rejecting ? 'Enviando...' : 'Enviar rechazo'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Publish Dialog */}
+      <AlertDialog open={!!publishTarget} onOpenChange={open => !open && setPublishTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publicar Promo Premium</AlertDialogTitle>
+            <AlertDialogDescription>
+              Introduce los enlaces de las redes sociales donde se ha publicado la promo. Se enviará un correo al solicitante con estos enlaces.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>{publishTarget?.artist_name}</strong> — {publishTarget?.song_title}
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="ig-url">URL de Instagram</Label>
+              <Input
+                id="ig-url"
+                placeholder="https://www.instagram.com/p/..."
+                value={igUrl}
+                onChange={e => setIgUrl(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tiktok-url">URL de TikTok</Label>
+              <Input
+                id="tiktok-url"
+                placeholder="https://www.tiktok.com/@..."
+                value={tiktokUrl}
+                onChange={e => setTiktokUrl(e.target.value)}
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={publishing}>Cancelar</AlertDialogCancel>
+            <Button
+              disabled={publishing}
+              onClick={confirmPublish}
+            >
+              {publishing ? 'Publicando...' : 'Enviar publicación'}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
