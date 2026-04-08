@@ -1,0 +1,1 @@
+ALTER TABLE public.premium_social_promotions ALTER COLUMN work_id DROP NOT NULL;
