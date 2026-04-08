@@ -465,6 +465,7 @@ const AIStudioCreate = () => {
     link.href = result.audioUrl;
     link.download = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
     link.click();
+    track('audio_downloaded', { feature: 'create_music' });
   };
 
   // ── Save as Virtual Artist ──
