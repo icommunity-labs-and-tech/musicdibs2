@@ -45,7 +45,7 @@ export default function DashboardLayout() {
                   variant="hero"
                   size="sm"
                   className="hidden md:inline-flex h-8 text-xs rounded-full px-4"
-                  onClick={() => navigate('/dashboard/register')}
+                  onClick={() => guardRegister()}
                 >
                   <Plus className="h-3.5 w-3.5 mr-1" />
                   Registrar obra
