@@ -258,15 +258,19 @@ export default function IdentityVerificationPage() {
     );
   }
 
+  const isIframeStep = step === 2 && !!kycUrl;
+
   return (
-    <div className="max-w-2xl space-y-4">
+    <div className={`space-y-4 ${isIframeStep ? 'max-w-full' : 'max-w-2xl'}`}>
       <h2 className="text-xl font-bold flex items-center gap-2">
         <Shield className="h-5 w-5 text-primary" /> Verificación de identidad
       </h2>
-      <p className="text-sm text-muted-foreground">
-        Necesitas verificar tu identidad para registrar obras en MusicDibs.
-        El proceso es rápido y seguro, realizado por iCommunity Labs.
-      </p>
+      {!isIframeStep && (
+        <p className="text-sm text-muted-foreground">
+          Necesitas verificar tu identidad para registrar obras en MusicDibs.
+          El proceso es rápido y seguro, realizado por iCommunity Labs.
+        </p>
+      )}
 
       {kycLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
@@ -431,7 +435,8 @@ export default function IdentityVerificationPage() {
                     <iframe
                       ref={iframeRef}
                       src={kycUrl}
-                      className="w-full h-[600px]"
+                      className="w-full"
+                      style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}
                       allow="camera; microphone; fullscreen"
                       title="Verificación de identidad"
                       onError={() => setIframeError(true)}
