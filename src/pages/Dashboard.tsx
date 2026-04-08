@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import { Button } from '@/components/ui/button';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
