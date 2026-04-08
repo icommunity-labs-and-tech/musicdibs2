@@ -622,6 +622,7 @@ const resources = {
           createVideoclips: { title: 'Crea Videoclips', desc: 'Genera videoclips musicales con IA. Describe el estilo visual, sube una imagen o crea desde texto.' },
           createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
           singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
+          virtualArtists: { title: 'Mis Artistas Virtuales', desc: 'Guarda la configuración de voz y estilo de tus artistas para crear canciones coherentes.' },
         },
         features: {
           highQuality: { title: 'Alta Calidad', desc: 'Audio de 44.1kHz estéreo' },
