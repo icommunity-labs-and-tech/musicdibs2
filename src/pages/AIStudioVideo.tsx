@@ -360,6 +360,7 @@ const AIStudioVideo = () => {
           }).eq('id', resultId);
 
           toast({ title: t('aiVideo.videoGenerated'), description: t('aiVideo.videoReady') });
+          track('video_generated', { feature: 'video' });
 
           if (preSelectedAudioId) {
             const audioTrack = audioTracks.find(t => t.id === preSelectedAudioId);

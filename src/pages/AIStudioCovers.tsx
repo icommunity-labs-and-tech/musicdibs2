@@ -144,6 +144,7 @@ const AIStudioCovers = () => {
 
       setImageUrl(data.imageUrl)
       toast.success(t('aiCovers.coverGenerated'))
+      track('cover_generated', { feature: 'cover' })
     } catch (err: any) {
       setGenError(err.message || t('aiShared.error'))
       toast.error(err.message || t('aiShared.error'))

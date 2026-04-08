@@ -247,6 +247,7 @@ export default function AIStudioVocal() {
       setAudioUrl(data.audioUrl);
       setHistory(prev => [{ id: data.generationId, audio_url: data.audioUrl, prompt: `Pista vocal: ${selectedClone.name}`, created_at: new Date().toISOString() }, ...prev]);
       toast({ title: tv('vocalGenerated'), description: tv('vocalGeneratedDesc') });
+      track('vocal_track_generated', { feature: 'vocal' });
     } catch { toast({ title: s('aiShared.error'), variant: 'destructive' }); }
     finally { setIsGenerating(false); }
   };
