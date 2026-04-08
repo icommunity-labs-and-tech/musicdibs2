@@ -111,7 +111,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
               <ol className="space-y-3">
                 <li className="flex items-start gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
-                  <span className="text-sm pt-0.5">Haz click en <strong>"Comenzar"</strong> — te abrimos la plataforma de distribución</span>
+                  <span className="text-sm pt-0.5">Haz click en <strong>"Comenzar"</strong> — te abrimos la plataforma de distribución en una nueva ventana</span>
                 </li>
 
                 <li className="flex items-start gap-3">
