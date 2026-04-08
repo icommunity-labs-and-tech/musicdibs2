@@ -5,6 +5,7 @@ import { ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductTracking } from '@/hooks/useProductTracking';
 
 interface DistributionInfoModalProps {
   open: boolean;
