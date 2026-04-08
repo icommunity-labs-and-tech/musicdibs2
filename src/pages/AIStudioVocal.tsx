@@ -687,7 +687,7 @@ export default function AIStudioVocal() {
 
         <div className="max-w-5xl mx-auto mt-12">{comingSoonUI(false)}</div>
       </main>
-      <Footer />
+      
     </div>
   );
 }
