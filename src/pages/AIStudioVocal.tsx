@@ -373,7 +373,6 @@ export default function AIStudioVocal() {
             {comingSoonUI(true)}
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
