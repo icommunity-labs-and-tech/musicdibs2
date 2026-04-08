@@ -1177,7 +1177,7 @@ export type Database = {
           team_notes: string | null
           updated_at: string
           user_id: string
-          work_id: string
+          work_id: string | null
         }
         Insert: {
           artist_name: string
@@ -1194,7 +1194,7 @@ export type Database = {
           team_notes?: string | null
           updated_at?: string
           user_id: string
-          work_id: string
+          work_id?: string | null
         }
         Update: {
           artist_name?: string
@@ -1211,7 +1211,7 @@ export type Database = {
           team_notes?: string | null
           updated_at?: string
           user_id?: string
-          work_id?: string
+          work_id?: string | null
         }
         Relationships: []
       }
