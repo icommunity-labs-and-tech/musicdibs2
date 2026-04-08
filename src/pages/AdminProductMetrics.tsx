@@ -143,16 +143,22 @@ export default function AdminProductMetrics() {
 
   // Feature usage data
   const featureUsage = useMemo(() => {
+    const lc = liveFeatureCounts;
     const items = [
-      { label: "Crear música", icon: "🎵", uses: totals.usesCreateMusic },
-      { label: "Compositor letras", icon: "📝", uses: totals.usesLyrics },
-      { label: "Canta tu canción", icon: "🎤", uses: totals.usesVocal },
-      { label: "Clonación de voz", icon: "🎙️", uses: totals.usesVoiceCloning },
-      { label: "Portadas con IA", icon: "🖼️", uses: totals.usesCover },
-      { label: "Videoclips IA", icon: "🎬", uses: totals.usesVideo },
-      { label: "Promoción RRSS", icon: "📱", uses: totals.usesPromotion },
-      { label: "Prensa & visibilidad", icon: "📰", uses: totals.usesPress },
-      { label: "Registro blockchain", icon: "🔐", uses: totals.usesRegister },
+      { label: "Crear música", icon: "🎵", uses: lc["create_music"] || 0 },
+      { label: "Compositor letras", icon: "📝", uses: lc["lyrics"] || 0 },
+      { label: "Canta tu canción", icon: "🎤", uses: lc["vocal"] || 0 },
+      { label: "Clonación de voz", icon: "🎙️", uses: lc["voice_cloning"] || 0 },
+      { label: "Portadas con IA", icon: "🖼️", uses: lc["cover"] || 0 },
+      { label: "Videoclips IA", icon: "🎬", uses: lc["video"] || 0 },
+      { label: "Promoción RRSS", icon: "📱", uses: lc["promotion"] || 0 },
+      { label: "Promo Premium", icon: "💎", uses: lc["premium_promotion"] || 0 },
+      { label: "Prensa & visibilidad", icon: "📰", uses: lc["press"] || 0 },
+      { label: "Registro blockchain", icon: "🔐", uses: lc["register"] || 0 },
+      { label: "Masterizado profesional", icon: "🎛️", uses: lc["enhance_audio"] || 0 },
+      { label: "Edición de audio", icon: "✂️", uses: lc["edit_audio"] || 0 },
+      { label: "Distribución", icon: "🌍", uses: lc["distribution"] || 0 },
+      { label: "Inspiración", icon: "💡", uses: lc["inspire"] || 0 },
     ];
     const total = items.reduce((s, i) => s + i.uses, 0);
     const maxUses = Math.max(...items.map((i) => i.uses));
@@ -163,7 +169,7 @@ export default function AdminProductMetrics() {
       isTop: i.uses === maxUses && maxUses > 0,
       isLow: i.uses === minUses && total > 0 && minUses < maxUses,
     }));
-  }, [totals]);
+  }, [liveFeatureCounts]);
 
   // Revenue by feature
   const revenueFeatures = useMemo(() => {
