@@ -59,3 +59,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.api-cost-cron]
     verify_jwt = false
+  [functions.generate-promo-creative]
+    verify_jwt = false
