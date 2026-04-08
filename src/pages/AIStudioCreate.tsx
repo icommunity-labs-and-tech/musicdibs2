@@ -645,8 +645,8 @@ const AIStudioCreate = () => {
     try {
       const { data, error } = await supabase.functions.invoke("lyrics-generator", {
         body: {
-          description: lyricsDesc, genre: lyricsGenre, mood: lyricsMood, style: lyricsStyle,
-          language: lyricsLanguage, rhymeScheme: lyricsRhyme, structure: lyricsStructure,
+          description: lyricsDesc, genre: lyricsGenre, style: lyricsStyle,
+          rhymeScheme: lyricsRhyme, structure: lyricsStructure,
           artistRefs: lyricsArtistRefs, pov: lyricsPov,
           regenerateSection: regenerateSec || undefined,
           existingLyrics: regenerateSec ? generatedLyrics : undefined,
