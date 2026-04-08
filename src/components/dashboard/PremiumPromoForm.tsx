@@ -380,7 +380,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             <PricingLink />
             <Button
               onClick={handleSubmit}
-              disabled={submitting || noCredits || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !lyrics.trim()}
+              disabled={submitting || noCredits || !artistName.trim() || !songTitle.trim() || !lyrics.trim() || !mediaFile}
               className="gap-2"
             >
               {submitting ? (
