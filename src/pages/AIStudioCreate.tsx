@@ -659,6 +659,7 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.sectionRegenerated'), description: `[${regenerateSec}]` });
       } else {
         toast({ title: t('aiCreate.lyricsGenerated'), description: t('aiCreate.lyricsGeneratedDesc') });
+        track('lyrics_generated', { feature: 'lyrics', metadata: { genre: lyricsGenre, mood: lyricsMood, language: lyricsLanguage } });
       }
     } catch (err: any) {
       setLyricsError(err.message || "Error al generar la letra");
