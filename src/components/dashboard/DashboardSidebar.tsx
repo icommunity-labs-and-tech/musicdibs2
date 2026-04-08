@@ -134,6 +134,7 @@ export function DashboardSidebar() {
   const renderMenuItem = (item: typeof mainItems[0], activeClass = 'bg-primary/10 text-primary font-medium') => {
     const isHighlight = !!(item as any).highlight && !isManager;
     const isDistribute = !!(item as any).isDistribute;
+    const isKycGuarded = !!(item as any).kycGuarded;
 
     if (isDistribute) {
       const isAnnual = subscriptionPlan === 'Annual';
@@ -149,6 +150,22 @@ export function DashboardSidebar() {
               <item.icon className="mr-2 h-4 w-4" />
               {!collapsed && <span>{item.title}</span>}
               {!collapsed && !isAnnual && <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground" />}
+            </button>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
+    if (isKycGuarded) {
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild isActive={isActive(item.url)} data-tour={(item as any).tourId || undefined}>
+            <button
+              onClick={() => guardRegister(item.url)}
+              className="flex items-center w-full rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {!collapsed && <span>{item.title}</span>}
             </button>
           </SidebarMenuButton>
         </SidebarMenuItem>
