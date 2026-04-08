@@ -227,6 +227,15 @@ export default function AdminApiCostsPage() {
                   <TableCell>{editingRow === c.feature_key
                     ? <Input type="number" step="0.001" defaultValue={c.api_cost_eur} className="w-28" onChange={e => setEditChanges(p => ({ ...p, api_cost_eur: parseFloat(e.target.value) }))} />
                     : c.api_cost_eur}</TableCell>
+                  <TableCell className="font-medium">
+                    {(() => {
+                      const revenue = c.credit_cost * Number(c.price_per_credit_eur);
+                      const cost = Number(c.api_cost_eur);
+                      const margin = revenue - cost;
+                      const pct = revenue > 0 ? (margin / revenue) * 100 : 0;
+                      return <span>{margin.toFixed(4)} € <span className="text-xs text-muted-foreground">({pct.toFixed(0)}%)</span></span>;
+                    })()}
+                  </TableCell>
                   <TableCell>{editingRow === c.feature_key
                     ? <Input defaultValue={c.notes || ''} className="w-40" onChange={e => setEditChanges(p => ({ ...p, notes: e.target.value }))} />
                     : (c.notes || '—')}</TableCell>
