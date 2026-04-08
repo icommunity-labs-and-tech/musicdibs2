@@ -156,7 +156,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!user || !selectedWorkId || !artistName.trim() || !songTitle.trim() || !lyrics.trim()) {
+    if (!user || !artistName.trim() || !songTitle.trim() || !lyrics.trim() || !mediaFile) {
       toast.error(t('dashboard.premium.fillRequired'));
       return;
     }
