@@ -125,6 +125,14 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
   const creatorRoleLabels = useCreatorRoleLabels()
   const workTypeLabels = useWorkTypeLabels()
 
+  // KYC guard
+  const [kycStatus, setKycStatus] = useState<string | null>(null)
+  useEffect(() => {
+    if (!user) return
+    supabase.from('profiles').select('kyc_status').eq('user_id', user.id).single()
+      .then(({ data }) => setKycStatus(data?.kyc_status || 'unverified'))
+  }, [user])
+
   // Paso activo: 1 | 2 | 3 | 'done'
   const [activeStep, setActiveStep]   = useState<1 | 2 | 3 | 'done'>(1)
   const [doneSteps,  setDoneSteps]    = useState<Set<number>>(new Set())
