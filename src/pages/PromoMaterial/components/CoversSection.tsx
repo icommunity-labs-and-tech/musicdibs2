@@ -289,22 +289,6 @@ export const CoversSection = () => {
                 </div>
               </div>
 
-              {/* Color palette */}
-              <div className="space-y-2">
-                <Label className="text-sm">{t('aiCovers.dominantColor')}</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {COLOR_KEYS.map(c => (
-                    <Badge
-                      key={c.value}
-                      variant={colorPalette === c.value ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => setColorPalette(colorPalette === c.value ? '' : c.value)}
-                    >
-                      {t(`aiCovers.colors.${c.key}`)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
 
               {/* Description / prompt */}
               <div className="space-y-1.5">
