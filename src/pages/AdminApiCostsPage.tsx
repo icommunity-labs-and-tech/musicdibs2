@@ -289,11 +289,11 @@ export default function AdminApiCostsPage() {
                   <TableRow key={d.id}>
                     <TableCell>{d.date}</TableCell>
                     <TableCell>{configMap[d.feature_key]?.feature_label || d.feature_key}</TableCell>
-                    <TableCell className="text-right">{d.total_uses}</TableCell>
-                    <TableCell className="text-right">{d.total_credits_charged}</TableCell>
-                    <TableCell className="text-right">{Number(d.total_revenue_eur).toFixed(4)}</TableCell>
-                    <TableCell className="text-right">{Number(d.total_api_cost_eur).toFixed(6)}</TableCell>
-                    <TableCell className="text-right">{Number(d.gross_margin_eur).toFixed(4)}</TableCell>
+                    <TableCell className="text-right">{d.total_uses.toLocaleString('de-DE')}</TableCell>
+                    <TableCell className="text-right">{d.total_credits_charged.toLocaleString('de-DE')}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.total_revenue_eur), 4)}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.total_api_cost_eur), 6)}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.gross_margin_eur), 4)}</TableCell>
                     <TableCell className="text-right">{marginBadge(Number(d.margin_pct))}</TableCell>
                   </TableRow>
                 ))}
