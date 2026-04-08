@@ -329,7 +329,7 @@ const es = {
       importLyricsDesc: 'Selecciona una letra generada previamente con el generador de letras.',
       noSavedLyrics: 'No tienes letras guardadas.',
       lyricsImported: 'Letra importada',
-      mediaUpload: 'Audio o vídeo propio (opcional)',
+      mediaUpload: 'Audio o vídeo propio',
       mediaUploadHint: 'Sube tu propio audio o vídeo para que nuestro equipo lo use en la promoción.',
       mediaUploadCta: 'Seleccionar archivo de audio o vídeo',
       fileTooLarge: 'Archivo demasiado grande (máx. 50 MB)',
