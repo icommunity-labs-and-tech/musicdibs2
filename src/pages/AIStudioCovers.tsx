@@ -18,6 +18,7 @@ import { FEATURE_COSTS } from "@/lib/featureCosts"
 import { PricingLink } from "@/components/dashboard/PricingPopup"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
+import { useProductTracking } from "@/hooks/useProductTracking"
 import {
   ArrowLeft, Wand2, Loader2, Download,
   RefreshCw, ImageIcon, Sparkles,
