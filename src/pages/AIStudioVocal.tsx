@@ -181,6 +181,7 @@ export default function AIStudioVocal() {
       const data = await response.json();
       if (!response.ok) { toast({ title: vc('cloneError'), description: data.error, variant: 'destructive' }); return; }
       toast({ title: vc('cloneSuccess'), description: vc('cloneSuccessDesc', { name: cloneName.trim() }) });
+      track('voice_cloned', { feature: 'voice_cloning' });
       setCloneName(''); setCloneDescription(''); setCloneAudioFile(null); setCloneAudioDuration(null); setCloneRemoveNoise(false); setShowCloneForm(false);
       if (cloneFileRef.current) cloneFileRef.current.value = '';
       await loadClones(); setActiveTab('sing');
