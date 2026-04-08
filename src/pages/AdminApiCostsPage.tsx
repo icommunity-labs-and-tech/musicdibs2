@@ -146,7 +146,7 @@ export default function AdminApiCostsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><DollarSign className="h-3 w-3" /> Ingresos</div>
-            <p className="text-lg font-bold">{totalRevenue.toFixed(2)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalRevenue)} €</p>
           </CardContent>
         </Card>
         <Card>
