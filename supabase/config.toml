@@ -57,3 +57,5 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.mureka-generate-song]
     verify_jwt = false
+  [functions.api-cost-cron]
+    verify_jwt = false
