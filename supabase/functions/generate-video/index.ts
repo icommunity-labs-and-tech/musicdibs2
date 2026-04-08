@@ -227,15 +227,25 @@ serve(async (req) => {
         }
       };
 
-      const body = {
+      const resolvedAspectRatio = aspectRatio || '16:9';
+
+      // Decide model: image-to-video or text-to-video
+      let submitUrl = FAL_SUBMIT_URL;
+      const body: Record<string, unknown> = {
         prompt: promptText,
-        duration: String(duration || 5),
-        aspect_ratio: '16:9',
+        duration: String(duration || 10),
+        aspect_ratio: resolvedAspectRatio,
       };
 
-      console.log(`[GENERATE-VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..." | ${duration}s`);
+      if (imageBase64) {
+        // Switch to image-to-video endpoint
+        submitUrl = 'https://queue.fal.run/fal-ai/kling-video/v2.5-turbo/pro/image-to-video';
+        body.image_url = `data:image/jpeg;base64,${imageBase64}`;
+      }
 
-      const response = await fetch(FAL_SUBMIT_URL, {
+      console.log(`[GENERATE-VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..." | ${duration}s | ${resolvedAspectRatio} | img=${!!imageBase64}`);
+
+      const response = await fetch(submitUrl, {
         method: 'POST',
         headers: falHeaders,
         body: JSON.stringify(body),
