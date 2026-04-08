@@ -1,0 +1,1 @@
+ALTER TABLE public.api_cost_config ADD COLUMN api_model text NOT NULL DEFAULT '';
