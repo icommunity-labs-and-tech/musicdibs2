@@ -27,7 +27,7 @@ const DEFAULT_COSTS: Record<string, number> = {
   youtube_thumbnail: 1,
   event_poster: 1,
   social_poster: 1,
-  social_video: 10,
+  social_video: 3,
 };
 
 // ── Runtime cache ──────────────────────────────────────────
