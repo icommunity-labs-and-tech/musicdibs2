@@ -65,24 +65,14 @@ export default function AdminProductMetrics() {
     setRecalculating(true);
     try {
       const today = new Date().toISOString().split("T")[0];
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-metrics-cron`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ date: today }),
-        }
-      );
-      if (!res.ok) throw new Error(await res.text());
+      const { data, error } = await supabase.functions.invoke("product-metrics-cron", {
+        body: { date: today },
+      });
+      if (error) throw error;
       toast.success("Métricas de hoy recalculadas");
       loadMetrics();
     } catch (e: any) {
-      toast.error("Error: " + e.message);
+      toast.error("Error: " + (e?.message || e));
     } finally {
       setRecalculating(false);
     }
