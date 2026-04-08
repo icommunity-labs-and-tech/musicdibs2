@@ -47,7 +47,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.launchHit', 'Lanza tu primer hit 🚀'), url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
     { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
-    { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
+    { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true, kycGuarded: true },
     { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
     { title: tr('dashboard.sidebar.promotion', 'Promoción y difusión'), url: '/dashboard/promotion', icon: Megaphone, hideForManager: true, tourId: 'promotion' },
     
