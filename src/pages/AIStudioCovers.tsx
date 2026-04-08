@@ -302,7 +302,7 @@ const AIStudioCovers = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      
     </div>
   )
 }

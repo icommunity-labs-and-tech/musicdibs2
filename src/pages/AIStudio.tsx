@@ -233,7 +233,7 @@ const AIStudio = () => {
         ) : null}
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

@@ -1725,7 +1725,7 @@ const AIStudioCreate = () => {
         </DialogContent>
       </Dialog>
 
-      <Footer />
+      
     </div>
   );
 };

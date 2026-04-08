@@ -537,7 +537,7 @@ const AIStudioEdit = () => {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

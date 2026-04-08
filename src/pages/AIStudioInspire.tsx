@@ -181,7 +181,7 @@ const AIStudioInspire = () => {
         </section>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };

@@ -1170,7 +1170,7 @@ const AIStudioVideo = () => {
         </div>
       </main>
 
-      <Footer />
+      
     </div>
   );
 };
