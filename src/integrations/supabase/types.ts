@@ -104,6 +104,7 @@ export type Database = {
       api_cost_config: {
         Row: {
           api_cost_eur: number
+          api_model: string
           api_provider: string
           credit_cost: number
           feature_key: string
@@ -114,6 +115,7 @@ export type Database = {
         }
         Insert: {
           api_cost_eur?: number
+          api_model?: string
           api_provider?: string
           credit_cost?: number
           feature_key: string
@@ -124,6 +126,7 @@ export type Database = {
         }
         Update: {
           api_cost_eur?: number
+          api_model?: string
           api_provider?: string
           credit_cost?: number
           feature_key?: string

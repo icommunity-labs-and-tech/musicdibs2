@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { toast } from 'sonner';
-import { RefreshCw, Save, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Save, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const fmtEur = (n: number, decimals = 2) =>
   n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
@@ -14,10 +15,13 @@ const fmtEur = (n: number, decimals = 2) =>
 const fmtPct = (n: number, decimals = 1) =>
   n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
 
+const PAGE_SIZE = 20;
+
 interface ApiCostConfig {
   feature_key: string;
   feature_label: string;
   api_provider: string;
+  api_model: string;
   credit_cost: number;
   price_per_credit_eur: number;
   api_cost_eur: number;
@@ -48,6 +52,7 @@ export default function AdminApiCostsPage() {
   const [editChanges, setEditChanges] = useState<Partial<ApiCostConfig>>({});
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
+  const [dailyPage, setDailyPage] = useState(1);
 
   const getDateRange = useCallback(() => {
     const to = new Date();
@@ -70,6 +75,7 @@ export default function AdminApiCostsPage() {
 
     if (configRes.data) setConfigs(configRes.data as unknown as ApiCostConfig[]);
     if (dailyRes.data) setDailyData(dailyRes.data as unknown as ApiCostDaily[]);
+    setDailyPage(1);
     setLoading(false);
   }, [getDateRange]);
 
@@ -130,6 +136,10 @@ export default function AdminApiCostsPage() {
     if (pct >= 50) return <Badge className="bg-yellow-500 text-black">{fmtPct(pct)}</Badge>;
     return <Badge variant="destructive">{fmtPct(pct)}</Badge>;
   };
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(dailyData.length / PAGE_SIZE));
+  const paginatedDaily = dailyData.slice((dailyPage - 1) * PAGE_SIZE, dailyPage * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -211,6 +221,7 @@ export default function AdminApiCostsPage() {
               <TableRow>
                 <TableHead>Feature</TableHead>
                 <TableHead>API Provider</TableHead>
+                <TableHead>Modelo</TableHead>
                 <TableHead>Créditos</TableHead>
                 <TableHead>€/crédito</TableHead>
                 <TableHead>Coste API €/uso</TableHead>
@@ -226,6 +237,9 @@ export default function AdminApiCostsPage() {
                   <TableCell>{editingRow === c.feature_key
                     ? <Input defaultValue={c.api_provider} className="w-28" onChange={e => setEditChanges(p => ({ ...p, api_provider: e.target.value }))} />
                     : c.api_provider}</TableCell>
+                  <TableCell>{editingRow === c.feature_key
+                    ? <Input defaultValue={c.api_model} className="w-36" onChange={e => setEditChanges(p => ({ ...p, api_model: e.target.value }))} />
+                    : <span className="text-xs font-mono">{c.api_model || '—'}</span>}</TableCell>
                   <TableCell>{c.credit_cost}</TableCell>
                   <TableCell>{editingRow === c.feature_key
                     ? <Input type="number" step="0.01" defaultValue={c.price_per_credit_eur} className="w-24" onChange={e => setEditChanges(p => ({ ...p, price_per_credit_eur: parseFloat(e.target.value) }))} />
@@ -264,41 +278,97 @@ export default function AdminApiCostsPage() {
 
       {/* Daily Metrics Table */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Métricas diarias</CardTitle></CardHeader>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Métricas diarias</CardTitle>
+            {dailyData.length > 0 && (
+              <span className="text-xs text-muted-foreground">{dailyData.length.toLocaleString('de-DE')} registros</span>
+            )}
+          </div>
+        </CardHeader>
         <CardContent>
           {loading ? (
             <p className="text-muted-foreground text-sm py-4">Cargando datos…</p>
           ) : dailyData.length === 0 ? (
             <p className="text-muted-foreground text-sm py-4">No hay datos para el período seleccionado. Pulsa "Recalcular hoy" para generar.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Feature</TableHead>
-                  <TableHead className="text-right">Usos</TableHead>
-                  <TableHead className="text-right">Créditos</TableHead>
-                  <TableHead className="text-right">Ingresos €</TableHead>
-                  <TableHead className="text-right">Coste API €</TableHead>
-                  <TableHead className="text-right">Margen €</TableHead>
-                  <TableHead className="text-right">% Margen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dailyData.map(d => (
-                  <TableRow key={d.id}>
-                    <TableCell>{d.date}</TableCell>
-                    <TableCell>{configMap[d.feature_key]?.feature_label || d.feature_key}</TableCell>
-                    <TableCell className="text-right">{d.total_uses.toLocaleString('de-DE')}</TableCell>
-                    <TableCell className="text-right">{d.total_credits_charged.toLocaleString('de-DE')}</TableCell>
-                    <TableCell className="text-right">{fmtEur(Number(d.total_revenue_eur), 4)}</TableCell>
-                    <TableCell className="text-right">{fmtEur(Number(d.total_api_cost_eur), 6)}</TableCell>
-                    <TableCell className="text-right">{fmtEur(Number(d.gross_margin_eur), 4)}</TableCell>
-                    <TableCell className="text-right">{marginBadge(Number(d.margin_pct))}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Feature</TableHead>
+                    <TableHead className="text-right">Usos</TableHead>
+                    <TableHead className="text-right">Créditos</TableHead>
+                    <TableHead className="text-right">Ingresos €</TableHead>
+                    <TableHead className="text-right">Coste API €</TableHead>
+                    <TableHead className="text-right">Margen €</TableHead>
+                    <TableHead className="text-right">% Margen</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedDaily.map(d => (
+                    <TableRow key={d.id}>
+                      <TableCell>{d.date}</TableCell>
+                      <TableCell>{configMap[d.feature_key]?.feature_label || d.feature_key}</TableCell>
+                      <TableCell className="text-right">{d.total_uses.toLocaleString('de-DE')}</TableCell>
+                      <TableCell className="text-right">{d.total_credits_charged.toLocaleString('de-DE')}</TableCell>
+                      <TableCell className="text-right">{fmtEur(Number(d.total_revenue_eur), 4)}</TableCell>
+                      <TableCell className="text-right">{fmtEur(Number(d.total_api_cost_eur), 6)}</TableCell>
+                      <TableCell className="text-right">{fmtEur(Number(d.gross_margin_eur), 4)}</TableCell>
+                      <TableCell className="text-right">{marginBadge(Number(d.margin_pct))}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <span className="text-xs text-muted-foreground">
+                    Página {dailyPage} de {totalPages}
+                  </span>
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setDailyPage(p => Math.max(1, p - 1))}
+                          className={dailyPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                        let page: number;
+                        if (totalPages <= 5) {
+                          page = i + 1;
+                        } else if (dailyPage <= 3) {
+                          page = i + 1;
+                        } else if (dailyPage >= totalPages - 2) {
+                          page = totalPages - 4 + i;
+                        } else {
+                          page = dailyPage - 2 + i;
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              isActive={page === dailyPage}
+                              onClick={() => setDailyPage(page)}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setDailyPage(p => Math.min(totalPages, p + 1))}
+                          className={dailyPage >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
