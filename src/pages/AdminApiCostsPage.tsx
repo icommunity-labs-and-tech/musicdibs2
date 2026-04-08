@@ -208,6 +208,7 @@ export default function AdminApiCostsPage() {
                 <TableHead>Créditos</TableHead>
                 <TableHead>€/crédito</TableHead>
                 <TableHead>Coste API €/uso</TableHead>
+                <TableHead>Margen bruto €</TableHead>
                 <TableHead>Notas</TableHead>
                 <TableHead></TableHead>
               </TableRow>
