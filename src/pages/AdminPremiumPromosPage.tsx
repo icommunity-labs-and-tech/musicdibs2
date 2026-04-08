@@ -80,17 +80,20 @@ export default function AdminPremiumPromosPage() {
   const downloadMedia = async (filePath: string) => {
     try {
       const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: filePath });
-      if (res?.signed_url) {
-        const a = document.createElement('a');
-        a.href = res.signed_url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } else {
-        throw new Error('No se pudo obtener la URL del archivo');
-      }
+      if (!res?.signed_url) throw new Error('No se pudo obtener la URL del archivo');
+
+      const filename = filePath.split('/').pop() || 'media';
+      const response = await fetch(res.signed_url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
     } catch (e: any) { toast.error('Error descargando archivo: ' + e.message); }
   };
 
