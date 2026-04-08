@@ -7,18 +7,22 @@ const corsHeaders = {
 };
 
 const DESCRIPTION_TO_FEATURE: Record<string, string> = {
-  'Audio AI':        'generate_audio',
-  'Canción con voz': 'generate_audio_song',
-  'Edición AI':      'edit_audio',
-  'Pista vocal':     'generate_vocal_track',
-  'Auphonic':        'enhance_audio',
-  'Portada':         'generate_cover',
-  'Video AI':        'generate_video',
-  'Promoción':       'promote_work',
-  'Registro':        'register_work',
-  'Nota de prensa':  'generate_press_release',
-  'Letras':          'generate_lyrics',
-  'Letra':           'generate_lyrics',
+  'Audio AI':                 'generate_audio',
+  'Canción con voz':          'generate_audio_song',
+  'Generación audio (song)':  'generate_audio_song',
+  'Edición AI':               'edit_audio',
+  'Pista vocal':              'generate_vocal_track',
+  'Auphonic':                 'enhance_audio',
+  'Mejora audio':             'enhance_audio',
+  'Portada IA':               'generate_cover',
+  'Portada':                  'generate_cover',
+  'Video AI':                 'generate_video',
+  'Promoción RRSS':           'promote_work',
+  'Promoción':                'promote_work',
+  'Registro':                 'register_work',
+  'Nota de prensa':           'generate_press_release',
+  'Letras':                   'generate_lyrics',
+  'Letra':                    'generate_lyrics',
 };
 
 function detectFeature(description: string): string | null {
