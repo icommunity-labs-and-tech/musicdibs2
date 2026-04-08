@@ -42,7 +42,10 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
   }, [userEmail]);
 
   const handleContinue = () => {
-    window.open('https://dist.musicdibs.com/', '_blank', 'noopener');
+    const url = userEmail
+      ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
+      : 'https://dist.musicdibs.com/';
+    window.open(url, '_blank', 'noopener');
     onOpenChange(false);
   };
 
