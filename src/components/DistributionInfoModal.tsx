@@ -1,7 +1,10 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState, useEffect, useCallback } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DistributionInfoModalProps {
   open: boolean;
@@ -10,6 +13,33 @@ interface DistributionInfoModalProps {
 
 export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoModalProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const userEmail = user?.email ?? '';
+
+  const [loading, setLoading] = useState(true);
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!open || !user) return;
+    setLoading(true);
+    supabase
+      .from('works')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('distributed_at', 'is', null)
+      .limit(1)
+      .then(({ data }) => {
+        setIsReturningUser((data?.length ?? 0) > 0);
+        setLoading(false);
+      });
+  }, [open, user]);
+
+  const handleCopy = useCallback(async () => {
+    await navigator.clipboard.writeText(userEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [userEmail]);
 
   const handleContinue = () => {
     window.open('https://dist.musicdibs.com/', '_blank', 'noopener');
@@ -19,69 +49,109 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t('dashboard.distributionModal.title', 'Antes de continuar con la distribución')}</DialogTitle>
-          <DialogDescription>
-            {t('dashboard.distributionModal.subtitle', 'Para distribuir tu música en plataformas como Spotify, Apple Music o TikTok, es necesario completar un proceso inicial de configuración.')}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          {/* First time */}
-          <div className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-sm font-semibold">
-              🔹 {t('dashboard.distributionModal.firstTimeTitle', 'Si es tu primera vez')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t('dashboard.distributionModal.firstTimeIntro', 'Tendrás que:')}
-            </p>
-            <ul className="space-y-1.5 ml-1">
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                {t('dashboard.distributionModal.step1', 'Crear tu cuenta de distribución')}
-              </li>
-              <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                {t('dashboard.distributionModal.step2', 'Completar la verificación de identidad (KYC)')}
-              </li>
-            </ul>
-            <p className="text-xs font-medium text-foreground/80">
-              👉 {t('dashboard.distributionModal.firstTimeNote', 'Este paso es obligatorio y solo se realiza una vez.')}
-            </p>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
+        ) : isReturningUser ? (
+          /* ── RETURNING USER ── */
+          <>
+            <DialogHeader>
+              <DialogTitle>Accede a tu plataforma de distribución 🎵</DialogTitle>
+            </DialogHeader>
 
-          {/* Returning user */}
-          <div className="rounded-lg border border-border/60 bg-muted/30 p-4 space-y-2">
-            <p className="text-sm font-semibold">
-              🔹 {t('dashboard.distributionModal.returningTitle', 'Si ya has distribuido antes')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t('dashboard.distributionModal.returningDesc', 'Puedes acceder directamente con tus credenciales y continuar distribuyendo tu música sin repetir el proceso.')}
-            </p>
-          </div>
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-muted-foreground">
+                Tu cuenta de distribución ya está configurada. Accede directamente con:
+              </p>
 
-          {/* Recommendation */}
-          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-1">
-            <p className="text-sm font-semibold">💡 {t('dashboard.distributionModal.tipTitle', 'Recomendación')}</p>
-            <p className="text-xs text-muted-foreground">
-              {t('dashboard.distributionModal.tipDesc', 'Para evitar problemas de acceso, te recomendamos usar el mismo email y contraseña que en MusicDibs.')}
-            </p>
-          </div>
+              {/* Email card */}
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                <span className="flex-1 truncate text-sm font-medium">{userEmail}</span>
+                <Button variant="outline" size="sm" className="shrink-0 gap-1.5 h-8" onClick={handleCopy}>
+                  {copied ? <><Check className="h-3.5 w-3.5" /> Copiado</> : <><Copy className="h-3.5 w-3.5" /> Copiar</>}
+                </Button>
+              </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            {t('dashboard.distributionModal.timeNote', 'Este proceso suele tardar solo unos minutos.')}
-          </p>
-        </div>
+              <p className="text-xs text-muted-foreground">
+                Usa el mismo email y la contraseña que creaste en tu primer acceso a dist.musicdibs.com
+              </p>
 
-        <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-            {t('dashboard.distributionModal.cancel', 'Cancelar')}
-          </Button>
-          <Button variant="hero" onClick={handleContinue} className="flex-1 gap-2">
-            {t('dashboard.distributionModal.continue', 'Continuar a distribución')}
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        </div>
+              <div className="border-t border-border" />
+
+              <p className="text-xs text-muted-foreground">
+                ¿No recuerdas tu contraseña?{' '}
+                <a
+                  href="https://dist.musicdibs.com/wp-login.php?action=lostpassword"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline underline-offset-2"
+                >
+                  Recupérala aquí
+                </a>
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
+              <Button variant="hero" onClick={handleContinue} className="flex-1 gap-2">
+                Acceder a distribución <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        ) : (
+          /* ── NEW USER ── */
+          <>
+            <DialogHeader>
+              <DialogTitle>Distribuye tu música en 220+ plataformas 🚀</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              {/* Steps */}
+              <ol className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">1</span>
+                  <span className="text-sm pt-0.5">Haz click en <strong>"Comenzar"</strong> — te abrimos la plataforma de distribución</span>
+                </li>
+
+                <li className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
+                  <div className="space-y-1.5 flex-1">
+                    <span className="text-sm">Regístrate con este email para mantener todo unificado:</span>
+                    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+                      <span className="flex-1 truncate text-sm font-medium">{userEmail}</span>
+                      <Button variant="outline" size="sm" className="shrink-0 gap-1.5 h-8" onClick={handleCopy}>
+                        {copied ? <><Check className="h-3.5 w-3.5" /> Copiado</> : <><Copy className="h-3.5 w-3.5" /> Copiar</>}
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">3</span>
+                  <span className="text-sm pt-0.5">Completa la verificación de identidad (5 min, solo una vez)</span>
+                </li>
+
+                <li className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">4</span>
+                  <span className="text-sm pt-0.5">¡Listo! Vuelve aquí cuando quieras distribuir más obras</span>
+                </li>
+              </ol>
+
+              {/* Partner note */}
+              <p className="text-xs text-muted-foreground rounded-lg border border-border/60 bg-muted/30 p-3">
+                La plataforma de distribución es gestionada por nuestro partner Sonosuite. Tu música llega a Spotify, Apple Music, Amazon Music, TikTok y 215+ plataformas más.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
+              <Button variant="hero" onClick={handleContinue} className="flex-1 gap-2">
+                Comenzar distribución <ExternalLink className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
