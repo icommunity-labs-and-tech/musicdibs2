@@ -33,6 +33,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { track } = useProductTracking();
   const prefill = (location.state as { prefill?: { title?: string; type?: string; description?: string; audioUrl?: string } })?.prefill;
 
   const STEPS_NEW = [
