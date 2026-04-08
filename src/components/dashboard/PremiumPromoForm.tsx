@@ -190,7 +190,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       // Insert premium request via edge function
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
         body: {
-          work_id: selectedWorkId,
+          work_id: selectedWorkId || null,
           artist_name: artistName.trim(),
           song_title: songTitle.trim(),
           description: lyrics.trim(),
