@@ -158,7 +158,7 @@ export default function AdminApiCostsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><BarChart3 className="h-3 w-3" /> Margen bruto</div>
-            <p className="text-lg font-bold">{totalMargin.toFixed(2)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalMargin)} €</p>
           </CardContent>
         </Card>
         <Card>
