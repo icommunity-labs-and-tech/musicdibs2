@@ -1101,26 +1101,6 @@ const AIStudioCreate = () => {
                       )}
                       </div>{/* close data-tour="mc-settings" */}
 
-                      {/* Duration options */}
-                      <div className="space-y-2">
-                        <Label>{t('aiCreate.duration')}</Label>
-                        <div className="flex gap-2">
-                          {DURATION_OPTIONS.map(d => (
-                            <button
-                              key={d}
-                              onClick={() => setDuration(d)}
-                              className={cn(
-                                "flex-1 py-2 rounded-lg text-sm font-medium border transition-all",
-                                duration === d
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                              )}
-                            >
-                              {d}s
-                            </button>
-                          ))}
-                        </div>
-                      </div>
 
                       {/* Error */}
                       {generationError && (
