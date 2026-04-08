@@ -8,6 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { RefreshCw, Save, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, AlertTriangle } from 'lucide-react';
 
+const fmtEur = (n: number, decimals = 2) =>
+  n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
+const fmtPct = (n: number, decimals = 1) =>
+  n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
+
 interface ApiCostConfig {
   feature_key: string;
   feature_label: string;
@@ -120,9 +126,9 @@ export default function AdminApiCostsPage() {
   const worstFeature = featureMarginList.sort((a, b) => a.marginPct - b.marginPct)[0];
 
   const marginBadge = (pct: number) => {
-    if (pct >= 80) return <Badge className="bg-green-600 text-white">{pct.toFixed(1)}%</Badge>;
-    if (pct >= 50) return <Badge className="bg-yellow-500 text-black">{pct.toFixed(1)}%</Badge>;
-    return <Badge variant="destructive">{pct.toFixed(1)}%</Badge>;
+    if (pct >= 80) return <Badge className="bg-green-600 text-white">{fmtPct(pct)}</Badge>;
+    if (pct >= 50) return <Badge className="bg-yellow-500 text-black">{fmtPct(pct)}</Badge>;
+    return <Badge variant="destructive">{fmtPct(pct)}</Badge>;
   };
 
   return (
@@ -140,19 +146,19 @@ export default function AdminApiCostsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><DollarSign className="h-3 w-3" /> Ingresos</div>
-            <p className="text-lg font-bold">{totalRevenue.toFixed(2)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalRevenue)} €</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><AlertTriangle className="h-3 w-3" /> Coste API</div>
-            <p className="text-lg font-bold">{totalCost.toFixed(4)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalCost, 4)} €</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><BarChart3 className="h-3 w-3" /> Margen bruto</div>
-            <p className="text-lg font-bold">{totalMargin.toFixed(2)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalMargin)} €</p>
           </CardContent>
         </Card>
         <Card>
@@ -165,14 +171,14 @@ export default function AdminApiCostsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><TrendingUp className="h-3 w-3" /> Más rentable</div>
             <p className="text-sm font-bold truncate">{bestFeature ? configMap[bestFeature.key]?.feature_label || bestFeature.key : '—'}</p>
-            {bestFeature && <p className="text-xs text-green-600">{bestFeature.marginPct.toFixed(1)}%</p>}
+            {bestFeature && <p className="text-xs text-green-600">{fmtPct(bestFeature.marginPct)}</p>}
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><TrendingDown className="h-3 w-3" /> Menos rentable</div>
             <p className="text-sm font-bold truncate">{worstFeature ? configMap[worstFeature.key]?.feature_label || worstFeature.key : '—'}</p>
-            {worstFeature && <p className="text-xs text-red-500">{worstFeature.marginPct.toFixed(1)}%</p>}
+            {worstFeature && <p className="text-xs text-red-500">{fmtPct(worstFeature.marginPct)}</p>}
           </CardContent>
         </Card>
       </div>
@@ -233,7 +239,7 @@ export default function AdminApiCostsPage() {
                       const cost = Number(c.api_cost_eur);
                       const margin = revenue - cost;
                       const pct = revenue > 0 ? (margin / revenue) * 100 : 0;
-                      return <span>{margin.toFixed(4)} € <span className="text-xs text-muted-foreground">({pct.toFixed(0)}%)</span></span>;
+                      return <span>{fmtEur(margin, 4)} € <span className="text-xs text-muted-foreground">({fmtPct(pct, 0)})</span></span>;
                     })()}
                   </TableCell>
                   <TableCell>{editingRow === c.feature_key
@@ -283,11 +289,11 @@ export default function AdminApiCostsPage() {
                   <TableRow key={d.id}>
                     <TableCell>{d.date}</TableCell>
                     <TableCell>{configMap[d.feature_key]?.feature_label || d.feature_key}</TableCell>
-                    <TableCell className="text-right">{d.total_uses}</TableCell>
-                    <TableCell className="text-right">{d.total_credits_charged}</TableCell>
-                    <TableCell className="text-right">{Number(d.total_revenue_eur).toFixed(4)}</TableCell>
-                    <TableCell className="text-right">{Number(d.total_api_cost_eur).toFixed(6)}</TableCell>
-                    <TableCell className="text-right">{Number(d.gross_margin_eur).toFixed(4)}</TableCell>
+                    <TableCell className="text-right">{d.total_uses.toLocaleString('de-DE')}</TableCell>
+                    <TableCell className="text-right">{d.total_credits_charged.toLocaleString('de-DE')}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.total_revenue_eur), 4)}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.total_api_cost_eur), 6)}</TableCell>
+                    <TableCell className="text-right">{fmtEur(Number(d.gross_margin_eur), 4)}</TableCell>
                     <TableCell className="text-right">{marginBadge(Number(d.margin_pct))}</TableCell>
                   </TableRow>
                 ))}
