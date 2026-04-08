@@ -64,7 +64,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { action, promptText, duration, requestId, statusUrl } = await req.json();
+    const { action, promptText, duration, requestId, statusUrl, aspectRatio, imageBase64 } = await req.json();
 
     const falHeaders = {
       'Authorization': `Key ${FAL_API_KEY}`,
