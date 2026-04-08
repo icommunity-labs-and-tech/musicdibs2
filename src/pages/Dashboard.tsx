@@ -16,6 +16,7 @@ import type { DashboardSummary } from '@/types/dashboard';
 export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
