@@ -43,7 +43,7 @@ serve(async (req) => {
     const body = await req.json();
     const { work_id, artist_name, song_title, description, external_link, team_notes, media_file_path } = body;
 
-    if (!work_id || !artist_name || !song_title || !description) {
+    if (!artist_name || !song_title || !description) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
