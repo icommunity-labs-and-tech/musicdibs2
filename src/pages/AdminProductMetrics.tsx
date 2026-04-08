@@ -77,6 +77,17 @@ export default function AdminProductMetrics() {
     }
     setLiveFeatureCounts(counts);
 
+    // Load cost config (credit_cost + price_per_credit) from api_cost_config
+    const { data: costs } = await supabase
+      .from("api_cost_config")
+      .select("feature_key, credit_cost, price_per_credit_eur");
+
+    const costMap: Record<string, { credit_cost: number; price_per_credit_eur: number }> = {};
+    for (const c of costs || []) {
+      costMap[c.feature_key] = { credit_cost: c.credit_cost, price_per_credit_eur: Number(c.price_per_credit_eur) };
+    }
+    setCostConfig(costMap);
+
     setLoading(false);
   };
 
