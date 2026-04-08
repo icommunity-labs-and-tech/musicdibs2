@@ -54,7 +54,7 @@ serve(async (req) => {
       .from('premium_social_promotions')
       .insert({
         user_id: user.id,
-        work_id,
+        work_id: work_id || null,
         artist_name,
         song_title,
         description,
