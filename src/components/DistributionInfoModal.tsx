@@ -41,11 +41,11 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
     setTimeout(() => setCopied(false), 2000);
   }, [userEmail]);
 
+  const distributionUrl = userEmail
+    ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
+    : 'https://dist.musicdibs.com/';
+
   const handleContinue = () => {
-    const url = userEmail
-      ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
-      : 'https://dist.musicdibs.com/';
-    window.open(url, '_blank', 'noopener');
     onOpenChange(false);
   };
 
