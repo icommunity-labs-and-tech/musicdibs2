@@ -13,12 +13,14 @@ import { Button } from '@/components/ui/button';
 import { Upload, Shield, AlertCircle, Loader2, CheckCircle2, Share2, Sparkles, CircleDollarSign, Rocket, X, Lock, FolderOpen, Music, Film, ImageIcon, Mic } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import type { DashboardSummary } from '@/types/dashboard';
 
 export default function DashboardHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { guardRegister } = useKycGuard();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
@@ -187,7 +189,7 @@ export default function DashboardHome() {
                     {t('dashboard.home.registerNewDesc')}
                   </p>
                 </div>
-                <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+                <Button variant="hero" onClick={() => guardRegister()} className="w-full">
                   {t('dashboard.home.goToRegister')}
                 </Button>
               </CardContent>

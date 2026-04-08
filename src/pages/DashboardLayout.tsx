@@ -1,6 +1,7 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import { NotificationsProvider } from '@/hooks/useNotifications';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
@@ -14,6 +15,7 @@ import { Loader2, Plus } from 'lucide-react';
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
@@ -43,7 +45,7 @@ export default function DashboardLayout() {
                   variant="hero"
                   size="sm"
                   className="hidden md:inline-flex h-8 text-xs rounded-full px-4"
-                  onClick={() => navigate('/dashboard/register')}
+                  onClick={() => guardRegister()}
                 >
                   <Plus className="h-3.5 w-3.5 mr-1" />
                   Registrar obra

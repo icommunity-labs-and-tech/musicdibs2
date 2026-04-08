@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import { Button } from '@/components/ui/button';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
 import { PromoteWorks } from '@/components/dashboard/PromoteWorks';
@@ -15,6 +16,7 @@ import type { DashboardSummary } from '@/types/dashboard';
 export default function Dashboard() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
 
@@ -90,7 +92,7 @@ export default function Dashboard() {
                   Inicia el proceso de registro y protección de tu obra paso a paso.
                 </p>
               </div>
-              <Button variant="hero" onClick={() => navigate('/dashboard/register')} className="w-full">
+              <Button variant="hero" onClick={() => guardRegister()} className="w-full">
                 Ir al registro
               </Button>
             </CardContent>

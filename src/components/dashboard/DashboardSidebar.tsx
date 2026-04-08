@@ -17,6 +17,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 
@@ -27,6 +28,7 @@ export function DashboardSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { user, signOut, isAdmin, isManager } = useAuth();
+  const { guardRegister } = useKycGuard();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
@@ -37,7 +39,7 @@ export function DashboardSidebar() {
   const managerItems = useMemo(() => [
     { title: tr('dashboard.sidebar.managerPanel', 'Panel Manager'), url: '/dashboard/manager', icon: Briefcase },
     { title: tr('dashboard.sidebar.myArtists', 'Mis Artistas'), url: '/dashboard/manager/artists', icon: Users },
-    { title: tr('dashboard.sidebar.registerWorkNav', 'Registrar Obra'), url: '/dashboard/manager/register', icon: Upload },
+    { title: tr('dashboard.sidebar.registerWorkNav', 'Registrar Obra'), url: '/dashboard/manager/register', icon: Upload, kycGuarded: true },
     { title: tr('dashboard.sidebar.registeredWorks', 'Obras Registradas'), url: '/dashboard/manager/works', icon: ClipboardList },
   ], [i18n.resolvedLanguage, t]);
 
@@ -45,7 +47,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.launchHit', 'Lanza tu primer hit 🚀'), url: '/dashboard/launch', icon: Rocket, highlight: true, launchOnly: true },
     { title: tr('dashboard.sidebar.controlPanel', 'Panel de control'), url: '/dashboard', icon: LayoutDashboard },
     { title: 'AI MusicDibs Studio', url: '/ai-studio', icon: Sparkles },
-    { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true },
+    { title: tr('dashboard.sidebar.registerWork', 'Registrar obra'), url: '/dashboard/register', icon: Upload, hideForManager: true, kycGuarded: true },
     { title: tr('dashboard.sidebar.distributeMusic', 'Distribuir tu música'), url: '#distribute', icon: Palette, hideForManager: true, isDistribute: true },
     { title: tr('dashboard.sidebar.promotion', 'Promoción y difusión'), url: '/dashboard/promotion', icon: Megaphone, hideForManager: true, tourId: 'promotion' },
     
@@ -132,6 +134,7 @@ export function DashboardSidebar() {
   const renderMenuItem = (item: typeof mainItems[0], activeClass = 'bg-primary/10 text-primary font-medium') => {
     const isHighlight = !!(item as any).highlight && !isManager;
     const isDistribute = !!(item as any).isDistribute;
+    const isKycGuarded = !!(item as any).kycGuarded;
 
     if (isDistribute) {
       const isAnnual = subscriptionPlan === 'Annual';
@@ -147,6 +150,22 @@ export function DashboardSidebar() {
               <item.icon className="mr-2 h-4 w-4" />
               {!collapsed && <span>{item.title}</span>}
               {!collapsed && !isAnnual && <Lock className="ml-auto h-3.5 w-3.5 text-muted-foreground" />}
+            </button>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
+    if (isKycGuarded) {
+      return (
+        <SidebarMenuItem key={item.title}>
+          <SidebarMenuButton asChild isActive={isActive(item.url)} data-tour={(item as any).tourId || undefined}>
+            <button
+              onClick={() => guardRegister(item.url)}
+              className="flex items-center w-full rounded-md px-2 py-1.5 text-sm hover:bg-muted/50"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {!collapsed && <span>{item.title}</span>}
             </button>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -179,7 +198,7 @@ export function DashboardSidebar() {
     );
   };
 
-  const renderCollapsibleGroup = (id: GroupId, label: string, items: typeof mainItems, activeClass?: string) => (
+  const renderCollapsibleGroup = (id: GroupId, label: string, items: any[], activeClass?: string) => (
     <Collapsible open={openGroup === id} onOpenChange={() => toggleGroup(id)}>
       <SidebarGroup>
         <CollapsibleTrigger asChild>

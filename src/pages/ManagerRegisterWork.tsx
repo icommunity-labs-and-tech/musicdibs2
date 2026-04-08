@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
+import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { FileDropzone } from '@/components/FileDropzone';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,6 +34,7 @@ function formatSize(bytes: number) {
 
 export default function ManagerRegisterWork() {
   const { user } = useAuth();
+  const { isVerified, kycLoading } = useKycGuard();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedArtist = searchParams.get('artist');
@@ -209,7 +212,8 @@ export default function ManagerRegisterWork() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (kycLoading || loading) return <div className="flex items-center justify-center h-64"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+  if (!isVerified) return <Navigate to="/dashboard/verify-identity" replace />;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

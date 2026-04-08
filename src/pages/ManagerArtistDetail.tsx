@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useKycGuard } from '@/hooks/useKycGuard';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ export default function ManagerArtistDetail() {
   const { artistId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
   const [artist, setArtist] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
@@ -223,7 +225,7 @@ export default function ManagerArtistDetail() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Obras registradas</CardTitle>
-          <Button size="sm" onClick={() => navigate(`/dashboard/manager/register?artist=${artistId}`)}><Upload className="h-4 w-4 mr-2" /> Registrar nueva obra</Button>
+          <Button size="sm" onClick={() => guardRegister(`/dashboard/manager/register?artist=${artistId}`)}><Upload className="h-4 w-4 mr-2" /> Registrar nueva obra</Button>
         </CardHeader>
         <CardContent>
           {works.length === 0 ? (
