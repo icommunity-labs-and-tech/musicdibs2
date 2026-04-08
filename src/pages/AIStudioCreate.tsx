@@ -285,6 +285,7 @@ const AIStudioCreate = () => {
     setIsGenerating(true);
     setGenerationError(null);
     setLastResult(null);
+    track('generation_started', { feature: 'create_music', metadata: { mode, genre: selectedGenre, mood: selectedMood } });
 
     try {
       // Spend credits
