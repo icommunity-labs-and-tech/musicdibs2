@@ -40,9 +40,9 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
         <ScrollArea className="max-h-[360px] pr-3">
           <div className="divide-y divide-border/40">
             {[...PRICING_ROWS]
-              .sort((a, b) => (FEATURE_COSTS[a.key as keyof typeof FEATURE_COSTS] ?? 0) - (FEATURE_COSTS[b.key as keyof typeof FEATURE_COSTS] ?? 0))
+              .sort((a, b) => getFeatureCost(a.key) - getFeatureCost(b.key))
               .map(({ key, icon: Icon }) => {
-              const cost = FEATURE_COSTS[key as keyof typeof FEATURE_COSTS];
+              const cost = getFeatureCost(key);
               return (
                 <div key={key} className="flex items-center justify-between py-2.5 px-1">
                   <div className="flex items-center gap-2.5 min-w-0">
