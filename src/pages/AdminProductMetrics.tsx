@@ -41,6 +41,7 @@ export default function AdminProductMetrics() {
   const [range, setRange] = useState<Range>("30d");
   const [metrics, setMetrics] = useState<MetricRow[]>([]);
   const [liveFeatureCounts, setLiveFeatureCounts] = useState<Record<string, number>>({});
+  const [costConfig, setCostConfig] = useState<Record<string, { credit_cost: number; price_per_credit_eur: number }>>({});
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
 
@@ -75,6 +76,17 @@ export default function AdminProductMetrics() {
       counts[e.feature] = (counts[e.feature] || 0) + 1;
     }
     setLiveFeatureCounts(counts);
+
+    // Load cost config (credit_cost + price_per_credit) from api_cost_config
+    const { data: costs } = await supabase
+      .from("api_cost_config")
+      .select("feature_key, credit_cost, price_per_credit_eur");
+
+    const costMap: Record<string, { credit_cost: number; price_per_credit_eur: number }> = {};
+    for (const c of costs || []) {
+      costMap[c.feature_key] = { credit_cost: c.credit_cost, price_per_credit_eur: Number(c.price_per_credit_eur) };
+    }
+    setCostConfig(costMap);
 
     setLoading(false);
   };
@@ -171,17 +183,42 @@ export default function AdminProductMetrics() {
     }));
   }, [liveFeatureCounts]);
 
-  // Revenue by feature
+  // Revenue by feature — estimated from live usage × credit_cost × price_per_credit_eur
+  // Mapping: tracking feature name → api_cost_config feature_key
   const revenueFeatures = useMemo(() => {
-    const items = [
-      { label: "Crear música", uses: totals.usesCreateMusic, revenue: totals.revenueCreateMusic },
-      { label: "Portadas IA", uses: totals.usesCover, revenue: totals.revenueCover },
-      { label: "Videoclips IA", uses: totals.usesVideo, revenue: totals.revenueVideo },
-      { label: "Promoción RRSS", uses: totals.usesPromotion, revenue: totals.revenuePromotion },
-      { label: "Registro blockchain", uses: totals.usesRegister, revenue: totals.revenueRegister },
-    ].sort((a, b) => b.revenue - a.revenue);
-    return items;
-  }, [totals]);
+    const lc = liveFeatureCounts;
+    const featureMap: { label: string; trackingKey: string; costKeys: string[] }[] = [
+      { label: "Crear música (instrumental)", trackingKey: "create_music", costKeys: ["generate_audio"] },
+      { label: "Crear música (canción)", trackingKey: "create_music", costKeys: ["generate_audio_song"] },
+      { label: "Compositor letras", trackingKey: "lyrics", costKeys: ["generate_lyrics"] },
+      { label: "Canta tu canción", trackingKey: "vocal", costKeys: ["generate_vocal_track"] },
+      { label: "Clonación de voz", trackingKey: "voice_cloning", costKeys: ["voice_translation_per_min"] },
+      { label: "Portadas con IA", trackingKey: "cover", costKeys: ["generate_cover"] },
+      { label: "Videoclips IA", trackingKey: "video", costKeys: ["generate_video"] },
+      { label: "Promoción RRSS", trackingKey: "promotion", costKeys: ["promote_work"] },
+      { label: "Promo Premium", trackingKey: "premium_promotion", costKeys: ["promote_premium"] },
+      { label: "Prensa & visibilidad", trackingKey: "press", costKeys: ["generate_press_release"] },
+      { label: "Registro blockchain", trackingKey: "register", costKeys: ["register_work"] },
+      { label: "Masterizado profesional", trackingKey: "enhance_audio", costKeys: ["enhance_audio"] },
+      { label: "Edición de audio", trackingKey: "edit_audio", costKeys: ["edit_audio"] },
+      { label: "Social Video", trackingKey: "social_video", costKeys: ["social_video"] },
+    ];
+
+    const items = featureMap.map((f) => {
+      const uses = lc[f.trackingKey] || 0;
+      // Use the first matching cost config to estimate revenue
+      const cfg = f.costKeys.map((k) => costConfig[k]).find(Boolean);
+      const creditCost = cfg?.credit_cost || 0;
+      const pricePerCredit = cfg?.price_per_credit_eur || 0.60;
+      const revenue = uses * creditCost * pricePerCredit;
+      return { label: f.label, uses, creditCost, revenue };
+    }).filter((f) => f.creditCost > 0); // Solo features de pago
+
+    items.sort((a, b) => b.revenue - a.revenue);
+
+    const totalRevEst = items.reduce((s, f) => s + f.revenue, 0);
+    return { items, totalRevEst };
+  }, [liveFeatureCounts, costConfig]);
 
   // Daily activity heatmap colors
   const revenueValues = metrics.map((d) => Number(d.total_revenue_eur || 0));
@@ -315,10 +352,13 @@ export default function AdminProductMetrics() {
               </CardContent>
             </Card>
 
-            {/* BLOCK 4 — Revenue por feature */}
+            {/* BLOCK 4 — Revenue por feature (estimación basada en usos × créditos × precio medio del crédito desde api_cost_config) */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Ingresos por funcionalidad</CardTitle>
+                <CardDescription className="text-xs">
+                  ⚠️ Estimación basada en usos × coste en créditos × precio medio del crédito (0,60 €/crédito de api_cost_config). Los valores de €/uso y % revenue son aproximados.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -327,25 +367,28 @@ export default function AdminProductMetrics() {
                       <TableRow>
                         <TableHead>Feature</TableHead>
                         <TableHead className="text-right">Usos</TableHead>
-                        <TableHead className="text-right">Ingresos</TableHead>
+                        <TableHead className="text-right">Créditos/uso</TableHead>
+                        <TableHead className="text-right">Ingresos est.</TableHead>
                         <TableHead className="text-right">€/uso</TableHead>
                         <TableHead className="text-right">% Revenue</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {revenueFeatures.map((f) => (
+                      {revenueFeatures.items.map((f) => (
                         <TableRow key={f.label}>
                           <TableCell className="font-medium">{f.label}</TableCell>
                           <TableCell className="text-right">{fmt(f.uses)}</TableCell>
+                          <TableCell className="text-right">{f.creditCost}</TableCell>
                           <TableCell className="text-right">{fmtEur(f.revenue)}</TableCell>
                           <TableCell className="text-right">{f.uses > 0 ? fmtEur(f.revenue / f.uses) : "—"}</TableCell>
-                          <TableCell className="text-right">{pct(f.revenue, totals.totalRevenue)}</TableCell>
+                          <TableCell className="text-right">{pct(f.revenue, revenueFeatures.totalRevEst)}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2 font-bold">
                         <TableCell>TOTAL</TableCell>
-                        <TableCell className="text-right">{fmt(revenueFeatures.reduce((s, f) => s + f.uses, 0))}</TableCell>
-                        <TableCell className="text-right">{fmtEur(totals.totalRevenue)}</TableCell>
+                        <TableCell className="text-right">{fmt(revenueFeatures.items.reduce((s, f) => s + f.uses, 0))}</TableCell>
+                        <TableCell className="text-right">—</TableCell>
+                        <TableCell className="text-right">{fmtEur(revenueFeatures.totalRevEst)}</TableCell>
                         <TableCell className="text-right">—</TableCell>
                         <TableCell className="text-right">100%</TableCell>
                       </TableRow>
