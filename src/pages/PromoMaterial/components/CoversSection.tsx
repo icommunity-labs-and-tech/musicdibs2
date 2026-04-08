@@ -32,16 +32,6 @@ const STYLE_KEYS = [
   { value: 'grunge urban', key: 'grunge' },
 ];
 
-const COLOR_KEYS = [
-  { value: 'vibrant multicolor', key: 'vibrant' },
-  { value: 'dark moody blacks and deep blues', key: 'dark' },
-  { value: 'warm golden sunset tones', key: 'warm' },
-  { value: 'cold icy blues and whites', key: 'cold' },
-  { value: 'neon pink and purple', key: 'neon' },
-  { value: 'earth tones browns and greens', key: 'earth' },
-  { value: 'black and white monochrome', key: 'bw' },
-  { value: 'pastel soft colors', key: 'pastel' },
-];
 
 type CoverMode = 'none' | 'artist';
 
@@ -66,7 +56,7 @@ export const CoversSection = () => {
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
   const [style, setStyle] = useState('');
-  const [colorPalette, setColorPalette] = useState('');
+  
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -159,7 +149,6 @@ export const CoversSection = () => {
           artistName,
           trackTitle,
           style,
-          colorPalette,
           description,
           artistPhotoBase64,
           referenceMode: coverMode,
@@ -299,22 +288,6 @@ export const CoversSection = () => {
                 </div>
               </div>
 
-              {/* Color palette */}
-              <div className="space-y-2">
-                <Label className="text-sm">{t('aiCovers.dominantColor')}</Label>
-                <div className="flex flex-wrap gap-1.5">
-                  {COLOR_KEYS.map(c => (
-                    <Badge
-                      key={c.value}
-                      variant={colorPalette === c.value ? 'default' : 'outline'}
-                      className="cursor-pointer text-xs"
-                      onClick={() => setColorPalette(colorPalette === c.value ? '' : c.value)}
-                    >
-                      {t(`aiCovers.colors.${c.key}`)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
 
               {/* Description / prompt */}
               <div className="space-y-1.5">
