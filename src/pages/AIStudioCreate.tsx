@@ -381,6 +381,7 @@ const AIStudioCreate = () => {
         message: error.message || "No se pudo generar la música",
         details: error.details || "Intenta ajustar tu descripción o la duración."
       });
+      track('generation_failed', { feature: 'create_music', metadata: { error: error.message } });
     } finally {
       setIsGenerating(false);
     }
