@@ -1641,7 +1641,7 @@ const pt: typeof es = {
       importLyricsDesc: 'Selecione uma letra gerada anteriormente com o gerador de letras.',
       noSavedLyrics: 'Você não tem letras salvas.',
       lyricsImported: 'Letra importada',
-      mediaUpload: 'Áudio ou vídeo próprio (opcional)',
+      mediaUpload: 'Áudio ou vídeo próprio',
       mediaUploadHint: 'Envie seu próprio áudio ou vídeo para nossa equipe usar na promoção.',
       mediaUploadCta: 'Selecionar arquivo de áudio ou vídeo',
       fileTooLarge: 'Arquivo muito grande (máx. 50 MB)',
