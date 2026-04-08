@@ -1290,6 +1290,87 @@ export type Database = {
         }
         Relationships: []
       }
+      product_metrics_daily: {
+        Row: {
+          ai_studio_entries: number
+          audios_downloaded: number
+          created_at: string
+          date: string
+          generations_completed: number
+          generations_started: number
+          id: string
+          revenue_cover_eur: number
+          revenue_create_music_eur: number
+          revenue_promotion_eur: number
+          revenue_register_eur: number
+          revenue_video_eur: number
+          total_revenue_eur: number
+          unique_users: number
+          uses_cover: number
+          uses_create_music: number
+          uses_lyrics: number
+          uses_press: number
+          uses_promotion: number
+          uses_register: number
+          uses_video: number
+          uses_vocal: number
+          uses_voice_cloning: number
+          works_after_generation: number
+        }
+        Insert: {
+          ai_studio_entries?: number
+          audios_downloaded?: number
+          created_at?: string
+          date: string
+          generations_completed?: number
+          generations_started?: number
+          id?: string
+          revenue_cover_eur?: number
+          revenue_create_music_eur?: number
+          revenue_promotion_eur?: number
+          revenue_register_eur?: number
+          revenue_video_eur?: number
+          total_revenue_eur?: number
+          unique_users?: number
+          uses_cover?: number
+          uses_create_music?: number
+          uses_lyrics?: number
+          uses_press?: number
+          uses_promotion?: number
+          uses_register?: number
+          uses_video?: number
+          uses_vocal?: number
+          uses_voice_cloning?: number
+          works_after_generation?: number
+        }
+        Update: {
+          ai_studio_entries?: number
+          audios_downloaded?: number
+          created_at?: string
+          date?: string
+          generations_completed?: number
+          generations_started?: number
+          id?: string
+          revenue_cover_eur?: number
+          revenue_create_music_eur?: number
+          revenue_promotion_eur?: number
+          revenue_register_eur?: number
+          revenue_video_eur?: number
+          total_revenue_eur?: number
+          unique_users?: number
+          uses_cover?: number
+          uses_create_music?: number
+          uses_lyrics?: number
+          uses_press?: number
+          uses_promotion?: number
+          uses_register?: number
+          uses_video?: number
+          uses_vocal?: number
+          uses_voice_cloning?: number
+          works_after_generation?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           available_credits: number
