@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { FEATURE_COSTS } from '@/lib/featureCosts';
+import { getFeatureCost } from '@/lib/featureCosts';
 import { Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone, Coins, Instagram, Youtube, LayoutGrid, Share2, Languages } from 'lucide-react';
 
 const PRICING_ROWS = [
