@@ -77,7 +77,7 @@ const PromoMaterialPage = () => {
           </TabsContent>
         </Tabs>
       </main>
-      <Footer />
+      
     </div>
   );
 };
