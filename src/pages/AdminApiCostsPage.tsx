@@ -8,6 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import { RefreshCw, Save, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, AlertTriangle } from 'lucide-react';
 
+const fmtEur = (n: number, decimals = 2) =>
+  n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
+const fmtPct = (n: number, decimals = 1) =>
+  n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
+
 interface ApiCostConfig {
   feature_key: string;
   feature_label: string;
