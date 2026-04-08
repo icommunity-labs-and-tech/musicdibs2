@@ -41,11 +41,11 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
     setTimeout(() => setCopied(false), 2000);
   }, [userEmail]);
 
+  const distributionUrl = userEmail
+    ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
+    : 'https://dist.musicdibs.com/';
+
   const handleContinue = () => {
-    const url = userEmail
-      ? `https://dist.musicdibs.com/?login_hint=${encodeURIComponent(userEmail)}`
-      : 'https://dist.musicdibs.com/';
-    window.open(url, '_blank', 'noopener');
     onOpenChange(false);
   };
 
@@ -97,8 +97,10 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-              <Button onClick={handleContinue} className="flex-1 gap-2">
-                Acceder a distribución <ExternalLink className="h-4 w-4" />
+              <Button asChild className="flex-1 gap-2" onClick={handleContinue}>
+                <a href={distributionUrl} target="_blank" rel="noopener noreferrer">
+                  Acceder a distribución <ExternalLink className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </>
@@ -149,8 +151,10 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-              <Button onClick={handleContinue} className="flex-1 gap-2">
-                Comenzar distribución <ExternalLink className="h-4 w-4" />
+              <Button asChild className="flex-1 gap-2" onClick={handleContinue}>
+                <a href={distributionUrl} target="_blank" rel="noopener noreferrer">
+                  Comenzar distribución <ExternalLink className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </>
