@@ -4,14 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { adminApi } from '@/services/adminApi';
-
 import { toast } from 'sonner';
 import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 const STATUS_OPTIONS = [
   { value: 'submitted', label: 'Pendiente', badge: 'bg-yellow-500/20 text-yellow-400' },
@@ -34,6 +38,11 @@ export default function AdminPremiumPromosPage() {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<any | null>(null);
 
+  // Rejection dialog state
+  const [rejectTarget, setRejectTarget] = useState<any | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejecting, setRejecting] = useState(false);
+
   const load = async () => {
     setLoading(true);
     try {
@@ -45,20 +54,40 @@ export default function AdminPremiumPromosPage() {
 
   useEffect(() => { load(); }, [offset, statusFilter]);
 
-  const changeStatus = async (promoId: string, newStatus: string) => {
+  const changeStatus = async (promoId: string, newStatus: string, reason?: string) => {
     try {
-      await adminApi.updatePremiumPromoStatus(promoId, newStatus);
+      await adminApi.updatePremiumPromoStatus(promoId, newStatus, reason);
       toast.success(`Estado cambiado a "${STATUS_OPTIONS.find(s => s.value === newStatus)?.label}"`);
       load();
       if (selected?.id === promoId) setSelected((prev: any) => ({ ...prev, status: newStatus }));
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const openRejectDialog = (promo: any) => {
+    setRejectTarget(promo);
+    setRejectionReason('');
+  };
+
+  const confirmReject = async () => {
+    if (!rejectTarget) return;
+    setRejecting(true);
+    await changeStatus(rejectTarget.id, 'rejected', rejectionReason);
+    setRejecting(false);
+    setRejectTarget(null);
+    if (selected?.id === rejectTarget.id) setSelected(null);
+  };
+
   const downloadMedia = async (filePath: string) => {
     try {
       const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: filePath });
       if (res?.signed_url) {
-        window.open(res.signed_url, '_blank');
+        const a = document.createElement('a');
+        a.href = res.signed_url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } else {
         throw new Error('No se pudo obtener la URL del archivo');
       }
@@ -133,7 +162,7 @@ export default function AdminPremiumPromosPage() {
                       <Button size="sm" variant="hero" onClick={() => changeStatus(p.id, 'published')}>Publicar</Button>
                     )}
                     {p.status === 'submitted' && (
-                      <Button size="sm" variant="destructive" onClick={() => changeStatus(p.id, 'rejected')}>Rechazar</Button>
+                      <Button size="sm" variant="destructive" onClick={() => openRejectDialog(p)}>Rechazar</Button>
                     )}
                   </TableCell>
                 </TableRow>
@@ -182,7 +211,13 @@ export default function AdminPremiumPromosPage() {
                     </Button>
                   </>
                 )}
-                <span className="text-muted-foreground">Obra (ID)</span><span className="text-xs text-muted-foreground break-all">{selected.work_id}</span>
+                {selected.team_notes && (
+                  <>
+                    <span className="text-muted-foreground">Motivo rechazo</span>
+                    <span className="whitespace-pre-wrap text-destructive">{selected.team_notes}</span>
+                  </>
+                )}
+                <span className="text-muted-foreground">Obra (ID)</span><span className="text-xs text-muted-foreground break-all">{selected.work_id || '—'}</span>
               </div>
             </div>
           )}
@@ -190,7 +225,7 @@ export default function AdminPremiumPromosPage() {
             {selected?.status === 'submitted' && (
               <>
                 <Button variant="outline" onClick={() => changeStatus(selected.id, 'approved')}>Aprobar</Button>
-                <Button variant="destructive" onClick={() => changeStatus(selected.id, 'rejected')}>Rechazar</Button>
+                <Button variant="destructive" onClick={() => { setSelected(null); openRejectDialog(selected); }}>Rechazar</Button>
               </>
             )}
             {(selected?.status === 'approved' || selected?.status === 'scheduled') && (
@@ -199,6 +234,39 @@ export default function AdminPremiumPromosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Rejection Reason Dialog */}
+      <AlertDialog open={!!rejectTarget} onOpenChange={open => !open && setRejectTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Rechazar Promo Premium</AlertDialogTitle>
+            <AlertDialogDescription>
+              Indica el motivo del rechazo. Se enviará un correo al solicitante con esta explicación.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <p className="text-sm text-muted-foreground">
+              <strong>{rejectTarget?.artist_name}</strong> — {rejectTarget?.song_title}
+            </p>
+            <Textarea
+              placeholder="Escribe el motivo del rechazo..."
+              value={rejectionReason}
+              onChange={e => setRejectionReason(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={rejecting}>Cancelar</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              disabled={!rejectionReason.trim() || rejecting}
+              onClick={confirmReject}
+            >
+              {rejecting ? 'Enviando...' : 'Enviar rechazo'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
