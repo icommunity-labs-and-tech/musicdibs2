@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Navbar } from "@/components/Navbar"
-
 import { FileDropzone } from "@/components/FileDropzone"
 import { useAuth } from "@/hooks/useAuth"
 import { useCredits } from "@/hooks/useCredits"
@@ -24,6 +24,12 @@ import {
 } from "lucide-react"
 
 type CoverMode = "none" | "artist"
+
+const VISUAL_STYLES = [
+  "Fotorrealista", "Ilustración digital", "Abstracto", "Vintage/Retro",
+  "Anime/Manga", "Minimalista", "Oscuro/Atmosférico", "Neon/Cyberpunk",
+  "Acuarela", "Grunge/Urbano",
+] as const
 
 const fileToBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -42,6 +48,7 @@ const AIStudioCovers = () => {
   const [artistName, setArtistName] = useState("")
   const [trackTitle, setTrackTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [styleVisual, setStyleVisual] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [genError, setGenError] = useState<string | null>(null)
@@ -49,6 +56,25 @@ const AIStudioCovers = () => {
   const [coverMode, setCoverMode] = useState<CoverMode>("none")
   const [artistPhoto, setArtistPhoto] = useState<File | null>(null)
   const [artistPhotoPreview, setArtistPhotoPreview] = useState<string | null>(null)
+
+  // Improve description with AI
+  const [isImproving, setIsImproving] = useState(false)
+  const handleImproveDesc = async () => {
+    if (!description.trim()) return
+    setIsImproving(true)
+    try {
+      const { data, error } = await supabase.functions.invoke("improve-prompt", {
+        body: { prompt: description, genre: styleVisual || "", mode: "cover" },
+      })
+      if (error || !data?.improved) throw new Error(error?.message || "No response")
+      setDescription(data.improved.slice(0, 300))
+      toast.success("Descripción mejorada")
+    } catch {
+      toast.error(t("aiShared.error"))
+    } finally {
+      setIsImproving(false)
+    }
+  }
 
   const canGenerate = artistName.trim() && trackTitle.trim() && hasEnough(FEATURE_COSTS.generate_cover)
 
@@ -81,6 +107,7 @@ const AIStudioCovers = () => {
           artistName,
           trackTitle,
           description,
+          styleVisual: styleVisual || undefined,
           artistPhotoBase64,
         },
       })
@@ -151,31 +178,7 @@ const AIStudioCovers = () => {
                 </CardTitle>
                 <CardDescription>{t('aiCovers.configDesc')}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
-                {/* Artist name + track title */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Nombre del artista <span className="text-destructive">*</span></Label>
-                    <Input value={artistName} onChange={(e) => setArtistName(e.target.value)} placeholder="Ej: Bad Bunny" className="h-9" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">Título del single / disco <span className="text-destructive">*</span></Label>
-                    <Input value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} placeholder="Ej: Un Preview" className="h-9" />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <Label className="text-sm">Descripción adicional (opcional)</Label>
-                  <Textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Ej: Portada minimalista con colores cálidos y tipografía moderna"
-                    rows={3} className="resize-none text-sm" maxLength={300}
-                  />
-                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
-                </div>
-
+              <CardContent className="space-y-6">
                 {/* Mode selector */}
                 <div className="space-y-3 rounded-lg border border-border p-4">
                   <Label className="text-sm font-medium">Modo de generación</Label>
@@ -193,17 +196,69 @@ const AIStudioCovers = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="none" id="mode-none" />
-                      <Label htmlFor="mode-none" className="text-sm cursor-pointer">
-                        Sin imagen (generación aleatoria)
-                      </Label>
+                      <Label htmlFor="mode-none" className="text-sm cursor-pointer">Sin imagen (generación aleatoria)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="artist" id="mode-artist" />
-                      <Label htmlFor="mode-artist" className="text-sm cursor-pointer">
-                        Usar foto del artista
-                      </Label>
+                      <Label htmlFor="mode-artist" className="text-sm cursor-pointer">Usar foto del artista</Label>
                     </div>
                   </RadioGroup>
+                </div>
+
+                {/* Artist name */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Nombre del artista <span className="text-destructive">*</span></Label>
+                  <Input value={artistName} onChange={(e) => setArtistName(e.target.value)} placeholder="Tu nombre artístico" className="h-9" />
+                </div>
+
+                {/* Track title */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Título del single / disco <span className="text-destructive">*</span></Label>
+                  <Input value={trackTitle} onChange={(e) => setTrackTitle(e.target.value)} placeholder="Nombre de la canción" className="h-9" />
+                </div>
+
+                {/* Visual style chips */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Estilo visual</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {VISUAL_STYLES.map((s) => (
+                      <Badge
+                        key={s}
+                        variant={styleVisual === s ? "default" : "outline"}
+                        className="cursor-pointer text-xs"
+                        onClick={() => setStyleVisual(styleVisual === s ? "" : s)}
+                      >
+                        {s}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Descripción adicional</Label>
+                    <button
+                      type="button"
+                      onClick={handleImproveDesc}
+                      disabled={isImproving || !description.trim()}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-primary transition-colors disabled:opacity-40"
+                    >
+                      {isImproving ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                      ) : (
+                        <Sparkles className="h-3.5 w-3.5 text-primary" />
+                      )}
+                      Mejorar con IA
+                    </button>
+                  </div>
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Ej: Una figura solitaria en un paisaje urbano nocturno, lluvia, luces de neón..."
+                    rows={3} className="resize-none text-sm" maxLength={300}
+                  />
+                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
                 </div>
 
                 {/* Artist photo — conditional */}
@@ -237,7 +292,7 @@ const AIStudioCovers = () => {
                 ) : (
                   <Button className="w-full gap-2" size="lg" onClick={handleGenerate} disabled={isGenerating || !canGenerate}>
                     {isGenerating ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" />Generando tu portada...</>
+                      <><Loader2 className="h-4 w-4 animate-spin" />Generando tu portada con IA...</>
                     ) : (
                       <><Sparkles className="h-4 w-4" />Generar portada (1 crédito)</>
                     )}
@@ -274,6 +329,7 @@ const AIStudioCovers = () => {
                 <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                   <span className="bg-muted px-2 py-1 rounded">{artistName}</span>
                   <span className="bg-muted px-2 py-1 rounded">{trackTitle}</span>
+                  {styleVisual && <span className="bg-muted px-2 py-1 rounded">{styleVisual}</span>}
                   <span className="bg-muted px-2 py-1 rounded">1:1 (Cuadrado)</span>
                 </div>
 
@@ -302,7 +358,6 @@ const AIStudioCovers = () => {
           </div>
         </div>
       </main>
-      
     </div>
   )
 }
