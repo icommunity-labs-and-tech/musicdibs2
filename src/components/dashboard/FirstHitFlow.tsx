@@ -211,6 +211,11 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
   }
 
   const handleStep1Next = () => {
+    if (kycStatus !== 'verified') {
+      toast.error('Debes verificar tu identidad antes de registrar una obra.')
+      navigate('/dashboard/verify-identity')
+      return
+    }
     markDone(1)
     setActiveStep(2)
   }
