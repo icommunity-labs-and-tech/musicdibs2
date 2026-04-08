@@ -98,6 +98,7 @@ const AIStudioCreate = () => {
   const navigate = useNavigate();
   const { credits, hasEnough } = useCredits();
   const formRef = useRef<HTMLDivElement>(null);
+  const { track } = useProductTracking();
 
   // ── Music tab state ──
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
