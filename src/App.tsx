@@ -67,6 +67,7 @@ const AdminMetricsPage = lazyWithRetry(() => import("./pages/AdminMetricsPage"))
 const AdminSystemPage = lazyWithRetry(() => import("./pages/AdminSystemPage"));
 const AdminPremiumPromosPage = lazyWithRetry(() => import("./pages/AdminPremiumPromosPage"));
 const AdminFeatureCostsPage = lazyWithRetry(() => import("./pages/AdminFeatureCostsPage"));
+const AdminApiCostsPage = lazyWithRetry(() => import("./pages/AdminApiCostsPage"));
 const ManagerDashboard = lazyWithRetry(() => import("./pages/ManagerDashboard"));
 const ManagerArtists = lazyWithRetry(() => import("./pages/ManagerArtists"));
 const ManagerArtistNew = lazyWithRetry(() => import("./pages/ManagerArtistNew"));
