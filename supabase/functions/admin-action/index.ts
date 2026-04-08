@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { premiumPromoApprovedEmail, premiumPromoPublishedEmail, premiumPromoRejectedEmail, kycRejectedEmail } from "../_shared/transactional-email.ts";
+import { premiumPromoApprovedEmail, premiumPromoPublishedEmail, premiumPromoRejectedEmail, kycRejectedEmail, kycVerifiedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
