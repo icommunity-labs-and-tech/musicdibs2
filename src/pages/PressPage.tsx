@@ -29,6 +29,7 @@ const PressPage = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { track } = useProductTracking();
 
   const [works, setWorks] = useState<any[]>([]);
   const [selectedWork, setSelectedWork] = useState<any>(null);
