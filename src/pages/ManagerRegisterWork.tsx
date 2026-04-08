@@ -34,6 +34,7 @@ function formatSize(bytes: number) {
 
 export default function ManagerRegisterWork() {
   const { user } = useAuth();
+  const { isVerified, kycLoading } = useKycGuard();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedArtist = searchParams.get('artist');

@@ -225,7 +225,7 @@ export default function ManagerArtistDetail() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Obras registradas</CardTitle>
-          <Button size="sm" onClick={() => navigate(`/dashboard/manager/register?artist=${artistId}`)}><Upload className="h-4 w-4 mr-2" /> Registrar nueva obra</Button>
+          <Button size="sm" onClick={() => guardRegister(`/dashboard/manager/register?artist=${artistId}`)}><Upload className="h-4 w-4 mr-2" /> Registrar nueva obra</Button>
         </CardHeader>
         <CardContent>
           {works.length === 0 ? (
