@@ -352,10 +352,13 @@ export default function AdminProductMetrics() {
               </CardContent>
             </Card>
 
-            {/* BLOCK 4 — Revenue por feature */}
+            {/* BLOCK 4 — Revenue por feature (estimación basada en usos × créditos × precio medio del crédito desde api_cost_config) */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Ingresos por funcionalidad</CardTitle>
+                <CardDescription className="text-xs">
+                  ⚠️ Estimación basada en usos × coste en créditos × precio medio del crédito (0,60 €/crédito de api_cost_config). Los valores de €/uso y % revenue son aproximados.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -364,25 +367,28 @@ export default function AdminProductMetrics() {
                       <TableRow>
                         <TableHead>Feature</TableHead>
                         <TableHead className="text-right">Usos</TableHead>
-                        <TableHead className="text-right">Ingresos</TableHead>
+                        <TableHead className="text-right">Créditos/uso</TableHead>
+                        <TableHead className="text-right">Ingresos est.</TableHead>
                         <TableHead className="text-right">€/uso</TableHead>
                         <TableHead className="text-right">% Revenue</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {revenueFeatures.map((f) => (
+                      {revenueFeatures.items.map((f) => (
                         <TableRow key={f.label}>
                           <TableCell className="font-medium">{f.label}</TableCell>
                           <TableCell className="text-right">{fmt(f.uses)}</TableCell>
+                          <TableCell className="text-right">{f.creditCost}</TableCell>
                           <TableCell className="text-right">{fmtEur(f.revenue)}</TableCell>
                           <TableCell className="text-right">{f.uses > 0 ? fmtEur(f.revenue / f.uses) : "—"}</TableCell>
-                          <TableCell className="text-right">{pct(f.revenue, totals.totalRevenue)}</TableCell>
+                          <TableCell className="text-right">{pct(f.revenue, revenueFeatures.totalRevEst)}</TableCell>
                         </TableRow>
                       ))}
                       <TableRow className="border-t-2 font-bold">
                         <TableCell>TOTAL</TableCell>
-                        <TableCell className="text-right">{fmt(revenueFeatures.reduce((s, f) => s + f.uses, 0))}</TableCell>
-                        <TableCell className="text-right">{fmtEur(totals.totalRevenue)}</TableCell>
+                        <TableCell className="text-right">{fmt(revenueFeatures.items.reduce((s, f) => s + f.uses, 0))}</TableCell>
+                        <TableCell className="text-right">—</TableCell>
+                        <TableCell className="text-right">{fmtEur(revenueFeatures.totalRevEst)}</TableCell>
                         <TableCell className="text-right">—</TableCell>
                         <TableCell className="text-right">100%</TableCell>
                       </TableRow>
