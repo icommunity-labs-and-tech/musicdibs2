@@ -1,9 +1,17 @@
 /**
- * Client-side mirror of the server cost configuration.
- * Used ONLY for UI validation (disabling buttons, showing costs).
- * The actual deduction is enforced server-side in spend-credits.
+ * Client-side feature costs.
+ *
+ * The source of truth is the `feature_costs` table in the database.
+ * These values are used as defaults / fallback for UI validation
+ * (disabling buttons, showing costs) before the DB response arrives.
+ *
+ * The actual deduction is enforced server-side in each Edge Function.
  */
-export const FEATURE_COSTS = {
+
+import { supabase } from '@/integrations/supabase/client';
+
+// ── Static defaults (kept in sync with DB seed) ────────────
+const DEFAULT_COSTS: Record<string, number> = {
   register_work: 1,
   promote_work: 15,
   promote_premium: 30,
@@ -20,6 +28,49 @@ export const FEATURE_COSTS = {
   event_poster: 1,
   social_poster: 1,
   social_video: 10,
-} as const;
+};
 
-export type FeatureKey = keyof typeof FEATURE_COSTS;
+// ── Runtime cache ──────────────────────────────────────────
+let cachedCosts: Record<string, number> | null = null;
+let fetchPromise: Promise<void> | null = null;
+
+async function loadCosts(): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('feature_costs')
+      .select('feature_key, credit_cost');
+
+    if (error) {
+      console.warn('[featureCosts] DB fetch failed, using defaults:', error.message);
+      cachedCosts = { ...DEFAULT_COSTS };
+      return;
+    }
+
+    const map: Record<string, number> = { ...DEFAULT_COSTS };
+    for (const row of data || []) {
+      map[row.feature_key] = row.credit_cost;
+    }
+    cachedCosts = map;
+  } catch {
+    console.warn('[featureCosts] Network error, using defaults');
+    cachedCosts = { ...DEFAULT_COSTS };
+  }
+}
+
+/** Initialise cache once (call early, e.g. in App mount). */
+export function preloadFeatureCosts(): void {
+  if (!fetchPromise) {
+    fetchPromise = loadCosts();
+  }
+}
+
+/** Get cost for a feature. Returns default immediately if cache not ready. */
+export function getFeatureCost(key: string): number {
+  if (cachedCosts) return cachedCosts[key] ?? 0;
+  return DEFAULT_COSTS[key] ?? 0;
+}
+
+// ── Legacy export (backwards-compatible) ───────────────────
+export const FEATURE_COSTS = DEFAULT_COSTS;
+
+export type FeatureKey = keyof typeof DEFAULT_COSTS;

@@ -7,8 +7,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// ── Server-side cost configuration ─────────────────────────
-const FEATURE_COSTS: Record<string, number> = {
+// ── Fallback costs (used only if DB query fails) ───────────
+const FALLBACK_COSTS: Record<string, number> = {
   register_work: 1,
   promote_work: 15,
   promote_premium: 30,
@@ -30,9 +30,9 @@ const FEATURE_COSTS: Record<string, number> = {
 /**
  * spend-credits — VALIDATION ONLY
  *
+ * Reads cost from the feature_costs table (with static fallback).
  * Checks if the user has enough credits for the requested feature.
- * Does NOT deduct credits. Each Edge Function is responsible for
- * deducting credits after a successful operation and refunding on failure.
+ * Does NOT deduct credits. Each Edge Function handles deduction.
  */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -65,14 +65,42 @@ serve(async (req) => {
 
     const { feature } = await req.json();
 
-    if (!feature || typeof feature !== "string" || !(feature in FEATURE_COSTS)) {
+    if (!feature || typeof feature !== "string") {
       return new Response(
-        JSON.stringify({ error: "Invalid feature", validFeatures: Object.keys(FEATURE_COSTS) }),
+        JSON.stringify({ error: "Invalid feature" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const amount = FEATURE_COSTS[feature];
+    // ── Read cost from DB (service role to bypass any RLS edge cases) ──
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    let amount: number | null = null;
+
+    const { data: costRow, error: costError } = await supabaseAdmin
+      .from("feature_costs")
+      .select("credit_cost")
+      .eq("feature_key", feature)
+      .maybeSingle();
+
+    if (costError) {
+      console.warn("[SPEND-CREDITS] DB lookup failed, using fallback:", costError.message);
+    }
+
+    if (costRow) {
+      amount = costRow.credit_cost;
+    } else if (feature in FALLBACK_COSTS) {
+      amount = FALLBACK_COSTS[feature];
+      console.warn(`[SPEND-CREDITS] Feature "${feature}" not in DB, using fallback: ${amount}`);
+    } else {
+      return new Response(
+        JSON.stringify({ error: "Unknown feature", feature }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Free features
     if (amount === 0) {
@@ -81,11 +109,6 @@ serve(async (req) => {
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
 
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")

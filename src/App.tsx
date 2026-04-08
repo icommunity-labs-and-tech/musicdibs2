@@ -8,6 +8,10 @@ import ScrollToTop from "./components/ScrollToTop";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { lazyWithRetry } from "./lib/lazyWithRetry";
+import { preloadFeatureCosts } from "./lib/featureCosts";
+
+// Preload feature costs from DB as early as possible
+preloadFeatureCosts();
 
 const ChatWidget = lazyWithRetry(() => import("./components/ChatWidget").then(m => ({ default: m.ChatWidget })));
 const SocialProofPopup = lazyWithRetry(() => import("./components/SocialProofPopup").then(m => ({ default: m.SocialProofPopup })));
