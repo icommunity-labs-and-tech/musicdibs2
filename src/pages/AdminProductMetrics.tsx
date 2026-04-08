@@ -1,0 +1,383 @@
+import { useState, useEffect, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { AdminGuard } from "@/components/AdminGuard";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2, RefreshCw, ArrowRight, Star, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+
+interface MetricRow {
+  date: string;
+  ai_studio_entries: number;
+  generations_started: number;
+  generations_completed: number;
+  audios_downloaded: number;
+  works_after_generation: number;
+  uses_create_music: number;
+  uses_lyrics: number;
+  uses_vocal: number;
+  uses_cover: number;
+  uses_video: number;
+  uses_promotion: number;
+  uses_press: number;
+  uses_register: number;
+  uses_voice_cloning: number;
+  unique_users: number;
+  total_revenue_eur: number;
+  revenue_create_music_eur: number;
+  revenue_cover_eur: number;
+  revenue_video_eur: number;
+  revenue_promotion_eur: number;
+  revenue_register_eur: number;
+}
+
+type Range = "7d" | "30d" | "90d";
+
+export default function AdminProductMetrics() {
+  const { user } = useAuth();
+  const [range, setRange] = useState<Range>("30d");
+  const [metrics, setMetrics] = useState<MetricRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [recalculating, setRecalculating] = useState(false);
+
+  useEffect(() => {
+    loadMetrics();
+  }, [range]);
+
+  const loadMetrics = async () => {
+    setLoading(true);
+    const days = range === "7d" ? 7 : range === "30d" ? 30 : 90;
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    const { data } = await supabase
+      .from("product_metrics_daily")
+      .select("*")
+      .gte("date", from.toISOString().split("T")[0])
+      .order("date", { ascending: true });
+    setMetrics((data as MetricRow[]) || []);
+    setLoading(false);
+  };
+
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/product-metrics-cron`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ date: today }),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      toast.success("Métricas de hoy recalculadas");
+      loadMetrics();
+    } catch (e: any) {
+      toast.error("Error: " + e.message);
+    } finally {
+      setRecalculating(false);
+    }
+  };
+
+  const totals = useMemo(() => {
+    return metrics.reduce(
+      (acc, d) => ({
+        aiStudioEntries: acc.aiStudioEntries + (d.ai_studio_entries || 0),
+        generationsStarted: acc.generationsStarted + (d.generations_started || 0),
+        generationsCompleted: acc.generationsCompleted + (d.generations_completed || 0),
+        audiosDownloaded: acc.audiosDownloaded + (d.audios_downloaded || 0),
+        worksAfterGen: acc.worksAfterGen + (d.works_after_generation || 0),
+        usesCreateMusic: acc.usesCreateMusic + (d.uses_create_music || 0),
+        usesLyrics: acc.usesLyrics + (d.uses_lyrics || 0),
+        usesVocal: acc.usesVocal + (d.uses_vocal || 0),
+        usesCover: acc.usesCover + (d.uses_cover || 0),
+        usesVideo: acc.usesVideo + (d.uses_video || 0),
+        usesPromotion: acc.usesPromotion + (d.uses_promotion || 0),
+        usesPress: acc.usesPress + (d.uses_press || 0),
+        usesRegister: acc.usesRegister + (d.uses_register || 0),
+        usesVoiceCloning: acc.usesVoiceCloning + (d.uses_voice_cloning || 0),
+        uniqueUsers: Math.max(acc.uniqueUsers, d.unique_users || 0),
+        totalRevenue: acc.totalRevenue + Number(d.total_revenue_eur || 0),
+        revenueCreateMusic: acc.revenueCreateMusic + Number(d.revenue_create_music_eur || 0),
+        revenueCover: acc.revenueCover + Number(d.revenue_cover_eur || 0),
+        revenueVideo: acc.revenueVideo + Number(d.revenue_video_eur || 0),
+        revenuePromotion: acc.revenuePromotion + Number(d.revenue_promotion_eur || 0),
+        revenueRegister: acc.revenueRegister + Number(d.revenue_register_eur || 0),
+      }),
+      {
+        aiStudioEntries: 0, generationsStarted: 0, generationsCompleted: 0,
+        audiosDownloaded: 0, worksAfterGen: 0, usesCreateMusic: 0,
+        usesLyrics: 0, usesVocal: 0, usesCover: 0, usesVideo: 0,
+        usesPromotion: 0, usesPress: 0, usesRegister: 0,
+        usesVoiceCloning: 0, uniqueUsers: 0, totalRevenue: 0,
+        revenueCreateMusic: 0, revenueCover: 0, revenueVideo: 0,
+        revenuePromotion: 0, revenueRegister: 0,
+      }
+    );
+  }, [metrics]);
+
+  const genToRegPct = totals.generationsCompleted > 0
+    ? ((totals.worksAfterGen / totals.generationsCompleted) * 100).toFixed(1)
+    : "0.0";
+
+  const fmt = (n: number) => n.toLocaleString("es-ES");
+  const fmtEur = (n: number) => n.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const pct = (a: number, b: number) => (b > 0 ? ((a / b) * 100).toFixed(1) + "%" : "—");
+
+  // Feature usage data
+  const featureUsage = useMemo(() => {
+    const items = [
+      { label: "Crear música", icon: "🎵", uses: totals.usesCreateMusic },
+      { label: "Compositor letras", icon: "📝", uses: totals.usesLyrics },
+      { label: "Canta tu canción", icon: "🎤", uses: totals.usesVocal },
+      { label: "Clonación de voz", icon: "🎙️", uses: totals.usesVoiceCloning },
+      { label: "Portadas con IA", icon: "🖼️", uses: totals.usesCover },
+      { label: "Videoclips IA", icon: "🎬", uses: totals.usesVideo },
+      { label: "Promoción RRSS", icon: "📱", uses: totals.usesPromotion },
+      { label: "Prensa & visibilidad", icon: "📰", uses: totals.usesPress },
+      { label: "Registro blockchain", icon: "🔐", uses: totals.usesRegister },
+    ];
+    const total = items.reduce((s, i) => s + i.uses, 0);
+    const maxUses = Math.max(...items.map((i) => i.uses));
+    const minUses = Math.min(...items.map((i) => i.uses));
+    return items.map((i) => ({
+      ...i,
+      pct: total > 0 ? ((i.uses / total) * 100).toFixed(1) : "0.0",
+      isTop: i.uses === maxUses && maxUses > 0,
+      isLow: i.uses === minUses && total > 0 && minUses < maxUses,
+    }));
+  }, [totals]);
+
+  // Revenue by feature
+  const revenueFeatures = useMemo(() => {
+    const items = [
+      { label: "Crear música", uses: totals.usesCreateMusic, revenue: totals.revenueCreateMusic },
+      { label: "Portadas IA", uses: totals.usesCover, revenue: totals.revenueCover },
+      { label: "Videoclips IA", uses: totals.usesVideo, revenue: totals.revenueVideo },
+      { label: "Promoción RRSS", uses: totals.usesPromotion, revenue: totals.revenuePromotion },
+      { label: "Registro blockchain", uses: totals.usesRegister, revenue: totals.revenueRegister },
+    ].sort((a, b) => b.revenue - a.revenue);
+    return items;
+  }, [totals]);
+
+  // Daily activity heatmap colors
+  const revenueValues = metrics.map((d) => Number(d.total_revenue_eur || 0));
+  const sortedRevs = [...revenueValues].sort((a, b) => a - b);
+  const p75 = sortedRevs[Math.floor(sortedRevs.length * 0.75)] || 0;
+  const median = sortedRevs[Math.floor(sortedRevs.length * 0.5)] || 0;
+
+  const revColor = (v: number) => {
+    if (v > p75) return "bg-green-600/20 text-green-300 font-semibold";
+    if (v > median && median > 0) return "bg-green-600/10 text-green-400";
+    return "text-muted-foreground";
+  };
+
+  if (loading) {
+    return (
+      <AdminGuard>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AdminGuard>
+    );
+  }
+
+  return (
+    <AdminGuard>
+      <div className="space-y-6 p-4 md:p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">📊 Métricas de Producto</h1>
+            <p className="text-sm text-muted-foreground">Comportamiento de usuarios y conversión por feature</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {(["7d", "30d", "90d"] as Range[]).map((r) => (
+              <Button key={r} size="sm" variant={range === r ? "default" : "outline"} onClick={() => setRange(r)}>
+                {r === "7d" ? "7 días" : r === "30d" ? "30 días" : "90 días"}
+              </Button>
+            ))}
+            <Button size="sm" variant="outline" onClick={handleRecalculate} disabled={recalculating}>
+              {recalculating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              <span className="ml-1 hidden sm:inline">Recalcular hoy</span>
+            </Button>
+          </div>
+        </div>
+
+        {metrics.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground">Los datos empezarán a aparecer mañana. El sistema registra la actividad del día anterior cada noche a las 3:00 AM.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* BLOCK 1 — Funnel AI Studio */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Funnel AI Studio</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { label: "Entradas AI Studio", value: totals.aiStudioEntries, prev: null },
+                    { label: "Generaciones iniciadas", value: totals.generationsStarted, prev: totals.aiStudioEntries },
+                    { label: "Generaciones completadas", value: totals.generationsCompleted, prev: totals.generationsStarted },
+                    { label: "Descargas de audio", value: totals.audiosDownloaded, prev: totals.generationsCompleted },
+                  ].map((step, i) => (
+                    <div key={i} className="relative">
+                      <div className={`rounded-lg border p-4 text-center ${i === 0 ? "bg-primary/10 border-primary/30" : "bg-muted/30"}`}>
+                        <p className="text-2xl font-bold">{fmt(step.value)}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{step.label}</p>
+                        {step.prev !== null && (
+                          <p className="text-xs mt-1 text-primary font-medium">{pct(step.value, step.prev)} del paso anterior</p>
+                        )}
+                      </div>
+                      {i < 3 && (
+                        <ArrowRight className="absolute -right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hidden md:block z-10" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* BLOCK 2 — Conversión Generar → Registrar */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Canciones generadas → registradas en blockchain</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-3">
+                <div className="flex items-center justify-center gap-3">
+                  <p className="text-5xl font-bold">{genToRegPct}%</p>
+                  <Badge variant={Number(genToRegPct) > 30 ? "default" : Number(genToRegPct) >= 10 ? "secondary" : "destructive"} className="text-sm">
+                    {Number(genToRegPct) > 30 ? "Excelente" : Number(genToRegPct) >= 10 ? "Aceptable" : "Bajo"}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {fmt(totals.worksAfterGen)} registros tras generación de {fmt(totals.generationsCompleted)} generaciones completadas
+                </p>
+                <p className="text-xs text-muted-foreground/70 max-w-lg mx-auto">
+                  Mide cuántos usuarios que generan música dan el siguiente paso y la protegen con blockchain. Es el KPI principal del diferencial competitivo de MusicDibs.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* BLOCK 3 — Uso por feature */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Uso por funcionalidad (período seleccionado)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {featureUsage.map((f) => (
+                    <div key={f.label} className="rounded-lg border p-3 relative">
+                      {f.isTop && (
+                        <Badge variant="default" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 gap-0.5">
+                          <Star className="h-3 w-3" /> Top
+                        </Badge>
+                      )}
+                      {f.isLow && (
+                        <Badge variant="destructive" className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 gap-0.5">
+                          <AlertTriangle className="h-3 w-3" /> Poco uso
+                        </Badge>
+                      )}
+                      <p className="text-xl mb-1">{f.icon}</p>
+                      <p className="text-lg font-bold">{fmt(f.uses)}</p>
+                      <p className="text-xs text-muted-foreground">{f.label}</p>
+                      <p className="text-xs text-primary">{f.pct}% del total</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* BLOCK 4 — Revenue por feature */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Ingresos por funcionalidad</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Feature</TableHead>
+                        <TableHead className="text-right">Usos</TableHead>
+                        <TableHead className="text-right">Ingresos</TableHead>
+                        <TableHead className="text-right">€/uso</TableHead>
+                        <TableHead className="text-right">% Revenue</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {revenueFeatures.map((f) => (
+                        <TableRow key={f.label}>
+                          <TableCell className="font-medium">{f.label}</TableCell>
+                          <TableCell className="text-right">{fmt(f.uses)}</TableCell>
+                          <TableCell className="text-right">{fmtEur(f.revenue)}</TableCell>
+                          <TableCell className="text-right">{f.uses > 0 ? fmtEur(f.revenue / f.uses) : "—"}</TableCell>
+                          <TableCell className="text-right">{pct(f.revenue, totals.totalRevenue)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="border-t-2 font-bold">
+                        <TableCell>TOTAL</TableCell>
+                        <TableCell className="text-right">{fmt(revenueFeatures.reduce((s, f) => s + f.uses, 0))}</TableCell>
+                        <TableCell className="text-right">{fmtEur(totals.totalRevenue)}</TableCell>
+                        <TableCell className="text-right">—</TableCell>
+                        <TableCell className="text-right">100%</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* BLOCK 5 — Actividad diaria */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Actividad diaria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead className="text-right">Usuarios únicos</TableHead>
+                        <TableHead className="text-right">Generaciones</TableHead>
+                        <TableHead className="text-right">Registros</TableHead>
+                        <TableHead className="text-right">Revenue €</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...metrics].reverse().map((d) => (
+                        <TableRow key={d.date}>
+                          <TableCell className="font-medium">{d.date}</TableCell>
+                          <TableCell className="text-right">{d.unique_users}</TableCell>
+                          <TableCell className="text-right">{d.generations_completed}</TableCell>
+                          <TableCell className="text-right">{d.uses_register}</TableCell>
+                          <TableCell className={`text-right ${revColor(Number(d.total_revenue_eur))}`}>
+                            {fmtEur(Number(d.total_revenue_eur))}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+    </AdminGuard>
+  );
+}
