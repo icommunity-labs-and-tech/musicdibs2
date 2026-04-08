@@ -76,7 +76,7 @@ const AIStudio = () => {
     },
   ];
 
-  const renderModuleCard = (module: typeof topRowModules[0] & { inlineView?: ActiveView }, extraClass = "") => {
+  const renderModuleCard = (module: any, extraClass = "") => {
     const cost = module.featureKey ? FEATURE_COSTS[module.featureKey] : 0;
     const disabled = !module.available || (module.costsCredits && !hasEnough(cost));
     const isInline = !!(module as any).inlineView;
