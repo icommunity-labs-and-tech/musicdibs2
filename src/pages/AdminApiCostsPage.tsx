@@ -178,7 +178,7 @@ export default function AdminApiCostsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><TrendingDown className="h-3 w-3" /> Menos rentable</div>
             <p className="text-sm font-bold truncate">{worstFeature ? configMap[worstFeature.key]?.feature_label || worstFeature.key : '—'}</p>
-            {worstFeature && <p className="text-xs text-red-500">{worstFeature.marginPct.toFixed(1)}%</p>}
+            {worstFeature && <p className="text-xs text-red-500">{fmtPct(worstFeature.marginPct)}</p>}
           </CardContent>
         </Card>
       </div>
