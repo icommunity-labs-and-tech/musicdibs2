@@ -39,13 +39,13 @@ const AIStudio = () => {
 
   const bottomRowModules = [
     {
-      titleKey: "aiStudio.modules.singYourSong.title",
-      descKey: "aiStudio.modules.singYourSong.desc",
-      icon: Mic,
-      href: "/ai-studio/vocal",
+      titleKey: "aiStudio.modules.virtualArtists.title",
+      descKey: "aiStudio.modules.virtualArtists.desc",
+      icon: Users,
+      href: "/dashboard/artist-profiles",
       available: true,
-      costsCredits: true,
-      featureKey: 'generate_audio' as const,
+      costsCredits: false,
+      featureKey: 'inspiration' as const,
       color: "from-violet-500 to-purple-600"
     },
     {
