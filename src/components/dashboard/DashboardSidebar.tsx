@@ -28,6 +28,7 @@ export function DashboardSidebar() {
   const collapsed = state === 'collapsed';
   const location = useLocation();
   const { user, signOut, isAdmin, isManager } = useAuth();
+  const { guardRegister } = useKycGuard();
   const navigate = useNavigate();
   const [kycStatus, setKycStatus] = useState<string | null>(null);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
