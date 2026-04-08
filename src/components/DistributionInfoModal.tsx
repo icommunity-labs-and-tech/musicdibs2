@@ -48,6 +48,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
     : 'https://dist.musicdibs.com/';
 
   const handleContinue = () => {
+    track('distribution_clicked', { feature: 'distribution' });
     onOpenChange(false);
   };
 

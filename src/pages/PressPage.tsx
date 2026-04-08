@@ -142,6 +142,7 @@ const PressPage = () => {
         title: t("dashboard.press.prGenerated"),
         description: t("dashboard.press.prGeneratedDesc"),
       });
+      track('press_release_generated', { feature: 'press' });
     } catch {
       toast({ title: t("dashboard.press.errorConnection"), variant: "destructive" });
     } finally {

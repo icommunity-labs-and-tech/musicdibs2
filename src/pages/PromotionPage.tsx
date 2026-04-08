@@ -152,6 +152,7 @@ export default function PromotionPage() {
       setGeneratedPR(data);
       setPressReleases(prev => [{ id: data.press_release_id, title: data.headline, body: data.body, created_at: new Date().toISOString(), status: 'draft' }, ...prev]);
       toast({ title: t('dashboard.press.prGenerated'), description: t('dashboard.press.prGeneratedDesc') });
+      track('press_release_generated', { feature: 'press' });
     } catch { toast({ title: t('dashboard.press.errorConnection'), variant: 'destructive' }); }
     finally { setGeneratingPR(false); }
   };
