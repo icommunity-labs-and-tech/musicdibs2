@@ -32,16 +32,6 @@ const STYLE_KEYS = [
   { value: 'grunge urban', key: 'grunge' },
 ];
 
-const COLOR_KEYS = [
-  { value: 'vibrant multicolor', key: 'vibrant' },
-  { value: 'dark moody blacks and deep blues', key: 'dark' },
-  { value: 'warm golden sunset tones', key: 'warm' },
-  { value: 'cold icy blues and whites', key: 'cold' },
-  { value: 'neon pink and purple', key: 'neon' },
-  { value: 'earth tones browns and greens', key: 'earth' },
-  { value: 'black and white monochrome', key: 'bw' },
-  { value: 'pastel soft colors', key: 'pastel' },
-];
 
 type CoverMode = 'none' | 'artist';
 
