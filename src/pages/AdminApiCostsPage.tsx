@@ -152,7 +152,7 @@ export default function AdminApiCostsPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><AlertTriangle className="h-3 w-3" /> Coste API</div>
-            <p className="text-lg font-bold">{totalCost.toFixed(4)} €</p>
+            <p className="text-lg font-bold">{fmtEur(totalCost, 4)} €</p>
           </CardContent>
         </Card>
         <Card>
