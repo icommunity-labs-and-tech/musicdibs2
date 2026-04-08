@@ -97,8 +97,10 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
-              <Button onClick={handleContinue} className="flex-1 gap-2">
-                Acceder a distribución <ExternalLink className="h-4 w-4" />
+              <Button asChild className="flex-1 gap-2" onClick={handleContinue}>
+                <a href={distributionUrl} target="_blank" rel="noopener noreferrer">
+                  Acceder a distribución <ExternalLink className="h-4 w-4" />
+                </a>
               </Button>
             </div>
           </>
