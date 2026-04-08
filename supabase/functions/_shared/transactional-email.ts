@@ -344,17 +344,17 @@ export function paymentFailedEmail(data: { name: string; description: string; at
   return { subject: i.subject, html: wrap("⚠️", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
 }
 
-// ─── 8. Premium Promo Published ─────────────────────────────────────────────
+// ─── 8a. Premium Promo Approved ─────────────────────────────────────────────
 
-const t8: Record<Lang, { greeting: string; title: string; artist: string; song: string; note: string; viewPanel: string; subject: string }> = {
-  es: { greeting: "¡tu Promo Premium ha sido publicada! 🎉", title: "Promo Premium publicada", artist: "Artista", song: "Canción", note: "Nuestro equipo ha publicado tu promoción en los canales de MusicDibs. La difusión ya está en marcha.", viewPanel: "Ver mi promoción →", subject: "🎉 Promo Premium publicada — MusicDibs" },
-  en: { greeting: "your Premium Promo has been published! 🎉", title: "Premium Promo published", artist: "Artist", song: "Song", note: "Our team has published your promotion on MusicDibs channels. The campaign is now live.", viewPanel: "View my promotion →", subject: "🎉 Premium Promo published — MusicDibs" },
-  pt: { greeting: "sua Promo Premium foi publicada! 🎉", title: "Promo Premium publicada", artist: "Artista", song: "Música", note: "Nossa equipe publicou sua promoção nos canais do MusicDibs. A divulgação já está em andamento.", viewPanel: "Ver minha promoção →", subject: "🎉 Promo Premium publicada — MusicDibs" },
+const t8a: Record<Lang, { greeting: string; title: string; artist: string; song: string; note: string; viewPanel: string; subject: string }> = {
+  es: { greeting: "¡tu solicitud de Promo Premium ha sido aprobada! 🎉", title: "Promo Premium aprobada", artist: "Artista", song: "Canción", note: "Nuestro equipo está preparando tu promoción. En los próximos días recibirás un aviso cuando se publique en nuestras redes sociales.", viewPanel: "Ver mi panel →", subject: "✅ Promo Premium aprobada — MusicDibs" },
+  en: { greeting: "your Premium Promo request has been approved! 🎉", title: "Premium Promo approved", artist: "Artist", song: "Song", note: "Our team is preparing your promotion. You will receive a notification in the coming days when it is published on our social media channels.", viewPanel: "View my dashboard →", subject: "✅ Premium Promo approved — MusicDibs" },
+  pt: { greeting: "sua solicitação de Promo Premium foi aprovada! 🎉", title: "Promo Premium aprovada", artist: "Artista", song: "Música", note: "Nossa equipe está preparando sua promoção. Nos próximos dias você receberá um aviso quando for publicada nas nossas redes sociais.", viewPanel: "Ver meu painel →", subject: "✅ Promo Premium aprovada — MusicDibs" },
 };
 
-export function premiumPromoPublishedEmail(data: { name: string; artistName: string; songTitle: string; lang?: string }) {
+export function premiumPromoApprovedEmail(data: { name: string; artistName: string; songTitle: string; lang?: string }) {
   const lang = normLang(data.lang);
-  const i = t8[lang];
+  const i = t8a[lang];
   const safeName = escapeHtml(data.name);
   const safeArtist = escapeHtml(data.artistName);
   const safeSong = escapeHtml(data.songTitle);
@@ -362,9 +362,46 @@ export function premiumPromoPublishedEmail(data: { name: string; artistName: str
 
   const body = `
     <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">${greeting} <strong style="color:#f3f4f6;">${safeName}</strong>, ${i.greeting}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow(i.artist, safeArtist)}
+      ${infoRow(i.song, safeSong)}
+    </table>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">${i.note}</p>
+    ${cta("https://musicdibs.com/dashboard/promotion", i.viewPanel)}`;
+
+  return { subject: i.subject, html: wrap("✅", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
+}
+
+// ─── 8b. Premium Promo Published ────────────────────────────────────────────
+
+const t8: Record<Lang, { greeting: string; title: string; artist: string; song: string; note: string; igLabel: string; tiktokLabel: string; viewPanel: string; subject: string }> = {
+  es: { greeting: "¡tu Promo Premium ha sido publicada! 🎉", title: "Promo Premium publicada", artist: "Artista", song: "Canción", note: "Nuestro equipo ha publicado tu promoción en los canales de MusicDibs. ¡Compártelo con tu audiencia!", igLabel: "Instagram", tiktokLabel: "TikTok", viewPanel: "Ver mi promoción →", subject: "🎉 Promo Premium publicada — MusicDibs" },
+  en: { greeting: "your Premium Promo has been published! 🎉", title: "Premium Promo published", artist: "Artist", song: "Song", note: "Our team has published your promotion on MusicDibs channels. Share it with your audience!", igLabel: "Instagram", tiktokLabel: "TikTok", viewPanel: "View my promotion →", subject: "🎉 Premium Promo published — MusicDibs" },
+  pt: { greeting: "sua Promo Premium foi publicada! 🎉", title: "Promo Premium publicada", artist: "Artista", song: "Música", note: "Nossa equipe publicou sua promoção nos canais do MusicDibs. Compartilhe com seu público!", igLabel: "Instagram", tiktokLabel: "TikTok", viewPanel: "Ver minha promoção →", subject: "🎉 Promo Premium publicada — MusicDibs" },
+};
+
+export function premiumPromoPublishedEmail(data: { name: string; artistName: string; songTitle: string; igUrl?: string; tiktokUrl?: string; lang?: string }) {
+  const lang = normLang(data.lang);
+  const i = t8[lang];
+  const safeName = escapeHtml(data.name);
+  const safeArtist = escapeHtml(data.artistName);
+  const safeSong = escapeHtml(data.songTitle);
+  const greeting = lang === "en" ? "Hi" : lang === "pt" ? "Olá" : "Hola";
+
+  const socialLinks: string[] = [];
+  if (data.igUrl) {
+    socialLinks.push(infoRow(i.igLabel, `<a href="${escapeHtml(data.igUrl)}" style="color:#a855f7;text-decoration:none;">${escapeHtml(data.igUrl)}</a>`));
+  }
+  if (data.tiktokUrl) {
+    socialLinks.push(infoRow(i.tiktokLabel, `<a href="${escapeHtml(data.tiktokUrl)}" style="color:#a855f7;text-decoration:none;">${escapeHtml(data.tiktokUrl)}</a>`));
+  }
+
+  const body = `
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">${greeting} <strong style="color:#f3f4f6;">${safeName}</strong>, ${i.greeting}</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(217,119,6,0.12));border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
       ${infoRow(i.artist, safeArtist)}
       ${infoRow(i.song, safeSong)}
+      ${socialLinks.join("")}
     </table>
     <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">${i.note}</p>
     ${cta("https://musicdibs.com/dashboard/promotion", i.viewPanel)}`;
