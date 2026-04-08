@@ -16,6 +16,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
   const { t } = useTranslation();
   const { user } = useAuth();
   const userEmail = user?.email ?? '';
+  const { track } = useProductTracking();
 
   const [loading, setLoading] = useState(true);
   const [isReturningUser, setIsReturningUser] = useState(false);
