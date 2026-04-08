@@ -15,6 +15,7 @@ import { Loader2, Plus } from 'lucide-react';
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
