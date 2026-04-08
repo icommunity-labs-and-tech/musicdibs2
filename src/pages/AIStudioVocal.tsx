@@ -61,6 +61,7 @@ export default function AIStudioVocal() {
   const s = (key: string, fb?: string): string => String(t(key, { defaultValue: fb }));
   const vc = (key: string, opts?: any): string => String(t(`dashboard.voiceCloning.${key}`, opts));
   const tv = (key: string, opts?: any): string => String(t(`aiVocal.${key}`, opts));
+  const { track } = useProductTracking();
 
   // Voice clones
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
