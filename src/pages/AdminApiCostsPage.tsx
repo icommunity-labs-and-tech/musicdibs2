@@ -126,9 +126,9 @@ export default function AdminApiCostsPage() {
   const worstFeature = featureMarginList.sort((a, b) => a.marginPct - b.marginPct)[0];
 
   const marginBadge = (pct: number) => {
-    if (pct >= 80) return <Badge className="bg-green-600 text-white">{pct.toFixed(1)}%</Badge>;
-    if (pct >= 50) return <Badge className="bg-yellow-500 text-black">{pct.toFixed(1)}%</Badge>;
-    return <Badge variant="destructive">{pct.toFixed(1)}%</Badge>;
+    if (pct >= 80) return <Badge className="bg-green-600 text-white">{fmtPct(pct)}</Badge>;
+    if (pct >= 50) return <Badge className="bg-yellow-500 text-black">{fmtPct(pct)}</Badge>;
+    return <Badge variant="destructive">{fmtPct(pct)}</Badge>;
   };
 
   return (
