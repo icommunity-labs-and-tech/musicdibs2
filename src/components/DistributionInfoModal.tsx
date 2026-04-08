@@ -117,7 +117,7 @@ export const DistributionInfoModal = ({ open, onOpenChange }: DistributionInfoMo
                 <li className="flex items-start gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">2</span>
                   <div className="space-y-1.5 flex-1">
-                    <span className="text-sm">Regístrate con este email para mantener todo unificado:</span>
+                    <span className="text-sm">Usa este email para acceder. Recibirás un email nuestro con instrucciones para crear tu contraseña de acceso — revisa también la carpeta de spam.</span>
                     <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
                       <span className="flex-1 truncate text-sm font-medium">{userEmail}</span>
                       <Button variant="outline" size="sm" className="shrink-0 gap-1.5 h-8" onClick={handleCopy}>
