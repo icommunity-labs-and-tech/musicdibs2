@@ -120,6 +120,11 @@ export default function AdminPremiumPromosPage() {
                   <TableCell className="text-xs text-muted-foreground">{p.user_email || '—'}</TableCell>
                   <TableCell>{statusBadge(p.status)}</TableCell>
                   <TableCell className="text-right space-x-2">
+                    {p.media_file_path && (
+                      <Button variant="ghost" size="icon" onClick={() => downloadMedia(p.media_file_path)} title="Descargar archivo">
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button variant="ghost" size="icon" onClick={() => setSelected(p)}><Eye className="h-4 w-4" /></Button>
                     {p.status === 'submitted' && (
                       <Button size="sm" variant="outline" onClick={() => changeStatus(p.id, 'approved')}>Aprobar</Button>
