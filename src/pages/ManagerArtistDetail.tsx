@@ -22,6 +22,7 @@ export default function ManagerArtistDetail() {
   const { artistId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { guardRegister } = useKycGuard();
   const [artist, setArtist] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
   const [editing, setEditing] = useState(false);
