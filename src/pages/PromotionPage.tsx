@@ -65,6 +65,7 @@ export default function PromotionPage() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('social');
+  const { track } = useProductTracking();
 
   /* ─── Social tab state ─── */
   const [showForm, setShowForm] = useState(false);
