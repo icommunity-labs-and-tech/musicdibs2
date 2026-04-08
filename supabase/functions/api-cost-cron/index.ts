@@ -32,14 +32,34 @@ function detectFeature(description: string): string | null {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-  // Auth: cron secret or service role Bearer token
+  // Auth: cron secret, service role Bearer, or authenticated admin JWT
   const cronSecret = req.headers.get('x-cron-secret');
   const authHeader = req.headers.get('Authorization');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  const isAuthorized =
+  let isAuthorized =
     (cronSecret && cronSecret === Deno.env.get('CRON_SECRET')) ||
     (authHeader === `Bearer ${serviceKey}`);
+
+  // If not cron/service-role, check if it's an admin user JWT
+  if (!isAuthorized && authHeader?.startsWith('Bearer ')) {
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (!claimsErr && claimsData?.claims?.sub) {
+      const adminCheck = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey!);
+      const { data: roles } = await adminCheck
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', claimsData.claims.sub)
+        .eq('role', 'admin')
+        .limit(1);
+      if (roles && roles.length > 0) isAuthorized = true;
+    }
+  }
 
   if (!isAuthorized) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
