@@ -198,7 +198,7 @@ export function DashboardSidebar() {
     );
   };
 
-  const renderCollapsibleGroup = (id: GroupId, label: string, items: typeof mainItems, activeClass?: string) => (
+  const renderCollapsibleGroup = (id: GroupId, label: string, items: any[], activeClass?: string) => (
     <Collapsible open={openGroup === id} onOpenChange={() => toggleGroup(id)}>
       <SidebarGroup>
         <CollapsibleTrigger asChild>
