@@ -183,17 +183,42 @@ export default function AdminProductMetrics() {
     }));
   }, [liveFeatureCounts]);
 
-  // Revenue by feature
+  // Revenue by feature — estimated from live usage × credit_cost × price_per_credit_eur
+  // Mapping: tracking feature name → api_cost_config feature_key
   const revenueFeatures = useMemo(() => {
-    const items = [
-      { label: "Crear música", uses: totals.usesCreateMusic, revenue: totals.revenueCreateMusic },
-      { label: "Portadas IA", uses: totals.usesCover, revenue: totals.revenueCover },
-      { label: "Videoclips IA", uses: totals.usesVideo, revenue: totals.revenueVideo },
-      { label: "Promoción RRSS", uses: totals.usesPromotion, revenue: totals.revenuePromotion },
-      { label: "Registro blockchain", uses: totals.usesRegister, revenue: totals.revenueRegister },
-    ].sort((a, b) => b.revenue - a.revenue);
-    return items;
-  }, [totals]);
+    const lc = liveFeatureCounts;
+    const featureMap: { label: string; trackingKey: string; costKeys: string[] }[] = [
+      { label: "Crear música (instrumental)", trackingKey: "create_music", costKeys: ["generate_audio"] },
+      { label: "Crear música (canción)", trackingKey: "create_music", costKeys: ["generate_audio_song"] },
+      { label: "Compositor letras", trackingKey: "lyrics", costKeys: ["generate_lyrics"] },
+      { label: "Canta tu canción", trackingKey: "vocal", costKeys: ["generate_vocal_track"] },
+      { label: "Clonación de voz", trackingKey: "voice_cloning", costKeys: ["voice_translation_per_min"] },
+      { label: "Portadas con IA", trackingKey: "cover", costKeys: ["generate_cover"] },
+      { label: "Videoclips IA", trackingKey: "video", costKeys: ["generate_video"] },
+      { label: "Promoción RRSS", trackingKey: "promotion", costKeys: ["promote_work"] },
+      { label: "Promo Premium", trackingKey: "premium_promotion", costKeys: ["promote_premium"] },
+      { label: "Prensa & visibilidad", trackingKey: "press", costKeys: ["generate_press_release"] },
+      { label: "Registro blockchain", trackingKey: "register", costKeys: ["register_work"] },
+      { label: "Masterizado profesional", trackingKey: "enhance_audio", costKeys: ["enhance_audio"] },
+      { label: "Edición de audio", trackingKey: "edit_audio", costKeys: ["edit_audio"] },
+      { label: "Social Video", trackingKey: "social_video", costKeys: ["social_video"] },
+    ];
+
+    const items = featureMap.map((f) => {
+      const uses = lc[f.trackingKey] || 0;
+      // Use the first matching cost config to estimate revenue
+      const cfg = f.costKeys.map((k) => costConfig[k]).find(Boolean);
+      const creditCost = cfg?.credit_cost || 0;
+      const pricePerCredit = cfg?.price_per_credit_eur || 0.60;
+      const revenue = uses * creditCost * pricePerCredit;
+      return { label: f.label, uses, creditCost, revenue };
+    }).filter((f) => f.creditCost > 0); // Solo features de pago
+
+    items.sort((a, b) => b.revenue - a.revenue);
+
+    const totalRevEst = items.reduce((s, f) => s + f.revenue, 0);
+    return { items, totalRevEst };
+  }, [liveFeatureCounts, costConfig]);
 
   // Daily activity heatmap colors
   const revenueValues = metrics.map((d) => Number(d.total_revenue_eur || 0));
