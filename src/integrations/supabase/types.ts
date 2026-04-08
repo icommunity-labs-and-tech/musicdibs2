@@ -101,6 +101,86 @@ export type Database = {
         }
         Relationships: []
       }
+      api_cost_config: {
+        Row: {
+          api_cost_eur: number
+          api_provider: string
+          credit_cost: number
+          feature_key: string
+          feature_label: string
+          notes: string | null
+          price_per_credit_eur: number
+          updated_at: string
+        }
+        Insert: {
+          api_cost_eur?: number
+          api_provider?: string
+          credit_cost?: number
+          feature_key: string
+          feature_label?: string
+          notes?: string | null
+          price_per_credit_eur?: number
+          updated_at?: string
+        }
+        Update: {
+          api_cost_eur?: number
+          api_provider?: string
+          credit_cost?: number
+          feature_key?: string
+          feature_label?: string
+          notes?: string | null
+          price_per_credit_eur?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      api_cost_daily: {
+        Row: {
+          created_at: string
+          date: string
+          feature_key: string
+          gross_margin_eur: number
+          id: string
+          margin_pct: number
+          total_api_cost_eur: number
+          total_credits_charged: number
+          total_revenue_eur: number
+          total_uses: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          feature_key: string
+          gross_margin_eur?: number
+          id?: string
+          margin_pct?: number
+          total_api_cost_eur?: number
+          total_credits_charged?: number
+          total_revenue_eur?: number
+          total_uses?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          feature_key?: string
+          gross_margin_eur?: number
+          id?: string
+          margin_pct?: number
+          total_api_cost_eur?: number
+          total_credits_charged?: number
+          total_revenue_eur?: number
+          total_uses?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_cost_daily_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "api_cost_config"
+            referencedColumns: ["feature_key"]
+          },
+        ]
+      }
       audiomack_connections: {
         Row: {
           audiomack_id: string | null
