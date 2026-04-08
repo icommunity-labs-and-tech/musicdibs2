@@ -111,7 +111,7 @@ export default function AdminPremiumPromosPage() {
         </CardHeader>
         <CardContent className="flex gap-4 items-end">
           <div className="w-48">
-            <Select value={statusFilter} onValueChange={v => { setOffset(0); setStatusFilter(v); }}>
+            <Select value={statusFilter} onValueChange={v => { setOffset(0); setStatusFilter(v === 'all' ? '' : v); }}>
               <SelectTrigger><SelectValue placeholder="Todos los estados" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
