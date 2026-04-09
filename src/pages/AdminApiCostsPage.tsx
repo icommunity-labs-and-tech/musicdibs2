@@ -232,7 +232,10 @@ export default function AdminApiCostsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {configs.map(c => (
+              {(() => {
+                const configTotalPages = Math.max(1, Math.ceil(configs.length / PAGE_SIZE));
+                const paginatedConfigs = configs.slice((configPage - 1) * PAGE_SIZE, configPage * PAGE_SIZE);
+                return paginatedConfigs.map(c => (
                 <TableRow key={c.feature_key}>
                   <TableCell className="font-medium">{c.feature_label || c.feature_key}</TableCell>
                   <TableCell>{editingRow === c.feature_key
@@ -271,9 +274,52 @@ export default function AdminApiCostsPage() {
                     )}
                   </TableCell>
                 </TableRow>
-              ))}
+                ));
+              })()}
             </TableBody>
           </Table>
+          {configs.length > PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <span className="text-sm text-muted-foreground">
+                Página {configPage} de {Math.ceil(configs.length / PAGE_SIZE)}
+              </span>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setConfigPage(p => Math.max(1, p - 1))}
+                      className={configPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: Math.min(Math.ceil(configs.length / PAGE_SIZE), 5) }, (_, i) => {
+                    const tp = Math.ceil(configs.length / PAGE_SIZE);
+                    let page: number;
+                    if (tp <= 5) { page = i + 1; }
+                    else if (configPage <= 3) { page = i + 1; }
+                    else if (configPage >= tp - 2) { page = tp - 4 + i; }
+                    else { page = configPage - 2 + i; }
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          isActive={page === configPage}
+                          onClick={() => setConfigPage(page)}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setConfigPage(p => Math.min(Math.ceil(configs.length / PAGE_SIZE), p + 1))}
+                      className={configPage >= Math.ceil(configs.length / PAGE_SIZE) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
 
