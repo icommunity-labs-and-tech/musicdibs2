@@ -34,13 +34,20 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-4 max-w-4xl">
-      <h2 className="text-xl font-bold">Registrar obra</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Registrar obra</h2>
+        <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => setPricingOpen(true)}>
+          <Coins className="h-4 w-4" />
+          Ver precios
+        </Button>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
         <RegistrationWizard summary={summary} />
         <div className="hidden lg:block">
           <AccountSummary onSummaryLoaded={setSummary} />
         </div>
       </div>
+      <PricingPopup open={pricingOpen} onOpenChange={setPricingOpen} />
     </div>
   );
 }
