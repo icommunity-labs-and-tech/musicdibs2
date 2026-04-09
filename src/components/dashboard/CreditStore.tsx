@@ -313,7 +313,12 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         </Button>
       )}
 
-      <CancellationSurveyModal open={cancelModalOpen} onOpenChange={setCancelModalOpen} onConfirmCancel={handleConfirmCancel} />
+      <CancellationSurveyModal
+        open={cancelModalOpen}
+        onOpenChange={setCancelModalOpen}
+        onConfirmCancel={handleConfirmCancel}
+        planType={isAnnualActive ? 'annual' : isMonthlyActive ? 'monthly' : undefined}
+      />
 
       <Card className="border-border/40 shadow-sm">
         <CardContent className="py-3">
