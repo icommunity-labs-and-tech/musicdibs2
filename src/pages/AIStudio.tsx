@@ -76,7 +76,7 @@ const AIStudio = () => {
       icon: Lightbulb,
       href: "/ai-studio/inspire",
       available: true,
-      costsCredits: false,
+      costsCredits: null,
       featureKey: 'inspiration' as const,
       color: "from-amber-500 to-orange-500"
     },
@@ -94,7 +94,7 @@ const AIStudio = () => {
             {t('aiStudio.comingSoon')}
           </Badge>
         )}
-        {module.available && !module.costsCredits && (
+        {module.available && module.costsCredits === false && (
           <Badge className="absolute top-3 right-3 z-10 text-[10px] bg-emerald-500 hover:bg-emerald-600 text-white border-0">
             {t('aiStudio.free', 'Gratis')}
           </Badge>
@@ -115,7 +115,7 @@ const AIStudio = () => {
           <CardDescription>{t(module.descKey)}</CardDescription>
           {module.costsCredits && cost > 0 ? (
             <span className="mt-1"><PricingLink /></span>
-          ) : !module.costsCredits ? (
+          ) : module.costsCredits === false ? (
             <span className="mt-1 self-start inline-flex items-center rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white shadow-sm">{t('aiStudio.free', 'Gratis')}</span>
           ) : null}
         </CardHeader>
