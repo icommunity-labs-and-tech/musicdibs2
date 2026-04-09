@@ -316,11 +316,12 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
 
       {/* Cancelar renovación */}
       {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
-        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={handleCancelRenewal} disabled={loading !== null}>
-          {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={() => setCancelModalOpen(true)} disabled={loading !== null}>
           {t(`${cs}.cancelRenewal`)}
         </Button>
       )}
+
+      <CancellationSurveyModal open={cancelModalOpen} onOpenChange={setCancelModalOpen} onConfirmCancel={handleConfirmCancel} />
 
       <Card className="border-border/40 shadow-sm">
         <CardContent className="py-3">
