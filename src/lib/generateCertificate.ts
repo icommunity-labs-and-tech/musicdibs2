@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
-import logoMusicdibs from '@/assets/logo_musicdibs_black.png'
+import logoMusicdibs from '@/assets/logo_musicdibs_black.jpg'
 
 // ── Palette ──────────────────────────────────────────────────
 const BLACK   = '#111111'
@@ -230,7 +230,7 @@ export async function generateCertificate(data: CertificateData, locale?: string
     }),
     imgToBase64(logoMusicdibs),
   ])
-  const logoFmt = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG'
+  const logoFmt = logoDataUrl.includes('image/png') ? 'PNG' : 'JPEG'
 
   // ── Watermark ──────────────────────────────────────────────
   const watermark = makeWatermark(W, H)
