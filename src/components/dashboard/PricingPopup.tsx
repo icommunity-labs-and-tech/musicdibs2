@@ -90,7 +90,7 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
                     </p>
                     <div className="divide-y divide-border/40">
                       {items.map((row) => {
-                        const desc = OPERATION_DESCRIPTIONS[row.operation_key];
+                        const desc = row.description;
                         return (
                           <div key={row.operation_key} className="flex items-center justify-between py-2 px-1">
                             <div className="flex items-center gap-2 min-w-0">
