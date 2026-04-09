@@ -22,68 +22,112 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isManager, setIsManager] = useState(false);
 
+  const resetAuthState = useCallback(() => {
+    setSession(null);
+    setUser(null);
+    setIsAdmin(false);
+    setIsManager(false);
+    setLoading(false);
+  }, []);
+
+  const recoverFromAuthError = useCallback(async (error: unknown) => {
+    console.error('[auth] Failed to initialize session', error);
+
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (signOutError) {
+      console.warn('[auth] Failed to clear local session', signOutError);
+    }
+
+    resetAuthState();
+  }, [resetAuthState]);
+
   const initializeUser = useCallback(async (currentSession: Session | null) => {
     if (!currentSession?.user) {
-      setSession(null);
-      setUser(null);
-      setIsAdmin(false);
-      setIsManager(false);
-      setLoading(false);
+      resetAuthState();
       return;
     }
 
     setSession(currentSession);
     setUser(currentSession.user);
 
-    // Check roles
-    const { data: roles } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', currentSession.user.id);
+    try {
+      const { data: roles, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', currentSession.user.id);
 
-    const roleSet = new Set((roles || []).map((r: any) => r.role));
-    setIsAdmin(roleSet.has('admin'));
-    setIsManager(roleSet.has('manager'));
-    setLoading(false);
-  }, []);
+      if (error) throw error;
+
+      const roleSet = new Set((roles || []).map((r: { role: string }) => r.role));
+      setIsAdmin(roleSet.has('admin'));
+      setIsManager(roleSet.has('manager'));
+    } catch (error) {
+      console.error('[auth] Failed to load roles', error);
+      setIsAdmin(false);
+      setIsManager(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [resetAuthState]);
 
   useEffect(() => {
     // IMPORTANT: Set up listener BEFORE getting session (per Supabase docs)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       // Use setTimeout to avoid async work directly in callback
-      setTimeout(() => initializeUser(newSession), 0);
+      setTimeout(() => {
+        void initializeUser(newSession).catch(recoverFromAuthError);
+      }, 0);
     });
 
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      initializeUser(currentSession);
-    });
+    void supabase.auth.getSession()
+      .then(({ data: { session: currentSession } }) => initializeUser(currentSession))
+      .catch(recoverFromAuthError);
 
     return () => subscription.unsubscribe();
-  }, [initializeUser]);
+  }, [initializeUser, recoverFromAuthError]);
 
   const signIn = async (email: string, password: string) => {
-    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      // Supabase returns "User is banned" for banned users
-      if (error.message?.includes('banned')) {
-        return { error: { message: 'Tu cuenta ha sido bloqueada. Contacta con soporte.' } };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        if (error.message?.includes('banned')) {
+          return { error: { message: 'Tu cuenta ha sido bloqueada. Contacta con soporte.' } };
+        }
+        return { error };
       }
-      return { error };
+
+      return { error: null };
+    } catch (error) {
+      console.error('[auth] Sign in failed', error);
+      return { error: { message: 'No se pudo conectar con el servicio de autenticación. Inténtalo de nuevo.' } };
     }
-    return { error: null };
   };
 
   const signUp = async (email: string, password: string, metadata?: Record<string, string>) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: metadata ? { data: metadata } : undefined,
-    });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          ...(metadata ? { data: metadata } : {}),
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      return { error };
+    } catch (error) {
+      console.error('[auth] Sign up failed', error);
+      return { error: { message: 'No se pudo completar el registro. Inténtalo de nuevo.' } };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      resetAuthState();
+    }
   };
 
   return (
