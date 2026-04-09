@@ -30,6 +30,7 @@ interface OperationRow {
   is_annual_only: boolean | null;
   display_order: number;
   is_active: boolean | null;
+  description: string | null;
 }
 
 export default function AdminFeatureCostsPage() {
