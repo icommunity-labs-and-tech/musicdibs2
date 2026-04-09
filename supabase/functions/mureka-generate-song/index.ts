@@ -58,7 +58,7 @@ serve(async (req) => {
     // Llamar a Mureka /v1/song/generate
     const body: Record<string, unknown> = {
       prompt: fullPrompt,
-      model: 'auto',
+      model: 'v9',
     };
     if (lyrics) body.lyrics = lyrics;
     if (mureka_vocal_id) body.vocal_id = mureka_vocal_id;
