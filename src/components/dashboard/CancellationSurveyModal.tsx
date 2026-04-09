@@ -26,26 +26,21 @@ function getCreditExamples(creditsRemaining: number) {
   if (creditsRemaining === 0) {
     return { message: 'Has usado todos tus créditos de este mes', examples: [] };
   }
-
   const examples: string[] = [];
   let remaining = creditsRemaining;
-
   if (remaining >= 3) {
     const videos = Math.floor(remaining / 3);
     examples.push(`${videos} video${videos > 1 ? 's' : ''} Full HD (${videos * 3} créditos)`);
     remaining = remaining % 3;
   }
-
   if (remaining >= 2) {
     const songs = Math.floor(remaining / 2);
     examples.push(`${songs} canción${songs > 1 ? 'es' : ''} con voz IA (${songs * 2} créditos)`);
     remaining = remaining % 2;
   }
-
   if (remaining >= 1 || examples.length === 0) {
     examples.push('O cualquier combinación de portadas, creatividades y registros');
   }
-
   return {
     message: `Te quedan ${creditsRemaining} crédito${creditsRemaining > 1 ? 's' : ''} sin usar`,
     examples,
@@ -56,9 +51,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirmCancel: (reason: string) => Promise<void>;
+  planType?: string;
 }
 
-export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel }: Props) {
+export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel, planType }: Props) {
   const { user } = useAuth();
   const [selectedReason, setSelectedReason] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
@@ -91,11 +87,25 @@ export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel }:
   const handleConfirm = async () => {
     setLoading(true);
     try {
+      // 1. Track cancellation reason (non-blocking)
+      supabase
+        .from('cancellation_surveys')
+        .insert({
+          user_id: user!.id,
+          reason: selectedReason,
+          plan_type: planType ?? null,
+          credits_remaining: creditsRemaining,
+        })
+        .then(({ error }) => {
+          if (error) console.error('Error tracking cancellation:', error);
+        });
+
+      // 2. Cancel subscription
       await onConfirmCancel(selectedReason);
       onOpenChange(false);
       resetState();
     } catch {
-      toast.error('Error al cancelar la suscripción');
+      // Modal stays open on error — user can retry
     } finally {
       setLoading(false);
     }
@@ -107,16 +117,17 @@ export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel }:
   };
 
   const handleClose = (v: boolean) => {
+    if (loading) return; // Block close during loading
     if (!v) resetState();
     onOpenChange(v);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[500px] p-8 gap-0">
+      <DialogContent className="max-w-[500px] p-4 sm:p-8 gap-0">
         {step === 1 ? (
           <>
-            <DialogHeader className="space-y-2 pb-6">
+            <DialogHeader className="space-y-2 pb-4 sm:pb-6">
               <DialogTitle className="text-xl">¿Por qué quieres cancelar?</DialogTitle>
               <DialogDescription className="text-muted-foreground">
                 Tus respuestas nos ayudan a mejorar (te llevará 5 segundos)
@@ -142,17 +153,16 @@ export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel }:
             </RadioGroup>
 
             <DialogFooter className="mt-6 flex gap-2 sm:justify-between">
-              <Button variant="ghost" onClick={() => handleClose(false)}>Volver</Button>
-              <Button onClick={handleContinue} disabled={!selectedReason}>Continuar</Button>
+              <Button variant="ghost" onClick={() => handleClose(false)} disabled={loading}>Volver</Button>
+              <Button onClick={handleContinue} disabled={!selectedReason || loading}>Continuar</Button>
             </DialogFooter>
           </>
         ) : (
           <>
-            <DialogHeader className="space-y-2 pb-6">
+            <DialogHeader className="space-y-2 pb-4 sm:pb-6">
               <DialogTitle className="text-xl">Antes de cancelar...</DialogTitle>
             </DialogHeader>
 
-            {/* Bloque créditos */}
             <div className="space-y-3">
               <p className="font-semibold" style={{ fontSize: 15 }}>
                 {creditsRemaining > 0 ? (
@@ -185,15 +195,21 @@ export function CancellationSurveyModal({ open, onOpenChange, onConfirmCancel }:
               ¿Estás seguro de que quieres cancelar?
             </p>
 
-            <DialogFooter className="mt-6 flex gap-2 sm:justify-between">
-              <Button variant="outline" onClick={() => setStep(1)}>Volver</Button>
+            <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
+              <Button variant="outline" onClick={() => setStep(1)} disabled={loading}>Volver</Button>
               <Button
                 variant="destructive"
                 onClick={handleConfirm}
                 disabled={loading}
               >
-                {loading && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
-                Sí, cancelar
+                {loading ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    Cancelando...
+                  </>
+                ) : (
+                  'Sí, cancelar'
+                )}
               </Button>
             </DialogFooter>
           </>
