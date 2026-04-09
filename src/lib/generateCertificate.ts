@@ -243,10 +243,10 @@ export async function generateCertificate(data: CertificateData, locale?: string
   let y = 28
 
   // Logo top-right
-  const logoAspect = 701 / 486
-  const logoH = 16
+  const logoAspect = 125 / 126
+  const logoH = 18
   const logoW = logoH * logoAspect
-  doc.addImage(logoDataUrl, logoFmt, W - MR - logoW, 16, logoW, logoH)
+  doc.addImage(logoDataUrl, logoFmt, W - MR - logoW, 14, logoW, logoH)
 
   // Title
   font('bold', 20)
