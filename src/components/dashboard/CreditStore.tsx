@@ -12,6 +12,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { CancellationSurveyModal } from './CancellationSurveyModal';
 
 const ANNUAL_OPTIONS = [
   { planId: 'annual_100',  credits: 100,  price: '59,90 €',  pricePerCredit: '0,60 €' },
@@ -38,6 +39,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
   const [selectedAnnual, setSelectedAnnual] = useState('annual_100');
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const { user } = useAuth();
 
   const paymentStatus = searchParams.get('payment');
@@ -103,14 +105,23 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
     }
   };
 
-  const handleCancelRenewal = async () => {
+
+
+
+  const handleConfirmCancel = async (reason: string) => {
     setLoading('cancel');
     try {
-      const { data } = await supabase.functions.invoke('create-credit-checkout', { body: { action: 'cancel_renewal' } });
+      const { data } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { action: 'cancel_renewal', cancellation_reason: reason },
+      });
       toast.success(data?.message || t(`${cs}.renewalCancelled`));
       setCancelAtPeriodEnd(true);
-    } catch { setError(t(`${cs}.purchaseError`)); }
-    setLoading(null);
+    } catch {
+      setError(t(`${cs}.purchaseError`));
+      throw new Error('cancel failed');
+    } finally {
+      setLoading(null);
+    }
   };
 
   const selectedAnnualOption = ANNUAL_OPTIONS.find(o => o.planId === selectedAnnual)!;
@@ -297,11 +308,12 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
 
       {/* Cancelar renovación */}
       {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
-        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={handleCancelRenewal} disabled={loading !== null}>
-          {loading === 'cancel' ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={() => setCancelModalOpen(true)} disabled={loading !== null}>
           {t(`${cs}.cancelRenewal`)}
         </Button>
       )}
+
+      <CancellationSurveyModal open={cancelModalOpen} onOpenChange={setCancelModalOpen} onConfirmCancel={handleConfirmCancel} />
 
       <Card className="border-border/40 shadow-sm">
         <CardContent className="py-3">
