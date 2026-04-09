@@ -39,6 +39,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(externalCancel ?? false);
   const [selectedAnnual, setSelectedAnnual] = useState('annual_100');
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const { user } = useAuth();
 
   const paymentStatus = searchParams.get('payment');
