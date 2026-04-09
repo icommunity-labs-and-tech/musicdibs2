@@ -140,8 +140,8 @@ export default function ManagerRegisterWork() {
     setSubmitting(true);
 
     try {
-      // Determine user_id: use artist's account if linked, otherwise manager's
-      const workUserId = selectedArtistData?.artist_user_id || user.id;
+      // Always use manager's user_id for RLS compliance; the managed_works table tracks the artist relationship
+      const workUserId = user.id;
 
       // Spend credits
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
