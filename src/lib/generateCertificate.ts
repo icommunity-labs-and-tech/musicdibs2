@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
-import logoMusicdibs from '@/assets/logo_musicdibs_black.png'
+import logoMusicdibs from '@/assets/logo_musicdibs_black.jpg'
 
 // ── Palette ──────────────────────────────────────────────────
 const BLACK   = '#111111'
