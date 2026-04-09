@@ -128,13 +128,14 @@ export default function AdminFeatureCostsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">Icono</TableHead>
-                  <TableHead className="w-[180px]">Clave</TableHead>
-                  <TableHead className="w-[220px]">Nombre</TableHead>
+                  <TableHead className="w-[150px]">Clave</TableHead>
+                  <TableHead className="w-[180px]">Nombre</TableHead>
                   <TableHead className="w-[100px]">Categoría</TableHead>
-                  <TableHead className="w-[100px]">Créditos</TableHead>
-                  <TableHead className="w-[100px]">€/operación</TableHead>
-                  <TableHead className="w-[80px]">Anual</TableHead>
-                  <TableHead className="w-[80px]">Acción</TableHead>
+                  <TableHead className="w-[80px]">Créditos</TableHead>
+                  <TableHead className="w-[80px]">€/op</TableHead>
+                  <TableHead className="w-[200px]">Descripción (tooltip)</TableHead>
+                  <TableHead className="w-[60px]">Anual</TableHead>
+                  <TableHead className="w-[60px]">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
