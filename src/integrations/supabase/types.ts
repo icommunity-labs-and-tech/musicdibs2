@@ -376,6 +376,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cancellation_surveys: {
+        Row: {
+          created_at: string
+          credits_remaining: number | null
+          id: string
+          plan_type: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number | null
+          id?: string
+          plan_type?: string | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number | null
+          id?: string
+          plan_type?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
