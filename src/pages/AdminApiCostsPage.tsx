@@ -53,6 +53,7 @@ export default function AdminApiCostsPage() {
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
   const [dailyPage, setDailyPage] = useState(1);
+  const [configPage, setConfigPage] = useState(1);
 
   const getDateRange = useCallback(() => {
     const to = new Date();
