@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -30,6 +31,7 @@ interface OperationRow {
   is_annual_only: boolean | null;
   display_order: number;
   is_active: boolean | null;
+  description: string | null;
 }
 
 export default function AdminFeatureCostsPage() {
@@ -42,7 +44,7 @@ export default function AdminFeatureCostsPage() {
   const load = async () => {
     const { data, error } = await supabase
       .from('operation_pricing')
-      .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active')
+      .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active, description')
       .order('display_order');
     if (error) {
       toast.error('Error cargando precios');
@@ -76,6 +78,7 @@ export default function AdminFeatureCostsPage() {
         credits_cost: (changes.credits_cost ?? row.credits_cost),
         category: (changes.category ?? row.category),
         operation_icon: (changes.operation_icon ?? row.operation_icon),
+        description: (changes.description ?? row.description),
       })
       .eq('operation_key', row.operation_key);
 
@@ -125,13 +128,14 @@ export default function AdminFeatureCostsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">Icono</TableHead>
-                  <TableHead className="w-[180px]">Clave</TableHead>
-                  <TableHead className="w-[220px]">Nombre</TableHead>
+                  <TableHead className="w-[150px]">Clave</TableHead>
+                  <TableHead className="w-[180px]">Nombre</TableHead>
                   <TableHead className="w-[100px]">Categoría</TableHead>
-                  <TableHead className="w-[100px]">Créditos</TableHead>
-                  <TableHead className="w-[100px]">€/operación</TableHead>
-                  <TableHead className="w-[80px]">Anual</TableHead>
-                  <TableHead className="w-[80px]">Acción</TableHead>
+                  <TableHead className="w-[80px]">Créditos</TableHead>
+                  <TableHead className="w-[80px]">€/op</TableHead>
+                  <TableHead className="w-[200px]">Descripción (tooltip)</TableHead>
+                  <TableHead className="w-[60px]">Anual</TableHead>
+                  <TableHead className="w-[60px]">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,6 +180,14 @@ export default function AdminFeatureCostsPage() {
                     </TableCell>
                     <TableCell className="font-mono text-sm text-muted-foreground">
                       {((getValue(row, 'credits_cost') || 0) * 0.60).toFixed(2)} €
+                    </TableCell>
+                    <TableCell>
+                      <Textarea
+                        value={String(getValue(row, 'description') || '')}
+                        onChange={e => handleChange(row.operation_key, 'description', e.target.value)}
+                        placeholder="Descripción para tooltip..."
+                        className="h-16 min-h-[40px] text-xs resize-y"
+                      />
                     </TableCell>
                     <TableCell>
                       {row.is_annual_only && (
