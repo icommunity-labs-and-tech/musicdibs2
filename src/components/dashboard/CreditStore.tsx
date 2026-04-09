@@ -104,9 +104,8 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
     }
   };
 
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+
 
   const handleConfirmCancel = async (reason: string) => {
     setLoading('cancel');
