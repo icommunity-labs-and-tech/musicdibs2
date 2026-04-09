@@ -8,8 +8,6 @@
  * The actual deduction is enforced server-side in each Edge Function.
  */
 
-import { supabase } from '@/integrations/supabase/client';
-
 // ── Static defaults (kept in sync with DB seed) ────────────
 const DEFAULT_COSTS: Record<string, number> = {
   register_work: 1,
@@ -36,15 +34,22 @@ let fetchPromise: Promise<void> | null = null;
 
 async function loadCosts(): Promise<void> {
   try {
-    const { data, error } = await supabase
-      .from('feature_costs')
-      .select('feature_key, credit_cost');
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/feature_costs?select=feature_key,credit_cost`,
+      {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
-    if (error) {
-      console.warn('[featureCosts] DB fetch failed, using defaults:', error.message);
-      cachedCosts = { ...DEFAULT_COSTS };
-      return;
+    if (!response.ok) {
+      throw new Error(`Failed to load feature costs: ${response.status}`);
     }
+
+    const data = await response.json();
 
     const map: Record<string, number> = { ...DEFAULT_COSTS };
     for (const row of data || []) {
@@ -60,7 +65,9 @@ async function loadCosts(): Promise<void> {
 /** Initialise cache once (call early, e.g. in App mount). */
 export function preloadFeatureCosts(): void {
   if (!fetchPromise) {
-    fetchPromise = loadCosts();
+    fetchPromise = loadCosts().finally(() => {
+      fetchPromise = null;
+    });
   }
 }
 
