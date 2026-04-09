@@ -136,10 +136,8 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         prompt: fullPrompt,
-        genre: genre || null,
-        mood: mood || null,
         audio_url: audioUrl,
-        duration: duration || 60,
+        duration: 0,
       })
       .select()
       .single();
