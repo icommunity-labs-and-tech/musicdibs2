@@ -35,22 +35,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const CATEGORY_ORDER = ['gratis', 'distribucion', 'registro', 'promo', 'musica', 'audio'];
 
-const OPERATION_DESCRIPTIONS: Record<string, string> = {
-  generate_lyrics: 'Genera letras originales con IA a partir de un tema y género musical.',
-  virtual_artists: 'Crea y gestiona perfiles de artistas virtuales con voz clonada.',
-  distribute_work: 'Distribuye tu música en Spotify, Apple Music, YouTube Music y +150 plataformas. 95% royalties.',
-  register_work: 'Registra tu obra con sello de tiempo blockchain y certificado de autoría verificable.',
-  master_audio: 'Masterización profesional con IA: ecualización, compresión y loudness optimizado.',
-  social_media_promo: 'Campaña completa de promoción en redes sociales gestionada por nuestro equipo.',
-  generate_cover: 'Genera portadas profesionales con IA optimizadas para plataformas de streaming.',
-  generate_creative_1x1: 'Creatividad cuadrada para feed de Instagram con diseño profesional.',
-  generate_creative_9x16: 'Creatividad vertical para Stories de Instagram y TikTok.',
-  generate_creative_16x9: 'Creatividad horizontal optimizada para thumbnails de YouTube.',
-  generate_video: 'Vídeo musical Full HD generado con IA a partir de tu canción.',
-  generate_song_vocal: 'Crea una canción completa con voz IA, letra y producción musical.',
-  generate_instrumental: 'Genera una base instrumental original en el género que elijas.',
-  create_variation: 'Edita o crea variaciones de canciones existentes con IA.',
-};
 
 export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
