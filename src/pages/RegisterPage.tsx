@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { RegistrationWizard } from '@/components/dashboard/register/RegistrationWizard';
 import { AccountSummary } from '@/components/dashboard/AccountSummary';
+import { PricingPopup } from '@/components/dashboard/PricingPopup';
 import { useAuth } from '@/hooks/useAuth';
 import { useKycGuard } from '@/hooks/useKycGuard';
 import type { DashboardSummary } from '@/types/dashboard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Coins } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function RegisterPage() {
   const { isManager } = useAuth();
