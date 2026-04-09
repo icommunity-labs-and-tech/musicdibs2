@@ -76,7 +76,7 @@ const AIStudio = () => {
       icon: Lightbulb,
       href: "/ai-studio/inspire",
       available: true,
-      costsCredits: false,
+      costsCredits: null,
       featureKey: 'inspiration' as const,
       color: "from-amber-500 to-orange-500"
     },
