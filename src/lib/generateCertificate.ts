@@ -2,14 +2,12 @@ import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
 import logoMusicdibs from '@/assets/logo_musicdibs.jpg'
 
-// ── Premium Legal Palette ────────────────────────────────────
-const BLACK    = '#111111'
-const GRAY_D   = '#444444'
-const GRAY_L   = '#EAEAEA'
-const GRAY_M   = '#999999'
-const RED_CORP = '#E8364E' // MusicDibs corporate red/pink
-const WHITE    = '#FFFFFF'
-const BG_PAGE  = '#FAFAFA'
+// ── Palette ──────────────────────────────────────────────────
+const BLACK   = '#111111'
+const GRAY_D  = '#444444'
+const GRAY_M  = '#999999'
+const RED_CORP = '#E8364E'
+const WHITE   = '#FFFFFF'
 
 export interface CertificateData {
   title: string
@@ -29,103 +27,91 @@ export interface CertificateData {
   evidenceId: string
 }
 
-// ── CERTIFICATE LABELS PER LOCALE ────────────────────────────
+// ── Labels per locale ────────────────────────────────────────
 interface CertLabels {
   headerTitle: string
-  headerSub: string
   headerIntro: string
   sectionContent: string
   titleLabel: string
   filenameLabel: string
   sizeLabel: string
   descriptionLabel: string
+  sectionAuthor: string
+  authorNameLabel: string
+  authorDocLabel: string
   sectionTransaction: string
-  certDateLabel: string
   txIdLabel: string
   fingerprintLabel: string
-  networkLabel: string
   algorithmLabel: string
-  sectionVerification: string
-  verificationText: string
-  verifyQrLabel: string
-  badgeBlockchain: string
-  badgeSeal: string
-  legalLine: string
+  networkLabel: string
+  dateLabel: string
+  verifyLabel: string
   footerPowered: string
   filePrefix: string
 }
 
 const labelsMap: Record<string, CertLabels> = {
   es: {
-    headerTitle: 'COMPROBANTE DE CERTIFICACIÓN',
-    headerSub: 'Certificación de registro en blockchain',
-    headerIntro: 'MusicDibs certifica que el siguiente contenido ha sido registrado en una red blockchain, garantizando su integridad, trazabilidad y existencia en el tiempo.',
+    headerTitle: 'Comprobante de certificación',
+    headerIntro: 'Musicdibs certifica que el siguiente documento ha sido registrado en blockchain',
     sectionContent: 'Datos del contenido',
-    titleLabel: 'Título de la canción',
-    filenameLabel: 'Nombre del fichero',
-    sizeLabel: 'Tamaño del fichero',
-    descriptionLabel: 'Descripción',
+    titleLabel: 'Título de la certificación:',
+    filenameLabel: 'Nombre del fichero:',
+    sizeLabel: 'Tamaño del fichero:',
+    descriptionLabel: 'Descripción:',
+    sectionAuthor: 'Datos del autor',
+    authorNameLabel: 'Nombre:',
+    authorDocLabel: 'Documento:',
     sectionTransaction: 'Datos de la transacción',
-    certDateLabel: 'Fecha de registro',
-    txIdLabel: 'Identificador de la transacción',
-    fingerprintLabel: 'Huella digital (hash)',
-    networkLabel: 'Red',
-    algorithmLabel: 'Algoritmo',
-    sectionVerification: 'Verificación blockchain',
-    verificationText: 'Este certificado puede ser verificado de forma independiente mediante el identificador de transacción y su huella digital. La información contenida en este documento es inmutable y ha sido registrada en blockchain.',
-    verifyQrLabel: 'Verificar certificado',
-    badgeBlockchain: 'Blockchain Verified',
-    badgeSeal: 'Certificado digital inmutable',
-    legalLine: 'Este documento constituye evidencia digital verificable mediante tecnología blockchain.',
-    footerPowered: 'powered by iCommunity',
+    txIdLabel: 'Identificador de la transacción:',
+    fingerprintLabel: 'Huella digital del archivo:',
+    algorithmLabel: 'Algoritmo de huella digital:',
+    networkLabel: 'Red de blockchain:',
+    dateLabel: 'Fecha:',
+    verifyLabel: 'Verificar',
+    footerPowered: 'powered by',
     filePrefix: 'certificado-musicdibs',
   },
   en: {
-    headerTitle: 'CERTIFICATION RECEIPT',
-    headerSub: 'Blockchain registration certificate',
-    headerIntro: 'MusicDibs certifies that the following content has been registered on a blockchain network, ensuring its integrity, traceability and existence over time.',
+    headerTitle: 'Certification receipt',
+    headerIntro: 'Musicdibs certifies that the following document has been registered on blockchain',
     sectionContent: 'Content data',
-    titleLabel: 'Song title',
-    filenameLabel: 'File name',
-    sizeLabel: 'File size',
-    descriptionLabel: 'Description',
+    titleLabel: 'Certification title:',
+    filenameLabel: 'File name:',
+    sizeLabel: 'File size:',
+    descriptionLabel: 'Description:',
+    sectionAuthor: 'Author data',
+    authorNameLabel: 'Name:',
+    authorDocLabel: 'Document:',
     sectionTransaction: 'Transaction data',
-    certDateLabel: 'Registration date',
-    txIdLabel: 'Transaction identifier',
-    fingerprintLabel: 'Digital fingerprint (hash)',
-    networkLabel: 'Network',
-    algorithmLabel: 'Algorithm',
-    sectionVerification: 'Blockchain verification',
-    verificationText: 'This certificate can be independently verified using the transaction identifier and digital fingerprint. The information in this document is immutable and has been registered on blockchain.',
-    verifyQrLabel: 'Verify certificate',
-    badgeBlockchain: 'Blockchain Verified',
-    badgeSeal: 'Immutable digital certificate',
-    legalLine: 'This document constitutes verifiable digital evidence through blockchain technology.',
-    footerPowered: 'powered by iCommunity',
+    txIdLabel: 'Transaction identifier:',
+    fingerprintLabel: 'File digital fingerprint:',
+    algorithmLabel: 'Fingerprint algorithm:',
+    networkLabel: 'Blockchain network:',
+    dateLabel: 'Date:',
+    verifyLabel: 'Verify',
+    footerPowered: 'powered by',
     filePrefix: 'certificate-musicdibs',
   },
   'pt-BR': {
-    headerTitle: 'COMPROVANTE DE CERTIFICAÇÃO',
-    headerSub: 'Certificação de registro em blockchain',
-    headerIntro: 'MusicDibs certifica que o seguinte conteúdo foi registrado em uma rede blockchain, garantindo sua integridade, rastreabilidade e existência ao longo do tempo.',
+    headerTitle: 'Comprovante de certificação',
+    headerIntro: 'Musicdibs certifica que o seguinte documento foi registrado em blockchain',
     sectionContent: 'Dados do conteúdo',
-    titleLabel: 'Título da música',
-    filenameLabel: 'Nome do arquivo',
-    sizeLabel: 'Tamanho do arquivo',
-    descriptionLabel: 'Descrição',
+    titleLabel: 'Título da certificação:',
+    filenameLabel: 'Nome do arquivo:',
+    sizeLabel: 'Tamanho do arquivo:',
+    descriptionLabel: 'Descrição:',
+    sectionAuthor: 'Dados do autor',
+    authorNameLabel: 'Nome:',
+    authorDocLabel: 'Documento:',
     sectionTransaction: 'Dados da transação',
-    certDateLabel: 'Data de registro',
-    txIdLabel: 'Identificador da transação',
-    fingerprintLabel: 'Impressão digital (hash)',
-    networkLabel: 'Rede',
-    algorithmLabel: 'Algoritmo',
-    sectionVerification: 'Verificação blockchain',
-    verificationText: 'Este certificado pode ser verificado de forma independente por meio do identificador de transação e sua impressão digital. As informações contidas neste documento são imutáveis e foram registradas em blockchain.',
-    verifyQrLabel: 'Verificar certificado',
-    badgeBlockchain: 'Blockchain Verified',
-    badgeSeal: 'Certificado digital imutável',
-    legalLine: 'Este documento constitui evidência digital verificável mediante tecnologia blockchain.',
-    footerPowered: 'powered by iCommunity',
+    txIdLabel: 'Identificador da transação:',
+    fingerprintLabel: 'Impressão digital do arquivo:',
+    algorithmLabel: 'Algoritmo de impressão digital:',
+    networkLabel: 'Rede de blockchain:',
+    dateLabel: 'Data:',
+    verifyLabel: 'Verificar',
+    footerPowered: 'powered by',
     filePrefix: 'certificado-musicdibs',
   },
 }
@@ -138,56 +124,105 @@ function getLabels(locale?: string): CertLabels {
   return labelsMap.es
 }
 
+// ── Helpers ──────────────────────────────────────────────────
+
+async function imgToBase64(src: string): Promise<string> {
+  const res = await fetch(src)
+  const blob = await res.blob()
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.readAsDataURL(blob)
+  })
+}
+
+/** Draw a vinyl-disc + checkmark watermark matching the reference PDF */
+function makeWatermark(W: number, H: number): string {
+  const scale = 3
+  const canvas = document.createElement('canvas')
+  canvas.width = W * scale
+  canvas.height = H * scale
+  const ctx = canvas.getContext('2d')!
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+  // ── Vinyl disc (center-right, lower half) ──
+  const cx = canvas.width * 0.52
+  const cy = canvas.height * 0.58
+  const maxR = 90 * scale
+
+  // Draw concentric rings
+  ctx.globalAlpha = 0.04
+  for (let i = 0; i < 8; i++) {
+    const r = maxR - i * 10 * scale
+    if (r <= 0) break
+    ctx.beginPath()
+    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+    ctx.strokeStyle = '#888888'
+    ctx.lineWidth = 1.5 * scale
+    ctx.stroke()
+  }
+
+  // Center hole
+  ctx.beginPath()
+  ctx.arc(cx, cy, 6 * scale, 0, Math.PI * 2)
+  ctx.fillStyle = '#888888'
+  ctx.globalAlpha = 0.03
+  ctx.fill()
+
+  // ── Large checkmark (pink, low opacity) ──
+  ctx.globalAlpha = 0.06
+  ctx.strokeStyle = RED_CORP
+  ctx.lineWidth = 12 * scale
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  const checkX = canvas.width * 0.42
+  const checkY = canvas.height * 0.62
+  ctx.moveTo(checkX - 30 * scale, checkY)
+  ctx.lineTo(checkX, checkY + 28 * scale)
+  ctx.lineTo(checkX + 50 * scale, checkY - 40 * scale)
+  ctx.stroke()
+
+  ctx.globalAlpha = 1
+  return canvas.toDataURL('image/png')
+}
+
+// ── Main generator ───────────────────────────────────────────
+
 export async function generateCertificate(data: CertificateData, locale?: string): Promise<void> {
   const L = getLabels(locale)
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const W = 210, H = 297
-  const ML = 22, MR = 22
+  const ML = 25, MR = 25
   const contentW = W - ML - MR
 
-  // ── HELPERS ────────────────────────────────────────────────
+  // helpers
   const hex = (c: string) => doc.setTextColor(c)
-  const font = (name: string, style: string, size: number) => {
-    doc.setFont(name, style)
+  const font = (style: string, size: number, family = 'helvetica') => {
+    doc.setFont(family, style)
     doc.setFontSize(size)
   }
-
   const redLine = (y: number) => {
     doc.setDrawColor(RED_CORP)
-    doc.setLineWidth(0.6)
+    doc.setLineWidth(0.7)
     doc.line(ML, y, W - MR, y)
   }
 
-  const grayLine = (y: number) => {
-    doc.setDrawColor(GRAY_L)
-    doc.setLineWidth(0.3)
-    doc.line(ML, y, W - MR, y)
-  }
-
-  const labelValue = (y: number, label: string, value: string, mono = false): number => {
-    font('helvetica', 'normal', 7.5)
+  /** Print label + value block (label gray on one line, value black below) */
+  const field = (y: number, label: string, value: string, mono = false): number => {
+    font('normal', 9.5)
     hex(GRAY_D)
     doc.text(label, ML, y)
-    y += 4.5
-    font(mono ? 'courier' : 'helvetica', mono ? 'normal' : 'bold', mono ? 7.5 : 9.5)
+    y += 5
+    font('normal', 9.5, mono ? 'courier' : 'helvetica')
     hex(BLACK)
     const lines = doc.splitTextToSize(value, contentW)
-    const visible = lines.slice(0, 3)
+    const visible = lines.slice(0, 4)
     doc.text(visible, ML, y)
-    return y + visible.length * (mono ? 3.8 : 4.5) + 3
+    return y + visible.length * 4.2 + 4
   }
 
-  const imgToBase64 = async (src: string): Promise<string> => {
-    const res = await fetch(src)
-    const blob = await res.blob()
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.readAsDataURL(blob)
-    })
-  }
-
-  // ── PRE-GENERATE ASSETS ───────────────────────────────────
+  // ── Pre-generate assets ────────────────────────────────────
   const [qrDataUrl, logoDataUrl] = await Promise.all([
     QRCode.toDataURL(data.checkerUrl, {
       width: 300, margin: 1,
@@ -195,245 +230,132 @@ export async function generateCertificate(data: CertificateData, locale?: string
     }),
     imgToBase64(logoMusicdibs),
   ])
-  const logoFormat = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG'
+  const logoFmt = logoDataUrl.startsWith('data:image/png') ? 'PNG' : 'JPEG'
 
-  // ── WATERMARK (center logo, very low opacity) ─────────────
-  const makeWatermark = (): string => {
-    const scale = 3
-    const canvas = document.createElement('canvas')
-    canvas.width = W * scale
-    canvas.height = H * scale
-    const ctx = canvas.getContext('2d')!
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+  // ── Watermark ──────────────────────────────────────────────
+  const watermark = makeWatermark(W, H)
+  doc.addImage(watermark, 'PNG', 0, 0, W, H)
 
-    // Large centered "MUSICDIBS" text as watermark
-    ctx.save()
-    ctx.translate(canvas.width / 2, canvas.height / 2)
-    ctx.rotate(-25 * Math.PI / 180)
-    ctx.font = `bold ${60 * scale}px Helvetica, Arial, sans-serif`
-    ctx.fillStyle = 'rgba(17, 17, 17, 0.025)'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('MUSICDIBS', 0, 0)
+  // ══════════════════════════════════════════════════════════
+  // HEADER
+  // ══════════════════════════════════════════════════════════
 
-    // Smaller repeated check marks
-    ctx.font = `${30 * scale}px Helvetica, Arial, sans-serif`
-    ctx.fillStyle = 'rgba(17, 17, 17, 0.018)'
-    ctx.fillText('✓', 0, 55 * scale)
-    ctx.restore()
-    return canvas.toDataURL('image/png')
-  }
+  let y = 28
 
-  const watermarkImg = makeWatermark()
+  // Logo top-right
+  const logoAspect = 701 / 486
+  const logoH = 16
+  const logoW = logoH * logoAspect
+  doc.addImage(logoDataUrl, logoFmt, W - MR - logoW, 16, logoW, logoH)
 
-  // ── PAGE BACKGROUND ───────────────────────────────────────
-  doc.setFillColor(BG_PAGE)
-  doc.rect(0, 0, W, H, 'F')
-  doc.addImage(watermarkImg, 'PNG', 0, 0, W, H)
-
-  // ═══════════════════════════════════════════════════════════
-  // ── HEADER ────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════
-
-  let y = 20
-
-  // Left: Title
-  font('helvetica', 'bold', 16)
+  // Title
+  font('bold', 20)
   hex(BLACK)
   doc.text(L.headerTitle, ML, y)
-  y += 5.5
-
-  font('helvetica', 'normal', 9)
-  hex(GRAY_D)
-  doc.text(L.headerSub, ML, y)
-
-  // Right: Logo
-  const logoAspect = 701 / 486
-  const logoH = 14
-  const logoW = logoH * logoAspect
-  doc.addImage(logoDataUrl, logoFormat, W - MR - logoW, 12, logoW, logoH)
-
-  y += 8
-
-  // Intro text
-  font('helvetica', 'normal', 8)
-  hex(GRAY_D)
-  const introLines = doc.splitTextToSize(L.headerIntro, contentW)
-  doc.text(introLines, ML, y)
-  y += introLines.length * 3.8 + 4
-
-  // Red horizontal line
-  redLine(y)
   y += 10
 
-  // ═══════════════════════════════════════════════════════════
-  // ── SECTION 1: CONTENT DATA ───────────────────────────────
-  // ═══════════════════════════════════════════════════════════
+  // Intro line
+  font('normal', 10)
+  hex(GRAY_D)
+  const introLines = doc.splitTextToSize(L.headerIntro, contentW - logoW - 5)
+  doc.text(introLines, ML, y)
+  y += introLines.length * 4.5 + 10
 
-  font('helvetica', 'bold', 10)
+  // Red separator
+  redLine(y)
+  y += 12
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION 1: DATOS DEL CONTENIDO
+  // ══════════════════════════════════════════════════════════
+
+  font('bold', 12)
   hex(BLACK)
   doc.text(L.sectionContent, ML, y)
-  y += 8
+  y += 10
 
-  y = labelValue(y, L.titleLabel, data.title)
-  y = labelValue(y, L.filenameLabel, data.filename)
-  y = labelValue(y, L.sizeLabel, data.filesize)
+  y = field(y, L.titleLabel, data.title)
+  y = field(y, L.filenameLabel, data.filename)
+  y = field(y, L.sizeLabel, data.filesize)
 
   if (data.description) {
-    font('helvetica', 'normal', 7.5)
-    hex(GRAY_D)
-    doc.text(L.descriptionLabel + ':', ML, y)
-    y += 5
-    font('helvetica', 'normal', 8.5)
-    hex(BLACK)
-    const descLines = doc.splitTextToSize(data.description, contentW)
-    const visibleDesc = descLines.slice(0, 6)
-    doc.text(visibleDesc, ML, y)
-    y += visibleDesc.length * 4 + 4
+    y = field(y, L.descriptionLabel, data.description)
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // ── SECTION 2: TRANSACTION DATA ───────────────────────────
-  // ═══════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════
+  // SECTION 2: DATOS DEL AUTOR
+  // ══════════════════════════════════════════════════════════
 
   redLine(y)
+  y += 12
+
+  font('bold', 12)
+  hex(BLACK)
+  doc.text(L.sectionAuthor, ML, y)
   y += 10
 
-  font('helvetica', 'bold', 10)
+  y = field(y, L.authorNameLabel, data.authorName)
+  if (data.authorDocId) {
+    y = field(y, L.authorDocLabel, data.authorDocId)
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SECTION 3: DATOS DE LA TRANSACCIÓN
+  // ══════════════════════════════════════════════════════════
+
+  redLine(y)
+  y += 12
+
+  font('bold', 12)
   hex(BLACK)
   doc.text(L.sectionTransaction, ML, y)
-  y += 8
-
-  y = labelValue(y, L.certDateLabel, data.certifiedAt)
-
-  // TX ID
-  font('helvetica', 'normal', 7.5)
-  hex(GRAY_D)
-  doc.text(L.txIdLabel + ':', ML, y)
-  y += 5
-  font('courier', 'normal', 7.5)
-  hex(BLACK)
-  const txLines = doc.splitTextToSize(data.txHash, contentW)
-  doc.text(txLines.slice(0, 2), ML, y)
-  y += txLines.slice(0, 2).length * 3.8 + 4
-
-  // Fingerprint (hash)
-  font('helvetica', 'normal', 7.5)
-  hex(GRAY_D)
-  doc.text(L.fingerprintLabel + ':', ML, y)
-  y += 5
-  font('courier', 'normal', 7.5)
-  hex(BLACK)
-  const fpLines = doc.splitTextToSize(data.fingerprint, contentW)
-  doc.text(fpLines.slice(0, 2), ML, y)
-  y += fpLines.slice(0, 2).length * 3.8 + 4
-
-  // Network & algorithm on same line
-  font('helvetica', 'normal', 7.5)
-  hex(GRAY_D)
-  doc.text(L.networkLabel + ':', ML, y)
-  font('helvetica', 'bold', 8.5)
-  hex(BLACK)
-  doc.text(data.network, ML + doc.getTextWidth(L.networkLabel + ':  ') + 2, y)
-
-  const algoX = ML + 60
-  font('helvetica', 'normal', 7.5)
-  hex(GRAY_D)
-  doc.text(L.algorithmLabel + ':', algoX, y)
-  font('helvetica', 'bold', 8.5)
-  hex(BLACK)
-  doc.text(data.algorithm, algoX + doc.getTextWidth(L.algorithmLabel + ':  ') + 2, y)
   y += 10
 
-  // ═══════════════════════════════════════════════════════════
-  // ── VALIDATION BLOCK (Premium Seal) ───────────────────────
-  // ═══════════════════════════════════════════════════════════
+  y = field(y, L.txIdLabel, data.txHash, true)
+  y = field(y, L.fingerprintLabel, data.fingerprint, true)
+  y = field(y, L.algorithmLabel, data.algorithm)
+  y = field(y, L.networkLabel, data.network)
+  y = field(y, L.dateLabel, data.certifiedAt)
 
-  redLine(y)
-  y += 8
+  // ══════════════════════════════════════════════════════════
+  // QR CODE (bottom-right)
+  // ══════════════════════════════════════════════════════════
 
-  // Light gray background block
-  const blockH = 38
-  doc.setFillColor('#F4F4F4')
-  doc.roundedRect(ML, y, contentW, blockH, 2, 2, 'F')
+  const qrSz = 32
+  const qrX = W - MR - qrSz
+  const qrY = H - 65
 
-  // Border left accent
-  doc.setFillColor(RED_CORP)
-  doc.rect(ML, y, 1.2, blockH, 'F')
-
-  const blockPad = 6
-  let by = y + blockPad
-
-  font('helvetica', 'bold', 9.5)
+  font('bold', 10)
   hex(BLACK)
-  doc.text(L.sectionVerification, ML + blockPad, by)
-  by += 6
-
-  font('helvetica', 'normal', 7.5)
-  hex(GRAY_D)
-  const verLines = doc.splitTextToSize(L.verificationText, contentW - blockPad * 2 - 32)
-  doc.text(verLines.slice(0, 4), ML + blockPad, by)
-
-  // QR inside the block, right side
-  const qrSz = 26
-  const qrX = W - MR - qrSz - blockPad + 2
-  const qrY = y + (blockH - qrSz - 6) / 2
+  doc.text(L.verifyLabel, qrX + qrSz / 2, qrY - 3, { align: 'center' })
   doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSz, qrSz)
 
-  font('helvetica', 'normal', 6)
-  hex(GRAY_M)
-  doc.text(L.verifyQrLabel, qrX + qrSz / 2, qrY + qrSz + 4, { align: 'center' })
+  // ══════════════════════════════════════════════════════════
+  // FOOTER
+  // ══════════════════════════════════════════════════════════
 
-  y += blockH + 8
+  const footerY = H - 18
 
-  // ── BADGES ────────────────────────────────────────────────
-  // "Blockchain Verified" badge
-  font('helvetica', 'bold', 7.5)
-  const bvText = `✓  ${L.badgeBlockchain}`
-  const bvW = doc.getTextWidth(bvText) + 10
-  doc.setFillColor('#111111')
-  doc.roundedRect(ML, y, bvW, 7, 1.5, 1.5, 'F')
-  hex(WHITE)
-  doc.text(bvText, ML + 5, y + 4.8)
+  // Short red accent line above footer (left)
+  doc.setDrawColor(RED_CORP)
+  doc.setLineWidth(1)
+  doc.line(ML, footerY, ML + 18, footerY)
 
-  // "Certificado digital inmutable" seal
-  font('helvetica', 'normal', 7)
-  const sealText = `⛓  ${L.badgeSeal}`
-  const sealW = doc.getTextWidth(sealText) + 10
-  doc.setDrawColor(GRAY_D)
-  doc.setLineWidth(0.4)
-  doc.roundedRect(ML + bvW + 4, y, sealW, 7, 1.5, 1.5, 'D')
-  hex(GRAY_D)
-  doc.text(sealText, ML + bvW + 4 + 5, y + 4.8)
-
-  y += 14
-
-  // ── LEGAL LINE ────────────────────────────────────────────
-  font('helvetica', 'italic', 7)
-  hex(GRAY_M)
-  doc.text(L.legalLine, W / 2, y, { align: 'center' })
-
-  // ═══════════════════════════════════════════════════════════
-  // ── FOOTER ────────────────────────────────────────────────
-  // ═══════════════════════════════════════════════════════════
-
-  const footerY = H - 14
-
-  grayLine(footerY)
-
-  font('helvetica', 'normal', 7)
-  hex(GRAY_M)
+  // musicdibs.com
+  font('normal', 8)
+  hex(BLACK)
   doc.text('musicdibs.com', ML, footerY + 6)
 
-  font('helvetica', 'normal', 6.5)
+  // powered by icommunity (right)
+  font('normal', 7)
   hex(GRAY_M)
-  doc.text(`ID: ${data.evidenceId}`, W / 2, footerY + 6, { align: 'center' })
+  doc.text(L.footerPowered, W - MR, footerY + 2, { align: 'right' })
 
-  font('helvetica', 'italic', 6.5)
-  hex(GRAY_M)
-  doc.text(L.footerPowered, W - MR, footerY + 6, { align: 'right' })
+  font('bold', 8)
+  hex(BLACK)
+  doc.text('icommunity', W - MR, footerY + 7, { align: 'right' })
 
-  // ── SAVE ──────────────────────────────────────────────────
+  // ── Save ───────────────────────────────────────────────────
   const safeName = data.title
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '-')
