@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const { isVerified, kycLoading } = useKycGuard();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [pricingOpen, setPricingOpen] = useState(false);
 
   if (isManager) return <Navigate to="/dashboard/manager/register" replace />;
 
