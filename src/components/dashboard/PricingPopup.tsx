@@ -23,10 +23,6 @@ interface OperationRow {
   display_order: number;
   description: string | null;
 }
-  category: string;
-  is_annual_only: boolean | null;
-  display_order: number;
-}
 
 const CATEGORY_LABELS: Record<string, string> = {
   gratis: '🆓 Gratis',
