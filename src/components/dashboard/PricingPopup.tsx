@@ -95,18 +95,11 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
                             </Badge>
                           )}
                         </div>
-                        <div className="flex flex-col items-end ml-3 shrink-0">
-                          <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
-                            {row.credits_cost === 0
-                              ? t('creditPricing.free', 'Gratis')
-                              : `${row.credits_cost} ${row.credits_cost === 1 ? t('creditPricing.credit', 'crédito') : t('creditPricing.credits', 'créditos')}`}
-                          </span>
-                          {row.euro_cost != null && row.credits_cost > 0 && (
-                            <span className="text-[10px] text-muted-foreground tabular-nums">
-                              {Number(row.euro_cost).toFixed(2).replace('.', ',')} €
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-sm font-semibold tabular-nums whitespace-nowrap ml-3 shrink-0">
+                          {row.credits_cost === 0
+                            ? t('creditPricing.free', 'Gratis')
+                            : `${row.credits_cost} ${row.credits_cost === 1 ? t('creditPricing.credit', 'crédito') : t('creditPricing.credits', 'créditos')}`}
+                        </span>
                       </div>
                     ))}
                   </div>
