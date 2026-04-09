@@ -43,7 +43,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, lyrics, mureka_vocal_id, genre, mood, duration } = await req.json();
+    const { prompt, lyrics, mureka_vocal_id } = await req.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'prompt is required' }), {
@@ -51,11 +51,7 @@ serve(async (req) => {
       });
     }
 
-    // Construir prompt enriquecido
-    const parts = [prompt];
-    if (genre) parts.push(genre.toLowerCase());
-    if (mood) parts.push(mood.toLowerCase());
-    const fullPrompt = parts.join(', ');
+    const fullPrompt = prompt;
 
     console.log(`[MUREKA-GENERATE] User ${user.id}, prompt: "${fullPrompt}", vocal_id: ${mureka_vocal_id}`);
 
