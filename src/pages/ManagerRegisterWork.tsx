@@ -161,7 +161,7 @@ export default function ManagerRegisterWork() {
       const filePaths: string[] = [];
       for (const f of files) {
         const ext = f.name.split('.').pop();
-        const path = `${workUserId}/${Date.now()}_${f.name}`;
+        const path = `${user.id}/${Date.now()}_${f.name}`;
         const { error: uploadErr } = await supabase.storage.from('works-files').upload(path, f);
         if (uploadErr) { toast.error('Error subiendo archivo: ' + uploadErr.message); setSubmitting(false); return; }
         filePaths.push(path);
