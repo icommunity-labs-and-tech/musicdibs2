@@ -999,6 +999,7 @@ export type Database = {
           euro_cost: number | null
           id: string
           is_active: boolean | null
+          is_annual_only: boolean | null
           operation_icon: string | null
           operation_key: string
           operation_name: string
@@ -1012,6 +1013,7 @@ export type Database = {
           euro_cost?: number | null
           id?: string
           is_active?: boolean | null
+          is_annual_only?: boolean | null
           operation_icon?: string | null
           operation_key: string
           operation_name: string
@@ -1025,6 +1027,7 @@ export type Database = {
           euro_cost?: number | null
           id?: string
           is_active?: boolean | null
+          is_annual_only?: boolean | null
           operation_icon?: string | null
           operation_key?: string
           operation_name?: string
