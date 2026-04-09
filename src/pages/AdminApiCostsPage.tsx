@@ -15,7 +15,7 @@ const fmtEur = (n: number, decimals = 2) =>
 const fmtPct = (n: number, decimals = 1) =>
   n.toLocaleString('de-DE', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + '%';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 interface ApiCostConfig {
   feature_key: string;
