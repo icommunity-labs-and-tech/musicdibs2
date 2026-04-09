@@ -77,6 +77,7 @@ export default function AdminFeatureCostsPage() {
         credits_cost: (changes.credits_cost ?? row.credits_cost),
         category: (changes.category ?? row.category),
         operation_icon: (changes.operation_icon ?? row.operation_icon),
+        description: (changes.description ?? row.description),
       })
       .eq('operation_key', row.operation_key);
 
