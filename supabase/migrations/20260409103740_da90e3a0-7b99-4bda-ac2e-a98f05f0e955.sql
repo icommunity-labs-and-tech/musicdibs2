@@ -1,0 +1,1 @@
+ALTER TABLE public.operation_pricing ADD COLUMN IF NOT EXISTS description TEXT;

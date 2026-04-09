@@ -995,6 +995,7 @@ export type Database = {
           category: string
           created_at: string | null
           credits_cost: number
+          description: string | null
           display_order: number
           euro_cost: number | null
           id: string
@@ -1009,6 +1010,7 @@ export type Database = {
           category: string
           created_at?: string | null
           credits_cost: number
+          description?: string | null
           display_order: number
           euro_cost?: number | null
           id?: string
@@ -1023,6 +1025,7 @@ export type Database = {
           category?: string
           created_at?: string | null
           credits_cost?: number
+          description?: string | null
           display_order?: number
           euro_cost?: number | null
           id?: string
