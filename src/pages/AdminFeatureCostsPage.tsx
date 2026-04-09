@@ -4,66 +4,88 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { toast } from 'sonner';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Crown } from 'lucide-react';
 
-interface FeatureCost {
-  feature_key: string;
-  credit_cost: number;
-  label: string;
+const PAGE_SIZE = 10;
+
+const CATEGORY_LABELS: Record<string, string> = {
+  gratis: 'Gratis',
+  distribucion: 'Distribución',
+  registro: 'Registro',
+  audio: 'Audio',
+  musica: 'Música',
+  promo: 'Promoción',
+};
+
+interface OperationRow {
+  operation_key: string;
+  operation_name: string;
+  operation_icon: string | null;
+  credits_cost: number;
+  euro_cost: number | null;
+  category: string;
+  is_annual_only: boolean | null;
+  display_order: number;
+  is_active: boolean | null;
 }
 
 export default function AdminFeatureCostsPage() {
-  const [rows, setRows] = useState<FeatureCost[]>([]);
-  const [editing, setEditing] = useState<Record<string, Partial<FeatureCost>>>({});
+  const [rows, setRows] = useState<OperationRow[]>([]);
+  const [editing, setEditing] = useState<Record<string, Partial<OperationRow>>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const load = async () => {
     const { data, error } = await supabase
-      .from('feature_costs')
-      .select('*')
-      .order('feature_key');
+      .from('operation_pricing')
+      .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active')
+      .order('display_order');
     if (error) {
-      toast.error('Error cargando costes');
+      toast.error('Error cargando precios');
       return;
     }
-    setRows(data || []);
+    setRows((data as OperationRow[]) || []);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const handleChange = (key: string, field: 'credit_cost' | 'label', value: string) => {
+  const handleChange = (key: string, field: keyof OperationRow, value: string | number) => {
     setEditing(prev => ({
       ...prev,
       [key]: {
         ...prev[key],
-        [field]: field === 'credit_cost' ? parseInt(value) || 0 : value,
+        [field]: field === 'credits_cost' || field === 'display_order' ? parseInt(String(value)) || 0 : value,
       },
     }));
   };
 
-  const handleSave = async (row: FeatureCost) => {
-    const changes = editing[row.feature_key];
+  const handleSave = async (row: OperationRow) => {
+    const changes = editing[row.operation_key];
     if (!changes) return;
 
-    setSaving(row.feature_key);
+    setSaving(row.operation_key);
     const { error } = await supabase
-      .from('feature_costs')
+      .from('operation_pricing')
       .update({
-        credit_cost: changes.credit_cost ?? row.credit_cost,
-        label: changes.label ?? row.label,
+        operation_name: (changes.operation_name ?? row.operation_name),
+        credits_cost: (changes.credits_cost ?? row.credits_cost),
+        category: (changes.category ?? row.category),
+        operation_icon: (changes.operation_icon ?? row.operation_icon),
       })
-      .eq('feature_key', row.feature_key);
+      .eq('operation_key', row.operation_key);
 
     if (error) {
       toast.error(`Error: ${error.message}`);
     } else {
-      toast.success(`"${row.feature_key}" actualizado`);
+      toast.success(`"${row.operation_key}" actualizado`);
       setEditing(prev => {
         const next = { ...prev };
-        delete next[row.feature_key];
+        delete next[row.operation_key];
         return next;
       });
       await load();
@@ -71,11 +93,14 @@ export default function AdminFeatureCostsPage() {
     setSaving(null);
   };
 
-  const getValue = (row: FeatureCost, field: 'credit_cost' | 'label') => {
-    return editing[row.feature_key]?.[field] ?? row[field];
+  const getValue = <K extends keyof OperationRow>(row: OperationRow, field: K): OperationRow[K] => {
+    return (editing[row.operation_key]?.[field] ?? row[field]) as OperationRow[K];
   };
 
   const isDirty = (key: string) => !!editing[key];
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const paginatedRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
@@ -87,54 +112,84 @@ export default function AdminFeatureCostsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Costes de Features</h1>
+      <h1 className="text-2xl font-bold">Precios por Operación</h1>
       <p className="text-sm text-muted-foreground">
-        Ajusta los créditos que cuesta cada acción. Los cambios se aplican inmediatamente en el servidor.
+        Gestiona los precios de cada operación. Los cambios se reflejan en el popup de precios y en la web. El campo €/operación se calcula automáticamente (créditos × 0,60€).
       </p>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Tabla de costes</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-base">Tabla de precios ({rows.length} operaciones)</CardTitle></CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Feature Key</TableHead>
-                  <TableHead className="w-[250px]">Label</TableHead>
-                  <TableHead className="w-[120px]">Créditos</TableHead>
-                  <TableHead className="w-[100px]">Acción</TableHead>
+                  <TableHead className="w-[50px]">Icono</TableHead>
+                  <TableHead className="w-[180px]">Clave</TableHead>
+                  <TableHead className="w-[220px]">Nombre</TableHead>
+                  <TableHead className="w-[100px]">Categoría</TableHead>
+                  <TableHead className="w-[100px]">Créditos</TableHead>
+                  <TableHead className="w-[100px]">€/operación</TableHead>
+                  <TableHead className="w-[80px]">Anual</TableHead>
+                  <TableHead className="w-[80px]">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map(row => (
-                  <TableRow key={row.feature_key}>
-                    <TableCell className="font-mono text-sm">{row.feature_key}</TableCell>
+                {paginatedRows.map(row => (
+                  <TableRow key={row.operation_key} className={!row.is_active ? 'opacity-40' : ''}>
                     <TableCell>
-                      <Input
-                        value={String(getValue(row, 'label'))}
-                        onChange={e => handleChange(row.feature_key, 'label', e.target.value)}
-                        className="h-8"
-                      />
+                      {isDirty(row.operation_key) ? (
+                        <Input
+                          value={String(getValue(row, 'operation_icon') || '')}
+                          onChange={e => handleChange(row.operation_key, 'operation_icon', e.target.value)}
+                          className="h-8 w-12 text-center"
+                        />
+                      ) : (
+                        <span className="text-lg">{row.operation_icon}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">{row.operation_key}</TableCell>
+                    <TableCell>
+                      {isDirty(row.operation_key) ? (
+                        <Input
+                          value={String(getValue(row, 'operation_name'))}
+                          onChange={e => handleChange(row.operation_key, 'operation_name', e.target.value)}
+                          className="h-8"
+                        />
+                      ) : (
+                        row.operation_name
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {CATEGORY_LABELS[row.category] || row.category}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Input
                         type="number"
                         min={0}
-                        value={String(getValue(row, 'credit_cost'))}
-                        onChange={e => handleChange(row.feature_key, 'credit_cost', e.target.value)}
+                        value={String(getValue(row, 'credits_cost'))}
+                        onChange={e => handleChange(row.operation_key, 'credits_cost', e.target.value)}
                         className="h-8 w-20"
                       />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm text-muted-foreground">
+                      {((getValue(row, 'credits_cost') || 0) * 0.60).toFixed(2)} €
+                    </TableCell>
+                    <TableCell>
+                      {row.is_annual_only && (
+                        <Crown className="h-4 w-4 text-amber-500" />
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
                         size="sm"
-                        variant={isDirty(row.feature_key) ? 'default' : 'ghost'}
-                        disabled={!isDirty(row.feature_key) || saving === row.feature_key}
+                        variant={isDirty(row.operation_key) ? 'default' : 'ghost'}
+                        disabled={!isDirty(row.operation_key) || saving === row.operation_key}
                         onClick={() => handleSave(row)}
                       >
-                        {saving === row.feature_key ? (
+                        {saving === row.operation_key ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Save className="h-4 w-4" />
@@ -146,6 +201,47 @@ export default function AdminFeatureCostsPage() {
               </TableBody>
             </Table>
           </div>
+          {rows.length > PAGE_SIZE && (
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      className={page <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let pg: number;
+                    if (totalPages <= 5) pg = i + 1;
+                    else if (page <= 3) pg = i + 1;
+                    else if (page >= totalPages - 2) pg = totalPages - 4 + i;
+                    else pg = page - 2 + i;
+                    return (
+                      <PaginationItem key={pg}>
+                        <PaginationLink
+                          isActive={pg === page}
+                          onClick={() => setPage(pg)}
+                          className="cursor-pointer"
+                        >
+                          {pg}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      className={page >= totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
