@@ -104,15 +104,7 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
     }
   };
 
-  const handleCancelRenewal = async () => {
-    setLoading('cancel');
-    try {
-      const { data } = await supabase.functions.invoke('create-credit-checkout', { body: { action: 'cancel_renewal' } });
-      toast.success(data?.message || t(`${cs}.renewalCancelled`));
-      setCancelAtPeriodEnd(true);
-    } catch { setError(t(`${cs}.purchaseError`)); }
-    setLoading(null);
-  };
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
