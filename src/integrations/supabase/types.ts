@@ -990,6 +990,48 @@ export type Database = {
         }
         Relationships: []
       }
+      operation_pricing: {
+        Row: {
+          category: string
+          created_at: string | null
+          credits_cost: number
+          display_order: number
+          euro_cost: number | null
+          id: string
+          is_active: boolean | null
+          operation_icon: string | null
+          operation_key: string
+          operation_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          credits_cost: number
+          display_order: number
+          euro_cost?: number | null
+          id?: string
+          is_active?: boolean | null
+          operation_icon?: string | null
+          operation_key: string
+          operation_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          credits_cost?: number
+          display_order?: number
+          euro_cost?: number | null
+          id?: string
+          is_active?: boolean | null
+          operation_icon?: string | null
+          operation_key?: string
+          operation_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       order_attribution: {
         Row: {
           attributed_campaign_name: string | null
