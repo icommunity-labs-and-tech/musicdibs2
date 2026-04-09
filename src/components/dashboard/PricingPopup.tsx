@@ -1,32 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
-import { getFeatureCost } from '@/lib/featureCosts';
-import { Shield, Sparkles, Edit3, Music, Image, Video, Mic, Crown, Megaphone, Coins, Instagram, Youtube, LayoutGrid, Share2, Languages } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Coins, Crown } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const PRICING_ROWS = [
-  { key: 'register_work', icon: Shield },
-  { key: 'promote_work', icon: Megaphone },
-  { key: 'promote_premium', icon: Crown },
-  { key: 'generate_audio', icon: Music },
-  { key: 'generate_audio_song', icon: Mic },
-  { key: 'edit_audio', icon: Edit3 },
-  { key: 'enhance_audio', icon: Sparkles },
-  { key: 'generate_cover', icon: Image },
-  { key: 'generate_video', icon: Video },
-  { key: 'instagram_creative', icon: Instagram },
-  { key: 'youtube_thumbnail', icon: Youtube },
-  { key: 'event_poster', icon: LayoutGrid },
-  { key: 'social_poster', icon: Share2 },
-  { key: 'social_video', icon: Video },
-  { key: 'voice_translation_per_min', icon: Languages },
-] as const;
+interface OperationRow {
+  operation_key: string;
+  operation_name: string;
+  operation_icon: string | null;
+  credits_cost: number;
+  euro_cost: number | null;
+  category: string;
+  is_annual_only: boolean | null;
+  display_order: number;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  gratis: '🆓 Gratis',
+  registro: '🛡️ Registro',
+  distribucion: '🌍 Distribución',
+  audio: '🎧 Audio',
+  musica: '🎵 Creación musical',
+  promo: '📣 Material promocional',
+};
+
+const CATEGORY_ORDER = ['gratis', 'distribucion', 'registro', 'promo', 'musica', 'audio'];
 
 export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { t } = useTranslation();
+  const [rows, setRows] = useState<OperationRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!open) return;
+    setLoading(true);
+    supabase
+      .from('operation_pricing')
+      .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order')
+      .eq('is_active', true)
+      .order('display_order')
+      .then(({ data }) => {
+        setRows((data as OperationRow[]) ?? []);
+        setLoading(false);
+      });
+  }, [open]);
+
+  // Group by category
+  const grouped = CATEGORY_ORDER
+    .map(cat => ({
+      cat,
+      label: CATEGORY_LABELS[cat] ?? cat,
+      items: rows.filter(r => r.category === cat),
+    }))
+    .filter(g => g.items.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -34,31 +65,58 @@ export function PricingPopup({ open, onOpenChange }: { open: boolean; onOpenChan
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Coins className="h-5 w-5 text-primary" />
-            {t('creditPricing.title')}
+            {t('creditPricing.title', 'Precios por operación')}
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[360px] pr-3">
-          <div className="divide-y divide-border/40">
-            {[...PRICING_ROWS]
-              .sort((a, b) => getFeatureCost(a.key) - getFeatureCost(b.key))
-              .map(({ key, icon: Icon }) => {
-              const cost = getFeatureCost(key);
-              return (
-                <div key={key} className="flex items-center justify-between py-2.5 px-1">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-sm truncate">{t(`creditPricing.features.${key}`)}</span>
+        <ScrollArea className="max-h-[420px] pr-3">
+          {loading ? (
+            <div className="space-y-3 py-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {grouped.map(({ cat, label, items }) => (
+                <div key={cat}>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-1">
+                    {label}
+                  </p>
+                  <div className="divide-y divide-border/40">
+                    {items.map((row) => (
+                      <div key={row.operation_key} className="flex items-center justify-between py-2 px-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base shrink-0">{row.operation_icon ?? '•'}</span>
+                          <span className="text-sm truncate">{row.operation_name}</span>
+                          {row.is_annual_only && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0 border-primary/40 text-primary">
+                              <Crown className="h-3 w-3 mr-0.5" />
+                              Anual
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex flex-col items-end ml-3 shrink-0">
+                          <span className="text-sm font-semibold tabular-nums whitespace-nowrap">
+                            {row.credits_cost === 0
+                              ? t('creditPricing.free', 'Gratis')
+                              : `${row.credits_cost} ${row.credits_cost === 1 ? t('creditPricing.credit', 'crédito') : t('creditPricing.credits', 'créditos')}`}
+                          </span>
+                          {row.euro_cost != null && row.credits_cost > 0 && (
+                            <span className="text-[10px] text-muted-foreground tabular-nums">
+                              {Number(row.euro_cost).toFixed(2).replace('.', ',')} €
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <span className="text-sm font-semibold tabular-nums whitespace-nowrap ml-3">
-                    {cost} {cost === 1 ? t('creditPricing.credit') : t('creditPricing.credits')}
-                  </span>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </ScrollArea>
         <p className="text-[11px] text-muted-foreground text-center pt-2">
-          {t('creditPricing.footer')}
+          {t('creditPricing.footer', 'Los precios pueden variar. Consulta condiciones.')}
         </p>
       </DialogContent>
     </Dialog>
@@ -77,7 +135,7 @@ export function PricingLink({ className }: { className?: string }) {
         onClick={(e) => { e.stopPropagation(); setOpen(true); }}
         className={`text-[11px] text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors ${className ?? ''}`}
       >
-        {t('creditPricing.viewPrices')}
+        {t('creditPricing.viewPrices', 'Ver precios')}
       </button>
       <PricingPopup open={open} onOpenChange={setOpen} />
     </>
