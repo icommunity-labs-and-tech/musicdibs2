@@ -12,6 +12,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { CancellationSurveyModal } from './CancellationSurveyModal';
 
 const ANNUAL_OPTIONS = [
   { planId: 'annual_100',  credits: 100,  price: '59,90 €',  pricePerCredit: '0,60 €' },
@@ -111,6 +112,24 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
       setCancelAtPeriodEnd(true);
     } catch { setError(t(`${cs}.purchaseError`)); }
     setLoading(null);
+  };
+
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+
+  const handleConfirmCancel = async (reason: string) => {
+    setLoading('cancel');
+    try {
+      const { data } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { action: 'cancel_renewal', cancellation_reason: reason },
+      });
+      toast.success(data?.message || t(`${cs}.renewalCancelled`));
+      setCancelAtPeriodEnd(true);
+    } catch {
+      setError(t(`${cs}.purchaseError`));
+      throw new Error('cancel failed');
+    } finally {
+      setLoading(null);
+    }
   };
 
   const selectedAnnualOption = ANNUAL_OPTIONS.find(o => o.planId === selectedAnnual)!;
