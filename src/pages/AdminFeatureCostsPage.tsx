@@ -182,6 +182,14 @@ export default function AdminFeatureCostsPage() {
                       {((getValue(row, 'credits_cost') || 0) * 0.60).toFixed(2)} €
                     </TableCell>
                     <TableCell>
+                      <Textarea
+                        value={String(getValue(row, 'description') || '')}
+                        onChange={e => handleChange(row.operation_key, 'description', e.target.value)}
+                        placeholder="Descripción para tooltip..."
+                        className="h-16 min-h-[40px] text-xs resize-y"
+                      />
+                    </TableCell>
+                    <TableCell>
                       {row.is_annual_only && (
                         <Crown className="h-4 w-4 text-amber-500" />
                       )}
