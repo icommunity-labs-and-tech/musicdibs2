@@ -1496,11 +1496,14 @@ export type Database = {
           available_credits: number
           created_at: string
           display_name: string | null
+          free_downloads_used: number
           ibs_signature_id: string | null
           id: string
           is_blocked: boolean | null
           kyc_status: string
           language: string
+          library_status: string
+          library_status_since: string | null
           phone: string | null
           stripe_customer_id: string | null
           subscription_plan: string
@@ -1511,11 +1514,14 @@ export type Database = {
           available_credits?: number
           created_at?: string
           display_name?: string | null
+          free_downloads_used?: number
           ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string
           language?: string
+          library_status?: string
+          library_status_since?: string | null
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
@@ -1526,11 +1532,14 @@ export type Database = {
           available_credits?: number
           created_at?: string
           display_name?: string | null
+          free_downloads_used?: number
           ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
           kyc_status?: string
           language?: string
+          library_status?: string
+          library_status_since?: string | null
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
@@ -2031,6 +2040,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_free_downloads: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {
