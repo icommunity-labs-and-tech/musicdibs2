@@ -11,11 +11,13 @@ import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { DashboardTour } from '@/components/dashboard/DashboardTour';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus } from 'lucide-react';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { guardRegister } = useKycGuard();
+  useUsageTracking(); // auto-tracks login_after_purchase on mount
 
   useEffect(() => {
     if (!loading && !user) navigate('/login');
