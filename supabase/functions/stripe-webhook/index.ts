@@ -242,6 +242,118 @@ async function createOrderRecord(
   }
 }
 
+// ── Create purchase evidence record ──
+async function createPurchaseEvidence(
+  supabase: any,
+  params: {
+    userId: string;
+    orderId?: string;
+    email?: string;
+    displayName?: string;
+    productType: string;
+    productName?: string;
+    amount: number;
+    currency: string;
+    paymentIntentId?: string;
+    chargeId?: string;
+    checkoutSessionId?: string;
+    paymentStatus?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    browserLanguage?: string;
+    sessionId?: string;
+    acceptedTerms?: boolean;
+    acceptedTermsVersion?: string;
+    acceptedTermsTimestamp?: string;
+  }
+) {
+  try {
+    const payload = {
+      user_id: params.userId,
+      email: params.email,
+      display_name: params.displayName,
+      product_type: params.productType,
+      product_name: params.productName,
+      amount: params.amount,
+      currency: params.currency,
+      payment_provider: "stripe",
+      payment_intent_id: params.paymentIntentId,
+      charge_id: params.chargeId,
+      checkout_session_id: params.checkoutSessionId,
+      payment_status: params.paymentStatus || "succeeded",
+      ip_address: params.ipAddress,
+      user_agent: params.userAgent,
+      browser_language: params.browserLanguage,
+      session_id: params.sessionId,
+      accepted_terms: params.acceptedTerms,
+      accepted_terms_version: params.acceptedTermsVersion,
+      accepted_terms_timestamp: params.acceptedTermsTimestamp,
+      purchase_timestamp: new Date().toISOString(),
+    };
+
+    // Calculate SHA-256 hash of payload
+    const payloadStr = JSON.stringify(payload, Object.keys(payload).sort());
+    const encoded = new TextEncoder().encode(payloadStr);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+    const hashHex = new TextDecoder().decode(hexEncode(new Uint8Array(hashBuffer)));
+
+    const { data: evidence, error } = await supabase.from("purchase_evidences").insert({
+      user_id: params.userId,
+      order_id: params.orderId || null,
+      email: params.email,
+      display_name: params.displayName,
+      product_type: params.productType,
+      product_name: params.productName,
+      amount: params.amount,
+      currency: params.currency,
+      payment_provider: "stripe",
+      payment_intent_id: params.paymentIntentId,
+      charge_id: params.chargeId,
+      checkout_session_id: params.checkoutSessionId,
+      payment_status: params.paymentStatus || "succeeded",
+      ip_address: params.ipAddress,
+      user_agent: params.userAgent,
+      browser_language: params.browserLanguage,
+      session_id: params.sessionId,
+      accepted_terms: params.acceptedTerms ?? false,
+      accepted_terms_version: params.acceptedTermsVersion,
+      accepted_terms_timestamp: params.acceptedTermsTimestamp,
+      evidence_payload_json: payload,
+      evidence_hash: hashHex,
+      certification_status: "pending",
+    }).select("id").single();
+
+    if (error) {
+      console.error("[WEBHOOK] Failed to create purchase evidence:", error.message);
+      return null;
+    }
+
+    console.log(`[WEBHOOK] ✅ Purchase evidence created: ${evidence?.id}`);
+
+    // Trigger async certification via certify-purchase function
+    if (evidence?.id) {
+      try {
+        const certUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/certify-purchase`;
+        fetch(certUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ evidence_id: evidence.id }),
+        }).catch(e => console.warn("[WEBHOOK] certify-purchase fire-and-forget error:", e));
+      } catch (e) {
+        console.warn("[WEBHOOK] Failed to trigger certify-purchase:", e);
+      }
+    }
+
+    return evidence;
+  } catch (err: any) {
+    console.error("[WEBHOOK] Error creating purchase evidence:", err.message);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
