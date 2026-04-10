@@ -595,7 +595,7 @@ const AIStudioCreate = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.improved) {
-        setPrompt(data.improved.slice(0, 500));
+        setPrompt(data.improved.slice(0, 1000));
         toast({ title: t('aiCreate.promptImproved'), description: t('aiCreate.promptImprovedDesc') });
       }
     } catch (e: any) {
@@ -677,8 +677,7 @@ const AIStudioCreate = () => {
   const sendLyricsToMusic = () => {
     setLyricsText(generatedLyrics);
     setLyricsExpanded(true);
-    if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 500));
-    if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 500));
+    if (lyricsDesc) setPrompt(lyricsDesc.slice(0, 1000));
     setMode('song');
     setActiveTab('music');
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -913,14 +912,14 @@ const AIStudioCreate = () => {
                         <Textarea
                           placeholder={t('aiCreate.promptPlaceholder', 'Ej: Una canción pop alegre en español sobre amor, con un ritmo enérgico y romántico, voz femenina')}
                           value={prompt}
-                          onChange={(e) => setPrompt(e.target.value.slice(0, 500))}
+                          onChange={(e) => setPrompt(e.target.value.slice(0, 1000))}
                           rows={4}
                           className="resize-none"
-                          maxLength={500}
+                          maxLength={1000}
                         />
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground">{t('aiCreate.descHint', 'Incluye: género musical, mood/tono, idioma, tema, ritmo, tipo de voz, referencias...')}</p>
-                          <p className="text-xs text-muted-foreground">{prompt.length}/500</p>
+                          <p className="text-xs text-muted-foreground">{prompt.length}/1000</p>
                         </div>
                       </div>
 
