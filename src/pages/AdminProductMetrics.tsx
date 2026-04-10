@@ -65,6 +65,7 @@ export default function AdminProductMetrics() {
   const [metrics, setMetrics] = useState<MetricRow[]>([]);
   const [liveFeatureCounts, setLiveFeatureCounts] = useState<Record<string, number>>({});
   const [costConfig, setCostConfig] = useState<Record<string, { credit_cost: number; price_per_credit_eur: number }>>({});
+  const [cancellationData, setCancellationData] = useState<{ plan_type: string; reason: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
 
