@@ -251,7 +251,31 @@ export default function AdminProductMetrics() {
     return { items, totalRevEst };
   }, [liveFeatureCounts, costConfig]);
 
-  // Daily activity heatmap colors
+  // Cancellation reasons by plan type
+  const cancellationCharts = useMemo(() => {
+    const buildPlanData = (planFilter: string) => {
+      const filtered = cancellationData.filter((c) => c.plan_type === planFilter);
+      const total = filtered.length;
+      const counts: Record<string, number> = {};
+      for (const c of filtered) {
+        counts[c.reason] = (counts[c.reason] || 0) + 1;
+      }
+      return Object.entries(counts)
+        .map(([reason, count]) => ({
+          name: REASON_LABELS[reason] || reason,
+          value: count,
+          pct: total > 0 ? ((count / total) * 100).toFixed(1) : "0",
+        }))
+        .sort((a, b) => b.value - a.value);
+    };
+    return {
+      annual: buildPlanData("Annual"),
+      monthly: buildPlanData("Monthly"),
+      totalAnnual: cancellationData.filter((c) => c.plan_type === "Annual").length,
+      totalMonthly: cancellationData.filter((c) => c.plan_type === "Monthly").length,
+    };
+  }, [cancellationData]);
+
   const revenueValues = metrics.map((d) => Number(d.total_revenue_eur || 0));
   const sortedRevs = [...revenueValues].sort((a, b) => a - b);
   const p75 = sortedRevs[Math.floor(sortedRevs.length * 0.75)] || 0;
