@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { User, Mail, Phone, CreditCard, Shield, Calendar, Hash, FileText, Clock } from 'lucide-react';
 import UserPurchasesPanel from './UserPurchasesPanel';
+import UserUsagePanel from './UserUsagePanel';
 
 interface UserDetailSheetProps {
   user: any | null;
@@ -121,6 +122,11 @@ export default function UserDetailSheet({ user, open, onOpenChange }: UserDetail
 
         {/* Purchase evidences */}
         <UserPurchasesPanel userId={user.user_id} userEmail={user.email} />
+
+        <Separator className="my-4" />
+
+        {/* Usage evidences */}
+        <UserUsagePanel userId={user.user_id} />
       </SheetContent>
     </Sheet>
   );

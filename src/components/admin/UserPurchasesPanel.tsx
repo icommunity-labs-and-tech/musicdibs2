@@ -56,6 +56,22 @@ export default function UserPurchasesPanel({ userId, userEmail }: UserPurchasesP
   };
 
   const handleDownloadPdf = async (ev: any) => {
+    // Fetch usage events linked to this purchase evidence
+    let usageEvents: any[] = [];
+    const { data: usageData } = await supabase
+      .from('purchase_usage_evidences')
+      .select('event_type, event_timestamp, certification_status')
+      .eq('purchase_evidence_id', ev.id)
+      .order('event_timestamp', { ascending: true })
+      .limit(8);
+    if (usageData) {
+      usageEvents = usageData.map((u: any) => ({
+        eventType: u.event_type,
+        eventTimestamp: u.event_timestamp,
+        certificationStatus: u.certification_status,
+      }));
+    }
+
     const data: PurchaseEvidenceData = {
       email: ev.email || userEmail || '',
       displayName: ev.display_name,
@@ -80,6 +96,7 @@ export default function UserPurchasesPanel({ userId, userEmail }: UserPurchasesP
       checkerUrl: ev.ibs_transaction_id
         ? `https://checker.icommunitylabs.com/check/opera/${ev.ibs_transaction_id}`
         : undefined,
+      usageEvents,
     };
     await generatePurchaseCertificate(data, 'es');
     toast.success('Certificado descargado');

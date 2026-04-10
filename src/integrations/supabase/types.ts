@@ -1694,6 +1694,65 @@ export type Database = {
           },
         ]
       }
+      purchase_usage_evidences: {
+        Row: {
+          certification_status: string
+          created_at: string
+          event_timestamp: string
+          event_type: string
+          evidence_hash: string | null
+          ibs_registered_at: string | null
+          ibs_transaction_id: string | null
+          id: string
+          ip_address: string | null
+          metadata_json: Json | null
+          purchase_evidence_id: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          certification_status?: string
+          created_at?: string
+          event_timestamp?: string
+          event_type: string
+          evidence_hash?: string | null
+          ibs_registered_at?: string | null
+          ibs_transaction_id?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata_json?: Json | null
+          purchase_evidence_id: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          certification_status?: string
+          created_at?: string
+          event_timestamp?: string
+          event_type?: string
+          evidence_hash?: string | null
+          ibs_registered_at?: string | null
+          ibs_transaction_id?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata_json?: Json | null
+          purchase_evidence_id?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_usage_evidences_purchase_evidence_id_fkey"
+            columns: ["purchase_evidence_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_evidences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_promotions: {
         Row: {
           copy_ig_feed: string | null

@@ -15,8 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useKycGuard } from '@/hooks/useKycGuard';
 import type { DashboardSummary } from '@/types/dashboard';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 export default function DashboardHome() {
+  const { trackUsage } = useUsageTracking();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -30,6 +32,7 @@ export default function DashboardHome() {
   const [assetCounts, setAssetCounts] = useState({ songs: 0, videos: 0, covers: 0, voices: 0 });
   useEffect(() => {
     if (!user) return;
+    trackUsage('dashboard_access');
     const check = () => {
       supabase.functions.invoke('check-subscription').then(({ data, error }) => {
         if (error) console.error('[check-subscription]', error);

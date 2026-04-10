@@ -9,6 +9,12 @@ const GRAY_M  = '#999999'
 const RED_CORP = '#E8364E'
 const WHITE   = '#FFFFFF'
 
+export interface UsageEvent {
+  eventType: string;
+  eventTimestamp: string;
+  certificationStatus?: string;
+}
+
 export interface PurchaseEvidenceData {
   // Buyer
   email: string
@@ -36,6 +42,8 @@ export interface PurchaseEvidenceData {
   // Meta
   createdAt: string
   checkerUrl?: string
+  // Usage (post-purchase activity)
+  usageEvents?: UsageEvent[]
 }
 
 // ── Labels ───────────────────────────────────────────────────
@@ -69,6 +77,8 @@ interface Labels {
   filePrefix: string
   yesVal: string
   noVal: string
+  sectionUsage: string
+  usageLegal: string
 }
 
 const labelsMap: Record<string, Labels> = {
@@ -86,6 +96,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Fecha de certificación:', txIdLabel: 'ID de transacción iBS:', hashLabel: 'Hash de la evidencia:',
     verifyLabel: 'Verificar', footerPowered: 'powered by', filePrefix: 'comprobante-compra-musicdibs',
     yesVal: 'Sí', noVal: 'No',
+    sectionUsage: 'Actividad posterior a la compra',
+    usageLegal: 'Tras la compra, el usuario accedió y utilizó el servicio desde el entorno técnico registrado, lo que refuerza la validez de la transacción.',
   },
   en: {
     headerTitle: 'Certified purchase receipt',
@@ -101,6 +113,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Certification date:', txIdLabel: 'iBS transaction ID:', hashLabel: 'Evidence hash:',
     verifyLabel: 'Verify', footerPowered: 'powered by', filePrefix: 'purchase-receipt-musicdibs',
     yesVal: 'Yes', noVal: 'No',
+    sectionUsage: 'Post-purchase activity',
+    usageLegal: 'After the purchase, the user accessed and used the service from the registered technical environment, which reinforces the validity of the transaction.',
   },
   'pt-BR': {
     headerTitle: 'Comprovante de compra certificada',
@@ -116,6 +130,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Data de certificação:', txIdLabel: 'ID de transação iBS:', hashLabel: 'Hash da evidência:',
     verifyLabel: 'Verificar', footerPowered: 'powered by', filePrefix: 'comprovante-compra-musicdibs',
     yesVal: 'Sim', noVal: 'Não',
+    sectionUsage: 'Atividade posterior à compra',
+    usageLegal: 'Após a compra, o usuário acessou e utilizou o serviço a partir do ambiente técnico registrado, o que reforça a validade da transação.',
   },
 }
 
@@ -324,8 +340,91 @@ export async function generatePurchaseCertificate(data: PurchaseEvidenceData, lo
   if (data.evidenceHash) y = field(y, L.hashLabel, data.evidenceHash, true)
 
   // ══════════════════════════════════════════════════════════
+  // SECTION 5: POST-PURCHASE USAGE
+  // ══════════════════════════════════════════════════════════
+
+  if (data.usageEvents && data.usageEvents.length > 0) {
+    // Check if we need a new page
+    if (y > H - 100) {
+      doc.addPage()
+      y = 28
+      const wm2 = makeWatermark(W, H)
+      doc.addImage(wm2, 'PNG', 0, 0, W, H)
+    }
+
+    redLine(y)
+    y += 12
+
+    font('bold', 12)
+    hex(BLACK)
+    doc.text(L.sectionUsage, ML, y)
+    y += 8
+
+    // Legal text
+    font('italic', 8.5)
+    hex(GRAY_D)
+    const legalLines = doc.splitTextToSize(L.usageLegal, contentW)
+    doc.text(legalLines, ML, y)
+    y += legalLines.length * 3.8 + 6
+
+    const EVENT_LABELS_PDF: Record<string, Record<string, string>> = {
+      es: {
+        login_after_purchase: 'Login tras compra',
+        dashboard_access: 'Acceso al dashboard',
+        ai_song_generated: 'Generación de canción IA',
+        credits_used: 'Uso de créditos',
+        asset_created: 'Asset creado',
+        download_attempt: 'Intento de descarga',
+        distribution_started: 'Distribución iniciada',
+        promotion_created: 'Promoción creada',
+      },
+      en: {
+        login_after_purchase: 'Login after purchase',
+        dashboard_access: 'Dashboard access',
+        ai_song_generated: 'AI song generation',
+        credits_used: 'Credits used',
+        asset_created: 'Asset created',
+        download_attempt: 'Download attempt',
+        distribution_started: 'Distribution started',
+        promotion_created: 'Promotion created',
+      },
+      'pt-BR': {
+        login_after_purchase: 'Login após compra',
+        dashboard_access: 'Acesso ao dashboard',
+        ai_song_generated: 'Geração de música IA',
+        credits_used: 'Uso de créditos',
+        asset_created: 'Asset criado',
+        download_attempt: 'Tentativa de download',
+        distribution_started: 'Distribuição iniciada',
+        promotion_created: 'Promoção criada',
+      },
+    }
+
+    const lang = locale?.startsWith('pt') ? 'pt-BR' : (locale?.startsWith('en') ? 'en' : 'es')
+    const evLabels = EVENT_LABELS_PDF[lang] || EVENT_LABELS_PDF.es
+
+    // Show up to 8 most recent events
+    const eventsToShow = data.usageEvents.slice(0, 8)
+    for (const ev of eventsToShow) {
+      const label = evLabels[ev.eventType] || ev.eventType
+      const ts = new Date(ev.eventTimestamp).toLocaleString()
+      const statusIcon = ev.certificationStatus === 'certified' ? '✓' : '○'
+      
+      font('normal', 9)
+      hex(BLACK)
+      doc.text(`${statusIcon}  ${label}`, ML + 2, y)
+      
+      font('normal', 8)
+      hex(GRAY_M)
+      doc.text(ts, W - MR, y, { align: 'right' })
+      y += 5.5
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════
   // QR CODE
   // ══════════════════════════════════════════════════════════
+
 
   const qrSz = 32
   const qrX = W - MR - qrSz
