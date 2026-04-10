@@ -54,6 +54,25 @@ serve(async (req) => {
       });
     }
 
+    // Get the user's iBS signature (same logic as certify-purchase)
+    const { data: signature } = await supabase
+      .from("ibs_signatures")
+      .select("ibs_signature_id")
+      .eq("user_id", evidence.user_id)
+      .in("status", ["active", "success"])
+      .limit(1)
+      .maybeSingle();
+
+    const signatureId = signature?.ibs_signature_id || Deno.env.get("IBS_COMPANY_SIGNATURE_ID") || "";
+
+    if (!signatureId) {
+      console.error(`[CERTIFY-USAGE] No signature found for user ${evidence.user_id}`);
+      return new Response(JSON.stringify({ error: "No signature available for certification" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Build payload for hashing
     const payload = {
       id: evidence.id,
@@ -82,19 +101,23 @@ serve(async (req) => {
     }
     const payloadBase64 = btoa(binary);
 
-    const ibsBody: Record<string, any> = {
-      name: `usage-evidence-${evidence.id}`,
-      description: `MusicDibs usage evidence: ${evidence.event_type} for purchase ${evidence.purchase_evidence_id}`,
-      documents: [
-        {
-          name: "usage-evidence.json",
-          data: payloadBase64,
-          mimeType: "application/json",
-        },
-      ],
+    // Build iBS body using the SAME structure as certify-purchase
+    const evidenceTitle = `Evidencia de uso - ${evidence.event_type} - ${evidence.id}`;
+
+    const ibsBody = {
+      payload: {
+        title: evidenceTitle,
+        files: [
+          {
+            name: "usage-evidence.json",
+            file: payloadBase64,
+          },
+        ],
+      },
+      signatures: [{ id: signatureId }],
     };
 
-    console.log(`[CERTIFY-USAGE] Registering usage evidence ${evidence.id} in iBS...`);
+    console.log(`[CERTIFY-USAGE] Registering usage evidence ${evidence.id} in iBS via POST /evidences...`);
 
     const ibsRes = await fetch(`${IBS_API_URL}/evidences`, {
       method: "POST",
@@ -113,7 +136,7 @@ serve(async (req) => {
         evidence_hash: hashHex,
       }).eq("id", usage_evidence_id);
 
-      return new Response(JSON.stringify({ error: "iBS registration failed" }), {
+      return new Response(JSON.stringify({ error: "iBS registration failed", detail: errText.slice(0, 300) }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
