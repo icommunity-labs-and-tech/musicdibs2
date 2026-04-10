@@ -52,8 +52,6 @@ export default function BillingPage() {
   const [plan, setPlan] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
