@@ -453,7 +453,73 @@ export default function AdminProductMetrics() {
               </CardContent>
             </Card>
 
-            {/* BLOCK 5 — Actividad diaria */}
+            {/* BLOCK 5 — Motivos de cancelación */}
+            {(cancellationCharts.totalAnnual > 0 || cancellationCharts.totalMonthly > 0) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Motivos de cancelación</CardTitle>
+                  <CardDescription className="text-xs">
+                    Distribución de motivos por tipo de plan en el período seleccionado
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {[
+                      { label: "Plan Anual", data: cancellationCharts.annual, total: cancellationCharts.totalAnnual },
+                      { label: "Plan Mensual", data: cancellationCharts.monthly, total: cancellationCharts.totalMonthly },
+                    ].map((plan) => (
+                      <div key={plan.label}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-sm">{plan.label}</h3>
+                          <Badge variant="secondary" className="text-xs">{plan.total} cancelaciones</Badge>
+                        </div>
+                        {plan.total === 0 ? (
+                          <p className="text-sm text-muted-foreground py-8 text-center">Sin cancelaciones en este período</p>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <ResponsiveContainer width="100%" height={220}>
+                              <PieChart>
+                                <Pie
+                                  data={plan.data}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={50}
+                                  outerRadius={85}
+                                  paddingAngle={2}
+                                  dataKey="value"
+                                >
+                                  {plan.data.map((_, idx) => (
+                                    <Cell key={idx} fill={REASON_COLORS[idx % REASON_COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  formatter={(value: number, name: string) => [`${value} (${((value / plan.total) * 100).toFixed(1)}%)`, name]}
+                                  contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                            <div className="w-full space-y-1 mt-2">
+                              {plan.data.map((d, idx) => (
+                                <div key={d.name} className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: REASON_COLORS[idx % REASON_COLORS.length] }} />
+                                    <span className="text-muted-foreground">{d.name}</span>
+                                  </div>
+                                  <span className="font-medium">{d.pct}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* BLOCK 6 — Actividad diaria */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Actividad diaria</CardTitle>
