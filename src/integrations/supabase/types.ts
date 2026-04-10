@@ -403,6 +403,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cancellation_tracking: {
+        Row: {
+          cancellation_reason: string
+          cancelled_at: string | null
+          created_at: string | null
+          credits_remaining: number | null
+          id: string
+          lifetime_value: number | null
+          plan_type: string
+          subscription_id: string
+          subscription_revenue: number | null
+          subscription_start_date: string | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          cancellation_reason: string
+          cancelled_at?: string | null
+          created_at?: string | null
+          credits_remaining?: number | null
+          id?: string
+          lifetime_value?: number | null
+          plan_type: string
+          subscription_id: string
+          subscription_revenue?: number | null
+          subscription_start_date?: string | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          cancellation_reason?: string
+          cancelled_at?: string | null
+          created_at?: string | null
+          credits_remaining?: number | null
+          id?: string
+          lifetime_value?: number | null
+          plan_type?: string
+          subscription_id?: string
+          subscription_revenue?: number | null
+          subscription_start_date?: string | null
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -1955,7 +2000,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      cancellation_stats: {
+        Row: {
+          avg_creditos_restantes: number | null
+          avg_lifetime_value: number | null
+          cancellation_reason: string | null
+          fecha: string | null
+          plan_type: string | null
+          total_cancelaciones: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       decrement_credits: {
