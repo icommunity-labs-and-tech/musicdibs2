@@ -219,8 +219,7 @@ export default function AdminProductMetrics() {
   const revenueFeatures = useMemo(() => {
     const lc = liveFeatureCounts;
     const featureMap: { label: string; trackingKey: string; costKeys: string[] }[] = [
-      { label: "Crear música (instrumental)", trackingKey: "create_music", costKeys: ["generate_audio"] },
-      { label: "Crear música (canción)", trackingKey: "create_music", costKeys: ["generate_audio_song"] },
+      { label: "Crear música", trackingKey: "create_music", costKeys: ["generate_audio", "generate_audio_song"] },
       { label: "Compositor letras", trackingKey: "lyrics", costKeys: ["generate_lyrics"] },
       { label: "Canta tu canción", trackingKey: "vocal", costKeys: ["generate_vocal_track"] },
       { label: "Clonación de voz", trackingKey: "voice_cloning", costKeys: ["voice_translation_per_min"] },
