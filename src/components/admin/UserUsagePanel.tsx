@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { RefreshCw, Eye, Copy, Activity, ShieldCheck, AlertTriangle, Clock } from 'lucide-react';
+import { RefreshCw, Eye, Copy, Activity, ShieldCheck, AlertTriangle, Clock, RotateCcw } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -43,6 +43,19 @@ export default function UserUsagePanel({ userId }: UserUsagePanelProps) {
   };
 
   useEffect(() => { load(); }, [userId]);
+
+  const handleRetry = async (usageEvidenceId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('certify-usage', {
+        body: { usage_evidence_id: usageEvidenceId },
+      });
+      if (error) throw error;
+      toast.success('Certificación de uso reenviada');
+      setTimeout(load, 3000);
+    } catch (e: any) {
+      toast.error('Error al reintentar: ' + e.message);
+    }
+  };
 
   const statusBadge = (status: string) => {
     const map: Record<string, { className: string; icon: any }> = {
@@ -119,6 +132,11 @@ export default function UserUsagePanel({ userId }: UserUsagePanelProps) {
                         toast.success('iBS tx copiado');
                       }} title="Copiar iBS tx">
                         <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    {(ev.certification_status === 'failed' || ev.certification_status === 'pending') && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRetry(ev.id)} title="Reintentar certificación">
+                        <RotateCcw className="h-3.5 w-3.5" />
                       </Button>
                     )}
                   </div>
