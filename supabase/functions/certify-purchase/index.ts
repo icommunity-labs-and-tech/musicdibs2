@@ -97,6 +97,7 @@ serve(async (req) => {
     const payloadBase64 = btoa(binary);
 
     const ibsBody: Record<string, any> = {
+      title: `purchase-evidence-${evidence.id}`,
       name: `purchase-evidence-${evidence.id}`,
       description: `MusicDibs purchase evidence: ${evidence.product_name || evidence.product_type} - ${evidence.amount} ${evidence.currency}`,
       documents: [
