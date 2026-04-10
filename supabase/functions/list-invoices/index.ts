@@ -70,76 +70,27 @@ serve(async (req) => {
       );
     }
 
-    const mapped: any[] = [];
-    const seenPaymentIntents = new Set<string>();
-
-    // 1. Fetch invoices (subscriptions + invoice_creation from one-time payments)
+    // Fetch invoices only — all payments use invoice_creation so every
+    // charge has a corresponding invoice. Listing charges separately
+    // caused duplicates because Stripe API v2025 doesn't reliably
+    // populate cross-references (charge/payment_intent) on invoices.
     const invoices = await stripe.invoices.list({ customer: customerId, limit });
 
-    for (const inv of invoices.data) {
-      // Track payment_intent to deduplicate charges later
-      if (inv.payment_intent) {
-        const piId = typeof inv.payment_intent === "string" ? inv.payment_intent : (inv.payment_intent as any).id;
-        seenPaymentIntents.add(piId);
-      }
-      // Track charge ID too
-      if (inv.charge) {
-        const chId = typeof inv.charge === "string" ? inv.charge : (inv.charge as any).id;
-        seenPaymentIntents.add(chId);
-      }
-      mapped.push({
-        id: inv.id,
-        number: inv.number,
-        status: inv.status,
-        amount_due: inv.amount_due,
-        amount_paid: inv.amount_paid,
-        currency: inv.currency,
-        created: inv.created,
-        period_start: inv.period_start,
-        period_end: inv.period_end,
-        hosted_invoice_url: inv.hosted_invoice_url,
-        invoice_pdf: inv.invoice_pdf,
-        description: inv.description || inv.lines?.data?.[0]?.description || null,
-        payment_type: inv.subscription ? "subscription" : "one_time",
-      });
-    }
-
-    // 2. Fetch one-time charges NOT already covered by an invoice
-    //    (only for historical payments that predate invoice_creation)
-    const charges = await stripe.charges.list({ customer: customerId, limit });
-
-    for (const ch of charges.data) {
-      // Skip if this charge is already represented by an invoice
-      if (seenPaymentIntents.has(ch.id)) continue;
-      if (ch.invoice) continue; // charge has an invoice → already listed above
-      if (ch.payment_intent) {
-        const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : (ch.payment_intent as any).id;
-        if (seenPaymentIntents.has(piId)) continue;
-      }
-      if (ch.status !== "succeeded" && ch.status !== "failed") continue;
-
-      mapped.push({
-        id: ch.id,
-        number: null,
-        status: ch.status === "succeeded" ? "paid" : "failed",
-        amount_due: ch.amount,
-        amount_paid: ch.status === "succeeded" ? ch.amount : 0,
-        currency: ch.currency,
-        created: ch.created,
-        period_start: ch.created,
-        period_end: ch.created,
-        hosted_invoice_url: ch.receipt_url || null,
-        invoice_pdf: ch.receipt_url || null,
-        receipt_url: ch.receipt_url || null,
-        description: ch.description || (ch.metadata?.plan_id ? `Compra ${ch.metadata.plan_id}` : "Pago único"),
-        payment_type: "one_time",
-      });
-    }
-
-    // Sort by date descending
-    mapped.sort((a: any, b: any) => b.created - a.created);
-
-    const trimmed = mapped.slice(0, limit);
+    const mapped = invoices.data.map((inv: any) => ({
+      id: inv.id,
+      number: inv.number,
+      status: inv.status,
+      amount_due: inv.amount_due,
+      amount_paid: inv.amount_paid,
+      currency: inv.currency,
+      created: inv.created,
+      period_start: inv.period_start,
+      period_end: inv.period_end,
+      hosted_invoice_url: inv.hosted_invoice_url,
+      invoice_pdf: inv.invoice_pdf,
+      description: inv.description || inv.lines?.data?.[0]?.description || null,
+      payment_type: inv.subscription ? "subscription" : "one_time",
+    }));
 
     return new Response(
       JSON.stringify({ invoices: trimmed, has_more: mapped.length > limit }),
