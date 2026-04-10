@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2, Download, Eye, FileText, RefreshCw, Coins } from 'lucide-react';
+import { CreditCard, Receipt, ArrowRight, Loader2, Download, Eye, FileText, RefreshCw, Coins, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
+import { CancellationSurveyModal } from '@/components/dashboard/CancellationSurveyModal';
 
 interface Invoice {
   id: string;
@@ -46,7 +47,8 @@ export default function BillingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
-  const [loading, setLoading] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -159,80 +161,47 @@ export default function BillingPage() {
     }
   };
 
-  const handleManageSubscription = async () => {
-    setLoading(true);
+  const handleConfirmCancel = async (reason: string) => {
+    setCancelling(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      if (error) throw error;
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      } else {
-        throw new Error(t('dashboard.billing.portalError'));
-      }
-    } catch (err: any) {
-      const msg = err?.message || t('dashboard.billing.portalError');
-      toast.error(msg);
+      const { data } = await supabase.functions.invoke('create-credit-checkout', {
+        body: { action: 'cancel_renewal', cancellation_reason: reason },
+      });
+      toast.success(data?.message || t('dashboard.billing.renewalCancelled', 'Renovación cancelada'));
+      setCancelAtPeriodEnd(true);
+    } catch {
+      toast.error(t('dashboard.billing.cancelError', 'Error al cancelar'));
+      throw new Error('cancel failed');
     } finally {
-      setLoading(false);
+      setCancelling(false);
     }
   };
 
   const planLabel = plan ? (PLAN_LABELS[plan] || plan) : '...';
+  const hasActiveSubscription = plan && plan !== 'Free' && !cancelAtPeriodEnd;
 
   return (
     <div className="max-w-2xl space-y-6">
       <h2 className="text-xl font-bold">{t('dashboard.billing.title')}</h2>
 
-      <Card className="border-border/40">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <CreditCard className="h-4 w-4 text-primary" /> {t('dashboard.billing.currentPlan')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold">{planLabel}</p>
-              <p className="text-sm text-muted-foreground">
-                {cancelAtPeriodEnd
-                  ? t('dashboard.billing.cancelledAccess', { date: subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString(lang, { day: '2-digit', month: 'long', year: 'numeric' }) : '' })
-                  : plan === 'Free' ? t('dashboard.billing.noSubscription') : plan === 'Annual' ? t('dashboard.billing.renewalAnnual') : t('dashboard.billing.renewalMonthly')}
-              </p>
-            </div>
-            <Badge
-              className={cancelAtPeriodEnd
-                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                : plan === 'Free'
-                  ? 'bg-muted text-muted-foreground border-border'
-                  : 'bg-primary/10 text-primary border-primary/20'}
-              variant="outline"
-            >
-              {cancelAtPeriodEnd ? t('dashboard.billing.cancelled') : plan === 'Free' ? 'Free' : t('dashboard.billing.active')}
-            </Badge>
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
-              {plan === 'Free' ? t('dashboard.billing.viewPlans') : t('dashboard.billing.changePlan')} <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-            {plan && plan !== 'Free' && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleManageSubscription}
-                disabled={loading}
-              >
-                {loading ? (
-                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                ) : (
-                  <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                )}
-                {t('dashboard.billing.manageSubscription')}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Botón Cancelar suscripción */}
+      {hasActiveSubscription && (
+        <Button
+          variant="destructive"
+          className="w-full"
+          onClick={() => setCancelModalOpen(true)}
+          disabled={cancelling}
+        >
+          {cancelling ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <XCircle className="h-4 w-4 mr-2" />
+          )}
+          {t('dashboard.billing.cancelSubscription', 'Cancelar suscripción')}
+        </Button>
+      )}
 
+      {/* Historial de facturas */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -346,6 +315,48 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Plan actual — al final */}
+      <Card className="border-border/40">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-primary" /> {t('dashboard.billing.currentPlan')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold">{planLabel}</p>
+              <p className="text-sm text-muted-foreground">
+                {cancelAtPeriodEnd
+                  ? t('dashboard.billing.cancelledAccess', { date: subscriptionEnd ? new Date(subscriptionEnd).toLocaleDateString(lang, { day: '2-digit', month: 'long', year: 'numeric' }) : '' })
+                  : plan === 'Free' ? t('dashboard.billing.noSubscription') : plan === 'Annual' ? t('dashboard.billing.renewalAnnual') : t('dashboard.billing.renewalMonthly')}
+              </p>
+            </div>
+            <Badge
+              className={cancelAtPeriodEnd
+                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                : plan === 'Free'
+                  ? 'bg-muted text-muted-foreground border-border'
+                  : 'bg-primary/10 text-primary border-primary/20'}
+              variant="outline"
+            >
+              {cancelAtPeriodEnd ? t('dashboard.billing.cancelled') : plan === 'Free' ? 'Free' : t('dashboard.billing.active')}
+            </Badge>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
+            {plan === 'Free' ? t('dashboard.billing.viewPlans') : t('dashboard.billing.changePlan')} <ArrowRight className="h-3.5 w-3.5 ml-1" />
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Modal de cancelación */}
+      <CancellationSurveyModal
+        open={cancelModalOpen}
+        onOpenChange={setCancelModalOpen}
+        onConfirmCancel={handleConfirmCancel}
+        planType={plan === 'Annual' ? 'annual' : plan === 'Monthly' ? 'monthly' : undefined}
+      />
     </div>
   );
 }
