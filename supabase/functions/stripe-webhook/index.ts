@@ -430,7 +430,7 @@ serve(async (req) => {
           }
         } catch { /* ignore */ }
 
-        await createOrderRecord(supabase, {
+        const order = await createOrderRecord(supabase, {
           userId,
           stripeCheckoutSessionId: session.id,
           stripeSubscriptionId: stripeSubId,
@@ -447,6 +447,29 @@ serve(async (req) => {
           promotionCode,
           metadata: sessionMeta,
         });
+
+        // ── Create purchase evidence ──
+        {
+          const { data: { user: evUser } } = await supabase.auth.admin.getUserById(userId);
+          const { data: evProfile } = await supabase.from("profiles").select("display_name").eq("user_id", userId).single();
+          await createPurchaseEvidence(supabase, {
+            userId,
+            orderId: order?.id,
+            email: evUser?.email,
+            displayName: evProfile?.display_name || evUser?.email,
+            productType: sessionMeta.product_type || getProductType(planId),
+            productName: sessionMeta.product_label || planId,
+            amount: amountTotal,
+            currency: session.currency || "eur",
+            paymentIntentId: paymentIntentId || undefined,
+            chargeId: undefined,
+            checkoutSessionId: session.id,
+            paymentStatus: "succeeded",
+            acceptedTerms: sessionMeta.accepted_terms === "true" || sessionMeta.accepted_terms === true,
+            acceptedTermsVersion: sessionMeta.accepted_terms_version,
+            acceptedTermsTimestamp: sessionMeta.accepted_terms_timestamp,
+          });
+        }
 
         // Send purchase confirmation email
         try {
