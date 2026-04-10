@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
 import { useCredits } from '@/hooks/useCredits';
+import { useProductTracking } from '@/hooks/useProductTracking';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 import { FileDropzone } from '@/components/FileDropzone';
@@ -30,6 +31,7 @@ export const SocialVideosSection = () => {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { credits, hasEnough } = useCredits();
+  const { track } = useProductTracking();
   const tr = (key: string, opts?: any) => t(`promoMaterial.videos.${key}`, opts) as string;
 
   const [format, setFormat] = useState<VideoFormat>('story');

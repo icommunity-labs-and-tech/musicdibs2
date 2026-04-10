@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useProductTracking } from "@/hooks/useProductTracking";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowLeft, Loader2, Play, Pause, Download,
@@ -35,6 +36,7 @@ const AIStudioEdit = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const { hasEnough } = useCredits();
+  const { track } = useProductTracking();
   const tr = (key: string, opts?: any) => t(`masterize.${key}`, opts) as string;
 
   const [sourceTab, setSourceTab] = useState<string>("upload");

@@ -20,6 +20,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
 import { useAuth } from '@/hooks/useAuth';
+import { useProductTracking } from '@/hooks/useProductTracking';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
@@ -60,6 +61,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { credits, hasEnough } = useCredits();
+  const { track } = useProductTracking();
   const navigate = useNavigate();
   const noCredits = !hasEnough(PREMIUM_COST);
 

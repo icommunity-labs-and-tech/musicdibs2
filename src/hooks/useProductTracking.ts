@@ -12,11 +12,13 @@ type EventName =
   | 'work_registered_after_generation'
   | 'cover_generated'
   | 'video_generated'
+  | 'social_video_generated'
   | 'voice_cloned'
   | 'vocal_track_generated'
   | 'lyrics_generated'
   | 'press_release_generated'
   | 'promotion_generated'
+  | 'premium_promotion_submitted'
   | 'enhance_audio_started'
   | 'enhance_audio_completed'
   | 'distribution_clicked'
@@ -24,8 +26,8 @@ type EventName =
 
 type Feature =
   | 'create_music' | 'lyrics' | 'vocal' | 'cover' | 'video'
-  | 'promotion' | 'press' | 'register' | 'voice_cloning'
-  | 'enhance_audio' | 'distribution' | 'inspire' | 'edit_audio';
+  | 'social_video' | 'promotion' | 'press' | 'register' | 'voice_cloning'
+  | 'premium_promotion' | 'enhance_audio' | 'distribution' | 'inspire' | 'edit_audio';
 
 interface TrackOptions {
   feature: Feature;
@@ -49,7 +51,6 @@ export function useProductTracking() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
-      // Fire and forget
       fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/track-event`,
         {

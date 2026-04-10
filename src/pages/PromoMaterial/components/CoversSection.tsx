@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useAuth } from '@/hooks/useAuth';
 import { useCredits } from '@/hooks/useCredits';
+import { useProductTracking } from '@/hooks/useProductTracking';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
@@ -50,8 +50,8 @@ const fileToBase64 = (file: File): Promise<string> => {
 export const CoversSection = () => {
   const { t } = useTranslation();
   const tr = (key: string) => t(`promoMaterial.covers.${key}`);
-  const { user } = useAuth();
   const { hasEnough } = useCredits();
+  const { track } = useProductTracking();
 
   const [artistName, setArtistName] = useState('');
   const [trackTitle, setTrackTitle] = useState('');
