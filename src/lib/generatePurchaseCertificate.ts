@@ -9,6 +9,12 @@ const GRAY_M  = '#999999'
 const RED_CORP = '#E8364E'
 const WHITE   = '#FFFFFF'
 
+export interface UsageEvent {
+  eventType: string;
+  eventTimestamp: string;
+  certificationStatus?: string;
+}
+
 export interface PurchaseEvidenceData {
   // Buyer
   email: string
@@ -36,6 +42,8 @@ export interface PurchaseEvidenceData {
   // Meta
   createdAt: string
   checkerUrl?: string
+  // Usage (post-purchase activity)
+  usageEvents?: UsageEvent[]
 }
 
 // ── Labels ───────────────────────────────────────────────────
