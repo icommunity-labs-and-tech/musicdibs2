@@ -116,6 +116,11 @@ export default function UserDetailSheet({ user, open, onOpenChange }: UserDetail
             <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono break-all">{user.id}</code>
           } badge />
         </div>
+
+        <Separator className="my-4" />
+
+        {/* Purchase evidences */}
+        <UserPurchasesPanel userId={user.user_id} userEmail={user.email} />
       </SheetContent>
     </Sheet>
   );
