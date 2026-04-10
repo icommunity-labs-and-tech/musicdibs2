@@ -71,20 +71,21 @@ serve(async (req) => {
     }
 
     const mapped: any[] = [];
-    const seenIds = new Set<string>();
     const seenPaymentIntents = new Set<string>();
 
     // 1. Fetch invoices (subscriptions + invoice_creation from one-time payments)
     const invoices = await stripe.invoices.list({ customer: customerId, limit });
 
     for (const inv of invoices.data) {
-      seenIds.add(inv.id);
-      // Track charge IDs linked to this invoice
-      if (inv.charge) seenIds.add(typeof inv.charge === "string" ? inv.charge : inv.charge.id);
-      // Track payment_intent IDs to deduplicate charges linked via PI
+      // Track payment_intent to deduplicate charges later
       if (inv.payment_intent) {
-        const piId = typeof inv.payment_intent === "string" ? inv.payment_intent : inv.payment_intent.id;
+        const piId = typeof inv.payment_intent === "string" ? inv.payment_intent : (inv.payment_intent as any).id;
         seenPaymentIntents.add(piId);
+      }
+      // Track charge ID too
+      if (inv.charge) {
+        const chId = typeof inv.charge === "string" ? inv.charge : (inv.charge as any).id;
+        seenPaymentIntents.add(chId);
       }
       mapped.push({
         id: inv.id,
@@ -103,20 +104,19 @@ serve(async (req) => {
       });
     }
 
-    // 2. Fetch one-time charges not covered by invoices
+    // 2. Fetch one-time charges NOT already covered by an invoice
+    //    (only for historical payments that predate invoice_creation)
     const charges = await stripe.charges.list({ customer: customerId, limit });
 
     for (const ch of charges.data) {
-      if (seenIds.has(ch.id)) continue;
-      // Skip if associated invoice already captured
-      if (ch.invoice && seenIds.has(typeof ch.invoice === "string" ? ch.invoice : ch.invoice.id)) continue;
-      // Skip if the payment_intent is already covered by an invoice
+      // Skip if this charge is already represented by an invoice
+      if (seenPaymentIntents.has(ch.id)) continue;
+      if (ch.invoice) continue; // charge has an invoice → already listed above
       if (ch.payment_intent) {
-        const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : ch.payment_intent.id;
+        const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : (ch.payment_intent as any).id;
         if (seenPaymentIntents.has(piId)) continue;
       }
       if (ch.status !== "succeeded" && ch.status !== "failed") continue;
-      seenIds.add(ch.id);
 
       mapped.push({
         id: ch.id,
