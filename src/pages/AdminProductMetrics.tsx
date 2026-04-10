@@ -254,7 +254,7 @@ export default function AdminProductMetrics() {
   // Cancellation reasons by plan type
   const cancellationCharts = useMemo(() => {
     const buildPlanData = (planFilter: string) => {
-      const filtered = cancellationData.filter((c) => c.plan_type === planFilter);
+      const filtered = cancellationData.filter((c) => (c.plan_type || "").toLowerCase() === planFilter.toLowerCase());
       const total = filtered.length;
       const counts: Record<string, number> = {};
       for (const c of filtered) {
@@ -268,11 +268,13 @@ export default function AdminProductMetrics() {
         }))
         .sort((a, b) => b.value - a.value);
     };
+    const annualData = buildPlanData("annual");
+    const monthlyData = buildPlanData("monthly");
     return {
-      annual: buildPlanData("Annual"),
-      monthly: buildPlanData("Monthly"),
-      totalAnnual: cancellationData.filter((c) => c.plan_type === "Annual").length,
-      totalMonthly: cancellationData.filter((c) => c.plan_type === "Monthly").length,
+      annual: annualData,
+      monthly: monthlyData,
+      totalAnnual: cancellationData.filter((c) => (c.plan_type || "").toLowerCase() === "annual").length,
+      totalMonthly: cancellationData.filter((c) => (c.plan_type || "").toLowerCase() === "monthly").length,
     };
   }, [cancellationData]);
 
