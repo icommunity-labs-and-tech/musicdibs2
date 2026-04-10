@@ -184,22 +184,8 @@ export default function BillingPage() {
     <div className="max-w-2xl space-y-6">
       <h2 className="text-xl font-bold">{t('dashboard.billing.title')}</h2>
 
-      {/* Botón Cancelar suscripción */}
-      {hasActiveSubscription && (
-        <Button
-          variant="destructive"
-          className="w-full"
-          onClick={() => setCancelModalOpen(true)}
-          disabled={cancelling}
-        >
-          {cancelling ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <XCircle className="h-4 w-4 mr-2" />
-          )}
-          {t('dashboard.billing.cancelSubscription', 'Cancelar suscripción')}
-        </Button>
-      )}
+
+
 
       {/* Historial de facturas */}
       <Card className="border-border/40">
