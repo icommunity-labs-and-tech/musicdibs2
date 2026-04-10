@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encode as hexEncode } from "https://deno.land/std@0.168.0/encoding/hex.ts";
 import { creditPurchaseEmail, paymentFailedEmail } from "../_shared/transactional-email.ts";
 
 const corsHeaders = {
@@ -241,6 +242,118 @@ async function createOrderRecord(
   }
 }
 
+// ── Create purchase evidence record ──
+async function createPurchaseEvidence(
+  supabase: any,
+  params: {
+    userId: string;
+    orderId?: string;
+    email?: string;
+    displayName?: string;
+    productType: string;
+    productName?: string;
+    amount: number;
+    currency: string;
+    paymentIntentId?: string;
+    chargeId?: string;
+    checkoutSessionId?: string;
+    paymentStatus?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    browserLanguage?: string;
+    sessionId?: string;
+    acceptedTerms?: boolean;
+    acceptedTermsVersion?: string;
+    acceptedTermsTimestamp?: string;
+  }
+) {
+  try {
+    const payload = {
+      user_id: params.userId,
+      email: params.email,
+      display_name: params.displayName,
+      product_type: params.productType,
+      product_name: params.productName,
+      amount: params.amount,
+      currency: params.currency,
+      payment_provider: "stripe",
+      payment_intent_id: params.paymentIntentId,
+      charge_id: params.chargeId,
+      checkout_session_id: params.checkoutSessionId,
+      payment_status: params.paymentStatus || "succeeded",
+      ip_address: params.ipAddress,
+      user_agent: params.userAgent,
+      browser_language: params.browserLanguage,
+      session_id: params.sessionId,
+      accepted_terms: params.acceptedTerms,
+      accepted_terms_version: params.acceptedTermsVersion,
+      accepted_terms_timestamp: params.acceptedTermsTimestamp,
+      purchase_timestamp: new Date().toISOString(),
+    };
+
+    // Calculate SHA-256 hash of payload
+    const payloadStr = JSON.stringify(payload, Object.keys(payload).sort());
+    const encoded = new TextEncoder().encode(payloadStr);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+    const hashHex = new TextDecoder().decode(hexEncode(new Uint8Array(hashBuffer)));
+
+    const { data: evidence, error } = await supabase.from("purchase_evidences").insert({
+      user_id: params.userId,
+      order_id: params.orderId || null,
+      email: params.email,
+      display_name: params.displayName,
+      product_type: params.productType,
+      product_name: params.productName,
+      amount: params.amount,
+      currency: params.currency,
+      payment_provider: "stripe",
+      payment_intent_id: params.paymentIntentId,
+      charge_id: params.chargeId,
+      checkout_session_id: params.checkoutSessionId,
+      payment_status: params.paymentStatus || "succeeded",
+      ip_address: params.ipAddress,
+      user_agent: params.userAgent,
+      browser_language: params.browserLanguage,
+      session_id: params.sessionId,
+      accepted_terms: params.acceptedTerms ?? false,
+      accepted_terms_version: params.acceptedTermsVersion,
+      accepted_terms_timestamp: params.acceptedTermsTimestamp,
+      evidence_payload_json: payload,
+      evidence_hash: hashHex,
+      certification_status: "pending",
+    }).select("id").single();
+
+    if (error) {
+      console.error("[WEBHOOK] Failed to create purchase evidence:", error.message);
+      return null;
+    }
+
+    console.log(`[WEBHOOK] ✅ Purchase evidence created: ${evidence?.id}`);
+
+    // Trigger async certification via certify-purchase function
+    if (evidence?.id) {
+      try {
+        const certUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/certify-purchase`;
+        fetch(certUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+          },
+          body: JSON.stringify({ evidence_id: evidence.id }),
+        }).catch(e => console.warn("[WEBHOOK] certify-purchase fire-and-forget error:", e));
+      } catch (e) {
+        console.warn("[WEBHOOK] Failed to trigger certify-purchase:", e);
+      }
+    }
+
+    return evidence;
+  } catch (err: any) {
+    console.error("[WEBHOOK] Error creating purchase evidence:", err.message);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -317,7 +430,7 @@ serve(async (req) => {
           }
         } catch { /* ignore */ }
 
-        await createOrderRecord(supabase, {
+        const order = await createOrderRecord(supabase, {
           userId,
           stripeCheckoutSessionId: session.id,
           stripeSubscriptionId: stripeSubId,
@@ -334,6 +447,29 @@ serve(async (req) => {
           promotionCode,
           metadata: sessionMeta,
         });
+
+        // ── Create purchase evidence ──
+        {
+          const { data: { user: evUser } } = await supabase.auth.admin.getUserById(userId);
+          const { data: evProfile } = await supabase.from("profiles").select("display_name").eq("user_id", userId).single();
+          await createPurchaseEvidence(supabase, {
+            userId,
+            orderId: order?.id,
+            email: evUser?.email,
+            displayName: evProfile?.display_name || evUser?.email,
+            productType: sessionMeta.product_type || getProductType(planId),
+            productName: sessionMeta.product_label || planId,
+            amount: amountTotal,
+            currency: session.currency || "eur",
+            paymentIntentId: paymentIntentId || undefined,
+            chargeId: undefined,
+            checkoutSessionId: session.id,
+            paymentStatus: "succeeded",
+            acceptedTerms: sessionMeta.accepted_terms === "true" || sessionMeta.accepted_terms === true,
+            acceptedTermsVersion: sessionMeta.accepted_terms_version,
+            acceptedTermsTimestamp: sessionMeta.accepted_terms_timestamp,
+          });
+        }
 
         // Send purchase confirmation email
         try {
@@ -495,7 +631,7 @@ serve(async (req) => {
           const productType = getProductType(resolvedPlanId);
           const planLabel = PLAN_ID_TO_PLAN_NAME[resolvedPlanId] ? `Renovación ${resolvedPlanId}` : `Renovación ${resolvedPlanId}`;
 
-          await createOrderRecord(supabase, {
+          const renewalOrder = await createOrderRecord(supabase, {
             userId: profile.user_id,
             stripeInvoiceId: invoiceId,
             stripeSubscriptionId: subscriptionId,
@@ -509,6 +645,23 @@ serve(async (req) => {
             isRenewal: true,
             metadata: {},
           });
+
+          // ── Create purchase evidence for renewal ──
+          {
+            const { data: { user: rnUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+            const { data: rnProfile } = await supabase.from("profiles").select("display_name").eq("user_id", profile.user_id).single();
+            await createPurchaseEvidence(supabase, {
+              userId: profile.user_id,
+              orderId: renewalOrder?.id,
+              email: rnUser?.email,
+              displayName: rnProfile?.display_name,
+              productType,
+              productName: planLabel,
+              amount: invoiceAmount,
+              currency: invoiceCurrency,
+              paymentStatus: "succeeded",
+            });
+          }
         } else {
           console.warn(`[WEBHOOK] payment_succeeded: no profile found for customer ${customerId}`);
         }
@@ -548,7 +701,7 @@ serve(async (req) => {
           // ── Create order record for plan change ──
           const planId = resolvedPlanId || "unknown";
           const productType = getProductType(planId);
-          await createOrderRecord(supabase, {
+          const changeOrder = await createOrderRecord(supabase, {
             userId: profile.user_id,
             stripeInvoiceId: invoiceId,
             stripeSubscriptionId: subscriptionId,
@@ -562,6 +715,23 @@ serve(async (req) => {
             isRenewal: false,
             metadata: {},
           });
+
+          // ── Create purchase evidence for plan change ──
+          {
+            const { data: { user: chUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+            const { data: chProfile } = await supabase.from("profiles").select("display_name").eq("user_id", profile.user_id).single();
+            await createPurchaseEvidence(supabase, {
+              userId: profile.user_id,
+              orderId: changeOrder?.id,
+              email: chUser?.email,
+              displayName: chProfile?.display_name,
+              productType,
+              productName: `Cambio a ${planName || planId}`,
+              amount: invoiceAmount,
+              currency: invoiceCurrency,
+              paymentStatus: "succeeded",
+            });
+          }
         } else {
           console.warn(`[WEBHOOK] subscription_update: no profile found for customer ${customerId}`);
         }
