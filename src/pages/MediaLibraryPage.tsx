@@ -192,8 +192,13 @@ export default function MediaLibraryPage() {
   // ── Download single ──
   const downloadSingle = async (asset: MediaAsset) => {
     if (!asset.url) return;
+    if (!libraryAccess.canDownload) return;
     setDownloading(asset.id);
     try {
+      // Register free download if in warning tier
+      if (libraryAccess.tier === 'warning' && user) {
+        await registerFreeDownload(user.id);
+      }
       const resp = await fetch(asset.url);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
@@ -341,7 +346,8 @@ export default function MediaLibraryPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Library Access Banner */}
+      <LibraryAccessBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">📂 Biblioteca multimedia</h1>
