@@ -532,6 +532,17 @@ serve(async (req) => {
           if (planName) {
             await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", profile.user_id);
             console.log(`[WEBHOOK] Plan change: updated plan to ${planName} for user ${profile.user_id}`);
+            // Sync MailerLite: move to new plan group
+            const { data: { user: changeUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+            if (changeUser?.email) {
+              const { data: mlProfile } = await supabase.from("profiles").select("language").eq("user_id", profile.user_id).single();
+              await syncMailerLite("purchase.completed", {
+                email: changeUser.email,
+                locale: mlProfile?.language || "es",
+                plan_type: planToMailerLiteType(planName),
+                stripe_customer_id: customerId,
+              });
+            }
           }
 
           // ── Create order record for plan change ──
