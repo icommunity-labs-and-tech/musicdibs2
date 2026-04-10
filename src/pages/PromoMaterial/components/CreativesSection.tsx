@@ -134,13 +134,13 @@ export const CreativesSection = () => {
           <Label className="text-sm">Describe la imagen que quieres <span className="text-destructive">*</span></Label>
           <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 300))}
+            onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
             placeholder="Ej: Artista cantando en un escenario con luces de neón azul y rosa, ambiente nocturno urbano"
             rows={4}
-            maxLength={300}
+            maxLength={1000}
             className="resize-none text-sm"
           />
-          <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
+          <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
         </div>
 
         {/* Photo */}

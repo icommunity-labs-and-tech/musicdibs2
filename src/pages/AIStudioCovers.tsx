@@ -72,7 +72,7 @@ const AIStudioCovers = () => {
         body: { prompt: description, genre: styleVisual || "", mode: "cover" },
       })
       if (error || !data?.improved) throw new Error(error?.message || "No response")
-      setDescription(data.improved.slice(0, 300))
+      setDescription(data.improved.slice(0, 1000))
       toast.success("Descripción mejorada")
     } catch {
       toast.error(t("aiShared.error"))
@@ -261,9 +261,9 @@ const AIStudioCovers = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Ej: Una figura solitaria en un paisaje urbano nocturno, lluvia, luces de neón..."
-                    rows={3} className="resize-none text-sm" maxLength={300}
+                    rows={3} className="resize-none text-sm" maxLength={1000}
                   />
-                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
+                  <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
                 </div>
 
                 {/* Artist photo — conditional */}

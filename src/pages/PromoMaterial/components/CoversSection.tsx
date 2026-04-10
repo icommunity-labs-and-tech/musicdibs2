@@ -102,7 +102,7 @@ export const CoversSection = () => {
       });
       if (error || data?.error) throw new Error(data?.error || error?.message);
       if (data?.improved) {
-        setDescription(data.improved.slice(0, 300));
+        setDescription(data.improved.slice(0, 1000));
         toast.success(t('aiCovers.descImproved'));
       }
     } catch {
@@ -318,9 +318,9 @@ export const CoversSection = () => {
                   }
                   rows={3}
                   className="resize-none text-sm"
-                  maxLength={300}
+                  maxLength={1000}
                 />
-                <p className="text-[11px] text-muted-foreground text-right">{description.length}/300</p>
+                <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
               </div>
 
               {genError && <p className="text-xs text-destructive">{genError}</p>}
