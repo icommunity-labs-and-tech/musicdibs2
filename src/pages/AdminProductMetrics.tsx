@@ -112,6 +112,13 @@ export default function AdminProductMetrics() {
     }
     setCostConfig(costMap);
 
+    // Load cancellation surveys
+    const { data: cancellations } = await supabase
+      .from("cancellation_surveys")
+      .select("reason, plan_type")
+      .gte("created_at", `${fromStr}T00:00:00.000Z`);
+    setCancellationData(cancellations || []);
+
     setLoading(false);
   };
 
