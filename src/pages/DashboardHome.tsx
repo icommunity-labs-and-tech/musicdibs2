@@ -15,8 +15,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useKycGuard } from '@/hooks/useKycGuard';
 import type { DashboardSummary } from '@/types/dashboard';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 export default function DashboardHome() {
+  const { trackUsage } = useUsageTracking();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
