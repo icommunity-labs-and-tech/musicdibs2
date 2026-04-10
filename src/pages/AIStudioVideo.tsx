@@ -76,6 +76,10 @@ const AIStudioVideo = () => {
   const { hasEnough } = useCredits();
   const { track } = useProductTracking();
 
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'video' });
+  }, []);
+
   // Generation mode
   const [mode, setMode] = useState<'text_to_video' | 'image_to_video'>('text_to_video');
 
