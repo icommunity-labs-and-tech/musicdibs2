@@ -701,7 +701,7 @@ serve(async (req) => {
           // ── Create order record for plan change ──
           const planId = resolvedPlanId || "unknown";
           const productType = getProductType(planId);
-          await createOrderRecord(supabase, {
+          const changeOrder = await createOrderRecord(supabase, {
             userId: profile.user_id,
             stripeInvoiceId: invoiceId,
             stripeSubscriptionId: subscriptionId,
@@ -715,6 +715,23 @@ serve(async (req) => {
             isRenewal: false,
             metadata: {},
           });
+
+          // ── Create purchase evidence for plan change ──
+          {
+            const { data: { user: chUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+            const { data: chProfile } = await supabase.from("profiles").select("display_name").eq("user_id", profile.user_id).single();
+            await createPurchaseEvidence(supabase, {
+              userId: profile.user_id,
+              orderId: changeOrder?.id,
+              email: chUser?.email,
+              displayName: chProfile?.display_name,
+              productType,
+              productName: `Cambio a ${planName || planId}`,
+              amount: invoiceAmount,
+              currency: invoiceCurrency,
+              paymentStatus: "succeeded",
+            });
+          }
         } else {
           console.warn(`[WEBHOOK] subscription_update: no profile found for customer ${customerId}`);
         }
