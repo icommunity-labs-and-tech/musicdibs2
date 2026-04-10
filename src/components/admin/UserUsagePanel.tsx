@@ -134,6 +134,11 @@ export default function UserUsagePanel({ userId }: UserUsagePanelProps) {
                         <Copy className="h-3.5 w-3.5" />
                       </Button>
                     )}
+                    {(ev.certification_status === 'failed' || ev.certification_status === 'pending') && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRetry(ev.id)} title="Reintentar certificación">
+                        <RotateCcw className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
