@@ -125,6 +125,18 @@ function getInvoicePriceId(invoice: any): string | undefined {
   return invoice.lines?.data?.[0]?.price?.id;
 }
 
+// For subscription_update invoices, the first line item is the proration credit
+// for the OLD plan. We need the NEW plan's price from the subscription itself.
+async function getSubscriptionPriceId(stripe: any, subscriptionId: string): Promise<string | undefined> {
+  try {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    return sub.items?.data?.[0]?.price?.id;
+  } catch (e) {
+    console.warn("[WEBHOOK] Failed to retrieve subscription for price:", e);
+    return undefined;
+  }
+}
+
 // ── Create order record in orders table ──
 async function createOrderRecord(
   supabase: any,
@@ -677,15 +689,28 @@ serve(async (req) => {
         const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
         if (profile) {
-          const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
+          // For subscription_update, invoice line items contain proration entries
+          // whose price is the OLD plan. Get the NEW plan's price from the subscription.
+          let actualPriceId = priceId;
+          if (subscriptionId) {
+            const subPriceId = await getSubscriptionPriceId(stripe, subscriptionId);
+            if (subPriceId) {
+              actualPriceId = subPriceId;
+              console.log(`[WEBHOOK] subscription_update: resolved NEW plan price ${actualPriceId} from subscription ${subscriptionId}`);
+            }
+          }
+
+          const credits = actualPriceId ? (PRICE_CREDITS[actualPriceId] || 0) : 0;
 
           if (credits > 0) {
             await addCredits(supabase, profile.user_id, credits, `Cambio de plan: +${credits} créditos acumulados`);
             console.log(`[WEBHOOK] Plan change: added ${credits} credits to user ${profile.user_id} (accumulated)`);
+          } else {
+            console.warn(`[WEBHOOK] subscription_update: no credits mapping for price ${actualPriceId}`);
           }
 
           // Update plan name
-          const resolvedPlanId = priceId ? (PRICE_TO_PLAN_ID[priceId] || null) : null;
+          const resolvedPlanId = actualPriceId ? (PRICE_TO_PLAN_ID[actualPriceId] || null) : null;
           const planName = resolvedPlanId ? (PLAN_ID_TO_PLAN_NAME[resolvedPlanId] || null) : null;
           if (planName) {
             await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", profile.user_id);
