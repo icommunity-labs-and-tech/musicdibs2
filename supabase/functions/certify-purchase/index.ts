@@ -71,11 +71,19 @@ serve(async (req) => {
       .from("ibs_signatures")
       .select("ibs_signature_id")
       .eq("user_id", evidence.user_id)
-      .eq("status", "active")
+      .in("status", ["active", "success"])
       .limit(1)
       .maybeSingle();
 
     const signatureId = signature?.ibs_signature_id || Deno.env.get("IBS_COMPANY_SIGNATURE_ID") || "";
+
+    if (!signatureId) {
+      console.error(`[CERTIFY-PURCHASE] No signature found for user ${evidence.user_id}`);
+      return new Response(JSON.stringify({ error: "No signature available for certification" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Build the JSON payload and compute hashes
     const payloadStr = JSON.stringify(evidence.evidence_payload_json);
