@@ -47,7 +47,8 @@ export default function BillingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
-  const [loading, setLoading] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [plan, setPlan] = useState<string | null>(null);
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
