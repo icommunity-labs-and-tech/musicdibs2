@@ -103,8 +103,7 @@ export default function MediaLibraryPage() {
         );
       }
 
-      // Covers – stored in ai-generations bucket, check for image content types
-      // We'll check the social_promotions table for generated cover images
+      // Covers from social_promotions
       const { data: promos } = await supabase
         .from("social_promotions")
         .select("id, image_url, created_at, work_id")
@@ -122,6 +121,31 @@ export default function MediaLibraryPage() {
             createdAt: p.created_at,
           })
         );
+      }
+
+      // Covers generated from AI Studio (stored in social-promo-images/covers/{userId}/)
+      const { data: coverFiles } = await supabase.storage
+        .from("social-promo-images")
+        .list(`covers/${user.id}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+
+      if (coverFiles) {
+        const promoUrls = new Set(promos?.map((p) => p.image_url) || []);
+        coverFiles
+          .filter((f) => f.name.endsWith(".png") || f.name.endsWith(".jpg"))
+          .forEach((f) => {
+            const { data: pubUrl } = supabase.storage
+              .from("social-promo-images")
+              .getPublicUrl(`covers/${user.id}/${f.name}`);
+            // Skip if already added from social_promotions
+            if (promoUrls.has(pubUrl.publicUrl)) return;
+            allAssets.push({
+              id: `cover-file-${f.id || f.name}`,
+              type: "cover",
+              title: `Portada IA`,
+              url: pubUrl.publicUrl,
+              createdAt: f.created_at || new Date().toISOString(),
+            });
+          });
       }
 
       // Voice clones samples
