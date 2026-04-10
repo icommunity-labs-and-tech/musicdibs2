@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
+import { useProductTracking } from "@/hooks/useProductTracking";
 
 import { ArrowLeft, Lightbulb, Shuffle, Copy, Sparkles, Music, Palette, Zap } from "lucide-react";
 import { GENRES, MOODS } from "@/types/aiStudio";
@@ -38,7 +39,12 @@ const COMBO_RECIPE_KEYS = [
 
 const AIStudioInspire = () => {
   const { t } = useTranslation();
+  const { track } = useProductTracking();
   const [randomCombo, setRandomCombo] = useState<{ genre: string; mood: string } | null>(null);
+
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'inspire' });
+  }, []);
 
   const generateRandomCombo = () => {
     const genre = GENRES[Math.floor(Math.random() * GENRES.length)];
@@ -61,7 +67,6 @@ const AIStudioInspire = () => {
           {t('aiInspire.backToStudio')}
         </Link>
 
-        {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 mb-6">
             <Lightbulb className="w-4 h-4" />
@@ -73,7 +78,6 @@ const AIStudioInspire = () => {
           </p>
         </div>
 
-        {/* Random Combo Generator */}
         <Card className="mb-12 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex flex-col md:flex-row items-center gap-6 py-8">
             <div className="flex-1 text-center md:text-left">
@@ -112,7 +116,6 @@ const AIStudioInspire = () => {
           </CardContent>
         </Card>
 
-        {/* Combo Recipes */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Palette className="w-6 h-6 text-primary" />
@@ -148,7 +151,6 @@ const AIStudioInspire = () => {
           </div>
         </section>
 
-        {/* Suggested Prompts */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
             <Music className="w-6 h-6 text-primary" />

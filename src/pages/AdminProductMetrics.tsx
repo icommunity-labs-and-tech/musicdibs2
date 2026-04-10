@@ -32,6 +32,23 @@ const REASON_COLORS = [
   "hsl(0, 0%, 55%)",
 ];
 
+const ACTION_EVENTS_BY_FEATURE: Record<string, string[]> = {
+  create_music: ["generation_completed"],
+  lyrics: ["lyrics_generated"],
+  vocal: ["vocal_track_generated"],
+  voice_cloning: ["voice_cloned"],
+  cover: ["cover_generated"],
+  video: ["video_generated"],
+  social_video: ["social_video_generated"],
+  promotion: ["promotion_generated"],
+  premium_promotion: ["premium_promotion_submitted"],
+  press: ["press_release_generated"],
+  register: ["work_registered"],
+  enhance_audio: ["enhance_audio_completed"],
+  distribution: ["distribution_clicked"],
+  inspire: ["ai_studio_entered"],
+};
+
 interface MetricRow {
   date: string;
   ai_studio_entries: number;
@@ -89,15 +106,17 @@ export default function AdminProductMetrics() {
 
     setMetrics((data as MetricRow[]) || []);
 
-    // Load live feature counts from product_events for ALL features
+    // Load live feature counts from product_events using the action tied to each feature
     const { data: events } = await supabase
       .from("product_events")
-      .select("feature")
+      .select("feature, event_name")
       .gte("created_at", `${fromStr}T00:00:00.000Z`);
 
     const counts: Record<string, number> = {};
-    for (const e of events || []) {
-      counts[e.feature] = (counts[e.feature] || 0) + 1;
+    for (const [feature, eventNames] of Object.entries(ACTION_EVENTS_BY_FEATURE)) {
+      counts[feature] = (events || []).filter(
+        (event) => event.feature === feature && eventNames.includes(event.event_name)
+      ).length;
     }
     setLiveFeatureCounts(counts);
 
