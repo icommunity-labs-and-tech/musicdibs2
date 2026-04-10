@@ -453,10 +453,10 @@ export default function AIStudioVocal() {
                     {/* Description */}
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">{tv('whatAbout')}</Label>
-                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={4} className="resize-none text-sm" maxLength={500} />
+                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} placeholder={tv('descPlaceholder')} rows={4} className="resize-none text-sm" maxLength={1000} />
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] text-muted-foreground">Incluye: tema, mood, historia, referencias...</span>
-                        <span className="text-[11px] text-muted-foreground">{lyricsDesc.length}/500</span>
+                        <span className="text-[11px] text-muted-foreground">{lyricsDesc.length}/1000</span>
                       </div>
                     </div>
 
