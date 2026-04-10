@@ -125,6 +125,18 @@ function getInvoicePriceId(invoice: any): string | undefined {
   return invoice.lines?.data?.[0]?.price?.id;
 }
 
+// For subscription_update invoices, the first line item is the proration credit
+// for the OLD plan. We need the NEW plan's price from the subscription itself.
+async function getSubscriptionPriceId(stripe: any, subscriptionId: string): Promise<string | undefined> {
+  try {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    return sub.items?.data?.[0]?.price?.id;
+  } catch (e) {
+    console.warn("[WEBHOOK] Failed to retrieve subscription for price:", e);
+    return undefined;
+  }
+}
+
 // ── Create order record in orders table ──
 async function createOrderRecord(
   supabase: any,
