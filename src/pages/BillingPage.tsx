@@ -333,6 +333,17 @@ export default function BillingPage() {
           <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
             {plan === 'Free' ? t('dashboard.billing.viewPlans') : t('dashboard.billing.changePlan')} <ArrowRight className="h-3.5 w-3.5 ml-1" />
           </Button>
+          {hasActiveSubscription && (
+            <span
+              className="block mt-3 text-sm text-muted-foreground cursor-pointer hover:underline hover:text-foreground transition-colors"
+              onClick={() => setCancelModalOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && setCancelModalOpen(true)}
+            >
+              {t('dashboard.billing.cancelSubscription', 'Cancelar suscripción')}
+            </span>
+          )}
         </CardContent>
       </Card>
 
