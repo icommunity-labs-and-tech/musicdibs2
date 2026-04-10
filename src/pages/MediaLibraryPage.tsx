@@ -12,8 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download, Music, Video, Image, Mic, Loader2, Search,
   CheckSquare, Square, Package, Play, Pause, Trash2, X,
-  FileAudio, Film, ImageIcon, FolderOpen
+  FileAudio, Film, ImageIcon, FolderOpen, Lock
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLibraryAccess, registerFreeDownload } from "@/hooks/useLibraryAccess";
+import LibraryAccessBanner from "@/components/library/LibraryAccessBanner";
 import JSZip from "jszip";
 
 // ── Types ──
@@ -39,6 +42,7 @@ const TAB_CONFIG: { value: TabType; label: string; icon: React.ElementType }[] =
 export default function MediaLibraryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const libraryAccess = useLibraryAccess();
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -188,8 +192,13 @@ export default function MediaLibraryPage() {
   // ── Download single ──
   const downloadSingle = async (asset: MediaAsset) => {
     if (!asset.url) return;
+    if (!libraryAccess.canDownload) return;
     setDownloading(asset.id);
     try {
+      // Register free download if in warning tier
+      if (libraryAccess.tier === 'warning' && user) {
+        await registerFreeDownload(user.id);
+      }
       const resp = await fetch(asset.url);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
@@ -337,7 +346,8 @@ export default function MediaLibraryPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Library Access Banner */}
+      <LibraryAccessBanner />
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">📂 Biblioteca multimedia</h1>
@@ -579,19 +589,39 @@ export default function MediaLibraryPage() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs"
-                          disabled={!asset.url || downloading === asset.id}
-                          onClick={() => downloadSingle(asset)}
-                        >
-                          {downloading === asset.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Download className="h-3.5 w-3.5" />
-                          )}
-                        </Button>
+                        {libraryAccess.canDownload ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs"
+                            disabled={!asset.url || downloading === asset.id}
+                            onClick={() => downloadSingle(asset)}
+                          >
+                            {downloading === asset.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Download className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 text-xs opacity-50"
+                                  disabled
+                                >
+                                  <Lock className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Reactiva tu plan para descargar</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
