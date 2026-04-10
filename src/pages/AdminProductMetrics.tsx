@@ -8,6 +8,29 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, RefreshCw, ArrowRight, Star, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
+const REASON_LABELS: Record<string, string> = {
+  probando: "Solo estaba probando",
+  terminado: "Ya creé lo que necesitaba",
+  no_uso: "No la uso lo suficiente",
+  pocos_creditos: "Se queda corto de créditos",
+  caro: "Es demasiado caro",
+  mal_resultado: "Resultado no esperado",
+  otra_herramienta: "Uso otra herramienta",
+  otro: "Otro motivo",
+};
+
+const REASON_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(220, 70%, 55%)",
+  "hsl(280, 60%, 55%)",
+  "hsl(340, 65%, 50%)",
+  "hsl(30, 80%, 55%)",
+  "hsl(160, 60%, 45%)",
+  "hsl(50, 75%, 50%)",
+  "hsl(0, 0%, 55%)",
+];
 
 interface MetricRow {
   date: string;
