@@ -106,7 +106,7 @@ serve(async (req) => {
     // Build iBS body using the SAME structure as register-work-ibs
     const evidenceTitle = `Comprobante de compra - ${evidence.product_name || evidence.product_type} - ${evidence.id}`;
 
-    const ibsBody: Record<string, any> = {
+    const ibsBody = {
       payload: {
         title: evidenceTitle,
         files: [
@@ -116,12 +116,8 @@ serve(async (req) => {
           },
         ],
       },
+      signatures: [{ id: signatureId }],
     };
-
-    // Add signature if available
-    if (signatureId) {
-      ibsBody.signatures = [{ id: signatureId }];
-    }
 
     console.log(`[CERTIFY-PURCHASE] Registering evidence ${evidence.id} in iBS via POST /evidences...`);
 
