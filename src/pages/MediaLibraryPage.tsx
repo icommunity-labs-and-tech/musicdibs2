@@ -12,8 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download, Music, Video, Image, Mic, Loader2, Search,
   CheckSquare, Square, Package, Play, Pause, Trash2, X,
-  FileAudio, Film, ImageIcon, FolderOpen
+  FileAudio, Film, ImageIcon, FolderOpen, Lock
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLibraryAccess, registerFreeDownload } from "@/hooks/useLibraryAccess";
+import LibraryAccessBanner from "@/components/library/LibraryAccessBanner";
 import JSZip from "jszip";
 
 // ── Types ──
