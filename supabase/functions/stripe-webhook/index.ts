@@ -631,7 +631,7 @@ serve(async (req) => {
           const productType = getProductType(resolvedPlanId);
           const planLabel = PLAN_ID_TO_PLAN_NAME[resolvedPlanId] ? `Renovación ${resolvedPlanId}` : `Renovación ${resolvedPlanId}`;
 
-          await createOrderRecord(supabase, {
+          const renewalOrder = await createOrderRecord(supabase, {
             userId: profile.user_id,
             stripeInvoiceId: invoiceId,
             stripeSubscriptionId: subscriptionId,
@@ -645,6 +645,23 @@ serve(async (req) => {
             isRenewal: true,
             metadata: {},
           });
+
+          // ── Create purchase evidence for renewal ──
+          {
+            const { data: { user: rnUser } } = await supabase.auth.admin.getUserById(profile.user_id);
+            const { data: rnProfile } = await supabase.from("profiles").select("display_name").eq("user_id", profile.user_id).single();
+            await createPurchaseEvidence(supabase, {
+              userId: profile.user_id,
+              orderId: renewalOrder?.id,
+              email: rnUser?.email,
+              displayName: rnProfile?.display_name,
+              productType,
+              productName: planLabel,
+              amount: invoiceAmount,
+              currency: invoiceCurrency,
+              paymentStatus: "succeeded",
+            });
+          }
         } else {
           console.warn(`[WEBHOOK] payment_succeeded: no profile found for customer ${customerId}`);
         }
