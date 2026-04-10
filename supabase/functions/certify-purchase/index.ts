@@ -25,7 +25,6 @@ serve(async (req) => {
       throw new Error("IBS_API_KEY is not configured");
     }
 
-    // Auth: only service_role or admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -67,28 +66,36 @@ serve(async (req) => {
       });
     }
 
-    // Get the user's iBS signature (use the first one available)
+    // Get the user's iBS signature
     const { data: signature } = await supabase
       .from("ibs_signatures")
       .select("ibs_signature_id")
       .eq("user_id", evidence.user_id)
-      .eq("status", "active")
+      .in("status", ["active", "success"])
       .limit(1)
       .maybeSingle();
 
-    // Use a system-level signature if user doesn't have one
-    // For purchase evidences, we use the company signature
     const signatureId = signature?.ibs_signature_id || Deno.env.get("IBS_COMPANY_SIGNATURE_ID") || "";
 
-    // Build iBS payload
+    if (!signatureId) {
+      console.error(`[CERTIFY-PURCHASE] No signature found for user ${evidence.user_id}`);
+      return new Response(JSON.stringify({ error: "No signature available for certification" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Build the JSON payload and compute hashes
     const payloadStr = JSON.stringify(evidence.evidence_payload_json);
     const payloadBytes = new TextEncoder().encode(payloadStr);
+
+    // SHA-256 for our DB record
     const hashBuffer = await crypto.subtle.digest("SHA-256", payloadBytes);
     const hashArray = new Uint8Array(hashBuffer);
     let hashHex = "";
     for (const b of hashArray) hashHex += b.toString(16).padStart(2, "0");
 
-    // Convert payload to base64
+    // Convert payload JSON to base64 for iBS file upload
     let binary = "";
     const chunkSize = 0x8000;
     for (let i = 0; i < payloadBytes.length; i += chunkSize) {
@@ -96,24 +103,23 @@ serve(async (req) => {
     }
     const payloadBase64 = btoa(binary);
 
-    const ibsBody: Record<string, any> = {
-      title: `purchase-evidence-${evidence.id}`,
-      name: `purchase-evidence-${evidence.id}`,
-      description: `MusicDibs purchase evidence: ${evidence.product_name || evidence.product_type} - ${evidence.amount} ${evidence.currency}`,
-      documents: [
-        {
-          name: "purchase-evidence.json",
-          data: payloadBase64,
-          mimeType: "application/json",
-        },
-      ],
+    // Build iBS body using the SAME structure as register-work-ibs
+    const evidenceTitle = `Comprobante de compra - ${evidence.product_name || evidence.product_type} - ${evidence.id}`;
+
+    const ibsBody = {
+      payload: {
+        title: evidenceTitle,
+        files: [
+          {
+            name: "purchase-evidence.json",
+            file: payloadBase64,
+          },
+        ],
+      },
+      signatures: [{ id: signatureId }],
     };
 
-    if (signatureId) {
-      ibsBody.signatureId = signatureId;
-    }
-
-    console.log(`[CERTIFY-PURCHASE] Registering evidence ${evidence.id} in iBS...`);
+    console.log(`[CERTIFY-PURCHASE] Registering evidence ${evidence.id} in iBS via POST /evidences...`);
 
     const ibsRes = await fetch(`${IBS_API_URL}/evidences`, {
       method: "POST",
@@ -133,7 +139,7 @@ serve(async (req) => {
         updated_at: new Date().toISOString(),
       }).eq("id", evidence_id);
 
-      return new Response(JSON.stringify({ error: "iBS registration failed" }), {
+      return new Response(JSON.stringify({ error: "iBS registration failed", detail: errText.slice(0, 300) }), {
         status: 502,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
