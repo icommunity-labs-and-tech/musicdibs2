@@ -77,6 +77,8 @@ interface Labels {
   filePrefix: string
   yesVal: string
   noVal: string
+  sectionUsage: string
+  usageLegal: string
 }
 
 const labelsMap: Record<string, Labels> = {
@@ -94,6 +96,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Fecha de certificación:', txIdLabel: 'ID de transacción iBS:', hashLabel: 'Hash de la evidencia:',
     verifyLabel: 'Verificar', footerPowered: 'powered by', filePrefix: 'comprobante-compra-musicdibs',
     yesVal: 'Sí', noVal: 'No',
+    sectionUsage: 'Actividad posterior a la compra',
+    usageLegal: 'Tras la compra, el usuario accedió y utilizó el servicio desde el entorno técnico registrado, lo que refuerza la validez de la transacción.',
   },
   en: {
     headerTitle: 'Certified purchase receipt',
@@ -109,6 +113,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Certification date:', txIdLabel: 'iBS transaction ID:', hashLabel: 'Evidence hash:',
     verifyLabel: 'Verify', footerPowered: 'powered by', filePrefix: 'purchase-receipt-musicdibs',
     yesVal: 'Yes', noVal: 'No',
+    sectionUsage: 'Post-purchase activity',
+    usageLegal: 'After the purchase, the user accessed and used the service from the registered technical environment, which reinforces the validity of the transaction.',
   },
   'pt-BR': {
     headerTitle: 'Comprovante de compra certificada',
@@ -124,6 +130,8 @@ const labelsMap: Record<string, Labels> = {
     certDateLabel: 'Data de certificação:', txIdLabel: 'ID de transação iBS:', hashLabel: 'Hash da evidência:',
     verifyLabel: 'Verificar', footerPowered: 'powered by', filePrefix: 'comprovante-compra-musicdibs',
     yesVal: 'Sim', noVal: 'Não',
+    sectionUsage: 'Atividade posterior à compra',
+    usageLegal: 'Após a compra, o usuário acessou e utilizou o serviço a partir do ambiente técnico registrado, o que reforça a validade da transação.',
   },
 }
 
