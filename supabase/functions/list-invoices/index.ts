@@ -70,79 +70,30 @@ serve(async (req) => {
       );
     }
 
-    const mapped: any[] = [];
-    const seenIds = new Set<string>();
-    const seenPaymentIntents = new Set<string>();
-
-    // 1. Fetch invoices (subscriptions + invoice_creation from one-time payments)
+    // Fetch invoices only — all payments use invoice_creation so every
+    // charge has a corresponding invoice. Listing charges separately
+    // caused duplicates because Stripe API v2025 doesn't reliably
+    // populate cross-references (charge/payment_intent) on invoices.
     const invoices = await stripe.invoices.list({ customer: customerId, limit });
 
-    for (const inv of invoices.data) {
-      seenIds.add(inv.id);
-      // Track charge IDs linked to this invoice
-      if (inv.charge) seenIds.add(typeof inv.charge === "string" ? inv.charge : inv.charge.id);
-      // Track payment_intent IDs to deduplicate charges linked via PI
-      if (inv.payment_intent) {
-        const piId = typeof inv.payment_intent === "string" ? inv.payment_intent : inv.payment_intent.id;
-        seenPaymentIntents.add(piId);
-      }
-      mapped.push({
-        id: inv.id,
-        number: inv.number,
-        status: inv.status,
-        amount_due: inv.amount_due,
-        amount_paid: inv.amount_paid,
-        currency: inv.currency,
-        created: inv.created,
-        period_start: inv.period_start,
-        period_end: inv.period_end,
-        hosted_invoice_url: inv.hosted_invoice_url,
-        invoice_pdf: inv.invoice_pdf,
-        description: inv.description || inv.lines?.data?.[0]?.description || null,
-        payment_type: inv.subscription ? "subscription" : "one_time",
-      });
-    }
-
-    // 2. Fetch one-time charges not covered by invoices
-    const charges = await stripe.charges.list({ customer: customerId, limit });
-
-    for (const ch of charges.data) {
-      if (seenIds.has(ch.id)) continue;
-      // Skip if associated invoice already captured
-      if (ch.invoice && seenIds.has(typeof ch.invoice === "string" ? ch.invoice : ch.invoice.id)) continue;
-      // Skip if the payment_intent is already covered by an invoice
-      if (ch.payment_intent) {
-        const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : ch.payment_intent.id;
-        if (seenPaymentIntents.has(piId)) continue;
-      }
-      if (ch.status !== "succeeded" && ch.status !== "failed") continue;
-      seenIds.add(ch.id);
-
-      mapped.push({
-        id: ch.id,
-        number: null,
-        status: ch.status === "succeeded" ? "paid" : "failed",
-        amount_due: ch.amount,
-        amount_paid: ch.status === "succeeded" ? ch.amount : 0,
-        currency: ch.currency,
-        created: ch.created,
-        period_start: ch.created,
-        period_end: ch.created,
-        hosted_invoice_url: ch.receipt_url || null,
-        invoice_pdf: ch.receipt_url || null,
-        receipt_url: ch.receipt_url || null,
-        description: ch.description || (ch.metadata?.plan_id ? `Compra ${ch.metadata.plan_id}` : "Pago único"),
-        payment_type: "one_time",
-      });
-    }
-
-    // Sort by date descending
-    mapped.sort((a: any, b: any) => b.created - a.created);
-
-    const trimmed = mapped.slice(0, limit);
+    const mapped = invoices.data.map((inv: any) => ({
+      id: inv.id,
+      number: inv.number,
+      status: inv.status,
+      amount_due: inv.amount_due,
+      amount_paid: inv.amount_paid,
+      currency: inv.currency,
+      created: inv.created,
+      period_start: inv.period_start,
+      period_end: inv.period_end,
+      hosted_invoice_url: inv.hosted_invoice_url,
+      invoice_pdf: inv.invoice_pdf,
+      description: inv.description || inv.lines?.data?.[0]?.description || null,
+      payment_type: inv.subscription ? "subscription" : "one_time",
+    }));
 
     return new Response(
-      JSON.stringify({ invoices: trimmed, has_more: mapped.length > limit }),
+      JSON.stringify({ invoices: mapped, has_more: invoices.has_more }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
