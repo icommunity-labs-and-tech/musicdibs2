@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CreditCard, Receipt, ArrowRight, Loader2, Download, Eye, FileText, RefreshCw, Coins, XCircle } from 'lucide-react';
+import { CreditCard, Receipt, ArrowRight, Loader2, Download, Eye, FileText, RefreshCw, Coins } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -184,22 +184,8 @@ export default function BillingPage() {
     <div className="max-w-2xl space-y-6">
       <h2 className="text-xl font-bold">{t('dashboard.billing.title')}</h2>
 
-      {/* Botón Cancelar suscripción */}
-      {hasActiveSubscription && (
-        <Button
-          variant="destructive"
-          className="w-full"
-          onClick={() => setCancelModalOpen(true)}
-          disabled={cancelling}
-        >
-          {cancelling ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <XCircle className="h-4 w-4 mr-2" />
-          )}
-          {t('dashboard.billing.cancelSubscription', 'Cancelar suscripción')}
-        </Button>
-      )}
+
+
 
       {/* Historial de facturas */}
       <Card className="border-border/40">
@@ -347,6 +333,17 @@ export default function BillingPage() {
           <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/credits')}>
             {plan === 'Free' ? t('dashboard.billing.viewPlans') : t('dashboard.billing.changePlan')} <ArrowRight className="h-3.5 w-3.5 ml-1" />
           </Button>
+          {hasActiveSubscription && (
+            <span
+              className="block mt-3 text-sm text-muted-foreground cursor-pointer hover:underline hover:text-foreground transition-colors"
+              onClick={() => setCancelModalOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && setCancelModalOpen(true)}
+            >
+              {t('dashboard.billing.cancelSubscription', 'Cancelar suscripción')}
+            </span>
+          )}
         </CardContent>
       </Card>
 
