@@ -44,6 +44,19 @@ export default function UserUsagePanel({ userId }: UserUsagePanelProps) {
 
   useEffect(() => { load(); }, [userId]);
 
+  const handleRetry = async (usageEvidenceId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('certify-usage', {
+        body: { usage_evidence_id: usageEvidenceId },
+      });
+      if (error) throw error;
+      toast.success('Certificación de uso reenviada');
+      setTimeout(load, 3000);
+    } catch (e: any) {
+      toast.error('Error al reintentar: ' + e.message);
+    }
+  };
+
   const statusBadge = (status: string) => {
     const map: Record<string, { className: string; icon: any }> = {
       certified: { className: 'bg-green-500/20 text-green-400', icon: ShieldCheck },
