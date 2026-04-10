@@ -1587,6 +1587,113 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_evidences: {
+        Row: {
+          accepted_terms: boolean | null
+          accepted_terms_timestamp: string | null
+          accepted_terms_version: string | null
+          amount: number
+          browser_language: string | null
+          certificate_pdf_url: string | null
+          certification_status: string
+          charge_id: string | null
+          checkout_session_id: string | null
+          created_at: string
+          currency: string
+          display_name: string | null
+          email: string | null
+          error_message: string | null
+          evidence_hash: string | null
+          evidence_payload_json: Json | null
+          ibs_registered_at: string | null
+          ibs_transaction_id: string | null
+          id: string
+          ip_address: string | null
+          order_id: string | null
+          payment_intent_id: string | null
+          payment_provider: string
+          payment_status: string
+          product_name: string | null
+          product_type: string
+          session_id: string | null
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_terms?: boolean | null
+          accepted_terms_timestamp?: string | null
+          accepted_terms_version?: string | null
+          amount?: number
+          browser_language?: string | null
+          certificate_pdf_url?: string | null
+          certification_status?: string
+          charge_id?: string | null
+          checkout_session_id?: string | null
+          created_at?: string
+          currency?: string
+          display_name?: string | null
+          email?: string | null
+          error_message?: string | null
+          evidence_hash?: string | null
+          evidence_payload_json?: Json | null
+          ibs_registered_at?: string | null
+          ibs_transaction_id?: string | null
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          payment_intent_id?: string | null
+          payment_provider?: string
+          payment_status?: string
+          product_name?: string | null
+          product_type: string
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_terms?: boolean | null
+          accepted_terms_timestamp?: string | null
+          accepted_terms_version?: string | null
+          amount?: number
+          browser_language?: string | null
+          certificate_pdf_url?: string | null
+          certification_status?: string
+          charge_id?: string | null
+          checkout_session_id?: string | null
+          created_at?: string
+          currency?: string
+          display_name?: string | null
+          email?: string | null
+          error_message?: string | null
+          evidence_hash?: string | null
+          evidence_payload_json?: Json | null
+          ibs_registered_at?: string | null
+          ibs_transaction_id?: string | null
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          payment_intent_id?: string | null
+          payment_provider?: string
+          payment_status?: string
+          product_name?: string | null
+          product_type?: string
+          session_id?: string | null
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_evidences_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_promotions: {
         Row: {
           copy_ig_feed: string | null
