@@ -513,6 +513,48 @@ serve(async (req) => {
           console.warn(`[WEBHOOK] payment_succeeded: no profile found for customer ${customerId}`);
         }
       }
+
+      // ── Plan change (upgrade/downgrade) → accumulate credits ──
+      if (billingReason === "subscription_update") {
+        const profile = await findProfileByCustomerId(supabase, stripe, customerId);
+
+        if (profile) {
+          const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
+
+          if (credits > 0) {
+            await addCredits(supabase, profile.user_id, credits, `Cambio de plan: +${credits} créditos acumulados`);
+            console.log(`[WEBHOOK] Plan change: added ${credits} credits to user ${profile.user_id} (accumulated)`);
+          }
+
+          // Update plan name
+          const resolvedPlanId = priceId ? (PRICE_TO_PLAN_ID[priceId] || null) : null;
+          const planName = resolvedPlanId ? (PLAN_ID_TO_PLAN_NAME[resolvedPlanId] || null) : null;
+          if (planName) {
+            await supabase.from("profiles").update({ subscription_plan: planName }).eq("user_id", profile.user_id);
+            console.log(`[WEBHOOK] Plan change: updated plan to ${planName} for user ${profile.user_id}`);
+          }
+
+          // ── Create order record for plan change ──
+          const planId = resolvedPlanId || "unknown";
+          const productType = getProductType(planId);
+          await createOrderRecord(supabase, {
+            userId: profile.user_id,
+            stripeInvoiceId: invoiceId,
+            stripeSubscriptionId: subscriptionId,
+            productType,
+            productCode: planId,
+            productLabel: `Cambio a ${planName || planId}`,
+            billingInterval: productType === "annual" ? "yearly" : productType === "monthly" ? "monthly" : null,
+            amountGross: invoiceAmount,
+            currency: invoiceCurrency,
+            isSubscription: true,
+            isRenewal: false,
+            metadata: {},
+          });
+        } else {
+          console.warn(`[WEBHOOK] subscription_update: no profile found for customer ${customerId}`);
+        }
+      }
     }
 
     // ── invoice.payment_failed / invoice_payment.failed ──────────────────
