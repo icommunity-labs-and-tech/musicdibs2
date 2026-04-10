@@ -8,6 +8,29 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, RefreshCw, ArrowRight, Star, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
+const REASON_LABELS: Record<string, string> = {
+  probando: "Solo estaba probando",
+  terminado: "Ya creé lo que necesitaba",
+  no_uso: "No la uso lo suficiente",
+  pocos_creditos: "Se queda corto de créditos",
+  caro: "Es demasiado caro",
+  mal_resultado: "Resultado no esperado",
+  otra_herramienta: "Uso otra herramienta",
+  otro: "Otro motivo",
+};
+
+const REASON_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(220, 70%, 55%)",
+  "hsl(280, 60%, 55%)",
+  "hsl(340, 65%, 50%)",
+  "hsl(30, 80%, 55%)",
+  "hsl(160, 60%, 45%)",
+  "hsl(50, 75%, 50%)",
+  "hsl(0, 0%, 55%)",
+];
 
 interface MetricRow {
   date: string;
@@ -42,6 +65,7 @@ export default function AdminProductMetrics() {
   const [metrics, setMetrics] = useState<MetricRow[]>([]);
   const [liveFeatureCounts, setLiveFeatureCounts] = useState<Record<string, number>>({});
   const [costConfig, setCostConfig] = useState<Record<string, { credit_cost: number; price_per_credit_eur: number }>>({});
+  const [cancellationData, setCancellationData] = useState<{ plan_type: string; reason: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [recalculating, setRecalculating] = useState(false);
 
@@ -87,6 +111,13 @@ export default function AdminProductMetrics() {
       costMap[c.feature_key] = { credit_cost: c.credit_cost, price_per_credit_eur: Number(c.price_per_credit_eur) };
     }
     setCostConfig(costMap);
+
+    // Load cancellation surveys
+    const { data: cancellations } = await supabase
+      .from("cancellation_surveys")
+      .select("reason, plan_type")
+      .gte("created_at", `${fromStr}T00:00:00.000Z`);
+    setCancellationData(cancellations || []);
 
     setLoading(false);
   };
@@ -220,7 +251,31 @@ export default function AdminProductMetrics() {
     return { items, totalRevEst };
   }, [liveFeatureCounts, costConfig]);
 
-  // Daily activity heatmap colors
+  // Cancellation reasons by plan type
+  const cancellationCharts = useMemo(() => {
+    const buildPlanData = (planFilter: string) => {
+      const filtered = cancellationData.filter((c) => c.plan_type === planFilter);
+      const total = filtered.length;
+      const counts: Record<string, number> = {};
+      for (const c of filtered) {
+        counts[c.reason] = (counts[c.reason] || 0) + 1;
+      }
+      return Object.entries(counts)
+        .map(([reason, count]) => ({
+          name: REASON_LABELS[reason] || reason,
+          value: count,
+          pct: total > 0 ? ((count / total) * 100).toFixed(1) : "0",
+        }))
+        .sort((a, b) => b.value - a.value);
+    };
+    return {
+      annual: buildPlanData("Annual"),
+      monthly: buildPlanData("Monthly"),
+      totalAnnual: cancellationData.filter((c) => c.plan_type === "Annual").length,
+      totalMonthly: cancellationData.filter((c) => c.plan_type === "Monthly").length,
+    };
+  }, [cancellationData]);
+
   const revenueValues = metrics.map((d) => Number(d.total_revenue_eur || 0));
   const sortedRevs = [...revenueValues].sort((a, b) => a - b);
   const p75 = sortedRevs[Math.floor(sortedRevs.length * 0.75)] || 0;
@@ -398,7 +453,73 @@ export default function AdminProductMetrics() {
               </CardContent>
             </Card>
 
-            {/* BLOCK 5 — Actividad diaria */}
+            {/* BLOCK 5 — Motivos de cancelación */}
+            {(cancellationCharts.totalAnnual > 0 || cancellationCharts.totalMonthly > 0) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Motivos de cancelación</CardTitle>
+                  <CardDescription className="text-xs">
+                    Distribución de motivos por tipo de plan en el período seleccionado
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {[
+                      { label: "Plan Anual", data: cancellationCharts.annual, total: cancellationCharts.totalAnnual },
+                      { label: "Plan Mensual", data: cancellationCharts.monthly, total: cancellationCharts.totalMonthly },
+                    ].map((plan) => (
+                      <div key={plan.label}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-sm">{plan.label}</h3>
+                          <Badge variant="secondary" className="text-xs">{plan.total} cancelaciones</Badge>
+                        </div>
+                        {plan.total === 0 ? (
+                          <p className="text-sm text-muted-foreground py-8 text-center">Sin cancelaciones en este período</p>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <ResponsiveContainer width="100%" height={220}>
+                              <PieChart>
+                                <Pie
+                                  data={plan.data}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={50}
+                                  outerRadius={85}
+                                  paddingAngle={2}
+                                  dataKey="value"
+                                >
+                                  {plan.data.map((_, idx) => (
+                                    <Cell key={idx} fill={REASON_COLORS[idx % REASON_COLORS.length]} />
+                                  ))}
+                                </Pie>
+                                <Tooltip
+                                  formatter={(value: number, name: string) => [`${value} (${((value / plan.total) * 100).toFixed(1)}%)`, name]}
+                                  contentStyle={{ backgroundColor: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                                  labelStyle={{ color: "hsl(var(--popover-foreground))" }}
+                                />
+                              </PieChart>
+                            </ResponsiveContainer>
+                            <div className="w-full space-y-1 mt-2">
+                              {plan.data.map((d, idx) => (
+                                <div key={d.name} className="flex items-center justify-between text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ backgroundColor: REASON_COLORS[idx % REASON_COLORS.length] }} />
+                                    <span className="text-muted-foreground">{d.name}</span>
+                                  </div>
+                                  <span className="font-medium">{d.pct}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* BLOCK 6 — Actividad diaria */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Actividad diaria</CardTitle>
