@@ -236,10 +236,10 @@ export default function AdminProductMetrics() {
 
     const items = featureMap.map((f) => {
       const uses = lc[f.trackingKey] || 0;
-      // Use the first matching cost config to estimate revenue
-      const cfg = f.costKeys.map((k) => costConfig[k]).find(Boolean);
-      const creditCost = cfg?.credit_cost || 0;
-      const pricePerCredit = cfg?.price_per_credit_eur || 0.60;
+      // Average credit cost across matching configs (e.g. instrumental + song)
+      const cfgs = f.costKeys.map((k) => costConfig[k]).filter(Boolean);
+      const creditCost = cfgs.length > 0 ? Math.round(cfgs.reduce((s, c) => s + c.credit_cost, 0) / cfgs.length) : 0;
+      const pricePerCredit = cfgs.length > 0 ? cfgs.reduce((s, c) => s + c.price_per_credit_eur, 0) / cfgs.length : 0.60;
       const revenue = uses * creditCost * pricePerCredit;
       return { label: f.label, uses, creditCost, revenue };
     }).filter((f) => f.creditCost > 0); // Solo features de pago
