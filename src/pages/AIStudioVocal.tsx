@@ -63,6 +63,10 @@ export default function AIStudioVocal() {
   const tv = (key: string, opts?: any): string => String(t(`aiVocal.${key}`, opts));
   const { track } = useProductTracking();
 
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'vocal' });
+  }, []);
+
   // Voice clones
   const [voiceClones, setVoiceClones] = useState<any[]>([]);
   const [clonesLoading, setClonesLoading] = useState(true);

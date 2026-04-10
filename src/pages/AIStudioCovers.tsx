@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -44,6 +44,11 @@ const AIStudioCovers = () => {
   const { user } = useAuth()
   const { hasEnough } = useCredits()
   const { track } = useProductTracking()
+
+
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'cover' })
+  }, [])
 
   const [artistName, setArtistName] = useState("")
   const [trackTitle, setTrackTitle] = useState("")
