@@ -93,7 +93,7 @@ serve(async (req) => {
     }));
 
     return new Response(
-      JSON.stringify({ invoices: trimmed, has_more: mapped.length > limit }),
+      JSON.stringify({ invoices: mapped, has_more: invoices.has_more }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
