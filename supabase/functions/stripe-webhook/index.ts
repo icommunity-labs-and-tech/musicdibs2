@@ -503,18 +503,23 @@ serve(async (req) => {
           console.error("[WEBHOOK] Error enqueuing purchase email:", emailErr);
         }
 
-        // ── MailerLite sync: purchase ──
-        try {
-          const { data: { user: mlUser } } = await supabase.auth.admin.getUserById(userId);
-          if (mlUser?.email) {
-            const { data: mlProfile } = await supabase.from("profiles").select("language").eq("user_id", userId).single();
-            const mlCustId = session.customer ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id) : "";
-            await syncMailerLite("purchase.completed", {
-              email: mlUser.email, locale: mlProfile?.language || "es",
-              plan_type: planToMailerLiteType(planName || planId), stripe_customer_id: mlCustId,
-            });
-          }
-        } catch (mlErr) { console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr); }
+        // ── MailerLite sync: purchase (skip for top-ups and individual credits to preserve subscription group) ──
+        const isTopUpOrIndividual = planId.startsWith("topup_") || planId === "individual";
+        if (!isTopUpOrIndividual) {
+          try {
+            const { data: { user: mlUser } } = await supabase.auth.admin.getUserById(userId);
+            if (mlUser?.email) {
+              const { data: mlProfile } = await supabase.from("profiles").select("language").eq("user_id", userId).single();
+              const mlCustId = session.customer ? (typeof session.customer === "string" ? session.customer : (session.customer as any).id) : "";
+              await syncMailerLite("purchase.completed", {
+                email: mlUser.email, locale: mlProfile?.language || "es",
+                plan_type: planToMailerLiteType(planName || planId), stripe_customer_id: mlCustId,
+              });
+            }
+          } catch (mlErr) { console.warn("[WEBHOOK] MailerLite purchase sync error:", mlErr); }
+        } else {
+          console.log(`[WEBHOOK] Skipping MailerLite group sync for ${planId} (top-up/individual — preserving subscription group)`);
+        }
 
         // ── Notify team: first annual subscription (distribution onboarding) ──
         const ANNUAL_IDS = ["annual_100", "annual_200", "annual_300", "annual_500", "annual_1000"];
