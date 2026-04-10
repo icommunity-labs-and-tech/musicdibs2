@@ -306,12 +306,6 @@ export function CreditStore({ compact, cancelAtPeriodEnd: externalCancel }: { co
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Cancelar renovación */}
-      {(isAnnualActive || isMonthlyActive) && !cancelAtPeriodEnd && (
-        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-destructive" onClick={() => setCancelModalOpen(true)} disabled={loading !== null}>
-          {t(`${cs}.cancelRenewal`)}
-        </Button>
-      )}
 
       <CancellationSurveyModal
         open={cancelModalOpen}
