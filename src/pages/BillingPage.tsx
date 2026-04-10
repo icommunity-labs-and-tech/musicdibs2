@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CreditCard, Receipt, ArrowRight, ExternalLink, Loader2, Download, Eye, FileText, RefreshCw, Coins } from 'lucide-react';
+import { CreditCard, Receipt, ArrowRight, Loader2, Download, Eye, FileText, RefreshCw, Coins, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from 'react-i18next';
+import { CancellationSurveyModal } from '@/components/dashboard/CancellationSurveyModal';
 
 interface Invoice {
   id: string;
