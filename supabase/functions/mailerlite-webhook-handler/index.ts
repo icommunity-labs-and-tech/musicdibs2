@@ -131,6 +131,7 @@ async function handlePurchase(p: any) {
   await callMailerLite("PUT", `/subscribers/${email}`, {
     fields: {
       plan_type: p.plan_type,
+      cart_plan: "subscription",
       stripe_customer_id: p.stripe_customer_id || "",
       last_activity_date: new Date().toISOString().slice(0, 10),
     },
@@ -167,6 +168,7 @@ async function handleCancellation(p: any) {
   await callMailerLite("PUT", `/subscribers/${email}`, {
     fields: {
       plan_type: "free",
+      cart_plan: "no_subscription",
       cancellation_date: new Date().toISOString().slice(0, 10),
       cancellation_reason: p.cancellation_reason || "unknown",
     },
