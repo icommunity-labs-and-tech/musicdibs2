@@ -65,5 +65,9 @@ export function useLibraryAccess(): LibraryAccess {
 }
 
 export async function registerFreeDownload(userId: string) {
-  await supabase.rpc('increment_free_downloads', { p_user_id: userId } as any).catch(() => {});
+  try {
+    await supabase.rpc('increment_free_downloads' as any, { p_user_id: userId });
+  } catch {
+    // silent
+  }
 }

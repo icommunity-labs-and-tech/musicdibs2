@@ -42,6 +42,7 @@ const TAB_CONFIG: { value: TabType; label: string; icon: React.ElementType }[] =
 export default function MediaLibraryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const libraryAccess = useLibraryAccess();
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
