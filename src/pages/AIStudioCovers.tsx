@@ -45,6 +45,11 @@ const AIStudioCovers = () => {
   const { hasEnough } = useCredits()
   const { track } = useProductTracking()
 
+
+  useEffect(() => {
+    track('ai_studio_entered', { feature: 'cover' })
+  }, [])
+
   const [artistName, setArtistName] = useState("")
   const [trackTitle, setTrackTitle] = useState("")
   const [description, setDescription] = useState("")
