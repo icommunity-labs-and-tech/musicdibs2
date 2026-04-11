@@ -646,6 +646,23 @@ serve(async (req) => {
         const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
         if (profile) {
+          // ── Idempotency guard: skip if this renewal invoice was already processed ──
+          if (invoiceId) {
+            const { data: existingRenewalOrder } = await supabase
+              .from("orders")
+              .select("id")
+              .eq("stripe_invoice_id", invoiceId)
+              .eq("is_renewal", true)
+              .maybeSingle();
+
+            if (existingRenewalOrder) {
+              console.log(`[WEBHOOK] Duplicate renewal for invoice ${invoiceId} — skipping`);
+              return new Response(JSON.stringify({ received: true, duplicate: true }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+          }
+
           const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
 
           if (credits > 0) {
