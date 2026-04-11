@@ -849,38 +849,10 @@ const AIStudioCreate = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
 
-                      {/* Mode toggle */}
-                      <div className="flex rounded-full bg-muted p-1" data-tour="mc-creation-mode">
-                        <button
-                          onClick={() => setMode('song')}
-                          className={cn(
-                            "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
-                            mode === 'song'
-                              ? "bg-background shadow-sm text-foreground"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <Mic className="h-4 w-4" />
-                           {t('aiCreate.songWithVoice')}
-                        </button>
-                        <button
-                          onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedArtistId(''); }}
-                          className={cn(
-                            "flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 px-4 text-sm font-medium transition-all",
-                            mode === 'instrumental'
-                              ? "bg-background shadow-sm text-foreground"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          <Headphones className="h-4 w-4" />
-                           {t('aiCreate.instrumentalBase')}
-                        </button>
-                      </div>
-
-                      {/* Main textarea */}
+                      {/* Main textarea — description + lyrics combined */}
                       <div className="space-y-1.5" data-tour="mc-description">
                         <div className="flex items-center justify-between">
-                          <Label>{t('aiCreate.describeSong')}</Label>
+                          <Label>Describe tu canción y/o pega tu letra *</Label>
                           <button
                             type="button"
                             onClick={handleImprovePrompt}
@@ -911,53 +883,22 @@ const AIStudioCreate = () => {
                           </button>
                         </div>
                         <Textarea
-                          placeholder={t('aiCreate.promptPlaceholder', 'Ej: Una canción pop alegre en español sobre amor, con un ritmo enérgico y romántico, voz femenina')}
+                          placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con un ritmo enérgico y romántico. Incluye la letra si la tienes..."
                           value={prompt}
-                          onChange={(e) => setPrompt(e.target.value.slice(0, 1000))}
-                          rows={4}
+                          onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
+                          rows={5}
                           className="resize-none"
-                          maxLength={1000}
+                          maxLength={2000}
                         />
                         <div className="flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground">{t('aiCreate.descHint', 'Incluye: género musical, mood/tono, idioma, tema, ritmo, tipo de voz, referencias...')}</p>
-                          <p className="text-xs text-muted-foreground">{prompt.length}/1000</p>
+                          <p className="text-xs text-muted-foreground">Incluye: género, mood, idioma, tema, ritmo, tipo de voz, letra...</p>
+                          <p className="text-xs text-muted-foreground">{prompt.length}/2000</p>
                         </div>
                       </div>
-
-                      {/* Collapsible lyrics section — only for songs with voice */}
-                      {mode === 'song' && (
-                      <div data-tour="mc-lyrics">
-                      <Collapsible open={lyricsExpanded} onOpenChange={setLyricsExpanded}>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" className="w-full justify-between px-3 h-10 text-sm text-muted-foreground hover:text-foreground">
-                            <span className="flex items-center gap-2">
-                              <FileText className="h-4 w-4" />
-                              📝 {t('aiCreate.lyricsOptional')}
-                            </span>
-                            <ChevronDown className={cn("h-4 w-4 transition-transform", lyricsExpanded && "rotate-180")} />
-                          </Button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-3 pt-2">
-                          <Textarea
-                            placeholder={t('aiCreate.pasteLyrics', 'Escribe aquí la letra de tu canción...\n\nVerso 1:\n...\n\nCoro:\n...')}
-                            value={lyricsText}
-                            onChange={(e) => setLyricsText(e.target.value.slice(0, 2000))}
-                            rows={8}
-                            className="resize-none font-mono text-sm"
-                            maxLength={2000}
-                          />
-                          <p className="text-xs text-muted-foreground text-right">
-                            {lyricsText.length}/2000
-                          </p>
-                        </CollapsibleContent>
-                      </Collapsible>
-                      </div>
-                      )}
-
                       <div data-tour="mc-settings">
 
-                      {/* Voice type selector */}
-                      {mode === 'song' && (
+                      {/* Voice selector — always visible */}
+                      {(
                       <div className="space-y-2">
                          <Label className="text-sm font-medium">{t('aiCreate.voice')}</Label>
                         {/* Tabs: Voces IA / Mis artistas virtuales */}
@@ -1124,16 +1065,16 @@ const AIStudioCreate = () => {
                         <>
                         <Button
                           onClick={handleGenerate}
-                          disabled={isGenerating || !prompt.trim()}
+                          disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10 || !selectedVoice}
                           className="w-full"
                           size="lg"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
-                           {mode === 'song'
-                             ? t('aiCreate.generateBtn') + ' ' + t('aiCreate.songWithVoice')
-                             : t('aiCreate.generateBtn') + ' ' + t('aiCreate.instrumentalBase')
-                           }
+                          {t('aiCreate.generateBtn')} canción con IA
                         </Button>
+                        {!selectedVoice && prompt.trim().length >= 10 && (
+                          <p className="text-xs text-destructive text-center mt-1">Selecciona una voz para continuar</p>
+                        )}
                         <PricingLink className="mt-1 block text-center" />
                         </>
                       )}
