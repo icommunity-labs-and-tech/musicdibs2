@@ -199,7 +199,7 @@ export default function PromotionPage() {
 
             {/* Premium promo card — enhanced */}
             <Card
-              className="border-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              className="border-amber-400/30 bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group relative overflow-hidden"
               onClick={() => setShowForm(true)}
             >
               {/* Decorative background pattern */}
@@ -211,17 +211,17 @@ export default function PromotionPage() {
                 <div className="absolute top-2 left-[30%]"><svg viewBox="0 0 24 24" className="h-9 w-9" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" /></svg></div>
               </div>
 
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-400/10 to-transparent" />
 
               <CardContent className="p-6 sm:p-8 space-y-5 relative">
                 {/* Top row: icon + hero number */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Crown className="h-5 w-5 text-primary" />
+                    <div className="h-11 w-11 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                      <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold group-hover:text-primary transition-colors">
+                      <h3 className="text-base font-bold group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
                         {t('dashboard.promoSelector.premiumTitle')}
                       </h3>
                       <PricingLink />
@@ -229,7 +229,7 @@ export default function PromotionPage() {
                   </div>
                   {/* Hero reach number */}
                   <div className="text-right shrink-0">
-                    <p className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-none">
+                    <p className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-amber-600 to-orange-500 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent leading-none">
                       +200K
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground mt-1">
@@ -255,17 +255,17 @@ export default function PromotionPage() {
 
                 {/* Feature badges */}
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-primary/20 rounded-full">
+                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-amber-500/20 rounded-full">
                     <Video className="h-3 w-3" /> {t('dashboard.promoSelector.customVideo')}
                   </Badge>
-                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-primary/20 rounded-full">
-                    <Crown className="h-3 w-3" /> Premium
+                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-amber-500/20 rounded-full">
+                    <Crown className="h-3 w-3 text-amber-600 dark:text-amber-400" /> Premium
                   </Badge>
                 </div>
 
                 {/* Video promo note */}
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Video className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                  <Video className="h-3.5 w-3.5 text-amber-600/60 dark:text-amber-400/60 shrink-0" />
                   {t('dashboard.promoSelector.includesVideoNote', '🎥 Incluye vídeo promocional personalizado')}
                 </p>
 
@@ -276,7 +276,7 @@ export default function PromotionPage() {
                 </p>
 
                 {/* CTA */}
-                <Button size="lg" className="w-full text-sm font-semibold h-12 gap-2 group-hover:shadow-lg transition-all">
+                <Button size="lg" className="w-full text-sm font-semibold h-12 gap-2 group-hover:shadow-lg transition-all bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white border-0">
                   <Rocket className="h-4 w-4" />
                   {t('dashboard.promoSelector.premiumCtaNew', 'Impulsar mi canción ahora 🚀')}
                 </Button>
