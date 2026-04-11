@@ -204,12 +204,12 @@ export const SocialVideosSection = () => {
           <Label>{tr('descriptionLabel')} <span className="text-destructive">*</span></Label>
           <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+            onChange={(e) => setDescription(e.target.value.slice(0, 2000))}
             placeholder={tr('descriptionPlaceholder')}
-            rows={4}
+            rows={5}
             disabled={generating}
           />
-          <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
+          <p className="text-xs text-muted-foreground text-right">{description.length}/2000</p>
         </div>
 
         {/* Image dropzone */}
