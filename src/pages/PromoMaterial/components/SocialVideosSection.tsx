@@ -152,7 +152,7 @@ export const SocialVideosSection = () => {
           const statusRes = await fetch(baseUrl, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ action: 'status', requestId: reqId, statusUrl }),
+            body: JSON.stringify({ action: 'status', requestId: reqId, statusUrl, provider }),
           });
           const statusData = await statusRes.json();
 
