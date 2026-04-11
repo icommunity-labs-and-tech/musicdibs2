@@ -8,6 +8,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import {
+  Select, SelectContent, SelectItem,
+  SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
   Sparkles, Shield, Megaphone, ChevronDown,
   Loader2, CheckCircle2, Play, Pause,
   Music2, FileUp, AlertTriangle, Rocket,
