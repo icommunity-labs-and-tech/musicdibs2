@@ -60,6 +60,7 @@ serve(async (req) => {
       trackTitle,
       description,
       artistPhotoBase64,
+      resolution,
       // Legacy params kept for backwards compat
       style,
       colorPalette,
@@ -183,36 +184,41 @@ serve(async (req) => {
       )
     }
 
-    // ── Upscale to ≥3000px (model outputs 1024x1024) ────────────
-    try {
-      console.log(`[COVER] Upscaling from model output…`)
-      const upRes = await fetch("https://fal.run/fal-ai/aura-sr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Key ${FAL_API_KEY}`,
-        },
-        body: JSON.stringify({
-          image_url: imageUrl,
-          upscaling_factor: 4,
-          output_format: "png",
-        }),
-      })
+    // ── Upscale to 4096px (only when requested) ────────────────
+    const wantHD = resolution === '4096'
+    if (wantHD) {
+      try {
+        console.log(`[COVER] Upscaling from model output…`)
+        const upRes = await fetch("https://fal.run/fal-ai/aura-sr", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Key ${FAL_API_KEY}`,
+          },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            upscaling_factor: 4,
+            output_format: "png",
+          }),
+        })
 
-      if (upRes.ok) {
-        const upData = await upRes.json()
-        const upUrl = upData.image?.url
-        if (upUrl) {
-          imageUrl = upUrl
-          console.log(`[COVER] Upscale successful`)
+        if (upRes.ok) {
+          const upData = await upRes.json()
+          const upUrl = upData.image?.url
+          if (upUrl) {
+            imageUrl = upUrl
+            console.log(`[COVER] Upscale successful`)
+          } else {
+            console.warn("[COVER] Upscaler returned no image, using original")
+          }
         } else {
-          console.warn("[COVER] Upscaler returned no image, using original")
+          console.warn("[COVER] Upscaler error:", upRes.status, await upRes.text())
         }
-      } else {
-        console.warn("[COVER] Upscaler error:", upRes.status, await upRes.text())
+      } catch (upscaleErr) {
+        console.warn("[COVER] Upscale failed, using original:", upscaleErr)
       }
-    } catch (upscaleErr) {
-      console.warn("[COVER] Upscale failed, using original:", upscaleErr)
+    } else {
+      console.log("[COVER] Skipping upscale (resolution=1024)")
     }
 
     // ── Upload to Storage ───────────────────────────────────────
