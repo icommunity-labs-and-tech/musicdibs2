@@ -529,13 +529,13 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 </Label>
                 <Textarea
                   value={prompt}
-                  onChange={e => setPrompt(e.target.value)}
+                  onChange={e => setPrompt(e.target.value.slice(0, 2000))}
                   placeholder={t('dashboard.firstHit.promptPlaceholder')}
-                  className="text-sm min-h-[80px] resize-none"
-                  maxLength={300}
+                  className="text-sm min-h-[100px] resize-none"
+                  maxLength={2000}
                 />
                 <p className="text-[11px] text-muted-foreground text-right">
-                  {prompt.length}/300
+                  {prompt.length}/2000
                 </p>
               </div>
 
@@ -626,7 +626,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 <Button
                   className="flex-1 gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700"
                   onClick={handleGenerate}
-                  disabled={generating || !prompt.trim()}
+                  disabled={generating || !prompt.trim() || prompt.trim().length < 10 || !selectedVoice}
                 >
                   {generating
                     ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.generating')}</>
