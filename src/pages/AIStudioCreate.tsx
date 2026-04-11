@@ -1070,6 +1070,7 @@ const AIStudioCreate = () => {
                           </p>
                         )}
                       </div>
+                      )}
                       </div>{/* close data-tour="mc-settings" */}
 
 
