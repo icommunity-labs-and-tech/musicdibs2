@@ -35,17 +35,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useCreatorRoleLabels, useWorkTypeLabels } from '@/components/dashboard/register/useWizardLabels'
 
-// ── Géneros musicales ──────────────────────────────────────────────
-const GENRES = [
-  'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Jazz',
-  'Reggaeton', 'Latin', 'Trap', 'Indie', 'Otro',
-]
-
-// ── Moods ──────────────────────────────────────────────────────────
-const MOODS = [
-  'Enérgico', 'Relajado', 'Romántico', 'Épico',
-  'Melancólico', 'Festivo', 'Oscuro', 'Positivo',
-]
+// Voice profiles loaded from DB
 
 // ── Step header colapsado/expandido ───────────────────────────────
 function StepHeader({
@@ -143,15 +133,26 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
 
   // ── PASO 1: IA generativa ──────────────────────────────────────
   const [prompt,        setPrompt]        = useState('')
-  const [genre,         setGenre]         = useState('')
-  const [mood,          setMood]          = useState('')
-  const [duration,      setDuration]      = useState(30)
   const [generating,    setGenerating]    = useState(false)
   const [audioUrl,      setAudioUrl]      = useState<string | null>(null)
   const [audioTitle,    setAudioTitle]    = useState('')
   const [playing,       setPlaying]       = useState(false)
   const [genError,      setGenError]      = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Voice profiles
+  const [voiceProfiles, setVoiceProfiles] = useState<any[]>([])
+  const [selectedVoice, setSelectedVoice] = useState('')
+  const [playingVoice, setPlayingVoice] = useState('')
+  const [voiceAudioRefs] = useState<Record<string, HTMLAudioElement>>({})
+
+  useEffect(() => {
+    supabase.from('voice_profiles').select('*').eq('active', true).order('sort_order')
+      .then(({ data }) => {
+        setVoiceProfiles(data || [])
+        if (data && data.length > 0) setSelectedVoice(data[0].id)
+      })
+  }, [])
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -172,13 +173,13 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
       )
       if (spendErr || spend?.error) throw new Error(spend?.message || t('dashboard.firstHit.creditSpendError'))
 
-      // Construir prompt completo
+      // Enrich prompt with voice tag
       let fullPrompt = prompt
-      if (genre) fullPrompt += `, género ${genre}`
-      if (mood)  fullPrompt += `, mood ${mood}`
+      const voiceProfile = voiceProfiles.find((v: any) => v.id === selectedVoice)
+      if (voiceProfile?.prompt_tag) fullPrompt += `, ${voiceProfile.prompt_tag}`
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { prompt: fullPrompt, duration, cfgScale: 7 },
+        body: { prompt: fullPrompt, mode: 'song' },
       })
       if (error || data?.error === 'rate_limit_exceeded') {
         throw new Error(data?.message || error?.message || t('dashboard.firstHit.audioGenError'))
@@ -528,64 +529,66 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 </Label>
                 <Textarea
                   value={prompt}
-                  onChange={e => setPrompt(e.target.value)}
+                  onChange={e => setPrompt(e.target.value.slice(0, 2000))}
                   placeholder={t('dashboard.firstHit.promptPlaceholder')}
-                  className="text-sm min-h-[80px] resize-none"
-                  maxLength={300}
+                  className="text-sm min-h-[100px] resize-none"
+                  maxLength={2000}
                 />
                 <p className="text-[11px] text-muted-foreground text-right">
-                  {prompt.length}/300
+                  {prompt.length}/2000
                 </p>
               </div>
 
-              {/* Género + Mood */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('dashboard.firstHit.genreOptional')}
-                  </Label>
-                  <Select value={genre} onValueChange={setGenre}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder={t('dashboard.firstHit.genreOptional')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GENRES.map(g => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('dashboard.firstHit.moodOptional')}
-                  </Label>
-                  <Select value={mood} onValueChange={setMood}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder={t('dashboard.firstHit.moodOptional')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOODS.map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Duración */}
-              <div className="space-y-1.5">
+              {/* Voice selector */}
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  {t('dashboard.firstHit.duration', { n: duration })}
+                  {t('dashboard.firstHit.selectVoice', 'Elige una voz')}
+                  <span className="text-destructive ml-1">*</span>
                 </Label>
-                <input
-                  type="range" min={5} max={90} step={5}
-                  value={duration}
-                  onChange={e => setDuration(Number(e.target.value))}
-                  className="w-full accent-violet-500"
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>5s</span><span>90s</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[280px] overflow-y-auto pr-1">
+                  {voiceProfiles.map((v: any) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setSelectedVoice(v.id)}
+                      className={cn(
+                        "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
+                        selectedVoice === v.id
+                          ? "border-2 border-primary bg-primary/5"
+                          : "border-border hover:border-primary/30"
+                      )}
+                    >
+                      <span className="text-base mb-0.5">{v.emoji || '🎤'}</span>
+                      <span className="text-xs font-medium text-foreground">{v.label}</span>
+                      {v.sample_url && (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (playingVoice === v.id) {
+                              voiceAudioRefs[v.id]?.pause()
+                              setPlayingVoice('')
+                            } else {
+                              Object.values(voiceAudioRefs).forEach((a: any) => a?.pause?.())
+                              if (!voiceAudioRefs[v.id]) voiceAudioRefs[v.id] = new Audio(v.sample_url)
+                              voiceAudioRefs[v.id].currentTime = 0
+                              voiceAudioRefs[v.id].play()
+                              voiceAudioRefs[v.id].onended = () => setPlayingVoice('')
+                              setPlayingVoice(v.id)
+                            }
+                          }}
+                          className={cn("inline-flex items-center gap-1 mt-1 text-[11px] cursor-pointer", playingVoice === v.id ? "text-primary" : "text-muted-foreground")}
+                        >
+                          {playingVoice === v.id ? '⏹ Detener' : '▶ Escuchar'}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
+                {selectedVoice && (
+                  <p className="text-xs text-muted-foreground">
+                    {voiceProfiles.find((v: any) => v.id === selectedVoice)?.description}
+                  </p>
+                )}
               </div>
 
               {/* Error */}
@@ -611,7 +614,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{audioTitle}</p>
                     <p className="text-xs text-muted-foreground">
-                      {t('dashboard.firstHit.aiGenerated', { n: duration })}
+                      {t('dashboard.firstHit.aiGenerated', { n: '' })}
                     </p>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -623,7 +626,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 <Button
                   className="flex-1 gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700"
                   onClick={handleGenerate}
-                  disabled={generating || !prompt.trim()}
+                  disabled={generating || !prompt.trim() || prompt.trim().length < 10 || !selectedVoice}
                 >
                   {generating
                     ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.generating')}</>
