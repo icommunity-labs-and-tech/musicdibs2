@@ -134,6 +134,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
   // ── PASO 1: IA generativa ──────────────────────────────────────
   const [prompt,        setPrompt]        = useState('')
   const [genMode,       setGenMode]       = useState<'song' | 'instrumental'>('song')
+  const [isImproving,   setIsImproving]   = useState(false)
   const [generating,    setGenerating]    = useState(false)
   const [audioUrl,      setAudioUrl]      = useState<string | null>(null)
   const [audioTitle,    setAudioTitle]    = useState('')
