@@ -535,7 +535,7 @@ const resources = {
           service: 'Servicio',
           distributeMusic: 'Distribuir tu música',
           socialPromo: 'Promoción en redes',
-          promotion: 'Promoción y difusión',
+          promotion: 'Promoción RRSS',
           artistProfiles: 'Mis Artistas Virtuales',
           profile: 'Perfil',
           plansCredits: 'Planes y créditos',
