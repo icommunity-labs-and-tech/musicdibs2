@@ -1,4 +1,4 @@
-import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
+// Resend-based email sender (no Lovable Cloud dependency)
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const MAX_RETRIES = 5
