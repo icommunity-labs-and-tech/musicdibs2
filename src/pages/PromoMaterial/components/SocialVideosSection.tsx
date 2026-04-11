@@ -136,7 +136,9 @@ export const SocialVideosSection = () => {
 
       const reqId = data.requestId;
       const statusUrl = data.statusUrl;
-      if (!reqId || !statusUrl) {
+      const provider = data.provider || 'fal';
+      setActiveProvider(provider);
+      if (!reqId) {
         toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
         setGenerating(false);
         setProgressStatus(null);
