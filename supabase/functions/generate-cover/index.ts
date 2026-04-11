@@ -183,6 +183,38 @@ serve(async (req) => {
       )
     }
 
+    // ── Upscale to ≥3000px (model outputs 1024x1024) ────────────
+    try {
+      console.log(`[COVER] Upscaling from model output…`)
+      const upRes = await fetch("https://fal.run/fal-ai/aura-sr", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Key ${FAL_API_KEY}`,
+        },
+        body: JSON.stringify({
+          image_url: imageUrl,
+          upscaling_factor: 4,
+          output_format: "png",
+        }),
+      })
+
+      if (upRes.ok) {
+        const upData = await upRes.json()
+        const upUrl = upData.image?.url
+        if (upUrl) {
+          imageUrl = upUrl
+          console.log(`[COVER] Upscale successful`)
+        } else {
+          console.warn("[COVER] Upscaler returned no image, using original")
+        }
+      } else {
+        console.warn("[COVER] Upscaler error:", upRes.status, await upRes.text())
+      }
+    } catch (upscaleErr) {
+      console.warn("[COVER] Upscale failed, using original:", upscaleErr)
+    }
+
     // ── Upload to Storage ───────────────────────────────────────
     let storedUrl = imageUrl
     try {
