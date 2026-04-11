@@ -531,13 +531,6 @@ const AIStudioEdit = () => {
               </div>
             </div>
           )}
-
-          {/* Footer info */}
-          {!isProcessing && !processedUrl && (
-            <p className="text-center text-xs text-muted-foreground">
-              {tr('info')}
-            </p>
-          )}
         </div>
       </main>
 
