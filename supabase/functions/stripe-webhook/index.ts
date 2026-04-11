@@ -404,6 +404,20 @@ serve(async (req) => {
       const planId   = session.metadata?.plan_id || "unknown";
 
       if (userId && credits > 0) {
+        // ── Idempotency guard: skip if this checkout session was already processed ──
+        const { data: existingCheckoutOrder } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("stripe_checkout_session_id", session.id)
+          .maybeSingle();
+
+        if (existingCheckoutOrder) {
+          console.log(`[WEBHOOK] Duplicate checkout.session.completed for ${session.id} — skipping`);
+          return new Response(JSON.stringify({ received: true, duplicate: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
         // Fetch previous plan BEFORE updating (to detect first annual purchase)
         const { data: prevProfile } = await supabase
           .from("profiles").select("subscription_plan").eq("user_id", userId).single();
