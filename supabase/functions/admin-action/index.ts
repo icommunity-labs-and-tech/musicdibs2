@@ -995,8 +995,8 @@ serve(async (req) => {
 
       try {
         // Customers total = unique users with at least one paid order ever
-        const { count: custTotalCount } = await admin.from("orders").select("user_id", { count: "exact", head: true }).eq("order_status", "paid");
-        customersTotal = custTotalCount || 0;
+        const { data: custRows } = await admin.from("orders").select("user_id").eq("order_status", "paid");
+        customersTotal = new Set((custRows || []).map((r: any) => r.user_id)).size;
 
         // Orders in the period
         if (filterStart && filterEnd) {
