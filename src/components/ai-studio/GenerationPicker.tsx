@@ -95,7 +95,7 @@ export const GenerationPicker = ({ onSelect }: GenerationPickerProps) => {
   }
 
   return (
-    <ScrollArea className="max-h-[280px]">
+    <ScrollArea className="max-h-[60vh]">
       <div className="space-y-1.5 pr-2">
         {generations.map((gen) => {
           const isSelected = selectedId === gen.id;
