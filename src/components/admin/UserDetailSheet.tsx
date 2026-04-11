@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { User, Mail, Phone, CreditCard, Shield, Calendar, Hash, FileText, Clock } from 'lucide-react';
 import UserPurchasesPanel from './UserPurchasesPanel';
 import UserUsagePanel from './UserUsagePanel';
+import DisputeTimeline from './DisputeTimeline';
 
 interface UserDetailSheetProps {
   user: any | null;
@@ -127,6 +128,11 @@ export default function UserDetailSheet({ user, open, onOpenChange }: UserDetail
 
         {/* Usage evidences */}
         <UserUsagePanel userId={user.user_id} />
+
+        <Separator className="my-4" />
+
+        {/* Dispute timeline */}
+        <DisputeTimeline userId={user.user_id} />
       </SheetContent>
     </Sheet>
   );
