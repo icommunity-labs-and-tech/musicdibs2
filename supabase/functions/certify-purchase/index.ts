@@ -66,21 +66,13 @@ serve(async (req) => {
       });
     }
 
-    // Get the user's iBS signature
-    const { data: signature } = await supabase
-      .from("ibs_signatures")
-      .select("ibs_signature_id")
-      .eq("user_id", evidence.user_id)
-      .in("status", ["active", "success"])
-      .limit(1)
-      .maybeSingle();
-
-    const signatureId = signature?.ibs_signature_id || Deno.env.get("IBS_COMPANY_SIGNATURE_ID") || "";
+    // Always use MusicDibs company signature for purchase/usage evidences
+    const signatureId = Deno.env.get("IBS_COMPANY_SIGNATURE_ID") || "";
 
     if (!signatureId) {
-      console.error(`[CERTIFY-PURCHASE] No signature found for user ${evidence.user_id}`);
-      return new Response(JSON.stringify({ error: "No signature available for certification" }), {
-        status: 400,
+      console.error(`[CERTIFY-PURCHASE] IBS_COMPANY_SIGNATURE_ID not configured`);
+      return new Response(JSON.stringify({ error: "IBS_COMPANY_SIGNATURE_ID not configured" }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
