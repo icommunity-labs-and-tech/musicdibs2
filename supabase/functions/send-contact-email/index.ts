@@ -52,7 +52,6 @@ serve(async (req: Request) => {
   }
 
   try {
-    // Get client IP for rate limiting
     const clientIp =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       req.headers.get("cf-connecting-ip") ||
@@ -67,9 +66,8 @@ serve(async (req: Request) => {
 
     const payload: ContactPayload = await req.json();
 
-    // Honeypot check — if the hidden field has a value, it's a bot
+    // Honeypot check
     if (payload.website && payload.website.trim().length > 0) {
-      // Silently accept to not tip off the bot
       console.log("Honeypot triggered, ignoring submission");
       return new Response(
         JSON.stringify({ success: true }),
@@ -77,7 +75,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // Validate
     if (!payload.name || !payload.email || !payload.subject || !payload.message) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
@@ -85,7 +82,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(payload.email)) {
       return new Response(
@@ -117,18 +113,19 @@ serve(async (req: Request) => {
       );
     }
 
-    // Send email notification via Lovable API
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (LOVABLE_API_KEY) {
+    // Send email notification via Resend
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (RESEND_API_KEY) {
       try {
-        const emailRes = await fetch("https://api.lovable.dev/api/v1/send-email", {
+        const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            Authorization: `Bearer ${RESEND_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            to: ["admin@musicdibs.com"], // Change to your notification email
+            from: "MusicDibs <noreply@musicdibs.com>",
+            to: ["admin@musicdibs.com"],
             subject: `New Contact Form: ${payload.subject}`,
             html: `
               <h2>New Contact Form Submission</h2>
@@ -139,7 +136,6 @@ serve(async (req: Request) => {
               <p><strong>Message:</strong></p>
               <p>${escapeHtml(payload.message).replace(/\n/g, "<br>")}</p>
             `,
-            purpose: "transactional",
           }),
         });
         if (!emailRes.ok) {
