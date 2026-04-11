@@ -87,7 +87,7 @@ serve(async (req) => {
     // Verify the work belongs to the user and is in 'processing' state
     const { data: work, error: workError } = await supabaseAdmin
       .from("works")
-      .select("id, user_id, title, status, file_path, file_hash")
+      .select("id, user_id, title, description, status, file_path, file_hash")
       .eq("id", workId)
       .single();
 
@@ -195,11 +195,16 @@ serve(async (req) => {
       // ── Inline upload (≤20MB) ──────────────────────────────
       console.log(`[IBS] Inline upload for work ${workId} (${fileSizeMB.toFixed(1)}MB), ${ibsFiles.length} file(s)`);
 
+      const ibsPayload: Record<string, unknown> = {
+        title: work.title,
+        files: ibsFiles,
+      };
+      if (work.description) {
+        ibsPayload.description = work.description;
+      }
+
       const ibsBody = {
-        payload: {
-          title: work.title,
-          files: ibsFiles,
-        },
+        payload: ibsPayload,
         signatures: [{ id: signatureId }],
       };
 
