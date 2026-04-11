@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCredits } from '@/hooks/useCredits';
 import { useProductTracking } from '@/hooks/useProductTracking';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
@@ -63,6 +64,7 @@ export const CoversSection = () => {
   const [genError, setGenError] = useState<string | null>(null);
   const [isImprovingDesc, setIsImprovingDesc] = useState(false);
 
+  const [resolution, setResolution] = useState<'1024' | '4096'>('1024');
   const [coverMode, setCoverMode] = useState<CoverMode>('none');
   const [artistPhoto, setArtistPhoto] = useState<File | null>(null);
   const [artistPhotoPreview, setArtistPhotoPreview] = useState<string | null>(null);
@@ -145,13 +147,14 @@ export const CoversSection = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('generate-cover', {
-        body: {
+          body: {
           artistName,
           trackTitle,
           style,
           description,
           artistPhotoBase64,
           referenceMode: coverMode,
+          resolution,
         },
       });
       if (data?.fallback) throw new Error(data.message || "Servicio no disponible temporalmente. Tus créditos han sido reembolsados.");
@@ -322,6 +325,25 @@ export const CoversSection = () => {
                   maxLength={1000}
                 />
                 <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
+              </div>
+
+              {/* Resolution selector */}
+              <div className="space-y-1.5">
+                <Label className="text-sm">{t('aiCovers.resolution', 'Resolución de salida')}</Label>
+                <Select value={resolution} onValueChange={(v) => setResolution(v as '1024' | '4096')}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1024">1024 × 1024 px</SelectItem>
+                    <SelectItem value="4096">4096 × 4096 px (HD)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-muted-foreground">
+                  {resolution === '4096'
+                    ? t('aiCovers.resolutionHdNote', 'Alta resolución — ideal para distribución e impresión')
+                    : t('aiCovers.resolutionStdNote', 'Resolución estándar — más rápido de generar')}
+                </p>
               </div>
 
               {genError && <p className="text-xs text-destructive">{genError}</p>}
