@@ -173,13 +173,13 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
       )
       if (spendErr || spend?.error) throw new Error(spend?.message || t('dashboard.firstHit.creditSpendError'))
 
-      // Construir prompt completo
+      // Enrich prompt with voice tag
       let fullPrompt = prompt
-      if (genre) fullPrompt += `, género ${genre}`
-      if (mood)  fullPrompt += `, mood ${mood}`
+      const voiceProfile = voiceProfiles.find((v: any) => v.id === selectedVoice)
+      if (voiceProfile?.prompt_tag) fullPrompt += `, ${voiceProfile.prompt_tag}`
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { prompt: fullPrompt, duration, cfgScale: 7 },
+        body: { prompt: fullPrompt, mode: 'song' },
       })
       if (error || data?.error === 'rate_limit_exceeded') {
         throw new Error(data?.message || error?.message || t('dashboard.firstHit.audioGenError'))
