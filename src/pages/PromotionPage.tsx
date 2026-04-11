@@ -197,27 +197,91 @@ export default function PromotionPage() {
               <p className="text-sm text-muted-foreground">{t('dashboard.promoSelector.subtitle')}</p>
             </div>
 
-            {/* Premium promo card */}
-            <Card className="border-amber-500/30 shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative overflow-hidden" onClick={() => setShowForm(true)}>
-              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-500/10 to-transparent" />
-              <CardContent className="p-5 space-y-3 relative">
-                <div className="flex items-center justify-between">
-                  <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Crown className="h-5 w-5 text-amber-500" />
+            {/* Premium promo card — enhanced */}
+            <Card
+              className="border-primary/20 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group relative overflow-hidden"
+              onClick={() => setShowForm(true)}
+            >
+              {/* Decorative background pattern */}
+              <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+                <div className="absolute top-4 right-8"><Instagram className="h-12 w-12" /></div>
+                <div className="absolute bottom-6 right-24"><Play className="h-10 w-10" /></div>
+                <div className="absolute top-12 left-[60%]"><Eye className="h-8 w-8" /></div>
+                <div className="absolute bottom-4 left-8"><Users className="h-10 w-10" /></div>
+                <div className="absolute top-2 left-[30%]"><svg viewBox="0 0 24 24" className="h-9 w-9" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" /></svg></div>
+              </div>
+
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/10 to-transparent" />
+
+              <CardContent className="p-6 sm:p-8 space-y-5 relative">
+                {/* Top row: icon + hero number */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Crown className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold group-hover:text-primary transition-colors">
+                        {t('dashboard.promoSelector.premiumTitle')}
+                      </h3>
+                      <PricingLink />
+                    </div>
                   </div>
-                  <PricingLink />
+                  {/* Hero reach number */}
+                  <div className="text-right shrink-0">
+                    <p className="text-4xl sm:text-5xl font-extrabold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent leading-none">
+                      +200K
+                    </p>
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                      {t('dashboard.promoSelector.activeFollowers', 'seguidores activos')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold group-hover:text-amber-600 transition-colors">{t('dashboard.promoSelector.premiumTitle')}</h3>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t('dashboard.promoSelector.premiumDesc')}</p>
+
+                {/* Impact subtitle */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t('dashboard.promoSelector.premiumImpactDesc', 'Lleva tu música a miles de personas reales y gana visibilidad como artista.')}
+                </p>
+
+                {/* Stats chips */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
+                    <Users className="h-3 w-3" /> +350K {t('dashboard.promoSelector.totalFollowers', 'seguidores totales')}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
+                    <Eye className="h-3 w-3" /> +50K {t('dashboard.promoSelector.potentialViews', 'visualizaciones potenciales')}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
+                    <Instagram className="h-3 w-3" /> TikTok + Instagram
+                  </Badge>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20"><Video className="h-2.5 w-2.5" /> {t('dashboard.promoSelector.customVideo')}</Badge>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20"><Users className="h-2.5 w-2.5" /> 200K+</Badge>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5 border-amber-500/20"><Instagram className="h-2.5 w-2.5" /> TikTok + IG</Badge>
+
+                {/* Feature badges */}
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-primary/20 rounded-full">
+                    <Video className="h-3 w-3" /> {t('dashboard.promoSelector.customVideo')}
+                  </Badge>
+                  <Badge variant="outline" className="text-[11px] px-2.5 py-0.5 gap-1 border-primary/20 rounded-full">
+                    <Crown className="h-3 w-3" /> Premium
+                  </Badge>
                 </div>
-                <Button variant="outline" size="sm" className="w-full text-xs border-amber-500/30 group-hover:bg-amber-500 group-hover:text-white transition-colors">
-                  {t('dashboard.promoSelector.premiumCta')} <Crown className="h-3 w-3 ml-1" />
+
+                {/* Video promo note */}
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Video className="h-3.5 w-3.5 text-primary/60 shrink-0" />
+                  {t('dashboard.promoSelector.includesVideoNote', '🎥 Incluye vídeo promocional personalizado')}
+                </p>
+
+                {/* Scarcity */}
+                <p className="text-xs text-center text-amber-600 dark:text-amber-400 flex items-center justify-center gap-1.5">
+                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                  {t('dashboard.promoSelector.scarcity', 'Solo unas pocas promociones disponibles cada semana')}
+                </p>
+
+                {/* CTA */}
+                <Button size="lg" className="w-full text-sm font-semibold h-12 gap-2 group-hover:shadow-lg transition-all">
+                  <Rocket className="h-4 w-4" />
+                  {t('dashboard.promoSelector.premiumCtaNew', 'Impulsar mi canción ahora 🚀')}
                 </Button>
               </CardContent>
             </Card>
