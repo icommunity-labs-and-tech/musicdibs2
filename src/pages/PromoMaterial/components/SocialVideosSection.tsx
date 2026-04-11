@@ -44,6 +44,7 @@ export const SocialVideosSection = () => {
   const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [pollCount, setPollCount] = useState(0);
+  const [activeProvider, setActiveProvider] = useState<string | null>(null);
 
   // Prompt beforeunload while generating
   useEffect(() => {
@@ -135,7 +136,9 @@ export const SocialVideosSection = () => {
 
       const reqId = data.requestId;
       const statusUrl = data.statusUrl;
-      if (!reqId || !statusUrl) {
+      const provider = data.provider || 'fal';
+      setActiveProvider(provider);
+      if (!reqId) {
         toast({ title: tr('error'), description: tr('errorDesc'), variant: 'destructive' });
         setGenerating(false);
         setProgressStatus(null);
@@ -149,7 +152,7 @@ export const SocialVideosSection = () => {
           const statusRes = await fetch(baseUrl, {
             method: 'POST',
             headers,
-            body: JSON.stringify({ action: 'status', requestId: reqId, statusUrl }),
+            body: JSON.stringify({ action: 'status', requestId: reqId, statusUrl, provider }),
           });
           const statusData = await statusRes.json();
 

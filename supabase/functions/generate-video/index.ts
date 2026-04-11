@@ -6,9 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/* ── fal.ai config ── */
 const FAL_MODEL = 'fal-ai/kling-video/v2.5-turbo/pro/text-to-video';
 const FAL_SUBMIT_URL = `https://queue.fal.run/${FAL_MODEL}`;
 const FAL_QUEUE_BASE_URL = 'https://queue.fal.run/fal-ai/kling-video';
+
+/* ── Runway config ── */
+const RUNWAY_API_BASE = 'https://api.dev.runwayml.com/v1';
+
+type Provider = 'fal' | 'runway';
 
 const jsonResponse = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
@@ -18,7 +24,6 @@ const jsonResponse = (body: unknown, status = 200, extraHeaders: Record<string, 
 
 const isAllowedFalQueueUrl = (value: unknown): value is string => {
   if (typeof value !== 'string' || !value) return false;
-
   try {
     const url = new URL(value);
     return url.protocol === 'https:' && url.host === 'queue.fal.run';
@@ -31,6 +36,207 @@ const withLogsParam = (url: string) => (url.includes('?') ? `${url}&logs=1` : `$
 const getFallbackStatusUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}/status`;
 const getFallbackResponseUrl = (requestId: string) => `${FAL_QUEUE_BASE_URL}/requests/${requestId}`;
 
+/* ── Runway helpers ── */
+const mapAspectToRunway = (ar: string): string => {
+  const map: Record<string, string> = {
+    '16:9': '1280:720', '9:16': '720:1280',
+    '1:1': '720:720', '4:3': '960:720', '3:4': '720:960',
+  };
+  return map[ar] || '1280:720';
+};
+
+const mapDurationToRunway = (d: number): number => (d >= 10 ? 10 : 5);
+
+/* ── fal.ai status handler ── */
+async function handleFalStatus(falHeaders: Record<string, string>, statusUrl: string | null, requestId: string | null) {
+  const resolvedStatusUrl = isAllowedFalQueueUrl(statusUrl)
+    ? statusUrl
+    : (typeof requestId === 'string' && requestId)
+      ? getFallbackStatusUrl(requestId)
+      : null;
+
+  if (!resolvedStatusUrl) throw new Error('statusUrl or requestId is required for status check');
+
+  const statusRes = await fetch(withLogsParam(resolvedStatusUrl), {
+    method: 'GET',
+    headers: falHeaders,
+  });
+
+  if (!statusRes.ok) {
+    const errorText = await statusRes.text();
+    console.error(`[VIDEO] fal status error: ${statusRes.status} - ${errorText}`);
+    throw new Error(`fal.ai status error: ${statusRes.status}`);
+  }
+
+  const statusData = await statusRes.json();
+
+  if (statusData.status === 'COMPLETED') {
+    if (statusData.error) {
+      return { status: 'FAILED', failure: statusData.error };
+    }
+
+    const resolvedResponseUrl = isAllowedFalQueueUrl(statusData.response_url)
+      ? statusData.response_url
+      : (typeof requestId === 'string' && requestId)
+        ? getFallbackResponseUrl(requestId)
+        : null;
+
+    if (!resolvedResponseUrl) throw new Error('fal.ai response URL missing');
+
+    const resultRes = await fetch(resolvedResponseUrl, { method: 'GET', headers: falHeaders });
+    if (!resultRes.ok) {
+      const errorText = await resultRes.text();
+      console.error(`[VIDEO] fal result error: ${resultRes.status} - ${errorText}`);
+      throw new Error(`fal.ai result error: ${resultRes.status}`);
+    }
+
+    const resultData = await resultRes.json();
+    const videoUrl = resultData.video?.url ?? resultData.video_url ?? resultData.output?.video?.url ?? null;
+
+    if (!videoUrl) return { status: 'FAILED', failure: 'fal.ai completed without a video URL' };
+    return { status: 'SUCCEEDED', video_url: videoUrl };
+  }
+
+  if (statusData.status === 'FAILED') {
+    return { status: 'FAILED', failure: statusData.error ?? 'Unknown error' };
+  }
+
+  return { status: 'PENDING', queue_position: statusData.queue_position ?? null };
+}
+
+/* ── Runway status handler ── */
+async function handleRunwayStatus(runwayKey: string, requestId: string) {
+  const statusRes = await fetch(`${RUNWAY_API_BASE}/tasks/${requestId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${runwayKey}`,
+      'X-Runway-Version': '2024-11-06',
+    },
+  });
+
+  if (!statusRes.ok) {
+    const errorText = await statusRes.text();
+    console.error(`[VIDEO] Runway status error: ${statusRes.status} - ${errorText}`);
+    throw new Error(`Runway status error: ${statusRes.status}`);
+  }
+
+  const data = await statusRes.json();
+  console.log(`[VIDEO] Runway task ${requestId}: status=${data.status}`);
+
+  if (data.status === 'SUCCEEDED') {
+    const videoUrl = data.output?.[0] ?? null;
+    if (!videoUrl) return { status: 'FAILED', failure: 'Runway completed without a video URL' };
+    return { status: 'SUCCEEDED', video_url: videoUrl };
+  }
+
+  if (data.status === 'FAILED') {
+    return { status: 'FAILED', failure: data.failure ?? data.failureCode ?? 'Runway generation failed' };
+  }
+
+  // RUNNING, THROTTLED, PENDING
+  return { status: 'PENDING', queue_position: null };
+}
+
+/* ── fal.ai submit ── */
+async function submitFal(
+  falKey: string,
+  promptText: string,
+  duration: number,
+  aspectRatio: string,
+  imageBase64?: string,
+): Promise<{ requestId: string; statusUrl: string } | null> {
+  const falHeaders = { 'Authorization': `Key ${falKey}`, 'Content-Type': 'application/json' };
+
+  let submitUrl = FAL_SUBMIT_URL;
+  const body: Record<string, unknown> = {
+    prompt: promptText,
+    duration: String(duration || 10),
+    aspect_ratio: aspectRatio,
+  };
+
+  if (imageBase64) {
+    submitUrl = 'https://queue.fal.run/fal-ai/kling-video/v2.5-turbo/pro/image-to-video';
+    body.image_url = `data:image/jpeg;base64,${imageBase64}`;
+  }
+
+  console.log(`[VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..."`);
+
+  try {
+    const response = await fetch(submitUrl, {
+      method: 'POST',
+      headers: falHeaders,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[VIDEO] fal.ai submit error: ${response.status} - ${errorText}`);
+      return null; // signal to try fallback
+    }
+
+    const data = await response.json();
+    const nextRequestId = data.request_id;
+    const nextStatusUrl = isAllowedFalQueueUrl(data.status_url)
+      ? data.status_url
+      : getFallbackStatusUrl(nextRequestId);
+
+    return { requestId: nextRequestId, statusUrl: nextStatusUrl };
+  } catch (e) {
+    console.error('[VIDEO] fal.ai network error:', e);
+    return null;
+  }
+}
+
+/* ── Runway submit ── */
+async function submitRunway(
+  runwayKey: string,
+  promptText: string,
+  duration: number,
+  aspectRatio: string,
+  imageBase64?: string,
+): Promise<{ requestId: string } | null> {
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${runwayKey}`,
+    'Content-Type': 'application/json',
+    'X-Runway-Version': '2024-11-06',
+  };
+
+  const body: Record<string, unknown> = {
+    model: 'gen4_turbo',
+    ratio: mapAspectToRunway(aspectRatio),
+    duration: mapDurationToRunway(duration),
+    promptText,
+  };
+
+  if (imageBase64) {
+    body.promptImage = `data:image/jpeg;base64,${imageBase64}`;
+  }
+
+  console.log(`[VIDEO] Submitting to Runway fallback: "${promptText.slice(0, 60)}..."`);
+
+  try {
+    const response = await fetch(`${RUNWAY_API_BASE}/image_to_video`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[VIDEO] Runway submit error: ${response.status} - ${errorText}`);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log(`[VIDEO] Runway task created: ${data.id}`);
+    return { requestId: data.id };
+  } catch (e) {
+    console.error('[VIDEO] Runway network error:', e);
+    return null;
+  }
+}
+
+/* ── Main handler ── */
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -57,6 +263,7 @@ serve(async (req) => {
     const userId = user.id;
 
     const FAL_API_KEY = Deno.env.get('FAL_API_KEY');
+    const RUNWAY_API_KEY = Deno.env.get('RUNWAY_API_KEY');
     if (!FAL_API_KEY) throw new Error('FAL_API_KEY is not configured');
 
     const supabaseAdmin = createClient(
@@ -64,95 +271,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { action, promptText, duration, requestId, statusUrl, aspectRatio, imageBase64 } = await req.json();
+    const { action, promptText, duration, requestId, statusUrl, aspectRatio, imageBase64, provider } = await req.json();
 
-    const falHeaders = {
-      'Authorization': `Key ${FAL_API_KEY}`,
-      'Content-Type': 'application/json',
-    };
-
+    /* ── STATUS action ── */
     if (action === 'status') {
-      const resolvedStatusUrl = isAllowedFalQueueUrl(statusUrl)
-        ? statusUrl
-        : typeof requestId === 'string' && requestId
-          ? getFallbackStatusUrl(requestId)
-          : null;
+      const resolvedProvider: Provider = provider === 'runway' ? 'runway' : 'fal';
 
-      if (!resolvedStatusUrl) {
-        throw new Error('statusUrl or requestId is required for status check');
+      if (resolvedProvider === 'runway') {
+        if (!RUNWAY_API_KEY) throw new Error('RUNWAY_API_KEY not configured');
+        if (!requestId) throw new Error('requestId is required');
+        const result = await handleRunwayStatus(RUNWAY_API_KEY, requestId);
+        return jsonResponse(result);
       }
 
-      const statusRes = await fetch(withLogsParam(resolvedStatusUrl), {
-        method: 'GET',
-        headers: falHeaders,
-      });
-
-      if (!statusRes.ok) {
-        const errorText = await statusRes.text();
-        console.error(`[GENERATE-VIDEO] fal status error: ${statusRes.status} - ${errorText}`);
-        throw new Error(`fal.ai status error: ${statusRes.status}`);
-      }
-
-      const statusData = await statusRes.json();
-
-      if (statusData.status === 'COMPLETED') {
-        if (statusData.error) {
-          return jsonResponse({
-            status: 'FAILED',
-            failure: statusData.error,
-          });
-        }
-
-        const resolvedResponseUrl = isAllowedFalQueueUrl(statusData.response_url)
-          ? statusData.response_url
-          : typeof requestId === 'string' && requestId
-            ? getFallbackResponseUrl(requestId)
-            : null;
-
-        if (!resolvedResponseUrl) {
-          throw new Error('fal.ai response URL missing');
-        }
-
-        const resultRes = await fetch(resolvedResponseUrl, {
-          method: 'GET',
-          headers: falHeaders,
-        });
-
-        if (!resultRes.ok) {
-          const errorText = await resultRes.text();
-          console.error(`[GENERATE-VIDEO] fal result error: ${resultRes.status} - ${errorText}`);
-          throw new Error(`fal.ai result error: ${resultRes.status}`);
-        }
-
-        const resultData = await resultRes.json();
-        const videoUrl = resultData.video?.url ?? resultData.video_url ?? resultData.output?.video?.url ?? null;
-
-        if (!videoUrl) {
-          return jsonResponse({
-            status: 'FAILED',
-            failure: 'fal.ai completed without a video URL',
-          });
-        }
-
-        return jsonResponse({
-          status: 'SUCCEEDED',
-          video_url: videoUrl,
-        });
-      }
-
-      if (statusData.status === 'FAILED') {
-        return jsonResponse({
-          status: 'FAILED',
-          failure: statusData.error ?? 'Unknown error',
-        });
-      }
-
-      return jsonResponse({
-        status: 'PENDING',
-        queue_position: statusData.queue_position ?? null,
-      });
+      // fal.ai status
+      const falHeaders = { 'Authorization': `Key ${FAL_API_KEY}`, 'Content-Type': 'application/json' };
+      const result = await handleFalStatus(falHeaders, statusUrl, requestId);
+      return jsonResponse(result);
     }
 
+    /* ── GENERATE action ── */
     if (action === 'generate') {
       if (!promptText) throw new Error('promptText is required');
 
@@ -223,68 +361,48 @@ serve(async (req) => {
             description: `Reembolso: ${reason}`.slice(0, 200),
           });
 
-          console.log(`[GENERATE-VIDEO] Refunded ${CREDITS_COST} credits to user ${userId}: ${reason}`);
+          console.log(`[VIDEO] Refunded ${CREDITS_COST} credits to user ${userId}: ${reason}`);
         }
       };
 
       const resolvedAspectRatio = aspectRatio || '16:9';
+      const resolvedDuration = duration || 10;
 
-      // Decide model: image-to-video or text-to-video
-      let submitUrl = FAL_SUBMIT_URL;
-      const body: Record<string, unknown> = {
-        prompt: promptText,
-        duration: String(duration || 10),
-        aspect_ratio: resolvedAspectRatio,
-      };
+      // 1. Try fal.ai (primary)
+      const falResult = await submitFal(FAL_API_KEY, promptText, resolvedDuration, resolvedAspectRatio, imageBase64);
 
-      if (imageBase64) {
-        // Switch to image-to-video endpoint
-        submitUrl = 'https://queue.fal.run/fal-ai/kling-video/v2.5-turbo/pro/image-to-video';
-        body.image_url = `data:image/jpeg;base64,${imageBase64}`;
+      if (falResult) {
+        console.log(`[VIDEO] fal.ai queue request: ${falResult.requestId}, ${CREDITS_COST} credits charged`);
+        return jsonResponse({
+          requestId: falResult.requestId,
+          statusUrl: falResult.statusUrl,
+          provider: 'fal',
+        });
       }
 
-      console.log(`[GENERATE-VIDEO] Submitting to fal.ai: "${promptText.slice(0, 60)}..." | ${duration}s | ${resolvedAspectRatio} | img=${!!imageBase64}`);
+      // 2. Try Runway (fallback)
+      if (RUNWAY_API_KEY) {
+        console.log('[VIDEO] fal.ai failed, trying Runway fallback…');
+        const runwayResult = await submitRunway(RUNWAY_API_KEY, promptText, resolvedDuration, resolvedAspectRatio, imageBase64);
 
-      const response = await fetch(submitUrl, {
-        method: 'POST',
-        headers: falHeaders,
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[GENERATE-VIDEO] fal.ai error: ${response.status} - ${errorText}`);
-
-        if (response.status === 429) {
-          await refundCredits('Rate limit fal.ai');
-          return jsonResponse({ error: 'Rate limit exceeded. Please wait and try again.' }, 429);
+        if (runwayResult) {
+          console.log(`[VIDEO] Runway task created: ${runwayResult.requestId}, ${CREDITS_COST} credits charged`);
+          return jsonResponse({
+            requestId: runwayResult.requestId,
+            statusUrl: null,
+            provider: 'runway',
+          });
         }
-
-        await refundCredits(`Error fal.ai: ${response.status}`);
-        throw new Error(`fal.ai error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
-      const nextRequestId = data.request_id;
-      const nextStatusUrl = isAllowedFalQueueUrl(data.status_url)
-        ? data.status_url
-        : getFallbackStatusUrl(nextRequestId);
-      const nextResponseUrl = isAllowedFalQueueUrl(data.response_url)
-        ? data.response_url
-        : getFallbackResponseUrl(nextRequestId);
-
-      console.log(`[GENERATE-VIDEO] Queue request submitted: ${nextRequestId}, ${CREDITS_COST} credits charged`);
-
-      return jsonResponse({
-        requestId: nextRequestId,
-        statusUrl: nextStatusUrl,
-        responseUrl: nextResponseUrl,
-      });
+      // All providers failed — refund
+      await refundCredits('All video providers failed');
+      return jsonResponse({ error: 'All video generation providers are currently unavailable. Please try again later.' }, 503);
     }
 
     throw new Error(`Unknown action: ${action}`);
   } catch (error) {
-    console.error('[GENERATE-VIDEO] Error:', error);
+    console.error('[VIDEO] Error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return jsonResponse({ error: message }, 500);
   }
