@@ -133,6 +133,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
 
   // ── PASO 1: IA generativa ──────────────────────────────────────
   const [prompt,        setPrompt]        = useState('')
+  const [genMode,       setGenMode]       = useState<'song' | 'instrumental'>('song')
   const [generating,    setGenerating]    = useState(false)
   const [audioUrl,      setAudioUrl]      = useState<string | null>(null)
   const [audioTitle,    setAudioTitle]    = useState('')
@@ -159,7 +160,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
       toast.error(t('dashboard.firstHit.describeError'))
       return
     }
-    if (!hasEnough(FEATURE_COSTS.generate_audio)) {
+    if (!hasEnough(genMode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio)) {
       toast.error(t('dashboard.firstHit.noCreditsAudio'))
       return
     }
@@ -167,19 +168,22 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
     setGenError(null)
     try {
       // Gastar crédito
+      const featureKey = genMode === 'song' ? 'generate_audio_song' : 'generate_audio'
       const { data: spend, error: spendErr } = await supabase.functions.invoke(
         'spend-credits',
-        { body: { feature: 'generate_audio', description: `Audio AI: ${prompt.slice(0, 80)}` } }
+        { body: { feature: featureKey, description: `${genMode === 'song' ? 'Canción' : 'Instrumental'} AI: ${prompt.slice(0, 80)}` } }
       )
       if (spendErr || spend?.error) throw new Error(spend?.message || t('dashboard.firstHit.creditSpendError'))
 
-      // Enrich prompt with voice tag
+      // Enrich prompt with voice tag (only for song mode)
       let fullPrompt = prompt
-      const voiceProfile = voiceProfiles.find((v: any) => v.id === selectedVoice)
-      if (voiceProfile?.prompt_tag) fullPrompt += `, ${voiceProfile.prompt_tag}`
+      if (genMode === 'song') {
+        const voiceProfile = voiceProfiles.find((v: any) => v.id === selectedVoice)
+        if (voiceProfile?.prompt_tag) fullPrompt += `, ${voiceProfile.prompt_tag}`
+      }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
-        body: { prompt: fullPrompt, mode: 'song' },
+        body: { prompt: fullPrompt, mode: genMode },
       })
       if (error || data?.error === 'rate_limit_exceeded') {
         throw new Error(data?.message || error?.message || t('dashboard.firstHit.audioGenError'))
@@ -537,9 +541,41 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 <p className="text-[11px] text-muted-foreground text-right">
                   {prompt.length}/2000
                 </p>
+               </div>
+
+              {/* Mode selector */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Tipo de generación</Label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGenMode('song')}
+                    className={cn(
+                      "flex-1 px-3 py-2 rounded-lg text-xs font-medium border-2 transition-all flex items-center justify-center gap-1.5",
+                      genMode === 'song'
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    )}
+                  >
+                    🎤 Canción con voz
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setGenMode('instrumental'); setSelectedVoice(''); }}
+                    className={cn(
+                      "flex-1 px-3 py-2 rounded-lg text-xs font-medium border-2 transition-all flex items-center justify-center gap-1.5",
+                      genMode === 'instrumental'
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    )}
+                  >
+                    🎹 Instrumental / Base
+                  </button>
+                </div>
               </div>
 
-              {/* Voice selector */}
+              {/* Voice selector — only for song mode */}
+              {genMode === 'song' && (
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
                   {t('dashboard.firstHit.selectVoice', 'Elige una voz')}
@@ -590,6 +626,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                   </p>
                 )}
               </div>
+              )}
 
               {/* Error */}
               {genError && (
@@ -626,7 +663,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 <Button
                   className="flex-1 gap-2 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700"
                   onClick={handleGenerate}
-                  disabled={generating || !prompt.trim() || prompt.trim().length < 10 || !selectedVoice}
+                  disabled={generating || !prompt.trim() || prompt.trim().length < 10 || (genMode === 'song' && !selectedVoice)}
                 >
                   {generating
                     ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.generating')}</>
