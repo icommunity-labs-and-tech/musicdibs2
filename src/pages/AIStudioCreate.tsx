@@ -274,8 +274,12 @@ const AIStudioCreate = () => {
 
   // ── Generate music ──
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast({ title: t('aiShared.error'), description: t('aiCreate.errorNoDesc'), variant: "destructive" });
+    if (!prompt.trim() || prompt.trim().length < 10) {
+      toast({ title: t('aiShared.error'), description: 'Escribe al menos 10 caracteres describiendo tu canción', variant: "destructive" });
+      return;
+    }
+    if (!selectedVoice) {
+      toast({ title: t('aiShared.error'), description: 'Selecciona una voz para tu canción', variant: "destructive" });
       return;
     }
     if (!user) {
@@ -286,32 +290,26 @@ const AIStudioCreate = () => {
     setIsGenerating(true);
     setGenerationError(null);
     setLastResult(null);
-    track('generation_started', { feature: 'create_music', metadata: { mode, genre: selectedGenre, mood: selectedMood } });
+    track('generation_started', { feature: 'create_music', metadata: { mode: 'song' } });
 
     try {
       // Spend credits
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { feature: currentFeature, description: `${modeLabel}: ${prompt.slice(0, 80)}` },
+        body: { feature: currentFeature, description: `Canción: ${prompt.slice(0, 80)}` },
       });
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
-      // Only enrich with voice tag in song mode
+      // Enrich prompt with voice tag
       let enrichedPrompt = prompt.trim();
-      if (mode === 'song') {
-        const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
-        const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
-        enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
-      }
+      const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+      enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
           prompt: enrichedPrompt,
-          duration,
-          genre: selectedGenre || undefined,
-          mood: selectedMood || undefined,
-          lyrics: mode === 'song' ? (lyricsText || undefined) : undefined,
-          mode,
+          mode: 'song',
         }
       });
 
