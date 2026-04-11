@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.voice_clones.mureka_vocal_id IS 'OBSOLETO: Mureka descartado definitivamente. No usar en código nuevo.';
