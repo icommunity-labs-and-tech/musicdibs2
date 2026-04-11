@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/select';
 import {
   Crown, Video, Users, Instagram, Loader2, Megaphone,
-  Newspaper, Copy, Check, ChevronDown, ExternalLink,
+  Newspaper, Copy, Check, ChevronDown, ExternalLink, Rocket, AlertTriangle,
+  Eye, Play,
 } from 'lucide-react';
 import { PremiumPromoForm } from '@/components/dashboard/PremiumPromoForm';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
