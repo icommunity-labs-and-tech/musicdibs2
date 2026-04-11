@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
 import { useProductTracking } from "@/hooks/useProductTracking";
 
-import { ArrowLeft, Lightbulb, Shuffle, Copy, Sparkles, Music, Palette, Zap } from "lucide-react";
+import { ArrowLeft, Lightbulb, Shuffle, Copy, Sparkles, Music, Palette, Zap, FileText } from "lucide-react";
 import { GENRES, MOODS } from "@/types/aiStudio";
 import { toast } from "sonner";
 
@@ -78,6 +78,30 @@ const AIStudioInspire = () => {
           </p>
         </div>
 
+        {/* Compositor de Letras */}
+        <Card className="mb-12 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="flex flex-col md:flex-row items-center gap-6 py-8">
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2 justify-center md:justify-start">
+                <FileText className="w-6 h-6 text-primary" />
+                {t('aiInspire.lyricsTitle', 'Compositor de Letras')}
+              </h2>
+              <p className="text-muted-foreground mb-4">
+                {t('aiInspire.lyricsDesc', 'Crea letras originales de canciones. Describe el tema y genera tu letra.')}
+                {' '}
+                <Badge variant="secondary" className="text-xs ml-1">{t('aiInspire.free', 'Gratis')}</Badge>
+              </p>
+              <Button asChild variant="default" size="lg" className="min-h-[44px]">
+                <Link to="/ai-studio/create?tab=lyrics">
+                  <FileText className="w-4 h-4 mr-2" />
+                  {t('aiInspire.createLyrics', 'Crear Letras')}
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Generador Aleatorio */}
         <Card className="mb-12 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
           <CardContent className="flex flex-col md:flex-row items-center gap-6 py-8">
             <div className="flex-1 text-center md:text-left">
