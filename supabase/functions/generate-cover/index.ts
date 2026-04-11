@@ -45,14 +45,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     )
 
-    // ── API key ─────────────────────────────────────────────────
+    // ── API keys ────────────────────────────────────────────────
     const FAL_API_KEY = Deno.env.get("FAL_API_KEY")
-    if (!FAL_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "FAL_API_KEY not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      )
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")
 
     // ── Parse body ──────────────────────────────────────────────
     const {
@@ -107,86 +102,130 @@ serve(async (req) => {
 
     console.log(`[COVER] user=${user.id}, hasPhoto=${!!artistPhotoBase64}, prompt=${prompt.slice(0, 120)}…`)
 
-    // ── Generate with Nano Banana Pro ───────────────────────────
+    // ── Generate image ─────────────────────────────────────────
     let imageUrl: string
 
-    try {
-      if (artistPhotoBase64) {
-        // Image-to-image: edit endpoint
-        const res = await fetch("https://fal.run/fal-ai/nano-banana-pro/edit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Key ${FAL_API_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt,
-            image_urls: [`data:image/jpeg;base64,${artistPhotoBase64}`],
-            image_size: { width: 3000, height: 3000 },
-            output_format: "png",
-          }),
-        })
-
-        if (!res.ok) {
-          const errText = await res.text()
-          console.error("[COVER] fal.ai edit error:", errText)
-          throw new Error(`fal.ai error: ${res.status}`)
+    // Helper: try fal.ai
+    const tryFal = async (): Promise<string | null> => {
+      if (!FAL_API_KEY) return null
+      try {
+        const endpoint = artistPhotoBase64
+          ? "https://fal.run/fal-ai/nano-banana-pro/edit"
+          : "https://fal.run/fal-ai/nano-banana-pro"
+        const body: any = {
+          prompt,
+          image_size: { width: 3000, height: 3000 },
+          output_format: "png",
         }
-
-        const data = await res.json()
-        imageUrl = data.images?.[0]?.url
-        if (!imageUrl) throw new Error("No image returned from fal.ai edit")
-      } else {
-        // Text-to-image: base endpoint
-        const res = await fetch("https://fal.run/fal-ai/nano-banana-pro", {
+        if (artistPhotoBase64) {
+          body.image_urls = [`data:image/jpeg;base64,${artistPhotoBase64}`]
+        }
+        const res = await fetch(endpoint, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Key ${FAL_API_KEY}`,
-          },
-          body: JSON.stringify({
-            prompt,
-            image_size: { width: 3000, height: 3000 },
-            output_format: "png",
-          }),
+          headers: { "Content-Type": "application/json", Authorization: `Key ${FAL_API_KEY}` },
+          body: JSON.stringify(body),
         })
-
         if (!res.ok) {
           const errText = await res.text()
           console.error("[COVER] fal.ai error:", errText)
-          throw new Error(`fal.ai error: ${res.status}`)
+          return null
         }
-
         const data = await res.json()
-        imageUrl = data.images?.[0]?.url
-        if (!imageUrl) throw new Error("No image returned from fal.ai")
+        return data.images?.[0]?.url || null
+      } catch (e: any) {
+        console.error("[COVER] fal.ai exception:", e.message)
+        return null
+      }
+    }
+
+    // Helper: try Lovable AI Gateway
+    const tryLovable = async (): Promise<string | null> => {
+      if (!LOVABLE_API_KEY) return null
+      const models = [
+        "google/gemini-3.1-flash-image-preview",
+        "google/gemini-3-pro-image-preview",
+      ]
+      for (const model of models) {
+        try {
+          console.log(`[COVER] Trying Lovable AI: ${model}`)
+          const content: any[] = [{ type: "text", text: prompt }]
+          if (artistPhotoBase64) {
+            content.push({
+              type: "image_url",
+              image_url: { url: `data:image/jpeg;base64,${artistPhotoBase64}` },
+            })
+          }
+          const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: "user", content }],
+              modalities: ["image", "text"],
+            }),
+          })
+          if (!res.ok) {
+            console.error(`[COVER] Lovable ${model} error ${res.status}`)
+            continue
+          }
+          const data = await res.json()
+          const b64 = data.choices?.[0]?.message?.images?.[0]?.image_url?.url
+          if (b64?.startsWith("data:image")) {
+            // Upload base64 to storage and return URL
+            const base64Data = b64.split(",")[1]
+            const imgBuffer = Uint8Array.from(atob(base64Data), (c: string) => c.charCodeAt(0))
+            const fileName = `covers/${user.id}/${Date.now()}_lovable.png`
+            const { error: upErr } = await supabaseAdmin.storage
+              .from("social-promo-images")
+              .upload(fileName, imgBuffer, { contentType: "image/png", upsert: false })
+            if (!upErr) {
+              const { data: pubUrl } = supabaseAdmin.storage
+                .from("social-promo-images")
+                .getPublicUrl(fileName)
+              console.log(`[COVER] Generated with Lovable AI ${model}`)
+              return pubUrl.publicUrl
+            }
+            console.warn("[COVER] Upload of Lovable image failed:", upErr.message)
+          }
+        } catch (e: any) {
+          console.error(`[COVER] Lovable ${model} exception:`, e.message)
+        }
+      }
+      return null
+    }
+
+    // Try fal.ai first, then Lovable AI Gateway as fallback
+    try {
+      const falResult = await tryFal()
+      if (falResult) {
+        imageUrl = falResult
+      } else {
+        console.log("[COVER] fal.ai failed, trying Lovable AI fallback…")
+        const lovableResult = await tryLovable()
+        if (lovableResult) {
+          imageUrl = lovableResult
+        } else {
+          throw new Error("All image generation providers failed")
+        }
       }
     } catch (genErr) {
       console.error("[COVER] Generation error:", genErr)
-      const errMsg = genErr instanceof Error ? genErr.message : String(genErr)
-
-      // Do NOT deduct credits on generation failure
-      const isServiceError = /5\d{2}/.test(errMsg)
-      if (isServiceError) {
-        return new Response(
-          JSON.stringify({
-            error: "SERVICE_UNAVAILABLE",
-            fallback: true,
-            message: "El servicio de generación de imágenes no está disponible temporalmente. Inténtalo de nuevo en unos minutos.",
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        )
-      }
-
       return new Response(
-        JSON.stringify({ error: errMsg }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        JSON.stringify({
+          error: "SERVICE_UNAVAILABLE",
+          fallback: true,
+          message: "El servicio de generación de imágenes no está disponible temporalmente. Inténtalo de nuevo en unos minutos.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       )
     }
 
-    // ── Upscale to 4096px (only when requested) ────────────────
+    // ── Upscale to 4096px (only when requested + fal.ai available) ──
     const wantHD = resolution === '4096'
-    if (wantHD) {
+    if (wantHD && FAL_API_KEY) {
       try {
         console.log(`[COVER] Upscaling from model output…`)
         const upRes = await fetch("https://fal.run/fal-ai/aura-sr", {
@@ -217,6 +256,8 @@ serve(async (req) => {
       } catch (upscaleErr) {
         console.warn("[COVER] Upscale failed, using original:", upscaleErr)
       }
+    } else if (wantHD) {
+      console.log("[COVER] HD requested but fal.ai unavailable, skipping upscale")
     } else {
       console.log("[COVER] Skipping upscale (resolution=1024)")
     }
