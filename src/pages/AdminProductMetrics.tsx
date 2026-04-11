@@ -106,17 +106,22 @@ export default function AdminProductMetrics() {
 
     setMetrics((data as MetricRow[]) || []);
 
-    // Load live feature counts from product_events using the action tied to each feature
-    const { data: events } = await supabase
-      .from("product_events")
-      .select("feature, event_name")
-      .gte("created_at", `${fromStr}T00:00:00.000Z`);
-
+    // Load live feature counts from product_events — one count query per feature to avoid 1000-row limit
     const counts: Record<string, number> = {};
-    for (const [feature, eventNames] of Object.entries(ACTION_EVENTS_BY_FEATURE)) {
-      counts[feature] = (events || []).filter(
-        (event) => event.feature === feature && eventNames.includes(event.event_name)
-      ).length;
+    const featureEntries = Object.entries(ACTION_EVENTS_BY_FEATURE);
+    const countResults = await Promise.all(
+      featureEntries.map(([feature, eventNames]) =>
+        supabase
+          .from("product_events")
+          .select("id", { count: "exact", head: true })
+          .eq("feature", feature)
+          .in("event_name", eventNames)
+          .gte("created_at", `${fromStr}T00:00:00.000Z`)
+          .then(({ count }) => ({ feature, count: count || 0 }))
+      )
+    );
+    for (const { feature, count } of countResults) {
+      counts[feature] = count;
     }
     setLiveFeatureCounts(counts);
 
