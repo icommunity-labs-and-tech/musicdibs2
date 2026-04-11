@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -146,7 +146,8 @@ const AIStudioCreate = () => {
   const [copiedLyrics, setCopiedLyrics] = useState(false);
 
   // ── Lyrics history state ──
-  const [activeTab, setActiveTab] = useState<"music" | "lyrics">("music");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<"music" | "lyrics">(() => searchParams.get('tab') === 'lyrics' ? 'lyrics' : 'music');
   const [lyricsHistory, setLyricsHistory] = useState<LyricsGeneration[]>([]);
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
