@@ -156,6 +156,26 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
       })
   }, [])
 
+  const handleImproveWithAI = async () => {
+    if (prompt.length < 10) return;
+    setIsImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-description', {
+        body: { text: prompt },
+      });
+      if (error) throw error;
+      if (data?.improved_text) {
+        setPrompt(data.improved_text);
+        toast.success('Descripción mejorada ✨');
+      } else {
+        toast.error('Error al mejorar. Inténtalo de nuevo.');
+      }
+    } catch {
+      toast.error('Error al mejorar. Inténtalo de nuevo.');
+    }
+    setIsImproving(false);
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast.error(t('dashboard.firstHit.describeError'))
