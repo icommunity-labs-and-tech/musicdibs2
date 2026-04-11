@@ -404,6 +404,20 @@ serve(async (req) => {
       const planId   = session.metadata?.plan_id || "unknown";
 
       if (userId && credits > 0) {
+        // ── Idempotency guard: skip if this checkout session was already processed ──
+        const { data: existingCheckoutOrder } = await supabase
+          .from("orders")
+          .select("id")
+          .eq("stripe_checkout_session_id", session.id)
+          .maybeSingle();
+
+        if (existingCheckoutOrder) {
+          console.log(`[WEBHOOK] Duplicate checkout.session.completed for ${session.id} — skipping`);
+          return new Response(JSON.stringify({ received: true, duplicate: true }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          });
+        }
+
         // Fetch previous plan BEFORE updating (to detect first annual purchase)
         const { data: prevProfile } = await supabase
           .from("profiles").select("subscription_plan").eq("user_id", userId).single();
@@ -632,6 +646,23 @@ serve(async (req) => {
         const profile = await findProfileByCustomerId(supabase, stripe, customerId);
 
         if (profile) {
+          // ── Idempotency guard: skip if this renewal invoice was already processed ──
+          if (invoiceId) {
+            const { data: existingRenewalOrder } = await supabase
+              .from("orders")
+              .select("id")
+              .eq("stripe_invoice_id", invoiceId)
+              .eq("is_renewal", true)
+              .maybeSingle();
+
+            if (existingRenewalOrder) {
+              console.log(`[WEBHOOK] Duplicate renewal for invoice ${invoiceId} — skipping`);
+              return new Response(JSON.stringify({ received: true, duplicate: true }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" }
+              });
+            }
+          }
+
           const credits = priceId ? (PRICE_CREDITS[priceId] || 0) : 0;
 
           if (credits > 0) {
