@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { User, Mail, Phone, CreditCard, Shield, Calendar, Hash, FileText, Clock } from 'lucide-react';
 import UserPurchasesPanel from './UserPurchasesPanel';
 import UserUsagePanel from './UserUsagePanel';
+import DisputeTimeline from './DisputeTimeline';
 
 interface UserDetailSheetProps {
   user: any | null;
