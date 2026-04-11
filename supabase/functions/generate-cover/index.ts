@@ -121,7 +121,7 @@ serve(async (req) => {
           body: JSON.stringify({
             prompt,
             image_urls: [`data:image/jpeg;base64,${artistPhotoBase64}`],
-            aspect_ratio: "1:1",
+            image_size: { width: 3000, height: 3000 },
             output_format: "png",
           }),
         })
@@ -145,7 +145,7 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             prompt,
-            aspect_ratio: "1:1",
+            image_size: { width: 3000, height: 3000 },
             output_format: "png",
           }),
         })
