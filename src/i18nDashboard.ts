@@ -386,7 +386,7 @@ const es = {
       step2Sublabel: '¿Ya tienes una canción? ¡Regístrala para que no te la plagien!',
       step3Label: 'Promociona tu canción',
       step3Sublabel: '¡Que se entere el mundo! Comparte con +100k seguidores (Instagram & TikTok) de nuestras redes sociales.',
-      describePrompt: 'Describe tu canción y/o pega tu letra y describe el estilo',
+      describePrompt: 'Describe tu canción: género (pop, rap, reggaeton, rock, etc) estilo, ritmo... Incluye la letra si la tienes. Cuanto más detallado, mejor resultado.',
       promptPlaceholder: 'Ej: canción pop energética sobre el verano, con guitarra acústica y voz femenina...',
       genreOptional: 'Género (opcional)',
       moodOptional: 'Mood (opcional)',
