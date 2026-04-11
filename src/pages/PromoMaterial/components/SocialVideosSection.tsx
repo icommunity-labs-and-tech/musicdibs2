@@ -44,6 +44,7 @@ export const SocialVideosSection = () => {
   const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [pollCount, setPollCount] = useState(0);
+  const [activeProvider, setActiveProvider] = useState<string | null>(null);
 
   // Prompt beforeunload while generating
   useEffect(() => {
