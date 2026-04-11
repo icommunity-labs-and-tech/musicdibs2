@@ -246,10 +246,7 @@ export default function PromotionPage() {
                 {/* Stats chips */}
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
-                    <Users className="h-3 w-3" /> +350K {t('dashboard.promoSelector.totalFollowers', 'seguidores totales')}
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
-                    <Eye className="h-3 w-3" /> +50K {t('dashboard.promoSelector.potentialViews', 'visualizaciones potenciales')}
+                    <Eye className="h-3 w-3" /> 5-50K {t('dashboard.promoSelector.potentialViews', 'visualizaciones potenciales')}
                   </Badge>
                   <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
                     <Instagram className="h-3 w-3" /> TikTok + Instagram
