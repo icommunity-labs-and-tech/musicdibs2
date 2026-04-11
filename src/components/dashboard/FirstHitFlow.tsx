@@ -557,7 +557,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                     type="button"
                     onClick={handleImproveWithAI}
                     disabled={prompt.length < 10 || isImproving}
-                    className="text-sm px-3 py-1 rounded-md text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-sm px-3 py-1 rounded-md text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0"
                   >
                     {isImproving ? (
                       <>
