@@ -548,23 +548,16 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
             <div className="px-5 pb-6 border-t border-border/40 pt-4 space-y-4">
               {/* Prompt */}
               <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">
-                  {t('dashboard.firstHit.describePrompt')}
-                  <span className="text-destructive ml-1">*</span>
-                </Label>
-                <div className="relative">
-                  <Textarea
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value.slice(0, 2000))}
-                    placeholder={t('dashboard.firstHit.promptPlaceholder')}
-                    className="text-sm min-h-[100px] resize-none pr-32"
-                    maxLength={2000}
-                  />
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">
+                    {t('dashboard.firstHit.describePrompt')}
+                    <span className="text-destructive ml-1">*</span>
+                  </Label>
                   <button
                     type="button"
                     onClick={handleImproveWithAI}
                     disabled={prompt.length < 10 || isImproving}
-                    className="absolute top-2 right-2 text-sm px-3 py-1.5 rounded-md text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="text-sm px-3 py-1 rounded-md text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isImproving ? (
                       <>
@@ -576,6 +569,13 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                     )}
                   </button>
                 </div>
+                <Textarea
+                  value={prompt}
+                  onChange={e => setPrompt(e.target.value.slice(0, 2000))}
+                  placeholder={t('dashboard.firstHit.promptPlaceholder')}
+                  className="text-sm min-h-[100px] resize-none"
+                  maxLength={2000}
+                />
                 <p className="text-[11px] text-muted-foreground text-right">
                   {prompt.length}/2000
                 </p>
