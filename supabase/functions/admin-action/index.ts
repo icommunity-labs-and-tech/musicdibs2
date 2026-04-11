@@ -1991,6 +1991,127 @@ serve(async (req) => {
       });
     }
 
+    // ── get_user_purchases ─────────────────────────────────
+    if (action === "get_user_purchases") {
+      const { user_id } = payload;
+      if (!user_id) return json({ error: "user_id required" }, 400);
+
+      const [ordersRes, evidencesRes, usageRes] = await Promise.all([
+        admin.from("orders")
+          .select("id, product_label, product_type, product_code, amount_gross, currency, order_status, is_renewal, is_first_purchase, paid_at, stripe_payment_intent_id, stripe_checkout_session_id, stripe_invoice_id")
+          .eq("user_id", user_id)
+          .order("paid_at", { ascending: false }),
+        admin.from("purchase_evidences")
+          .select("id, product_name, amount, currency, payment_status, certification_status, ibs_transaction_id, certificate_pdf_url, payment_intent_id, created_at")
+          .eq("user_id", user_id)
+          .order("created_at", { ascending: false }),
+        admin.from("purchase_usage_evidences")
+          .select("id, event_type, event_timestamp, certification_status, ibs_transaction_id, ip_address")
+          .eq("user_id", user_id)
+          .order("event_timestamp", { ascending: false })
+          .limit(20),
+      ]);
+
+      const evidencesByPI: Record<string, any> = {};
+      (evidencesRes.data || []).forEach((e: any) => {
+        if (e.payment_intent_id) evidencesByPI[e.payment_intent_id] = e;
+      });
+
+      const ordersEnriched = (ordersRes.data || []).map((o: any) => ({
+        ...o,
+        linked_evidence: o.stripe_payment_intent_id ? (evidencesByPI[o.stripe_payment_intent_id] || null) : null,
+      }));
+
+      return json({
+        orders: ordersEnriched,
+        evidences: evidencesRes.data || [],
+        usage_events: usageRes.data || [],
+      });
+    }
+
+    // ── get_library_status ──────────────────────────────────
+    if (action === "get_library_status") {
+      const { user_id } = payload;
+      if (!user_id) return json({ error: "user_id required" }, 400);
+
+      const [profileRes, genCountRes] = await Promise.all([
+        admin.from("profiles")
+          .select("library_status, library_status_since, free_downloads_used, subscription_plan, available_credits")
+          .eq("user_id", user_id).single(),
+        admin.from("ai_generations")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user_id),
+      ]);
+
+      const profile = profileRes.data;
+      const daysInactive = profile?.library_status_since
+        ? Math.floor((Date.now() - new Date(profile.library_status_since).getTime()) / 86400000)
+        : null;
+
+      return json({
+        library_status: profile?.library_status || "active",
+        library_status_since: profile?.library_status_since || null,
+        days_inactive: daysInactive,
+        free_downloads_used: profile?.free_downloads_used || 0,
+        subscription_plan: profile?.subscription_plan || "Free",
+        available_credits: profile?.available_credits || 0,
+        assets_total: genCountRes.count || 0,
+      });
+    }
+
+    // ── get_consistency_report ───────────────────────────────
+    if (action === "get_consistency_report") {
+      const limit = payload.limit || 50;
+
+      // Join orders with purchase_evidences to find mismatches
+      const { data: orders } = await admin
+        .from("orders")
+        .select("id, user_id, stripe_payment_intent_id, stripe_checkout_session_id, amount_gross, currency, order_status, paid_at, product_type")
+        .order("paid_at", { ascending: false })
+        .limit(limit);
+
+      const piIds = (orders || []).map((o: any) => o.stripe_payment_intent_id).filter(Boolean);
+      const { data: evidences } = await admin
+        .from("purchase_evidences")
+        .select("id, payment_intent_id, amount, currency, payment_status, certification_status")
+        .in("payment_intent_id", piIds.length ? piIds : ["__none__"]);
+
+      const evidenceMap: Record<string, any> = {};
+      (evidences || []).forEach((e: any) => {
+        if (e.payment_intent_id) evidenceMap[e.payment_intent_id] = e;
+      });
+
+      const emailsMap = await getAllEmailsMap();
+
+      const gaps = (orders || []).map((o: any) => {
+        const ev = o.stripe_payment_intent_id ? evidenceMap[o.stripe_payment_intent_id] : null;
+        let status = "ok";
+        if (!ev) status = "missing_evidence";
+        else if (ev.payment_status !== "paid") status = "evidence_unpaid";
+        else if (Math.abs(Number(ev.amount) - Number(o.amount_gross)) > 0.01) status = "amount_mismatch";
+        return { ...o, evidence: ev || null, consistency_status: status, user_email: emailsMap[o.user_id] || "" };
+      }).filter((g: any) => g.consistency_status !== "ok");
+
+      return json({ gaps, total: gaps.length });
+    }
+
+    // ── export_csv: orders ───────────────────────────────────
+    if (action === "export_csv") {
+      const { dataset } = payload;
+
+      if (dataset === "orders") {
+        const { data: orders } = await admin.from("orders").select("*").order("paid_at", { ascending: false }).limit(1000);
+        const emailsMap = await getAllEmailsMap();
+        const header = "email,product_label,product_type,amount_gross,currency,order_status,is_renewal,paid_at";
+        const rows = (orders || []).map((o: any) =>
+          `${emailsMap[o.user_id] || ""},"${(o.product_label || "").replace(/"/g, '""')}",${o.product_type},${o.amount_gross},${o.currency},${o.order_status},${o.is_renewal},${o.paid_at}`
+        );
+        return json({ csv: [header, ...rows].join("\n") });
+      }
+
+      return json({ error: "Unknown dataset" }, 400);
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);
