@@ -539,54 +539,56 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 </p>
               </div>
 
-              {/* Género + Mood */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('dashboard.firstHit.genreOptional')}
-                  </Label>
-                  <Select value={genre} onValueChange={setGenre}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder={t('dashboard.firstHit.genreOptional')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GENRES.map(g => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">
-                    {t('dashboard.firstHit.moodOptional')}
-                  </Label>
-                  <Select value={mood} onValueChange={setMood}>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder={t('dashboard.firstHit.moodOptional')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOODS.map(m => (
-                        <SelectItem key={m} value={m}>{m}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Duración */}
-              <div className="space-y-1.5">
+              {/* Voice selector */}
+              <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  {t('dashboard.firstHit.duration', { n: duration })}
+                  {t('dashboard.firstHit.selectVoice', 'Elige una voz')}
+                  <span className="text-destructive ml-1">*</span>
                 </Label>
-                <input
-                  type="range" min={5} max={90} step={5}
-                  value={duration}
-                  onChange={e => setDuration(Number(e.target.value))}
-                  className="w-full accent-violet-500"
-                />
-                <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>5s</span><span>90s</span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[280px] overflow-y-auto pr-1">
+                  {voiceProfiles.map((v: any) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setSelectedVoice(v.id)}
+                      className={cn(
+                        "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
+                        selectedVoice === v.id
+                          ? "border-2 border-primary bg-primary/5"
+                          : "border-border hover:border-primary/30"
+                      )}
+                    >
+                      <span className="text-base mb-0.5">{v.emoji || '🎤'}</span>
+                      <span className="text-xs font-medium text-foreground">{v.label}</span>
+                      {v.sample_url && (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (playingVoice === v.id) {
+                              voiceAudioRefs[v.id]?.pause()
+                              setPlayingVoice('')
+                            } else {
+                              Object.values(voiceAudioRefs).forEach((a: any) => a?.pause?.())
+                              if (!voiceAudioRefs[v.id]) voiceAudioRefs[v.id] = new Audio(v.sample_url)
+                              voiceAudioRefs[v.id].currentTime = 0
+                              voiceAudioRefs[v.id].play()
+                              voiceAudioRefs[v.id].onended = () => setPlayingVoice('')
+                              setPlayingVoice(v.id)
+                            }
+                          }}
+                          className={cn("inline-flex items-center gap-1 mt-1 text-[11px] cursor-pointer", playingVoice === v.id ? "text-primary" : "text-muted-foreground")}
+                        >
+                          {playingVoice === v.id ? '⏹ Detener' : '▶ Escuchar'}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
+                {selectedVoice && (
+                  <p className="text-xs text-muted-foreground">
+                    {voiceProfiles.find((v: any) => v.id === selectedVoice)?.description}
+                  </p>
+                )}
               </div>
 
               {/* Error */}
