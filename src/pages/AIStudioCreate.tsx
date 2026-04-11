@@ -852,34 +852,45 @@ const AIStudioCreate = () => {
 
                       {/* Main textarea — description + lyrics combined */}
                       <div className="space-y-1.5" data-tour="mc-description">
-                        <Label>{t('aiCreate.createDesc')}</Label>
-                        <div className="relative">
-                          <Textarea
-                            placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con un ritmo enérgico y romántico. Incluye la letra si la tienes..."
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
-                            rows={5}
-                            className="resize-none pr-40"
-                            maxLength={2000}
-                          />
+                        <div className="flex items-center justify-between">
+                          <Label>Describe tu canción y/o pega tu letra *</Label>
                           <button
                             type="button"
                             onClick={handleImprovePrompt}
-                            disabled={isImprovingPrompt || prompt.trim().length < 10}
+                            disabled={isImprovingPrompt || !prompt.trim()}
                             title="Optimiza tu descripción para obtener mejores resultados"
-                            className={cn(
-                              "absolute top-2 right-2 inline-flex items-center gap-1.5 text-sm font-medium rounded-md px-3 py-1.5 transition-all",
-                              "text-muted-foreground bg-transparent border border-transparent",
-                              "hover:border-primary hover:text-primary hover:bg-primary/5",
-                              (isImprovingPrompt || prompt.trim().length < 10) && "opacity-40 cursor-not-allowed hover:border-transparent hover:text-muted-foreground hover:bg-transparent"
-                            )}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              color: '#4b5563',
+                              background: 'transparent',
+                              border: '1px solid transparent',
+                              borderRadius: '8px',
+                              padding: '6px 14px',
+                              cursor: 'pointer',
+                              opacity: (isImprovingPrompt || !prompt.trim()) ? 0.4 : 1,
+                              transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(var(--primary))'; e.currentTarget.style.color = 'hsl(var(--primary))'; e.currentTarget.style.background = 'hsl(var(--primary) / 0.08)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'transparent'; e.currentTarget.style.color = '#4b5563'; e.currentTarget.style.background = 'transparent'; }}
                           >
                             {isImprovingPrompt
-                              ? <><Loader2 className="h-4 w-4 animate-spin text-primary" /><span className="hidden sm:inline">Mejorando...</span></>
-                              : <><Sparkles className="h-4 w-4" /><span className="hidden sm:inline">{t('aiCreate.improveWithAI')}</span></>
+                              ? <><Loader2 style={{ width: 16, height: 16, color: 'hsl(var(--primary))', animation: 'spin 1s linear infinite' }} />{t('aiCreate.improving')}</>
+                              : <><Sparkles style={{ width: 16, height: 16, color: 'hsl(var(--primary))' }} />{t('aiCreate.improveWithAI')}</>
                             }
                           </button>
                         </div>
+                        <Textarea
+                          placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con un ritmo enérgico y romántico. Incluye la letra si la tienes..."
+                          value={prompt}
+                          onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
+                          rows={5}
+                          className="resize-none"
+                          maxLength={2000}
+                        />
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground">Incluye: género, mood, idioma, tema, ritmo, tipo de voz, letra...</p>
                           <p className="text-xs text-muted-foreground">{prompt.length}/2000</p>
