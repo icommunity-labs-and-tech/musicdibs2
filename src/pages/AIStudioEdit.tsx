@@ -141,6 +141,7 @@ const AIStudioEdit = () => {
       return;
     }
 
+    track('enhance_audio_started', { feature: 'enhance_audio' });
     setIsProcessing(true);
     setProcessError(null);
     setProcessedUrl(null);
@@ -200,6 +201,7 @@ const AIStudioEdit = () => {
               setProcessedUrl(st.outputUrl);
               setIsProcessing(false);
               toast({ title: tr('success.title') });
+              track('enhance_audio_completed', { feature: 'enhance_audio' });
             }, 500);
           } else if (st?.errored) {
             stopPolling();

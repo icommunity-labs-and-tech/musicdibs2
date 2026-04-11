@@ -171,6 +171,7 @@ export const SocialVideosSection = () => {
             setVideoUrl(statusData.video_url);
             setProgressStatus(null);
             toast({ title: tr('success'), description: tr('successDesc') });
+            track('social_video_generated', { feature: 'social_video' });
             break;
           }
 

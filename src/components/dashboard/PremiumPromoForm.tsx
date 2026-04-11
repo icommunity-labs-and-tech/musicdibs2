@@ -207,6 +207,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
 
       setShowSuccess(true);
       toast.success(t('dashboard.premium.requestSent'));
+      track('premium_promotion_submitted', { feature: 'premium_promotion' });
     } catch (err: any) {
       toast.error(err.message || t('dashboard.premium.submitError'));
     } finally {
