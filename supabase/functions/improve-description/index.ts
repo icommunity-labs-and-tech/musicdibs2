@@ -20,8 +20,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) {
       return new Response(JSON.stringify({ error: 'API key not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -43,24 +43,24 @@ Original: ${text}
 
 Mejorada:`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[IMPROVE-DESC] AI error:', response.status, errText);
+      console.error('[IMPROVE-DESC] Anthropic error:', response.status, errText);
       return new Response(JSON.stringify({ error: 'AI generation failed' }), {
         status: response.status === 429 ? 429 : 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -68,7 +68,7 @@ Mejorada:`;
     }
 
     const data = await response.json();
-    const improved = data.choices?.[0]?.message?.content?.trim() || '';
+    const improved = data.content?.[0]?.text?.trim() || '';
 
     if (!improved) {
       return new Response(JSON.stringify({ error: 'Empty response' }), {

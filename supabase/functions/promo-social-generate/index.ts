@@ -31,12 +31,10 @@ async function fetchWorkMetadata(supabase: any, workId: string, userId: string) 
   const work = workRes.data;
   if (!work) return null;
 
-  // Try to match an ai_generation to this work by title similarity
   const aiGen = genRes.data?.find((g: any) =>
     work.title && g.prompt && g.prompt.toLowerCase().includes(work.title.toLowerCase())
   ) || genRes.data?.[0] || null;
 
-  // Try to match lyrics to this work
   const lyrics = lyricsRes.data?.find((l: any) =>
     work.title && l.description && l.description.toLowerCase().includes(work.title.toLowerCase())
   ) || lyricsRes.data?.[0] || null;
@@ -58,7 +56,6 @@ async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId:
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(20),
-    // Fetch default artist profile name as fallback author
     supabase
       .from('user_artist_profiles')
       .select('name')
@@ -73,7 +70,6 @@ async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId:
 
   const artistName = authorOverride || profileRes.data?.name || null;
 
-  // Build a work-like object from the AI generation
   const work = {
     title: gen.prompt || 'AI Song',
     author: artistName,
@@ -85,7 +81,6 @@ async function fetchAiGenerationMetadata(supabase: any, aiGenId: string, userId:
 
   const aiGen = { prompt: gen.prompt, genre: gen.genre, mood: gen.mood };
 
-  // Try to match lyrics
   const lyrics = lyricsRes.data?.find((l: any) =>
     gen.prompt && l.description && l.description.toLowerCase().includes(gen.prompt.toLowerCase())
   ) || lyricsRes.data?.[0] || null;
@@ -104,7 +99,6 @@ function buildImagePrompt(work: any, aiGen: any, lyrics: any): string {
   if (work.description) parts.push(`Context: ${work.description.slice(0, 150)}.`);
   if (aiGen?.prompt) parts.push(`Original concept: ${aiGen.prompt.slice(0, 150)}.`);
 
-  // Add lyrics context for visual inspiration (NOT as text in the image)
   if (lyrics?.lyrics) {
     const lyricsSnippet = lyrics.lyrics.slice(0, 300);
     parts.push(`The song lyrics convey this feeling (use as visual inspiration only, DO NOT write these words in the image): "${lyricsSnippet}"`);
@@ -132,7 +126,6 @@ function buildCopiesPrompt(work: any, aiGen: any, lyrics: any, tone?: string, la
   if (work.description) lines.push(`- Descripción: ${work.description}`);
   if (aiGen?.prompt) lines.push(`- Concepto artístico: ${aiGen.prompt.slice(0, 200)}`);
 
-  // Add lyrics for richer copies
   if (lyrics?.lyrics) {
     const lyricsSnippet = lyrics.lyrics.slice(0, 500);
     lines.push(`- Letra de la canción (extracto): "${lyricsSnippet}"`);
@@ -225,36 +218,32 @@ async function generateImageWithNanoBanana(prompt: string, apiKey: string): Prom
   return null;
 }
 
-async function generateCopiesWithAI(prompt: string, apiKey: string): Promise<{ ig_feed: string; ig_story: string; tiktok: string } | null> {
+async function generateCopiesWithAI(prompt: string, anthropicApiKey: string): Promise<{ ig_feed: string; ig_story: string; tiktok: string } | null> {
   try {
-    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'x-api-key': anthropicApiKey,
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-pro',
-        messages: [
-          {
-            role: 'system',
-            content: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
-          },
-          { role: 'user', content: prompt },
-        ],
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        system: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
+        messages: [{ role: 'user', content: prompt }],
       }),
     });
 
     if (!res.ok) {
-      console.error(`[PROMO] Copies AI error: ${res.status}`);
+      console.error(`[PROMO] Copies Anthropic error: ${res.status}`);
       return null;
     }
 
     const data = await res.json();
-    const text = data.choices?.[0]?.message?.content?.trim();
+    const text = data.content?.[0]?.text?.trim();
     if (!text) return null;
 
-    // Clean potential markdown wrapping
     const cleaned = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
     return JSON.parse(cleaned);
   } catch (err: any) {
@@ -294,9 +283,10 @@ serve(async (req) => {
     );
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
-    if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
+    if (!ANTHROPIC_API_KEY || !RESEND_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API keys' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -324,7 +314,7 @@ serve(async (req) => {
       });
     }
 
-    // Fetch metadata — from works table or ai_generations table
+    // Fetch metadata
     const meta = ai_generation_id
       ? await fetchAiGenerationMetadata(supabase, ai_generation_id, user.id, author)
       : await fetchWorkMetadata(supabase, work_id, user.id);
@@ -371,13 +361,16 @@ serve(async (req) => {
     // Background processing
     (async () => {
       try {
-        // ── 1. Generate copies with Gemini 2.5 Pro (parallel) ──
+        // ── 1. Generate copies with Anthropic Haiku (parallel) ──
         const copiesPrompt = buildCopiesPrompt(work, aiGen, lyrics, tone, language);
-        const copiesPromise = generateCopiesWithAI(copiesPrompt, LOVABLE_API_KEY);
+        const copiesPromise = generateCopiesWithAI(copiesPrompt, ANTHROPIC_API_KEY);
 
-        // ── 2. Generate image (parallel) ──
-        const imagePrompt = buildImagePrompt(work, aiGen, lyrics);
-        const imagePromise = generateImageWithNanoBanana(imagePrompt, LOVABLE_API_KEY);
+        // ── 2. Generate image with Lovable AI Gateway (parallel) — kept as-is ──
+        let imagePromise: Promise<string | null> = Promise.resolve(null);
+        if (LOVABLE_API_KEY) {
+          const imagePrompt = buildImagePrompt(work, aiGen, lyrics);
+          imagePromise = generateImageWithNanoBanana(imagePrompt, LOVABLE_API_KEY);
+        }
 
         const [copies, base64Image] = await Promise.all([copiesPromise, imagePromise]);
 
@@ -389,7 +382,6 @@ serve(async (req) => {
 
         let imageUrl = '';
 
-        // Process image - upload base64 to storage
         if (base64Image && base64Image.startsWith('data:image')) {
           const base64Data = base64Image.split(',')[1];
           const imgBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));

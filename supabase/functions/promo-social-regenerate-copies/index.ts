@@ -39,8 +39,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) {
       return new Response(JSON.stringify({ error: 'Missing API key' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -139,7 +139,6 @@ serve(async (req) => {
       });
     }
 
-    // If work has no author, use default artist profile name
     if (!work.author && profileRes.data?.name) {
       work.author = profileRes.data.name;
     }
@@ -216,21 +215,18 @@ serve(async (req) => {
     // Background: regenerate copies
     (async () => {
       try {
-        const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
+            'x-api-key': ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-pro',
-            messages: [
-              {
-                role: 'system',
-                content: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
-              },
-              { role: 'user', content: lines.join('\n') },
-            ],
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1000,
+            system: `Eres un copywriter de élite del mundo de la música urbana, pop y electrónica. Creas textos que generan HYPE real en redes sociales. Responde SOLO con JSON válido, sin markdown, sin backticks, sin explicaciones.`,
+            messages: [{ role: 'user', content: lines.join('\n') }],
           }),
         });
 
@@ -242,7 +238,7 @@ serve(async (req) => {
 
         if (res.ok) {
           const data = await res.json();
-          const text = data.choices?.[0]?.message?.content?.trim();
+          const text = data.content?.[0]?.text?.trim();
           if (text) {
             try {
               const cleaned = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();

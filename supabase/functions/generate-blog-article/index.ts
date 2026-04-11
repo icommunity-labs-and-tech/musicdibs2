@@ -11,8 +11,8 @@ serve(async (req) => {
   try {
     const { referenceText, section, currentTitle, currentExcerpt, currentContent, language } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const lang = language || "es";
     const langName = lang === "es" ? "español" : lang === "en" ? "inglés" : "portugués";
@@ -30,7 +30,6 @@ serve(async (req) => {
       systemPrompt = `Eres un redactor experto en la industria musical. Genera el contenido completo de un artículo de blog en ${langName} usando formato HTML. Usa etiquetas <h2>, <h3>, <p>, <ul>, <li>, <strong>, <a> según corresponda. NO incluyas el título principal (h1). El artículo debe ser informativo, bien estructurado y de al menos 800 palabras. IMPORTANTE: Devuelve SOLO el HTML puro, sin bloques de código markdown, sin \`\`\`html, sin comillas envolventes.`;
       userPrompt = `Título: ${currentTitle || "Artículo sobre música"}\nExtracto: ${currentExcerpt || ""}\n\nTexto de referencia:\n${referenceText || ""}\n\nGenera el contenido completo del artículo en HTML puro.`;
     } else {
-      // Generate all
       systemPrompt = `Eres un redactor experto en la industria musical y distribución digital. Genera un artículo de blog completo en ${langName}. 
 
 IMPORTANTE: Responde EXACTAMENTE en formato JSON válido con estas claves:
@@ -45,18 +44,18 @@ NO envuelvas la respuesta en bloques de código markdown (\`\`\`). Devuelve SOLO
       userPrompt = `Genera un artículo de blog basado en este texto de referencia:\n\n${referenceText}`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
       }),
     });
 
@@ -67,38 +66,29 @@ NO envuelvas la respuesta en bloques de código markdown (\`\`\`). Devuelve SOLO
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes. Añade créditos en Settings > Workspace > Usage." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const t = await response.text();
-      console.error("AI gateway error:", status, t);
-      throw new Error(`AI gateway error: ${status}`);
+      console.error("Anthropic error:", status, t);
+      throw new Error(`Anthropic error: ${status}`);
     }
 
     const data = await response.json();
-    let content = data.choices?.[0]?.message?.content || "";
+    let content = data.content?.[0]?.text || "";
 
     // Strip markdown code blocks if the AI wrapped the response
     content = content.replace(/^```(?:json|html)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
     let result: any;
     if (section) {
-      // For individual sections, also clean up any quotes the AI might add
       let value = content.trim();
-      // Remove surrounding quotes
       if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
         value = value.slice(1, -1);
       }
       result = { section, value };
     } else {
-      // Parse JSON from the response
       try {
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
-          // Clean the content field - remove any nested code blocks
           if (parsed.content) {
             parsed.content = parsed.content
               .replace(/^```(?:html)?\s*\n?/i, "")
