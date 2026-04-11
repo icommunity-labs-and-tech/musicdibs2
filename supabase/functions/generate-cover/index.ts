@@ -223,9 +223,9 @@ serve(async (req) => {
       )
     }
 
-    // ── Upscale to 4096px (only when requested) ────────────────
+    // ── Upscale to 4096px (only when requested + fal.ai available) ──
     const wantHD = resolution === '4096'
-    if (wantHD) {
+    if (wantHD && FAL_API_KEY) {
       try {
         console.log(`[COVER] Upscaling from model output…`)
         const upRes = await fetch("https://fal.run/fal-ai/aura-sr", {
@@ -256,6 +256,8 @@ serve(async (req) => {
       } catch (upscaleErr) {
         console.warn("[COVER] Upscale failed, using original:", upscaleErr)
       }
+    } else if (wantHD) {
+      console.log("[COVER] HD requested but fal.ai unavailable, skipping upscale")
     } else {
       console.log("[COVER] Skipping upscale (resolution=1024)")
     }
