@@ -346,8 +346,6 @@ const AIStudioCreate = () => {
             user_id: user.id,
             prompt: prompt.trim(),
             duration: data.duration,
-            genre: selectedGenre,
-            mood: selectedMood,
             audio_url: audioUrl,
           })
           .select()
@@ -360,19 +358,17 @@ const AIStudioCreate = () => {
           audioUrl,
           prompt: prompt.trim(),
           duration: data.duration,
-          genre: selectedGenre || undefined,
-          mood: selectedMood || undefined,
           createdAt: new Date(savedGen.created_at),
           isFavorite: false
         };
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
-        toast({ title: t('aiCreate.musicGenerated'), description: mode === 'song' ? t('aiCreate.songReady') : t('aiCreate.instrReady') });
+        toast({ title: t('aiCreate.musicGenerated'), description: t('aiCreate.songReady') });
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
 
-        // Show save as virtual artist prompt (only if used a preset voice, not already from a VA)
-        if (mode === 'song' && selectedVoice && !selectedArtistId) {
+        // Show save as virtual artist prompt
+        if (selectedVoice && !selectedArtistId) {
           const vp = voiceProfiles.find(v => v.id === selectedVoice);
           setLastGeneratedVoiceId(selectedVoice);
           setLastGeneratedVoiceName(vp?.label || '');
