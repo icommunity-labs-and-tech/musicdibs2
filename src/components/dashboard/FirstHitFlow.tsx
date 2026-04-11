@@ -35,17 +35,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useCreatorRoleLabels, useWorkTypeLabels } from '@/components/dashboard/register/useWizardLabels'
 
-// ── Géneros musicales ──────────────────────────────────────────────
-const GENRES = [
-  'Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Jazz',
-  'Reggaeton', 'Latin', 'Trap', 'Indie', 'Otro',
-]
-
-// ── Moods ──────────────────────────────────────────────────────────
-const MOODS = [
-  'Enérgico', 'Relajado', 'Romántico', 'Épico',
-  'Melancólico', 'Festivo', 'Oscuro', 'Positivo',
-]
+// Voice profiles loaded from DB
 
 // ── Step header colapsado/expandido ───────────────────────────────
 function StepHeader({
@@ -143,15 +133,26 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
 
   // ── PASO 1: IA generativa ──────────────────────────────────────
   const [prompt,        setPrompt]        = useState('')
-  const [genre,         setGenre]         = useState('')
-  const [mood,          setMood]          = useState('')
-  const [duration,      setDuration]      = useState(30)
   const [generating,    setGenerating]    = useState(false)
   const [audioUrl,      setAudioUrl]      = useState<string | null>(null)
   const [audioTitle,    setAudioTitle]    = useState('')
   const [playing,       setPlaying]       = useState(false)
   const [genError,      setGenError]      = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // Voice profiles
+  const [voiceProfiles, setVoiceProfiles] = useState<any[]>([])
+  const [selectedVoice, setSelectedVoice] = useState('')
+  const [playingVoice, setPlayingVoice] = useState('')
+  const [voiceAudioRefs] = useState<Record<string, HTMLAudioElement>>({})
+
+  useEffect(() => {
+    supabase.from('voice_profiles').select('*').eq('active', true).order('sort_order')
+      .then(({ data }) => {
+        setVoiceProfiles(data || [])
+        if (data && data.length > 0) setSelectedVoice(data[0].id)
+      })
+  }, [])
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
