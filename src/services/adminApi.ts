@@ -33,4 +33,8 @@ export const adminApi = {
   getCampaignMetrics: (filters: { periodType?: string; weekStart?: string; month?: string; year?: string }) => adminAction('get_campaign_metrics', filters),
   getCampaignDetail: (campaign_name: string) => adminAction('get_campaign_detail', { campaign_name }),
   backfillOrdersFromStripe: (dry_run = false, limit?: number) => adminAction('backfill_orders_from_stripe', { dry_run, limit }),
+  getUserPurchases: (user_id: string) => adminAction('get_user_purchases', { user_id }),
+  getLibraryStatus: (user_id: string) => adminAction('get_library_status', { user_id }),
+  getConsistencyReport: (limit = 50) => adminAction('get_consistency_report', { limit }),
+  exportOrdersCsv: () => adminAction('export_csv', { dataset: 'orders' }),
 };
