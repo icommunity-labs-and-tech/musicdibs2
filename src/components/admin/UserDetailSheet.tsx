@@ -128,6 +128,11 @@ export default function UserDetailSheet({ user, open, onOpenChange }: UserDetail
 
         {/* Usage evidences */}
         <UserUsagePanel userId={user.user_id} />
+
+        <Separator className="my-4" />
+
+        {/* Dispute timeline */}
+        <DisputeTimeline userId={user.user_id} />
       </SheetContent>
     </Sheet>
   );
