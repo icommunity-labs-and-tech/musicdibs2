@@ -229,7 +229,12 @@ const AIStudioCreate = () => {
       .select('*')
       .eq('active', true)
       .order('sort_order')
-      .then(({ data }) => setVoiceProfiles(data || []));
+      .then(({ data }) => {
+        setVoiceProfiles(data || []);
+        if (data && data.length > 0 && !selectedVoice) {
+          setSelectedVoice(data[0].id);
+        }
+      });
 
     // Load virtual artists
     if (user) {
