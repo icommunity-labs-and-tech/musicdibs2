@@ -8,8 +8,6 @@ const DEFAULT_AUTH_TTL_MINUTES = 15
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60
 
 // Check if an error is a rate-limit (429) response.
-// Uses EmailAPIError.status when available (email-js >=0.x with structured errors),
-// falls back to parsing the error message for older versions.
 function isRateLimited(error: unknown): boolean {
   if (error && typeof error === 'object' && 'status' in error) {
     return (error as { status: number }).status === 429
@@ -17,8 +15,7 @@ function isRateLimited(error: unknown): boolean {
   return error instanceof Error && error.message.includes('429')
 }
 
-// Check if an error is a forbidden (403) response, which means emails are
-// disabled for this project. Retrying won't help — move straight to DLQ.
+// Check if an error is a forbidden (403) response — retrying won't help.
 function isForbidden(error: unknown): boolean {
   if (error && typeof error === 'object' && 'status' in error) {
     return (error as { status: number }).status === 403
@@ -26,12 +23,41 @@ function isForbidden(error: unknown): boolean {
   return error instanceof Error && error.message.includes('403')
 }
 
-// Extract Retry-After seconds from a structured EmailAPIError, or default to 60s.
+// Extract Retry-After seconds from response headers or default to 60s.
 function getRetryAfterSeconds(error: unknown): number {
   if (error && typeof error === 'object' && 'retryAfterSeconds' in error) {
     return (error as { retryAfterSeconds: number | null }).retryAfterSeconds ?? 60
   }
   return 60
+}
+
+// Send email via Resend API directly
+async function sendViaResend(
+  payload: Record<string, unknown>,
+  resendApiKey: string
+): Promise<void> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: payload.from as string,
+      to: [payload.to as string],
+      subject: payload.subject as string,
+      html: payload.html as string,
+      ...(payload.text ? { text: payload.text as string } : {}),
+    }),
+  })
+
+  if (!res.ok) {
+    const body = await res.text()
+    const err = new Error(`Resend API error [${res.status}]: ${body}`) as Error & { status: number; retryAfterSeconds: number | null }
+    err.status = res.status
+    err.retryAfterSeconds = res.headers.get('retry-after') ? parseInt(res.headers.get('retry-after')!, 10) : null
+    throw err
+  }
 }
 
 function parseJwtClaims(token: string): Record<string, unknown> | null {
