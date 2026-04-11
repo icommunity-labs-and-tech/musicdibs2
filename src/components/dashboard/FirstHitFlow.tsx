@@ -614,7 +614,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{audioTitle}</p>
                     <p className="text-xs text-muted-foreground">
-                      {t('dashboard.firstHit.aiGenerated', { n: duration })}
+                      {t('dashboard.firstHit.aiGenerated', { n: '' })}
                     </p>
                   </div>
                   <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
