@@ -552,13 +552,30 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                   {t('dashboard.firstHit.describePrompt')}
                   <span className="text-destructive ml-1">*</span>
                 </Label>
-                <Textarea
-                  value={prompt}
-                  onChange={e => setPrompt(e.target.value.slice(0, 2000))}
-                  placeholder={t('dashboard.firstHit.promptPlaceholder')}
-                  className="text-sm min-h-[100px] resize-none"
-                  maxLength={2000}
-                />
+                <div className="relative">
+                  <Textarea
+                    value={prompt}
+                    onChange={e => setPrompt(e.target.value.slice(0, 2000))}
+                    placeholder={t('dashboard.firstHit.promptPlaceholder')}
+                    className="text-sm min-h-[100px] resize-none pr-32"
+                    maxLength={2000}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleImproveWithAI}
+                    disabled={prompt.length < 10 || isImproving}
+                    className="absolute top-2 right-2 text-sm px-3 py-1.5 rounded-md text-muted-foreground hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isImproving ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin inline mr-1" />
+                        Mejorando...
+                      </>
+                    ) : (
+                      <>✨ Mejorar con IA</>
+                    )}
+                  </button>
+                </div>
                 <p className="text-[11px] text-muted-foreground text-right">
                   {prompt.length}/2000
                 </p>
