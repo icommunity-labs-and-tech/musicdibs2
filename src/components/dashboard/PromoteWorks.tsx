@@ -216,6 +216,7 @@ export function PromoteWorks() {
           setLaunching(null);
           if (p.status === 'completed' || p.status === 'assets_ready') {
             toast.success(t('dashboard.promote.promoGenerated'));
+            track('promotion_generated', { feature: 'promotion' });
           } else if (p.status === 'failed') {
             toast.error(`${t('dashboard.promote.error')}: ${p.error_detail || t('dashboard.promote.unknownError')}`);
           }
