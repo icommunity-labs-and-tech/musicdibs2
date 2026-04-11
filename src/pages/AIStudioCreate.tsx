@@ -295,26 +295,28 @@ const AIStudioCreate = () => {
     setIsGenerating(true);
     setGenerationError(null);
     setLastResult(null);
-    track('generation_started', { feature: 'create_music', metadata: { mode: 'song' } });
+    track('generation_started', { feature: 'create_music', metadata: { mode } });
 
     try {
       // Spend credits
       const { data: spendResult, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { feature: currentFeature, description: `Canción: ${prompt.slice(0, 80)}` },
+        body: { feature: currentFeature, description: `${mode === 'song' ? 'Canción' : 'Instrumental'}: ${prompt.slice(0, 80)}` },
       });
       if (spendError) throw { message: spendError.message || 'Error al descontar créditos' };
       if (spendResult?.error) throw { message: spendResult.error };
 
-      // Enrich prompt with voice tag
+      // Enrich prompt with voice tag (only for song mode)
       let enrichedPrompt = prompt.trim();
-      const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
-      const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
-      enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
+      if (mode === 'song') {
+        const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+        const voiceTag = selectedVoiceProfile ? `, ${selectedVoiceProfile.prompt_tag}` : '';
+        enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
+      }
 
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
           prompt: enrichedPrompt,
-          mode: 'song',
+          mode,
         }
       });
 
@@ -894,8 +896,43 @@ const AIStudioCreate = () => {
                           <p className="text-xs text-muted-foreground">{prompt.length}/2000</p>
                         </div>
                       </div>
+
+                      {/* Mode selector: Canción con voz / Instrumental */}
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Tipo de generación</Label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMode('song')}
+                            className={cn(
+                              "flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all flex items-center justify-center gap-2",
+                              mode === 'song'
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border text-muted-foreground hover:border-primary/50"
+                            )}
+                          >
+                            <Mic className="h-4 w-4" />
+                            🎤 Canción con voz
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedArtistId(''); }}
+                            className={cn(
+                              "flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all flex items-center justify-center gap-2",
+                              mode === 'instrumental'
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-border text-muted-foreground hover:border-primary/50"
+                            )}
+                          >
+                            <Headphones className="h-4 w-4" />
+                            🎹 Instrumental / Base
+                          </button>
+                        </div>
+                      </div>
+
                       <div data-tour="mc-settings">
-                      {/* Voice selector — always visible */}
+                      {/* Voice selector — only for song mode */}
+                      {mode === 'song' && (
                       <div className="space-y-3">
                          <Label className="text-sm font-medium">Elige una voz *</Label>
                         {/* Tabs: Voces IA / Mis artistas virtuales */}
@@ -1035,6 +1072,7 @@ const AIStudioCreate = () => {
                           </p>
                         )}
                       </div>
+                      )}
                       </div>{/* close data-tour="mc-settings" */}
 
 
@@ -1061,14 +1099,14 @@ const AIStudioCreate = () => {
                         <>
                         <Button
                           onClick={handleGenerate}
-                          disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10 || !selectedVoice}
+                          disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10 || (mode === 'song' && !selectedVoice)}
                           className="w-full"
                           size="lg"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
-                          {t('aiCreate.generateBtn')} canción con IA
+                          {t('aiCreate.generateBtn')} {mode === 'song' ? 'canción' : 'instrumental'} con IA
                         </Button>
-                        {!selectedVoice && prompt.trim().length >= 10 && (
+                        {mode === 'song' && !selectedVoice && prompt.trim().length >= 10 && (
                           <p className="text-xs text-destructive text-center mt-1">Selecciona una voz para continuar</p>
                         )}
                         <PricingLink className="mt-1 block text-center" />
