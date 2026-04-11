@@ -896,9 +896,9 @@ const AIStudioCreate = () => {
                       <div data-tour="mc-settings">
 
                       {/* Voice selector — always visible */}
-                      {(
+                      <div className="space-y-3">
                       <div className="space-y-2">
-                         <Label className="text-sm font-medium">{t('aiCreate.voice')}</Label>
+                         <Label className="text-sm font-medium">Elige una voz *</Label>
                         {/* Tabs: Voces IA / Mis artistas virtuales */}
                         <TooltipProvider delayDuration={200}>
                         <div className="flex gap-2 mb-3">
@@ -1036,7 +1036,6 @@ const AIStudioCreate = () => {
                           </p>
                         )}
                       </div>
-                      )}
                       </div>{/* close data-tour="mc-settings" */}
 
 
