@@ -46,7 +46,7 @@ function useSteps(): Step[] {
     },
     {
       target: '[data-tour="promotion"]',
-      title: t('dashboard.tour.promotionTitle', 'Promoción y difusión'),
+      title: t('dashboard.tour.promotionTitle', 'Promoción RRSS'),
       content: t('dashboard.tour.promotionContent', 'Da visibilidad a tu música:\n\n📱 Promoción en redes\nPublica en TikTok e Instagram con +350K seguidores\n\n📰 Prensa y medios\nGenera notas de prensa con IA y distribúyelas en medios'),
       disableBeacon: true,
       placement: 'right' as const,

@@ -177,7 +177,7 @@ export default function PromotionPage() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Megaphone className="h-6 w-6 text-primary" />
-          {t('promotion.title', 'Promoción y difusión')}
+          {t('promotion.title', 'Promoción RRSS')}
         </h1>
         <p className="text-muted-foreground mt-1">
           {t('promotion.subtitle', 'Da visibilidad a tu música en redes sociales y medios de comunicación')}
