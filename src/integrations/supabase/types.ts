@@ -378,25 +378,34 @@ export type Database = {
       }
       cancellation_surveys: {
         Row: {
+          account_deleted_at: string | null
+          additional_feedback: string | null
           created_at: string
           credits_remaining: number | null
           id: string
+          is_account_deletion: boolean
           plan_type: string | null
           reason: string
           user_id: string
         }
         Insert: {
+          account_deleted_at?: string | null
+          additional_feedback?: string | null
           created_at?: string
           credits_remaining?: number | null
           id?: string
+          is_account_deletion?: boolean
           plan_type?: string | null
           reason: string
           user_id: string
         }
         Update: {
+          account_deleted_at?: string | null
+          additional_feedback?: string | null
           created_at?: string
           credits_remaining?: number | null
           id?: string
+          is_account_deletion?: boolean
           plan_type?: string | null
           reason?: string
           user_id?: string
