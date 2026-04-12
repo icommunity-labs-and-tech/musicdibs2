@@ -120,6 +120,47 @@ serve(async (req) => {
       );
     }
 
+    // ── Deduct credit INSIDE the function (single source of truth) ──
+    // Read cost from feature_costs table
+    let creditCost = 1; // fallback
+    const { data: costRow } = await supabaseAdmin
+      .from("feature_costs")
+      .select("credit_cost")
+      .eq("feature_key", "register_work")
+      .maybeSingle();
+    if (costRow) creditCost = costRow.credit_cost;
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("available_credits")
+      .eq("user_id", work.user_id)
+      .single();
+
+    if (!profile || profile.available_credits < creditCost) {
+      return new Response(
+        JSON.stringify({ error: "Créditos insuficientes", available: profile?.available_credits ?? 0, required: creditCost }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Deduct credits
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        available_credits: profile.available_credits - creditCost,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", work.user_id);
+
+    await supabaseAdmin.from("credit_transactions").insert({
+      user_id: work.user_id,
+      amount: -creditCost,
+      type: "spend",
+      description: `Registro: ${work.title}`,
+    });
+
+    console.log(`[IBS-REGISTER] Deducted ${creditCost} credit(s) from user ${work.user_id}`);
+
     // ── Return immediately, process in background ──────────────
     // @ts-ignore EdgeRuntime is available in Supabase edge runtime
     EdgeRuntime.waitUntil(
