@@ -28,20 +28,29 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Eres un experto en producción musical y descripción de canciones para APIs de generación de música como ElevenLabs Music API. Tu trabajo es mejorar descripciones de canciones haciéndolas más específicas y detalladas.`;
+    const systemPrompt = `You are an expert music producer and song description specialist. Your job is to improve song descriptions making them more specific and detailed. CRITICAL RULE: You MUST respond in the EXACT SAME LANGUAGE as the user's input text. If the input is in Spanish, respond in Spanish. If the input is in English, respond in English. Match the language precisely.`;
 
-    const userPrompt = `Mejora esta descripción de canción para ElevenLabs Music API. Hazla más específica añadiendo:
-- Instrumentación detallada (guitarra, piano, batería, bajo, sintetizadores, etc)
-- Tipo de voz (femenina/masculina, tono, edad aproximada)
-- Ritmo y tempo (lento, medio, rápido, uptempo, downtempo)
-- Mood/atmósfera (alegre, melancólico, energético, relajado, etc)
-- Estructura musical si es relevante
+    const userPrompt = `Improve this song description to make it more specific and detailed.
 
-Mantén el género y estilo original. No inventes información que no esté implícita. Devuelve SOLO la descripción mejorada, sin explicaciones.
+CRITICAL: Respond in the SAME LANGUAGE as the original text below.
+- If the text is in Spanish → respond entirely in Spanish
+- If the text is in English → respond entirely in English
+- If the text is in another language → respond in that language
 
-Original: ${text}
+Add details about:
+- Specific instrumentation (guitar, piano, drums, synths, bass, etc)
+- Voice type and vocal characteristics (female/male, tone, age)
+- Tempo and rhythm (slow, medium, fast, uptempo, BPM if relevant)
+- Mood and emotional atmosphere
+- Production elements
 
-Mejorada:`;
+Keep the original musical genre and style. Do not invent information not implied in the original.
+
+Return ONLY the improved description, no explanations, no prefixes, no quotes.
+
+Original text:
+${text}`;
+
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -68,7 +77,10 @@ Mejorada:`;
     }
 
     const data = await response.json();
-    const improved = data.content?.[0]?.text?.trim() || '';
+    const improved = (data.content?.[0]?.text?.trim() || '')
+      .replace(/^(Descripción mejorada:|Improved description:|Descripción:|Description:)\s*/i, '')
+      .replace(/^["']|["']$/g, '')
+      .trim();
 
     if (!improved) {
       return new Response(JSON.stringify({ error: 'Empty response' }), {
