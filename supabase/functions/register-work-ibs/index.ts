@@ -170,7 +170,8 @@ serve(async (req) => {
         work,
         userId,
         signatureId,
-        Array.isArray(additionalFilePaths) ? additionalFilePaths : []
+        Array.isArray(additionalFilePaths) ? additionalFilePaths : [],
+        creditCost
       )
     );
 
@@ -201,7 +202,8 @@ async function processIbsRegistration(
   work: { id: string; user_id: string; title: string; description: string | null; file_path: string; file_hash: string | null },
   userId: string,
   signatureId: string,
-  extraPaths: string[]
+  extraPaths: string[],
+  creditCost: number
 ) {
   const workId = work.id;
 
