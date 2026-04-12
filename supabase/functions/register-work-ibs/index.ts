@@ -215,7 +215,7 @@ async function processIbsRegistration(
 
     if (downloadError || !fileData) {
       console.error("[IBS] File download error:", downloadError);
-      await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "Could not download work file");
+      await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "Could not download work file", creditCost);
       return;
     }
 
@@ -297,7 +297,7 @@ async function processIbsRegistration(
       if (!ibsRes.ok) {
         const errBody = await ibsRes.text();
         console.error(`[IBS] Evidence creation failed [${ibsRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS error ${ibsRes.status}: ${errBody}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS error ${ibsRes.status}: ${errBody}`, creditCost);
         return;
       }
 
@@ -323,7 +323,7 @@ async function processIbsRegistration(
       if (!uploadRes.ok) {
         const errBody = await uploadRes.text();
         console.error(`[IBS] Upload session creation failed [${uploadRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS upload error ${uploadRes.status}: ${errBody}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS upload error ${uploadRes.status}: ${errBody}`, creditCost);
         return;
       }
 
@@ -331,7 +331,7 @@ async function processIbsRegistration(
       const fileUploadInfo = uploadSession.files?.[0];
 
       if (!fileUploadInfo?.upload?.url) {
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "No upload URL received from iBS");
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "No upload URL received from iBS", creditCost);
         return;
       }
 
@@ -349,7 +349,7 @@ async function processIbsRegistration(
       if (!putRes.ok) {
         const errBody = await putRes.text();
         console.error(`[IBS] Presigned upload failed [${putRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `File upload failed: ${putRes.status}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `File upload failed: ${putRes.status}`, creditCost);
         return;
       }
 
@@ -362,7 +362,7 @@ async function processIbsRegistration(
       if (!completeRes.ok) {
         const errBody = await completeRes.text();
         console.error(`[IBS] Upload confirmation failed [${completeRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `Upload confirmation failed: ${completeRes.status}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `Upload confirmation failed: ${completeRes.status}`, creditCost);
         return;
       }
 
