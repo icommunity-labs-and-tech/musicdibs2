@@ -21,11 +21,10 @@ const corsHeaders = {
 
 /**
  * Registers a work as an evidence in iCommunity (iBS) blockchain.
- * 
- * For files ≤20MB: uses inline base64 upload via POST /evidences
- * For files >20MB: uses presigned upload via POST /evidences/uploads + confirm
- * 
- * Body: { workId: string, signatureId: string }
+ * Uses EdgeRuntime.waitUntil to offload heavy file processing to background,
+ * returning immediately to avoid CPU time limits.
+ *
+ * Body: { workId: string, signatureId: string, additionalFilePaths?: string[] }
  */
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -99,7 +98,6 @@ serve(async (req) => {
     }
 
     if (work.user_id !== userId) {
-      // Check if caller is a manager for this work
       const { data: managedWork } = await supabaseAdmin
         .from("managed_works")
         .select("id")
@@ -122,6 +120,51 @@ serve(async (req) => {
       );
     }
 
+    // ── Return immediately, process in background ──────────────
+    // @ts-ignore EdgeRuntime is available in Supabase edge runtime
+    EdgeRuntime.waitUntil(
+      processIbsRegistration(
+        supabaseAdmin,
+        IBS_API_KEY,
+        work,
+        userId,
+        signatureId,
+        Array.isArray(additionalFilePaths) ? additionalFilePaths : []
+      )
+    );
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        workId,
+        status: "processing",
+        message: "Registration queued for background processing",
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (e) {
+    console.error("[IBS-REGISTER] Error:", e);
+    return new Response(
+      JSON.stringify({ error: e instanceof Error ? e.message : "Internal error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
+
+/**
+ * Background processing: downloads files, computes hashes, uploads to iBS.
+ */
+async function processIbsRegistration(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  IBS_API_KEY: string,
+  work: { id: string; user_id: string; title: string; description: string | null; file_path: string; file_hash: string | null },
+  userId: string,
+  signatureId: string,
+  extraPaths: string[]
+) {
+  const workId = work.id;
+
+  try {
     // Download the file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin.storage
       .from("works-files")
@@ -129,20 +172,17 @@ serve(async (req) => {
 
     if (downloadError || !fileData) {
       console.error("[IBS] File download error:", downloadError);
-      return new Response(JSON.stringify({ error: "Could not download work file" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "Could not download work file");
+      return;
     }
 
     const fileBuffer = await fileData.arrayBuffer();
     const fileSizeMB = fileBuffer.byteLength / (1024 * 1024);
-    
-    // Use original filename (strip timestamp prefix added during upload)
+
     const rawFileName = work.file_path.split("/").pop() || "file";
     const fileName = rawFileName.replace(/^\d+_/, "");
 
-    // Use pre-computed SHA-256 hash from client if available, otherwise compute from downloaded file
+    // Use pre-computed SHA-256 hash from client if available
     let fileHash: string;
     if (work.file_hash) {
       fileHash = work.file_hash;
@@ -155,7 +195,7 @@ serve(async (req) => {
       console.log(`[IBS] Computed SHA-256 for work ${workId}: ${fileHash}`);
     }
 
-    // Compute SHA-512 base64 checksum to align with iBS checker integrity payload
+    // Compute SHA-512 base64 checksum
     const sha512Buffer = await crypto.subtle.digest("SHA-512", fileBuffer);
     const ibsPayloadChecksum = bytesToBase64(new Uint8Array(sha512Buffer));
     const ibsPayloadAlgorithm = "SHA-512";
@@ -168,12 +208,9 @@ serve(async (req) => {
 
     // Encode primary file
     const fileBase64 = base64Encode(new Uint8Array(fileBuffer));
-
-    // Build files array for iBS (primary + additional)
     const ibsFiles = [{ name: fileName, file: fileBase64 }];
 
-    // Download and encode additional files if provided
-    const extraPaths: string[] = Array.isArray(additionalFilePaths) ? additionalFilePaths : [];
+    // Download and encode additional files
     for (const extraPath of extraPaths) {
       const { data: extraData, error: extraErr } = await supabaseAdmin.storage
         .from("works-files")
@@ -218,10 +255,7 @@ serve(async (req) => {
         const errBody = await ibsRes.text();
         console.error(`[IBS] Evidence creation failed [${ibsRes.status}]:`, errBody);
         await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS error ${ibsRes.status}: ${errBody}`);
-        return new Response(
-          JSON.stringify({ success: false, error: `iBS registration failed: ${errBody}`, workId, status: "failed", refunded: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return;
       }
 
       const ibsResult = await ibsRes.json();
@@ -231,7 +265,6 @@ serve(async (req) => {
       // ── Large file upload (>20MB) ──────────────────────────
       console.log(`[IBS] Large file upload for work ${workId} (${fileSizeMB.toFixed(1)}MB)`);
 
-      // Step 1: Create upload session
       const uploadBody = {
         title: work.title,
         signatures: [{ id: signatureId }],
@@ -248,10 +281,7 @@ serve(async (req) => {
         const errBody = await uploadRes.text();
         console.error(`[IBS] Upload session creation failed [${uploadRes.status}]:`, errBody);
         await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS upload error ${uploadRes.status}: ${errBody}`);
-        return new Response(
-          JSON.stringify({ success: false, error: `iBS upload session failed: ${errBody}`, workId, status: "failed", refunded: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return;
       }
 
       const uploadSession = await uploadRes.json();
@@ -259,13 +289,9 @@ serve(async (req) => {
 
       if (!fileUploadInfo?.upload?.url) {
         await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "No upload URL received from iBS");
-        return new Response(
-          JSON.stringify({ success: false, error: "No upload URL received", workId, status: "failed", refunded: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return;
       }
 
-      // Step 2: Upload file to presigned URL
       const presignedHeaders: Record<string, string> = {};
       if (fileUploadInfo.upload.headers) {
         Object.assign(presignedHeaders, fileUploadInfo.upload.headers);
@@ -281,13 +307,9 @@ serve(async (req) => {
         const errBody = await putRes.text();
         console.error(`[IBS] Presigned upload failed [${putRes.status}]:`, errBody);
         await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `File upload failed: ${putRes.status}`);
-        return new Response(
-          JSON.stringify({ success: false, error: "File upload to storage failed", workId, status: "failed", refunded: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return;
       }
 
-      // Step 3: Confirm upload
       const completeUrl = uploadSession.complete?.url || `${IBS_API_URL}/evidences/uploads/${uploadSession.id}/complete`;
       const completeRes = await fetch(completeUrl, {
         method: "POST",
@@ -298,10 +320,7 @@ serve(async (req) => {
         const errBody = await completeRes.text();
         console.error(`[IBS] Upload confirmation failed [${completeRes.status}]:`, errBody);
         await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `Upload confirmation failed: ${completeRes.status}`);
-        return new Response(
-          JSON.stringify({ success: false, error: "Upload confirmation failed", workId, status: "failed", refunded: true }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return;
       }
 
       const completeResult = await completeRes.json();
@@ -309,7 +328,7 @@ serve(async (req) => {
       evidenceLink = completeResult.link;
     }
 
-    // Update work with iBS evidence info and checksums — status stays 'processing' until webhook confirms
+    // Update work with iBS evidence info and checksums
     await supabaseAdmin
       .from("works")
       .update({
@@ -322,7 +341,7 @@ serve(async (req) => {
       })
       .eq("id", workId);
 
-    // Enqueue for resilience — cron will retry if webhook never arrives
+    // Enqueue for resilience
     await supabaseAdmin.from("ibs_sync_queue").insert({
       work_id: workId,
       user_id: userId,
@@ -331,25 +350,17 @@ serve(async (req) => {
     });
 
     console.log(`[IBS] Evidence created for work ${workId}: ${evidenceId}`);
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        workId,
-        evidenceId,
-        evidenceLink,
-        status: "processing",
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (e) {
-    console.error("[IBS-REGISTER] Error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Internal error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    console.error(`[IBS-REGISTER] Background error for work ${workId}:`, e);
+    await handleIbsFailure(
+      supabaseAdmin,
+      workId,
+      userId,
+      work.title,
+      e instanceof Error ? e.message : "Unknown background error"
     );
   }
-});
+}
 
 /**
  * Handles iBS failure: marks work as failed and refunds credit.
