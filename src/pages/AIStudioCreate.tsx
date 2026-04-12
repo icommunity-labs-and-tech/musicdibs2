@@ -1587,6 +1587,25 @@ const AIStudioCreate = () => {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
+                                {/* Save as Virtual Artist button — only if this generation has a tracked voice */}
+                                {generationVoiceMapRef.current.has(result.id) && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      {savedArtistGenIds.has(result.id) ? (
+                                        <Button variant="ghost" size="icon" disabled className="text-primary">
+                                          <CheckCircle2 className="w-4 h-4" />
+                                        </Button>
+                                      ) : (
+                                        <Button variant="ghost" size="icon" onClick={() => openSaveArtistFromLibrary(result.id)}>
+                                          <User className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{savedArtistGenIds.has(result.id) ? 'Ya guardado como Artista Virtual' : 'Guardar como Artista Virtual'}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button variant="ghost" size="icon" onClick={() => downloadAudio(result)}>
