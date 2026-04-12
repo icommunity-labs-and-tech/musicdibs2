@@ -400,48 +400,54 @@ async function processIbsRegistration(
       workId,
       userId,
       work.title,
-      e instanceof Error ? e.message : "Unknown background error"
+      e instanceof Error ? e.message : "Unknown background error",
+      creditCost
     );
   }
 }
 
 /**
- * Handles iBS failure: marks work as failed and refunds credit.
+ * Handles iBS failure: marks work as failed and refunds credit only if creditCost > 0.
  */
 async function handleIbsFailure(
   supabaseAdmin: ReturnType<typeof createClient>,
   workId: string,
   userId: string,
   workTitle: string,
-  reason: string
+  reason: string,
+  creditCost: number
 ) {
   await supabaseAdmin
     .from("works")
     .update({ status: "failed", updated_at: new Date().toISOString() })
     .eq("id", workId);
 
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("available_credits")
-    .eq("user_id", userId)
-    .single();
-
-  if (profile) {
-    await supabaseAdmin
+  if (creditCost > 0) {
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .update({
-        available_credits: profile.available_credits + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId);
+      .select("available_credits")
+      .eq("user_id", userId)
+      .single();
 
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      amount: 1,
-      type: "refund",
-      description: `Reembolso por fallo iBS: ${workTitle} — ${reason}`,
-    });
+    if (profile) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          available_credits: profile.available_credits + creditCost,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+
+      await supabaseAdmin.from("credit_transactions").insert({
+        user_id: userId,
+        amount: creditCost,
+        type: "refund",
+        description: `Reembolso por fallo iBS: ${workTitle} — ${reason}`,
+      });
+    }
+
+    console.log(`[IBS] FAILURE — Work ${workId} marked as failed, ${creditCost} credit(s) refunded. Reason: ${reason}`);
+  } else {
+    console.log(`[IBS] FAILURE — Work ${workId} marked as failed (no credits to refund). Reason: ${reason}`);
   }
-
-  console.log(`[IBS] FAILURE — Work ${workId} marked as failed, credit refunded. Reason: ${reason}`);
 }
