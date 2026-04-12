@@ -5,7 +5,7 @@ import Stripe from "https://esm.sh/stripe@18.5.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 function json(body: unknown, status = 200) {
@@ -15,20 +15,14 @@ function json(body: unknown, status = 200) {
   });
 }
 
-/**
- * Core deletion logic — used both by user self-service and admin force-delete.
- * Runs with service_role client. Does NOT abort on non-critical errors.
- */
-export async function executeAccountDeletion(
+async function executeAccountDeletion(
   admin: ReturnType<typeof createClient>,
   userId: string,
   userEmail: string,
   reason: string,
-  planType: string,
+  additionalFeedback: string | null,
+  planType: string | null,
   creditsRemaining: number,
-  isAdminForce = false,
-  adminUserId?: string,
-  adminEmail?: string,
 ) {
   const errors: string[] = [];
 
@@ -37,42 +31,46 @@ export async function executeAccountDeletion(
     await admin.from("cancellation_surveys").insert({
       user_id: userId,
       reason,
+      additional_feedback: additionalFeedback || null,
       plan_type: planType,
       credits_remaining: creditsRemaining,
+      is_account_deletion: true,
     });
   } catch (e) {
-    errors.push(`cancellation_surveys: ${e}`);
+    errors.push(`cancellation_survey: ${e}`);
   }
 
   // 2. Cancel Stripe subscription if exists
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (stripeKey) {
-      const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-      const { data: profile } = await admin
-        .from("profiles")
-        .select("stripe_customer_id")
-        .eq("user_id", userId)
-        .maybeSingle();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("user_id", userId)
+      .single();
 
-      if (profile?.stripe_customer_id) {
+    if (profile?.stripe_customer_id) {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (stripeKey) {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
         const subs = await stripe.subscriptions.list({
           customer: profile.stripe_customer_id,
           status: "active",
-          limit: 10,
         });
         for (const sub of subs.data) {
           await stripe.subscriptions.update(sub.id, {
             cancel_at_period_end: true,
+            metadata: { cancelled_reason: "account_deletion" },
           });
+          console.log(`[DELETE-ACCOUNT] Cancelled subscription ${sub.id}`);
         }
       }
     }
   } catch (e) {
     errors.push(`stripe_cancel: ${e}`);
+    console.error("[DELETE-ACCOUNT] Stripe cancel error:", e);
   }
 
-  // 3. Anonymize works with blockchain_hash (keep record, remove identity)
+  // 3. Anonymize works with blockchain_hash
   try {
     await admin
       .from("works")
@@ -83,36 +81,29 @@ export async function executeAccountDeletion(
     errors.push(`anonymize_works: ${e}`);
   }
 
-  // 4. Delete works WITHOUT blockchain_hash (no legal obligation to keep)
-  try {
-    await admin.from("works").delete().eq("user_id", userId).is("blockchain_hash", null);
-  } catch (e) {
-    errors.push(`delete_works: ${e}`);
-  }
-
-  // 5. Anonymize orders
+  // 4. Anonymize orders
   try {
     await admin.from("orders").update({ user_id: null }).eq("user_id", userId);
   } catch (e) {
     errors.push(`anonymize_orders: ${e}`);
   }
 
-  // 6. Anonymize purchase_evidences
+  // 5. Anonymize purchase_evidences
   try {
     await admin.from("purchase_evidences").update({ user_id: null }).eq("user_id", userId);
   } catch (e) {
     errors.push(`anonymize_purchase_evidences: ${e}`);
   }
 
-  // 7. Anonymize purchase_usage_evidences
+  // 6. Anonymize purchase_usage_evidences
   try {
     await admin.from("purchase_usage_evidences").update({ user_id: null }).eq("user_id", userId);
   } catch (e) {
     errors.push(`anonymize_purchase_usage_evidences: ${e}`);
   }
 
-  // 8. Delete personal data and assets (order matters for FK constraints)
-  const tablesToDelete = [
+  // 7. Delete personal data and assets (order matters for FK constraints)
+  const deleteTables = [
     "voice_clones",
     "ai_generations",
     "lyrics_generations",
@@ -129,17 +120,15 @@ export async function executeAccountDeletion(
     "notification_log",
     "ai_rate_limits",
     "promotion_requests",
-    "ibs_signatures",
-    "cancellation_tracking",
-    "cancellation_surveys",
-    "credit_transactions",
-    "user_roles",
     "managed_works",
     "managed_artists",
-    "profiles",
+    "ibs_signatures",
+    "user_roles",
+    "cancellation_tracking",
+    "credit_transactions",
   ];
 
-  for (const table of tablesToDelete) {
+  for (const table of deleteTables) {
     try {
       if (table === "managed_works" || table === "managed_artists") {
         await admin.from(table).delete().eq("manager_user_id", userId);
@@ -148,14 +137,61 @@ export async function executeAccountDeletion(
       }
     } catch (e) {
       errors.push(`delete_${table}: ${e}`);
+      console.error(`[DELETE-ACCOUNT] Failed to delete from ${table}:`, e);
     }
   }
 
-  // Also delete ibs_sync_queue
+  // Delete ibs_sync_queue (only non-resolved)
   try {
-    await admin.from("ibs_sync_queue").delete().eq("user_id", userId);
+    await admin.from("ibs_sync_queue").delete().eq("user_id", userId).neq("status", "resolved");
   } catch (e) {
     errors.push(`delete_ibs_sync_queue: ${e}`);
+  }
+
+  // Delete works without blockchain_hash
+  try {
+    await admin.from("works").delete().eq("user_id", userId).is("blockchain_hash", null);
+  } catch (e) {
+    errors.push(`delete_works_no_blockchain: ${e}`);
+  }
+
+  // Delete cancellation_surveys (keep the deletion one, remove old ones)
+  try {
+    await admin.from("cancellation_surveys").delete().eq("user_id", userId).eq("is_account_deletion", false);
+  } catch (e) {
+    errors.push(`delete_old_cancellation_surveys: ${e}`);
+  }
+
+  // Delete profile last
+  try {
+    await admin.from("profiles").delete().eq("user_id", userId);
+  } catch (e) {
+    errors.push(`delete_profiles: ${e}`);
+  }
+
+  // 8. Audit log
+  try {
+    await admin.from("audit_log").insert({
+      admin_user_id: userId,
+      admin_email: userEmail,
+      action: "account_deleted",
+      target_user_id: userId,
+      target_email: userEmail,
+      details: { reason, plan_type: planType, errors: errors.length > 0 ? errors : undefined },
+    });
+  } catch (e) {
+    console.error("[DELETE-ACCOUNT] Failed to write audit log:", e);
+  }
+
+  // Mark the deletion survey as completed
+  try {
+    await admin
+      .from("cancellation_surveys")
+      .update({ account_deleted_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .eq("is_account_deletion", true);
+  } catch (e) {
+    console.error("[DELETE-ACCOUNT] Failed to mark survey:", e);
   }
 
   // 9. Delete auth user
@@ -163,20 +199,7 @@ export async function executeAccountDeletion(
     await admin.auth.admin.deleteUser(userId);
   } catch (e) {
     errors.push(`delete_auth_user: ${e}`);
-  }
-
-  // 10. Audit log
-  try {
-    await admin.from("audit_log").insert({
-      admin_user_id: isAdminForce ? (adminUserId || userId) : userId,
-      admin_email: isAdminForce ? (adminEmail || userEmail) : userEmail,
-      action: isAdminForce ? "force_account_deleted" : "account_deleted",
-      target_user_id: userId,
-      target_email: userEmail,
-      details: { reason, plan_type: planType, errors: errors.length > 0 ? errors : undefined },
-    });
-  } catch (e) {
-    console.error("[DELETE-ACCOUNT] Failed to write audit log:", e);
+    console.error("[DELETE-ACCOUNT] Failed to delete auth user:", e);
   }
 
   return { errors };
@@ -187,7 +210,7 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "No autorizado" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
     const supabaseUser = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -197,13 +220,11 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser(token);
-    if (userError || !user) return json({ error: "No autorizado" }, 401);
+    if (userError || !user) return json({ error: "Unauthorized" }, 401);
 
-    const { reason, additional_comments, confirm_email } = await req.json();
-
-    if (!reason) return json({ error: "El motivo es obligatorio" }, 400);
-    if (!confirm_email || confirm_email.toLowerCase() !== (user.email || "").toLowerCase()) {
-      return json({ error: "El email de confirmación no coincide" }, 400);
+    const { reason, additional_feedback } = await req.json();
+    if (!reason || typeof reason !== "string" || reason.trim().length < 2) {
+      return json({ error: "reason is required" }, 400);
     }
 
     const admin = createClient(
@@ -216,32 +237,27 @@ serve(async (req) => {
       .from("profiles")
       .select("subscription_plan, available_credits")
       .eq("user_id", user.id)
-      .maybeSingle();
-
-    const planType = profile?.subscription_plan || "Free";
-    const creditsRemaining = profile?.available_credits || 0;
-    const fullReason = additional_comments ? `${reason} — ${additional_comments}` : reason;
+      .single();
 
     const { errors } = await executeAccountDeletion(
       admin,
       user.id,
       user.email || "",
-      fullReason,
-      planType,
-      creditsRemaining,
+      reason.trim(),
+      additional_feedback || null,
+      profile?.subscription_plan || null,
+      profile?.available_credits || 0,
     );
 
     if (errors.length > 0) {
-      console.error("[DELETE-ACCOUNT] Partial errors:", errors);
+      console.warn("[DELETE-ACCOUNT] Completed with errors:", errors);
     }
 
-    return json({
-      success: true,
-      deletedAt: new Date().toISOString(),
-      warnings: errors.length > 0 ? errors : undefined,
-    });
+    return json({ success: true, deletedAt: new Date().toISOString() });
   } catch (e) {
-    console.error("[DELETE-ACCOUNT] Fatal error:", e);
-    return json({ error: "Error interno del servidor" }, 500);
+    console.error("[DELETE-ACCOUNT] Error:", e);
+    return json({ error: e instanceof Error ? e.message : "Internal error" }, 500);
   }
 });
+
+export { executeAccountDeletion };
