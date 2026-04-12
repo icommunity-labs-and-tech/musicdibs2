@@ -28,20 +28,30 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Eres un experto en producción musical y descripción de canciones para APIs de generación de música como ElevenLabs Music API. Tu trabajo es mejorar descripciones de canciones haciéndolas más específicas y detalladas.`;
+    const systemPrompt = `Eres un experto en producción musical y descripción de canciones para APIs de generación de música. Tu trabajo es mejorar descripciones de canciones haciéndolas más específicas y detalladas. REGLA CRÍTICA: Responde SIEMPRE en el MISMO IDIOMA que el texto del usuario.`;
 
-    const userPrompt = `Mejora esta descripción de canción para ElevenLabs Music API. Hazla más específica añadiendo:
-- Instrumentación detallada (guitarra, piano, batería, bajo, sintetizadores, etc)
-- Tipo de voz (femenina/masculina, tono, edad aproximada)
-- Ritmo y tempo (lento, medio, rápido, uptempo, downtempo)
-- Mood/atmósfera (alegre, melancólico, energético, relajado, etc)
-- Estructura musical si es relevante
+    const userPrompt = `Mejora esta descripción de canción para hacerla más específica y detallada.
 
-Mantén el género y estilo original. No inventes información que no esté implícita. Devuelve SOLO la descripción mejorada, sin explicaciones.
+IMPORTANTE: Responde en el MISMO IDIOMA que el texto original.
+- Si el texto está en español, responde en español
+- Si el texto está en inglés, responde en inglés
+- Si el texto está en otro idioma, responde en ese idioma
 
-Original: ${text}
+Añade detalles sobre:
+- Instrumentación específica (guitarra, piano, batería, sintetizadores, etc)
+- Tipo de voz y características vocales (femenina/masculina, tono, edad)
+- Tempo y ritmo (lento, medio, rápido, uptempo, BPM si relevante)
+- Mood y atmósfera emocional
+- Elementos de producción
 
-Mejorada:`;
+Mantén el género musical y estilo original. No inventes información que no esté implícita.
+
+Devuelve SOLO la descripción mejorada, sin explicaciones, sin prefijos como "Descripción mejorada:", sin comillas.
+
+Texto original:
+${text}
+
+Descripción mejorada:`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
