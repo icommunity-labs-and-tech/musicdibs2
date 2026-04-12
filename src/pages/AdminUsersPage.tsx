@@ -90,6 +90,24 @@ export default function AdminUsersPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  // Force delete user
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const handleForceDelete = async () => {
+    if (deleteConfirmText !== 'ELIMINAR') return;
+    setDeleting(true);
+    try {
+      await adminApi.callAction('force_delete_user', { user_id: deleteModal.userId });
+      toast.success('Usuario eliminado correctamente');
+      setDeleteModal({ open: false, userId: '', email: '' });
+      setDeleteConfirmText('');
+      load();
+    } catch (e: any) { toast.error(e.message); }
+    setDeleting(false);
+  };
+
   const kycBadge = (status: string) => {
     const map: Record<string, string> = { verified: 'bg-green-500/20 text-green-400', pending: 'bg-yellow-500/20 text-yellow-400', unverified: 'bg-muted text-muted-foreground', rejected: 'bg-destructive/20 text-destructive' };
     return <Badge className={map[status] || map.unverified}>{status}</Badge>;
