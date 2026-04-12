@@ -28,30 +28,29 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Eres un experto en producción musical y descripción de canciones para APIs de generación de música. Tu trabajo es mejorar descripciones de canciones haciéndolas más específicas y detalladas. REGLA CRÍTICA: Responde SIEMPRE en el MISMO IDIOMA que el texto del usuario.`;
+    const systemPrompt = `You are an expert music producer and song description specialist. Your job is to improve song descriptions making them more specific and detailed. CRITICAL RULE: You MUST respond in the EXACT SAME LANGUAGE as the user's input text. If the input is in Spanish, respond in Spanish. If the input is in English, respond in English. Match the language precisely.`;
 
-    const userPrompt = `Mejora esta descripción de canción para hacerla más específica y detallada.
+    const userPrompt = `Improve this song description to make it more specific and detailed.
 
-IMPORTANTE: Responde en el MISMO IDIOMA que el texto original.
-- Si el texto está en español, responde en español
-- Si el texto está en inglés, responde en inglés
-- Si el texto está en otro idioma, responde en ese idioma
+CRITICAL: Respond in the SAME LANGUAGE as the original text below.
+- If the text is in Spanish → respond entirely in Spanish
+- If the text is in English → respond entirely in English
+- If the text is in another language → respond in that language
 
-Añade detalles sobre:
-- Instrumentación específica (guitarra, piano, batería, sintetizadores, etc)
-- Tipo de voz y características vocales (femenina/masculina, tono, edad)
-- Tempo y ritmo (lento, medio, rápido, uptempo, BPM si relevante)
-- Mood y atmósfera emocional
-- Elementos de producción
+Add details about:
+- Specific instrumentation (guitar, piano, drums, synths, bass, etc)
+- Voice type and vocal characteristics (female/male, tone, age)
+- Tempo and rhythm (slow, medium, fast, uptempo, BPM if relevant)
+- Mood and emotional atmosphere
+- Production elements
 
-Mantén el género musical y estilo original. No inventes información que no esté implícita.
+Keep the original musical genre and style. Do not invent information not implied in the original.
 
-Devuelve SOLO la descripción mejorada, sin explicaciones, sin prefijos como "Descripción mejorada:", sin comillas.
+Return ONLY the improved description, no explanations, no prefixes, no quotes.
 
-Texto original:
-${text}
+Original text:
+${text}`;
 
-Descripción mejorada:`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
