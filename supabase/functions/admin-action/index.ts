@@ -2122,29 +2122,44 @@ serve(async (req) => {
 
       const emailsMap = await getAllEmailsMap();
 
-      // Check which users still exist in profiles
-      const userIds = [...new Set((surveys || []).map((s: any) => s.user_id).filter(Boolean))];
-      const { data: existingProfiles } = await admin
-        .from("profiles")
-        .select("user_id")
-        .in("user_id", userIds);
-      const existingSet = new Set((existingProfiles || []).map((p: any) => p.user_id));
-
       const enriched = (surveys || []).map((s: any) => ({
         ...s,
         email: emailsMap[s.user_id] || null,
-        account_deleted: !existingSet.has(s.user_id),
       }));
 
-      return json({ surveys: enriched });
+      // Metrics
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const thisMonthSurveys = (surveys || []).filter(
+        (s: any) => s.created_at >= monthStart && s.is_account_deletion
+      );
+
+      const reasonCounts: Record<string, number> = {};
+      const planCounts: Record<string, number> = {};
+      for (const s of thisMonthSurveys) {
+        reasonCounts[s.reason] = (reasonCounts[s.reason] || 0) + 1;
+        const plan = s.plan_type || "Free";
+        planCounts[plan] = (planCounts[plan] || 0) + 1;
+      }
+
+      const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+      const topPlan = Object.entries(planCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "-";
+
+      return json({
+        surveys: enriched,
+        metrics: {
+          this_month: thisMonthSurveys.length,
+          top_reason: topReason,
+          top_plan: topPlan,
+        },
+      });
     }
 
-    // ── FORCE DELETE USER ───────────────────────────────────
+    // ── FORCE DELETE USER ────────────────────────────────────
     if (action === "force_delete_user") {
       const { user_id } = payload;
       if (!user_id) return json({ error: "user_id required" }, 400);
 
-      // Import deletion logic inline
       const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
       const targetEmail = targetAuth?.user?.email || "";
 
@@ -2158,48 +2173,42 @@ serve(async (req) => {
         return json({ error: "Usuario no encontrado" }, 404);
       }
 
-      const planType = profile?.subscription_plan || "Free";
-      const creditsRemaining = profile?.available_credits || 0;
-
-      // Execute same deletion steps as delete-account function
       const errors: string[] = [];
 
       // Cancel Stripe
       try {
-        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-        if (stripeKey && profile?.stripe_customer_id) {
-          const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-          const subs = await stripe.subscriptions.list({ customer: profile.stripe_customer_id, status: "active", limit: 10 });
-          for (const sub of subs.data) {
-            await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+        if (profile?.stripe_customer_id) {
+          const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+          if (stripeKey) {
+            const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+            const subs = await stripe.subscriptions.list({ customer: profile.stripe_customer_id, status: "active" });
+            for (const sub of subs.data) {
+              await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+            }
           }
         }
       } catch (e) { errors.push(`stripe: ${e}`); }
 
       // Anonymize blockchain works
       try {
-        await admin.from("works").update({ user_id: null, author: "Usuario eliminado", updated_at: new Date().toISOString() })
-          .eq("user_id", user_id).not("blockchain_hash", "is", null);
+        await admin.from("works").update({ user_id: null, author: "Usuario eliminado", updated_at: new Date().toISOString() }).eq("user_id", user_id).not("blockchain_hash", "is", null);
       } catch (e) { errors.push(`anon_works: ${e}`); }
 
-      // Delete non-blockchain works
-      try { await admin.from("works").delete().eq("user_id", user_id); } catch (e) { errors.push(`del_works: ${e}`); }
+      // Anonymize orders/evidences
+      try { await admin.from("orders").update({ user_id: null }).eq("user_id", user_id); } catch (e) { errors.push(`anon_orders: ${e}`); }
+      try { await admin.from("purchase_evidences").update({ user_id: null }).eq("user_id", user_id); } catch (e) { errors.push(`anon_pe: ${e}`); }
+      try { await admin.from("purchase_usage_evidences").update({ user_id: null }).eq("user_id", user_id); } catch (e) { errors.push(`anon_pue: ${e}`); }
 
-      // Anonymize financial records
-      for (const t of ["orders", "purchase_evidences", "purchase_usage_evidences"]) {
-        try { await admin.from(t).update({ user_id: null }).eq("user_id", user_id); } catch (e) { errors.push(`anon_${t}: ${e}`); }
-      }
-
-      // Delete personal data
+      // Delete tables
       const tables = [
-        "voice_clones", "ai_generations", "lyrics_generations", "social_promotions",
-        "premium_social_promotions", "press_releases", "video_generations", "auphonic_productions",
-        "user_artist_profiles", "user_attribution", "audiomack_connections", "audiomack_metrics",
+        "voice_clones", "ai_generations", "lyrics_generations",
+        "social_promotions", "premium_social_promotions", "press_releases",
+        "video_generations", "auphonic_productions", "user_artist_profiles",
+        "user_attribution", "audiomack_connections", "audiomack_metrics",
         "product_events", "notification_log", "ai_rate_limits", "promotion_requests",
-        "ibs_signatures", "ibs_sync_queue", "cancellation_tracking", "cancellation_surveys",
-        "credit_transactions", "user_roles", "managed_works", "managed_artists", "profiles",
+        "managed_works", "managed_artists", "ibs_signatures",
+        "user_roles", "cancellation_tracking", "credit_transactions",
       ];
-
       for (const t of tables) {
         try {
           if (t === "managed_works" || t === "managed_artists") {
@@ -2210,18 +2219,29 @@ serve(async (req) => {
         } catch (e) { errors.push(`del_${t}: ${e}`); }
       }
 
-      // Delete auth user
-      try { await admin.auth.admin.deleteUser(user_id); } catch (e) { errors.push(`del_auth: ${e}`); }
+      try { await admin.from("ibs_sync_queue").delete().eq("user_id", user_id).neq("status", "resolved"); } catch (e) { errors.push(`del_ibs_sync: ${e}`); }
+      try { await admin.from("works").delete().eq("user_id", user_id).is("blockchain_hash", null); } catch (e) { errors.push(`del_works: ${e}`); }
+
+      // Mark surveys as deleted
+      try {
+        await admin.from("cancellation_surveys").update({ account_deleted_at: new Date().toISOString() }).eq("user_id", user_id);
+      } catch (e) { errors.push(`mark_surveys: ${e}`); }
+
+      // Delete profile
+      try { await admin.from("profiles").delete().eq("user_id", user_id); } catch (e) { errors.push(`del_profile: ${e}`); }
 
       // Audit
       await audit({
-        action: "force_account_deleted",
+        action: "force_delete_user",
         target_user_id: user_id,
         target_email: targetEmail,
-        details: { reason: "admin_force_delete", plan_type: planType, errors: errors.length > 0 ? errors : undefined },
+        details: { plan: profile?.subscription_plan, errors: errors.length > 0 ? errors : undefined },
       });
 
-      return json({ success: true, errors: errors.length > 0 ? errors : undefined });
+      // Delete auth user
+      try { await admin.auth.admin.deleteUser(user_id); } catch (e) { errors.push(`del_auth: ${e}`); }
+
+      return json({ success: true, errors });
     }
 
     return json({ error: "Unknown action" }, 400);
