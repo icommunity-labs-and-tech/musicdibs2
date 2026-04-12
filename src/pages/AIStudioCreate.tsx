@@ -1650,7 +1650,62 @@ const AIStudioCreate = () => {
         </div>
       </main>
 
-
+      {/* ── Save Virtual Artist Form Modal ── */}
+      <Dialog open={showSaveArtistForm} onOpenChange={setShowSaveArtistForm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Guardar como Artista Virtual
+            </DialogTitle>
+            <DialogDescription>
+              Guarda esta configuración de voz y estilo para crear más canciones similares automáticamente.
+              {lastGeneratedVoiceName && (
+                <span className="block mt-2 text-foreground font-medium">
+                  🎤 Voz: {lastGeneratedVoiceName}
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="save-artist-name">Nombre del artista virtual *</Label>
+              <Input
+                id="save-artist-name"
+                placeholder="Ej: Mi voz trap, Estilo romántico, Voz energética..."
+                value={saveArtistName}
+                onChange={(e) => setSaveArtistName(e.target.value)}
+                maxLength={50}
+              />
+              {saveArtistName.trim().length > 0 && saveArtistName.trim().length < 3 && (
+                <p className="text-xs text-destructive">Mínimo 3 caracteres</p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="save-artist-style">Estilo (opcional)</Label>
+              <Input
+                id="save-artist-style"
+                placeholder="Ej: Pop romántico, Trap agresivo..."
+                value={saveArtistStyle}
+                onChange={(e) => setSaveArtistStyle(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setShowSaveArtistForm(false)} disabled={isSavingArtist}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveVirtualArtist} disabled={!saveArtistName.trim() || saveArtistName.trim().length < 3 || isSavingArtist} className="gap-2">
+              {isSavingArtist ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Guardando...</>
+              ) : (
+                <><Save className="h-4 w-4" /> Guardar artista virtual</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
