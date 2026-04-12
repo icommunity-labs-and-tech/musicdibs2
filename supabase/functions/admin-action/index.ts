@@ -2112,6 +2112,118 @@ serve(async (req) => {
       return json({ error: "Unknown dataset" }, 400);
     }
 
+    // ── GET CHURN DATA ─────────────────────────────────────
+    if (action === "get_churn_data") {
+      const { data: surveys } = await admin
+        .from("cancellation_surveys")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      const emailsMap = await getAllEmailsMap();
+
+      // Check which users still exist in profiles
+      const userIds = [...new Set((surveys || []).map((s: any) => s.user_id).filter(Boolean))];
+      const { data: existingProfiles } = await admin
+        .from("profiles")
+        .select("user_id")
+        .in("user_id", userIds);
+      const existingSet = new Set((existingProfiles || []).map((p: any) => p.user_id));
+
+      const enriched = (surveys || []).map((s: any) => ({
+        ...s,
+        email: emailsMap[s.user_id] || null,
+        account_deleted: !existingSet.has(s.user_id),
+      }));
+
+      return json({ surveys: enriched });
+    }
+
+    // ── FORCE DELETE USER ───────────────────────────────────
+    if (action === "force_delete_user") {
+      const { user_id } = payload;
+      if (!user_id) return json({ error: "user_id required" }, 400);
+
+      // Import deletion logic inline
+      const { data: targetAuth } = await admin.auth.admin.getUserById(user_id);
+      const targetEmail = targetAuth?.user?.email || "";
+
+      const { data: profile } = await admin
+        .from("profiles")
+        .select("subscription_plan, available_credits")
+        .eq("user_id", user_id)
+        .maybeSingle();
+
+      if (!profile && !targetAuth?.user) {
+        return json({ error: "Usuario no encontrado" }, 404);
+      }
+
+      const planType = profile?.subscription_plan || "Free";
+      const creditsRemaining = profile?.available_credits || 0;
+
+      // Execute same deletion steps as delete-account function
+      const errors: string[] = [];
+
+      // Cancel Stripe
+      try {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (stripeKey && profile?.stripe_customer_id) {
+          const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+          const subs = await stripe.subscriptions.list({ customer: profile.stripe_customer_id, status: "active", limit: 10 });
+          for (const sub of subs.data) {
+            await stripe.subscriptions.update(sub.id, { cancel_at_period_end: true });
+          }
+        }
+      } catch (e) { errors.push(`stripe: ${e}`); }
+
+      // Anonymize blockchain works
+      try {
+        await admin.from("works").update({ user_id: null, author: "Usuario eliminado", updated_at: new Date().toISOString() })
+          .eq("user_id", user_id).not("blockchain_hash", "is", null);
+      } catch (e) { errors.push(`anon_works: ${e}`); }
+
+      // Delete non-blockchain works
+      try { await admin.from("works").delete().eq("user_id", user_id); } catch (e) { errors.push(`del_works: ${e}`); }
+
+      // Anonymize financial records
+      for (const t of ["orders", "purchase_evidences", "purchase_usage_evidences"]) {
+        try { await admin.from(t).update({ user_id: null }).eq("user_id", user_id); } catch (e) { errors.push(`anon_${t}: ${e}`); }
+      }
+
+      // Delete personal data
+      const tables = [
+        "voice_clones", "ai_generations", "lyrics_generations", "social_promotions",
+        "premium_social_promotions", "press_releases", "video_generations", "auphonic_productions",
+        "user_artist_profiles", "user_attribution", "audiomack_connections", "audiomack_metrics",
+        "product_events", "notification_log", "ai_rate_limits", "promotion_requests",
+        "ibs_signatures", "ibs_sync_queue", "cancellation_tracking", "cancellation_surveys",
+        "credit_transactions", "user_roles", "managed_works", "managed_artists", "profiles",
+      ];
+
+      for (const t of tables) {
+        try {
+          if (t === "managed_works" || t === "managed_artists") {
+            await admin.from(t).delete().eq("manager_user_id", user_id);
+          } else {
+            await admin.from(t).delete().eq("user_id", user_id);
+          }
+        } catch (e) { errors.push(`del_${t}: ${e}`); }
+      }
+
+      // Delete auth user
+      try { await admin.auth.admin.deleteUser(user_id); } catch (e) { errors.push(`del_auth: ${e}`); }
+
+      // Audit
+      await audit({
+        action: "force_account_deleted",
+        target_user_id: user_id,
+        target_email: targetEmail,
+        details: { reason: "admin_force_delete", plan_type: planType, errors: errors.length > 0 ? errors : undefined },
+      });
+
+      return json({ success: true, errors: errors.length > 0 ? errors : undefined });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("[ADMIN-ACTION] Error:", e);
