@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, Eye, EyeOff, Wand2 } from 'lucide-react';
 
 export default function UserLogin() {
   const { t, i18n } = useTranslation();
@@ -32,6 +32,8 @@ export default function UserLogin() {
   const [showRegPw, setShowRegPw] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const [magicLinkMode, setMagicLinkMode] = useState(false);
+  const [magicEmail, setMagicEmail] = useState('');
 
   const handleGoogleSignIn = async () => {
     setError('');
@@ -70,6 +72,18 @@ export default function UserLogin() {
     const { error } = await signUp(form.get('email') as string, form.get('password') as string, { language: lang });
     setLoading(false);
     if (error) setError(error.message); else setSuccess(t('userLogin.checkEmailConfirm'));
+  };
+
+  const handleMagicLink = async () => {
+    if (!magicEmail) return;
+    setError(''); setSuccess(''); setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({
+      email: magicEmail,
+      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+    });
+    setLoading(false);
+    if (error) setError(error.message);
+    else setSuccess(t('userLogin.magicLinkSent'));
   };
 
   const GoogleIcon = () => (
@@ -134,6 +148,26 @@ export default function UserLogin() {
                     {t('userLogin.backToLogin')}
                   </button>
                 </div>
+              ) : magicLinkMode ? (
+                <div className="space-y-4 mt-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <p>{t('userLogin.magicLinkDesc')}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="magic-email">{t('userLogin.email')}</Label>
+                    <Input id="magic-email" type="email" required placeholder="tu@email.com" value={magicEmail} onChange={(e) => setMagicEmail(e.target.value)} />
+                  </div>
+                  {error && <div className="flex items-center gap-2 text-sm text-destructive"><AlertCircle className="h-4 w-4" /> {error}</div>}
+                  {success && <div className="flex items-center gap-2 text-sm text-green-600"><CheckCircle2 className="h-4 w-4" /> {success}</div>}
+                  <Button className="w-full gap-2" disabled={loading || !magicEmail} onClick={handleMagicLink}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Wand2 className="h-4 w-4" /> {t('userLogin.sendMagicLink')}</>}
+                  </Button>
+                  <button type="button" onClick={() => { setMagicLinkMode(false); setError(''); setSuccess(''); }} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {t('userLogin.orUsePassword')}
+                  </button>
+                  <OAuthButtons />
+                </div>
               ) : (
                 <form onSubmit={handleSignIn} className="space-y-4 mt-4">
                   <div className="space-y-2">
@@ -153,9 +187,15 @@ export default function UserLogin() {
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('userLogin.enter')}
                   </Button>
-                  <button type="button" onClick={() => { setForgotMode(true); setError(''); }} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {t('userLogin.forgotPassword')}
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <button type="button" onClick={() => { setForgotMode(true); setError(''); }} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {t('userLogin.forgotPassword')}
+                    </button>
+                    <button type="button" onClick={() => { setMagicLinkMode(true); setError(''); setSuccess(''); }} className="text-sm text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                      <Wand2 className="h-3 w-3" />
+                      {t('userLogin.orUseMagicLink')}
+                    </button>
+                  </div>
                   <OAuthButtons />
                 </form>
               )}
