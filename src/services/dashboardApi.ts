@@ -128,7 +128,8 @@ export async function registerWork(data: WorkRegistration): Promise<{
   // Upload all files to storage
   const filePaths: string[] = [];
   for (const f of allFiles) {
-    const filePath = `${user.id}/${Date.now()}_${f.name}`;
+    const safeName = f.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${user.id}/${Date.now()}_${safeName}`;
     const { error: uploadError } = await supabase.storage
       .from('works-files')
       .upload(filePath, f);
