@@ -1198,7 +1198,7 @@ export type Database = {
           stripe_payment_intent_id: string | null
           stripe_subscription_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           utm_campaign: string | null
           utm_content: string | null
           utm_medium: string | null
@@ -1235,7 +1235,7 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
           utm_medium?: string | null
@@ -1272,7 +1272,7 @@ export type Database = {
           stripe_payment_intent_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           utm_campaign?: string | null
           utm_content?: string | null
           utm_medium?: string | null
@@ -1618,7 +1618,7 @@ export type Database = {
           session_id: string | null
           updated_at: string
           user_agent: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           accepted_terms?: boolean | null
@@ -1650,7 +1650,7 @@ export type Database = {
           session_id?: string | null
           updated_at?: string
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           accepted_terms?: boolean | null
@@ -1682,7 +1682,7 @@ export type Database = {
           session_id?: string | null
           updated_at?: string
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1709,7 +1709,7 @@ export type Database = {
           purchase_evidence_id: string
           session_id: string | null
           user_agent: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           certification_status?: string
@@ -1725,7 +1725,7 @@ export type Database = {
           purchase_evidence_id: string
           session_id?: string | null
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           certification_status?: string
@@ -1741,7 +1741,7 @@ export type Database = {
           purchase_evidence_id?: string
           session_id?: string | null
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2121,7 +2121,7 @@ export type Database = {
           title: string
           type: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           author?: string | null
@@ -2145,7 +2145,7 @@ export type Database = {
           title: string
           type?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           author?: string | null
@@ -2169,7 +2169,7 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
