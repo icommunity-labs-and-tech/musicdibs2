@@ -120,6 +120,47 @@ serve(async (req) => {
       );
     }
 
+    // ── Deduct credit INSIDE the function (single source of truth) ──
+    // Read cost from feature_costs table
+    let creditCost = 1; // fallback
+    const { data: costRow } = await supabaseAdmin
+      .from("feature_costs")
+      .select("credit_cost")
+      .eq("feature_key", "register_work")
+      .maybeSingle();
+    if (costRow) creditCost = costRow.credit_cost;
+
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("available_credits")
+      .eq("user_id", work.user_id)
+      .single();
+
+    if (!profile || profile.available_credits < creditCost) {
+      return new Response(
+        JSON.stringify({ error: "Créditos insuficientes", available: profile?.available_credits ?? 0, required: creditCost }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Deduct credits
+    await supabaseAdmin
+      .from("profiles")
+      .update({
+        available_credits: profile.available_credits - creditCost,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", work.user_id);
+
+    await supabaseAdmin.from("credit_transactions").insert({
+      user_id: work.user_id,
+      amount: -creditCost,
+      type: "spend",
+      description: `Registro: ${work.title}`,
+    });
+
+    console.log(`[IBS-REGISTER] Deducted ${creditCost} credit(s) from user ${work.user_id}`);
+
     // ── Return immediately, process in background ──────────────
     // @ts-ignore EdgeRuntime is available in Supabase edge runtime
     EdgeRuntime.waitUntil(
@@ -129,7 +170,8 @@ serve(async (req) => {
         work,
         userId,
         signatureId,
-        Array.isArray(additionalFilePaths) ? additionalFilePaths : []
+        Array.isArray(additionalFilePaths) ? additionalFilePaths : [],
+        creditCost
       )
     );
 
@@ -160,7 +202,8 @@ async function processIbsRegistration(
   work: { id: string; user_id: string; title: string; description: string | null; file_path: string; file_hash: string | null },
   userId: string,
   signatureId: string,
-  extraPaths: string[]
+  extraPaths: string[],
+  creditCost: number
 ) {
   const workId = work.id;
 
@@ -172,7 +215,7 @@ async function processIbsRegistration(
 
     if (downloadError || !fileData) {
       console.error("[IBS] File download error:", downloadError);
-      await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "Could not download work file");
+      await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "Could not download work file", creditCost);
       return;
     }
 
@@ -254,7 +297,7 @@ async function processIbsRegistration(
       if (!ibsRes.ok) {
         const errBody = await ibsRes.text();
         console.error(`[IBS] Evidence creation failed [${ibsRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS error ${ibsRes.status}: ${errBody}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS error ${ibsRes.status}: ${errBody}`, creditCost);
         return;
       }
 
@@ -280,7 +323,7 @@ async function processIbsRegistration(
       if (!uploadRes.ok) {
         const errBody = await uploadRes.text();
         console.error(`[IBS] Upload session creation failed [${uploadRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS upload error ${uploadRes.status}: ${errBody}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `iBS upload error ${uploadRes.status}: ${errBody}`, creditCost);
         return;
       }
 
@@ -288,7 +331,7 @@ async function processIbsRegistration(
       const fileUploadInfo = uploadSession.files?.[0];
 
       if (!fileUploadInfo?.upload?.url) {
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "No upload URL received from iBS");
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, "No upload URL received from iBS", creditCost);
         return;
       }
 
@@ -306,7 +349,7 @@ async function processIbsRegistration(
       if (!putRes.ok) {
         const errBody = await putRes.text();
         console.error(`[IBS] Presigned upload failed [${putRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `File upload failed: ${putRes.status}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `File upload failed: ${putRes.status}`, creditCost);
         return;
       }
 
@@ -319,7 +362,7 @@ async function processIbsRegistration(
       if (!completeRes.ok) {
         const errBody = await completeRes.text();
         console.error(`[IBS] Upload confirmation failed [${completeRes.status}]:`, errBody);
-        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `Upload confirmation failed: ${completeRes.status}`);
+        await handleIbsFailure(supabaseAdmin, workId, userId, work.title, `Upload confirmation failed: ${completeRes.status}`, creditCost);
         return;
       }
 
@@ -357,48 +400,54 @@ async function processIbsRegistration(
       workId,
       userId,
       work.title,
-      e instanceof Error ? e.message : "Unknown background error"
+      e instanceof Error ? e.message : "Unknown background error",
+      creditCost
     );
   }
 }
 
 /**
- * Handles iBS failure: marks work as failed and refunds credit.
+ * Handles iBS failure: marks work as failed and refunds credit only if creditCost > 0.
  */
 async function handleIbsFailure(
   supabaseAdmin: ReturnType<typeof createClient>,
   workId: string,
   userId: string,
   workTitle: string,
-  reason: string
+  reason: string,
+  creditCost: number
 ) {
   await supabaseAdmin
     .from("works")
     .update({ status: "failed", updated_at: new Date().toISOString() })
     .eq("id", workId);
 
-  const { data: profile } = await supabaseAdmin
-    .from("profiles")
-    .select("available_credits")
-    .eq("user_id", userId)
-    .single();
-
-  if (profile) {
-    await supabaseAdmin
+  if (creditCost > 0) {
+    const { data: profile } = await supabaseAdmin
       .from("profiles")
-      .update({
-        available_credits: profile.available_credits + 1,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", userId);
+      .select("available_credits")
+      .eq("user_id", userId)
+      .single();
 
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: userId,
-      amount: 1,
-      type: "refund",
-      description: `Reembolso por fallo iBS: ${workTitle} — ${reason}`,
-    });
+    if (profile) {
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          available_credits: profile.available_credits + creditCost,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+
+      await supabaseAdmin.from("credit_transactions").insert({
+        user_id: userId,
+        amount: creditCost,
+        type: "refund",
+        description: `Reembolso por fallo iBS: ${workTitle} — ${reason}`,
+      });
+    }
+
+    console.log(`[IBS] FAILURE — Work ${workId} marked as failed, ${creditCost} credit(s) refunded. Reason: ${reason}`);
+  } else {
+    console.log(`[IBS] FAILURE — Work ${workId} marked as failed (no credits to refund). Reason: ${reason}`);
   }
-
-  console.log(`[IBS] FAILURE — Work ${workId} marked as failed, credit refunded. Reason: ${reason}`);
 }
