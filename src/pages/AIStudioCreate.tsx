@@ -170,14 +170,18 @@ const AIStudioCreate = () => {
   const [selectedArtistId, setSelectedArtistId] = useState<string>('');
 
   // ── Save as Virtual Artist modal state ──
-  const [showSaveArtistPrompt, setShowSaveArtistPrompt] = useState(false);
   const [showSaveArtistForm, setShowSaveArtistForm] = useState(false);
   const [saveArtistName, setSaveArtistName] = useState('');
   const [saveArtistStyle, setSaveArtistStyle] = useState('');
   const [isSavingArtist, setIsSavingArtist] = useState(false);
   const [lastGeneratedVoiceId, setLastGeneratedVoiceId] = useState<string>('');
   const [lastGeneratedVoiceName, setLastGeneratedVoiceName] = useState<string>('');
+  const [saveArtistGenerationId, setSaveArtistGenerationId] = useState<string>('');
 
+  // Track which voice was used per generation (voice_id not stored in DB)
+  const generationVoiceMapRef = useRef<Map<string, { voiceId: string; voiceName: string }>>(new Map());
+  // Track which generations already saved as virtual artist
+  const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
 
 
   // ── Derived values ──
