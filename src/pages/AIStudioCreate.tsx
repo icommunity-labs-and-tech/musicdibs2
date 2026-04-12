@@ -373,12 +373,13 @@ const AIStudioCreate = () => {
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
 
-        // Show save as virtual artist prompt
+        // Track voice used for this generation (for save-as-artist button)
         if (selectedVoice && !selectedArtistId) {
           const vp = voiceProfiles.find(v => v.id === selectedVoice);
-          setLastGeneratedVoiceId(selectedVoice);
-          setLastGeneratedVoiceName(vp?.label || '');
-          setShowSaveArtistPrompt(true);
+          generationVoiceMapRef.current.set(savedGen.id, {
+            voiceId: selectedVoice,
+            voiceName: vp?.label || '',
+          });
         }
       }
     } catch (error: any) {
@@ -479,6 +480,11 @@ const AIStudioCreate = () => {
     if (!saveArtistName.trim() || !lastGeneratedVoiceId || !user) return;
     setIsSavingArtist(true);
     try {
+      // Check limit of 10
+      if (virtualArtistsCount >= 10) {
+        toast({ title: 'Límite alcanzado', description: 'Máximo 10 artistas virtuales. Elimina uno para crear otro.', variant: 'destructive' });
+        return;
+      }
       const { data: newArtist, error } = await supabase
         .from('user_artist_profiles')
         .insert({
@@ -497,16 +503,31 @@ const AIStudioCreate = () => {
       if (error) throw error;
       setVirtualArtists(prev => [newArtist, ...prev]);
       setVirtualArtistsCount(prev => prev + 1);
-      toast({ title: `Artista "${saveArtistName.trim()}" guardado` });
+      if (saveArtistGenerationId) {
+        setSavedArtistGenIds(prev => new Set(prev).add(saveArtistGenerationId));
+      }
+      toast({ title: `Artista "${saveArtistName.trim()}" guardado ✅` });
       setShowSaveArtistForm(false);
-      setShowSaveArtistPrompt(false);
       setSaveArtistName('');
       setSaveArtistStyle('');
+      setSaveArtistGenerationId('');
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     } finally {
       setIsSavingArtist(false);
     }
+  };
+
+  // ── Open save-as-artist modal from library ──
+  const openSaveArtistFromLibrary = (generationId: string) => {
+    const voiceInfo = generationVoiceMapRef.current.get(generationId);
+    if (!voiceInfo) return;
+    setLastGeneratedVoiceId(voiceInfo.voiceId);
+    setLastGeneratedVoiceName(voiceInfo.voiceName);
+    setSaveArtistGenerationId(generationId);
+    setSaveArtistName('');
+    setSaveArtistStyle('');
+    setShowSaveArtistForm(true);
   };
 
   // ── Select virtual artist ──
