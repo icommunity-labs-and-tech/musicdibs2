@@ -284,6 +284,45 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Force delete confirmation modal */}
+      <Dialog open={deleteModal.open} onOpenChange={open => { if (!open) { setDeleteModal({ open: false, userId: '', email: '' }); setDeleteConfirmText(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Eliminar cuenta de usuario</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Estás a punto de eliminar permanentemente la cuenta de <span className="font-medium text-foreground">{deleteModal.email}</span>.
+            </p>
+            <div className="p-3 rounded-md bg-destructive/10 border border-destructive/30 text-sm space-y-1">
+              <p className="font-medium text-destructive">Esta acción es irreversible:</p>
+              <ul className="list-disc list-inside text-muted-foreground text-xs space-y-0.5">
+                <li>Se eliminará el perfil, créditos y datos personales</li>
+                <li>Las obras con blockchain se anonimizarán (user_id → NULL)</li>
+                <li>Los registros de compra se anonimizarán por obligación fiscal</li>
+                <li>Se eliminará el usuario de auth.users</li>
+              </ul>
+            </div>
+            <div>
+              <Label>Escribe <span className="font-mono font-bold">ELIMINAR</span> para confirmar</Label>
+              <Input
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="ELIMINAR"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteModal({ open: false, userId: '', email: '' }); setDeleteConfirmText(''); }}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleForceDelete} disabled={deleteConfirmText !== 'ELIMINAR' || deleting}>
+              {deleting ? 'Eliminando…' : 'Eliminar cuenta'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <UserDetailSheet user={selectedUser} open={!!selectedUser} onOpenChange={open => !open && setSelectedUser(null)} />
     </div>
   );
