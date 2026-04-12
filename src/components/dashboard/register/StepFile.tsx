@@ -1,9 +1,16 @@
 import { useRef, useCallback, useState } from 'react';
-import { Upload, X, FileUp, Music, Plus } from 'lucide-react';
+import { Upload, X, FileUp, Music, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { WizardData } from './types';
+import { toast } from 'sonner';
+
+const MAX_FILE_SIZE_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_FILES = 5;
+const MAX_TOTAL_SIZE_MB = 200;
+const MAX_TOTAL_SIZE_BYTES = MAX_TOTAL_SIZE_MB * 1024 * 1024;
 
 interface StepFileProps {
   data: WizardData;
@@ -22,16 +29,55 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const totalSize = data.files.reduce((sum, f) => sum + f.size, 0);
 
   const handleFiles = useCallback(
     (newFiles: FileList | File[]) => {
       const filesArray = Array.from(newFiles);
       if (filesArray.length === 0) return;
-      const primary = data.file || filesArray[0];
-      const merged = [...data.files, ...filesArray];
+
+      const newErrors: string[] = [];
+      const validFiles: File[] = [];
+
+      for (const f of filesArray) {
+        if (f.size > MAX_FILE_SIZE_BYTES) {
+          newErrors.push(`"${f.name}" supera el límite de ${MAX_FILE_SIZE_MB} MB (${formatSize(f.size)})`);
+          continue;
+        }
+        if (f.size === 0) {
+          newErrors.push(`"${f.name}" está vacío`);
+          continue;
+        }
+        validFiles.push(f);
+      }
+
+      const merged = [...data.files, ...validFiles];
       const unique = merged.filter((f, i, arr) =>
         arr.findIndex(x => x.name === f.name && x.size === f.size) === i
       );
+
+      if (unique.length > MAX_FILES) {
+        newErrors.push(`Máximo ${MAX_FILES} archivos permitidos`);
+        unique.splice(MAX_FILES);
+      }
+
+      const newTotalSize = unique.reduce((sum, f) => sum + f.size, 0);
+      if (newTotalSize > MAX_TOTAL_SIZE_BYTES) {
+        newErrors.push(`El tamaño total supera el límite de ${MAX_TOTAL_SIZE_MB} MB (${formatSize(newTotalSize)})`);
+        setErrors(newErrors);
+        return;
+      }
+
+      if (newErrors.length > 0) {
+        setErrors(newErrors);
+        newErrors.forEach(e => toast.error(e));
+      } else {
+        setErrors([]);
+      }
+
+      const primary = data.file || unique[0] || null;
       onUpdate({ file: primary, files: unique, aiAudioUrl: null });
     },
     [onUpdate, data.file, data.files]
@@ -41,6 +87,7 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
     (index: number) => {
       const newFiles = data.files.filter((_, i) => i !== index);
       const newPrimary = newFiles.length > 0 ? newFiles[0] : null;
+      setErrors([]);
       onUpdate({ file: newPrimary, files: newFiles });
     },
     [onUpdate, data.files]
@@ -56,12 +103,16 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
   );
 
   const hasFile = data.files.length > 0 || data.aiAudioUrl;
+  const canAddMore = data.files.length < MAX_FILES;
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">{t('wizard.file.title')}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t('wizard.file.subtitle')}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Máx. {MAX_FILE_SIZE_MB} MB por archivo · {MAX_FILES} archivos · {MAX_TOTAL_SIZE_MB} MB en total
+        </p>
       </div>
 
       {data.aiAudioUrl && data.files.length === 0 ? (
@@ -96,9 +147,16 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
               </Button>
             </div>
           ))}
-          <Button variant="outline" size="sm" className="mt-2" onClick={() => inputRef.current?.click()}>
-            <Plus className="h-4 w-4 mr-1" /> {t('wizard.file.addMore')}
-          </Button>
+          {data.files.length > 1 && (
+            <p className="text-xs text-muted-foreground">
+              {data.files.length} archivos · {formatSize(totalSize)} en total
+            </p>
+          )}
+          {canAddMore && (
+            <Button variant="outline" size="sm" className="mt-2" onClick={() => inputRef.current?.click()}>
+              <Plus className="h-4 w-4 mr-1" /> {t('wizard.file.addMore')}
+            </Button>
+          )}
         </div>
       ) : (
         <div
@@ -117,6 +175,17 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
           <div className="text-center">
             <p className="text-sm font-medium">{t('wizard.file.dragHere')}</p>
             <p className="text-xs text-muted-foreground mt-1">{t('wizard.file.clickSelect')}</p>
+          </div>
+        </div>
+      )}
+
+      {errors.length > 0 && (
+        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+          <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            {errors.map((err, i) => (
+              <p key={i} className="text-sm text-destructive">{err}</p>
+            ))}
           </div>
         </div>
       )}
