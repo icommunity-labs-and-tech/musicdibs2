@@ -37,4 +37,6 @@ export const adminApi = {
   getLibraryStatus: (user_id: string) => adminAction('get_library_status', { user_id }),
   getConsistencyReport: (limit = 50) => adminAction('get_consistency_report', { limit }),
   exportOrdersCsv: () => adminAction('export_csv', { dataset: 'orders' }),
+  getChurnData: () => adminAction('get_churn_data'),
+  forceDeleteUser: (user_id: string) => adminAction('force_delete_user', { user_id }),
 };

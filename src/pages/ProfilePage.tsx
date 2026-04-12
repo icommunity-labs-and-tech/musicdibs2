@@ -13,8 +13,9 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   User, Mail, Shield, Calendar, Lock, Loader2,
-  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2, Globe,
+  CheckCircle2, AlertCircle, Eye, EyeOff, Pencil, Save, X, Bell, Volume2, Globe, Trash2,
 } from 'lucide-react';
+import { DeleteAccountModal } from '@/components/dashboard/DeleteAccountModal';
 import { fetchDashboardSummary } from '@/services/dashboardApi';
 import type { DashboardSummary } from '@/types/dashboard';
 
@@ -414,7 +415,32 @@ export default function ProfilePage() {
           </div>
         </CardContent>
       </Card>
+      {/* Delete account */}
+      <DeleteAccountSection />
       </div>
     </div>
+  );
+}
+
+function DeleteAccountSection() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card className="border-destructive/30 lg:col-span-2">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2 text-destructive">
+          <Trash2 className="h-4 w-4" /> Eliminar cuenta
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          Si eliminas tu cuenta, se borrarán permanentemente tus generaciones, letras, portadas y datos personales.
+          Los registros en blockchain y los datos de compra anonimizados se conservarán según la normativa legal.
+        </p>
+        <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
+          <Trash2 className="h-3.5 w-3.5 mr-1" /> Solicitar eliminación de cuenta
+        </Button>
+        <DeleteAccountModal open={open} onOpenChange={setOpen} />
+      </CardContent>
+    </Card>
   );
 }
