@@ -230,6 +230,14 @@ export default function AdminUsersPage() {
                       >
                         {(u.roles || []).includes('manager') ? 'Quitar manager' : 'Dar manager'}
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        disabled={u.user_id === user?.id}
+                        onClick={() => setDeleteModal({ open: true, userId: u.user_id, email: u.email })}
+                      >
+                        Forzar eliminación de cuenta
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
