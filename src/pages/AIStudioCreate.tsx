@@ -170,14 +170,18 @@ const AIStudioCreate = () => {
   const [selectedArtistId, setSelectedArtistId] = useState<string>('');
 
   // ── Save as Virtual Artist modal state ──
-  const [showSaveArtistPrompt, setShowSaveArtistPrompt] = useState(false);
   const [showSaveArtistForm, setShowSaveArtistForm] = useState(false);
   const [saveArtistName, setSaveArtistName] = useState('');
   const [saveArtistStyle, setSaveArtistStyle] = useState('');
   const [isSavingArtist, setIsSavingArtist] = useState(false);
   const [lastGeneratedVoiceId, setLastGeneratedVoiceId] = useState<string>('');
   const [lastGeneratedVoiceName, setLastGeneratedVoiceName] = useState<string>('');
+  const [saveArtistGenerationId, setSaveArtistGenerationId] = useState<string>('');
 
+  // Track which voice was used per generation (voice_id not stored in DB)
+  const generationVoiceMapRef = useRef<Map<string, { voiceId: string; voiceName: string }>>(new Map());
+  // Track which generations already saved as virtual artist
+  const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
 
 
   // ── Derived values ──
@@ -369,12 +373,13 @@ const AIStudioCreate = () => {
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
 
-        // Show save as virtual artist prompt
+        // Track voice used for this generation (for save-as-artist button)
         if (selectedVoice && !selectedArtistId) {
           const vp = voiceProfiles.find(v => v.id === selectedVoice);
-          setLastGeneratedVoiceId(selectedVoice);
-          setLastGeneratedVoiceName(vp?.label || '');
-          setShowSaveArtistPrompt(true);
+          generationVoiceMapRef.current.set(savedGen.id, {
+            voiceId: selectedVoice,
+            voiceName: vp?.label || '',
+          });
         }
       }
     } catch (error: any) {
@@ -475,6 +480,11 @@ const AIStudioCreate = () => {
     if (!saveArtistName.trim() || !lastGeneratedVoiceId || !user) return;
     setIsSavingArtist(true);
     try {
+      // Check limit of 10
+      if (virtualArtistsCount >= 10) {
+        toast({ title: 'Límite alcanzado', description: 'Máximo 10 artistas virtuales. Elimina uno para crear otro.', variant: 'destructive' });
+        return;
+      }
       const { data: newArtist, error } = await supabase
         .from('user_artist_profiles')
         .insert({
@@ -493,16 +503,31 @@ const AIStudioCreate = () => {
       if (error) throw error;
       setVirtualArtists(prev => [newArtist, ...prev]);
       setVirtualArtistsCount(prev => prev + 1);
-      toast({ title: `Artista "${saveArtistName.trim()}" guardado` });
+      if (saveArtistGenerationId) {
+        setSavedArtistGenIds(prev => new Set(prev).add(saveArtistGenerationId));
+      }
+      toast({ title: `Artista "${saveArtistName.trim()}" guardado ✅` });
       setShowSaveArtistForm(false);
-      setShowSaveArtistPrompt(false);
       setSaveArtistName('');
       setSaveArtistStyle('');
+      setSaveArtistGenerationId('');
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     } finally {
       setIsSavingArtist(false);
     }
+  };
+
+  // ── Open save-as-artist modal from library ──
+  const openSaveArtistFromLibrary = (generationId: string) => {
+    const voiceInfo = generationVoiceMapRef.current.get(generationId);
+    if (!voiceInfo) return;
+    setLastGeneratedVoiceId(voiceInfo.voiceId);
+    setLastGeneratedVoiceName(voiceInfo.voiceName);
+    setSaveArtistGenerationId(generationId);
+    setSaveArtistName('');
+    setSaveArtistStyle('');
+    setShowSaveArtistForm(true);
   };
 
   // ── Select virtual artist ──
@@ -1562,6 +1587,25 @@ const AIStudioCreate = () => {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
+                                {/* Save as Virtual Artist button — only if this generation has a tracked voice */}
+                                {generationVoiceMapRef.current.has(result.id) && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      {savedArtistGenIds.has(result.id) ? (
+                                        <Button variant="ghost" size="icon" disabled className="text-primary">
+                                          <CheckCircle2 className="w-4 h-4" />
+                                        </Button>
+                                      ) : (
+                                        <Button variant="ghost" size="icon" onClick={() => openSaveArtistFromLibrary(result.id)}>
+                                          <User className="w-4 h-4" />
+                                        </Button>
+                                      )}
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>{savedArtistGenIds.has(result.id) ? 'Ya guardado como Artista Virtual' : 'Guardar como Artista Virtual'}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button variant="ghost" size="icon" onClick={() => downloadAudio(result)}>
@@ -1606,58 +1650,42 @@ const AIStudioCreate = () => {
         </div>
       </main>
 
-      {/* ── Save as Virtual Artist Prompt Modal ── */}
-      <Dialog open={showSaveArtistPrompt} onOpenChange={setShowSaveArtistPrompt}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              ¿Te gusta esta voz y este estilo?
-            </DialogTitle>
-            <DialogDescription>
-              Guarda esta configuración como un Artista Virtual para crear más canciones con el mismo estilo automáticamente.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button
-              onClick={() => { setShowSaveArtistPrompt(false); setShowSaveArtistForm(true); }}
-              className="gap-2 flex-1"
-            >
-              <Save className="h-4 w-4" />
-              Guardar como artista virtual
-            </Button>
-            <Button variant="outline" onClick={() => setShowSaveArtistPrompt(false)} className="flex-1">
-              No guardar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* ── Save Virtual Artist Form Modal ── */}
       <Dialog open={showSaveArtistForm} onOpenChange={setShowSaveArtistForm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nuevo artista virtual</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Guardar como Artista Virtual
+            </DialogTitle>
             <DialogDescription>
-              Voz seleccionada: {lastGeneratedVoiceName}
+              Guarda esta configuración de voz y estilo para crear más canciones similares automáticamente.
+              {lastGeneratedVoiceName && (
+                <span className="block mt-2 text-foreground font-medium">
+                  🎤 Voz: {lastGeneratedVoiceName}
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="save-artist-name">Nombre del artista *</Label>
+              <Label htmlFor="save-artist-name">Nombre del artista virtual *</Label>
               <Input
                 id="save-artist-name"
-                placeholder="Ej: Luna Nova"
+                placeholder="Ej: Mi voz trap, Estilo romántico, Voz energética..."
                 value={saveArtistName}
                 onChange={(e) => setSaveArtistName(e.target.value)}
                 maxLength={50}
               />
+              {saveArtistName.trim().length > 0 && saveArtistName.trim().length < 3 && (
+                <p className="text-xs text-destructive">Mínimo 3 caracteres</p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="save-artist-style">Estilo (opcional)</Label>
               <Input
                 id="save-artist-style"
-                placeholder="Ej: Pop"
+                placeholder="Ej: Pop romántico, Trap agresivo..."
                 value={saveArtistStyle}
                 onChange={(e) => setSaveArtistStyle(e.target.value)}
                 maxLength={100}
@@ -1668,18 +1696,17 @@ const AIStudioCreate = () => {
             <Button variant="outline" onClick={() => setShowSaveArtistForm(false)} disabled={isSavingArtist}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveVirtualArtist} disabled={!saveArtistName.trim() || isSavingArtist} className="gap-2">
+            <Button onClick={handleSaveVirtualArtist} disabled={!saveArtistName.trim() || saveArtistName.trim().length < 3 || isSavingArtist} className="gap-2">
               {isSavingArtist ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Guardando...</>
               ) : (
-                <><Save className="h-4 w-4" /> Guardar artista</>
+                <><Save className="h-4 w-4" /> Guardar artista virtual</>
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      
     </div>
   );
 };
