@@ -78,7 +78,10 @@ Descripción mejorada:`;
     }
 
     const data = await response.json();
-    const improved = data.content?.[0]?.text?.trim() || '';
+    const improved = (data.content?.[0]?.text?.trim() || '')
+      .replace(/^(Descripción mejorada:|Improved description:|Descripción:|Description:)\s*/i, '')
+      .replace(/^["']|["']$/g, '')
+      .trim();
 
     if (!improved) {
       return new Response(JSON.stringify({ error: 'Empty response' }), {
