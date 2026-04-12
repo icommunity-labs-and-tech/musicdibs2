@@ -2150,7 +2150,7 @@ serve(async (req) => {
 
       const { data: profile } = await admin
         .from("profiles")
-        .select("subscription_plan, available_credits")
+        .select("subscription_plan, available_credits, stripe_customer_id")
         .eq("user_id", user_id)
         .maybeSingle();
 
