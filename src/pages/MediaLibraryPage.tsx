@@ -669,7 +669,7 @@ export default function MediaLibraryPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>¿Eliminar este asset?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                "{asset.title.substring(0, 60)}" se eliminará permanentemente.
+                                "{getDisplayName(asset).substring(0, 60)}" se eliminará permanentemente.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
