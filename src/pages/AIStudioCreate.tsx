@@ -185,6 +185,8 @@ const AIStudioCreate = () => {
   // Track which generations already saved as virtual artist
   const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
 
+  // ── Virtual Artist onboarding tip state ──
+  const [showVirtualArtistTip, setShowVirtualArtistTip] = useState(false);
 
   // ── Derived values ──
   const selectedGenre: string | null = null;
@@ -392,6 +394,14 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.musicGenerated'), description: t('aiCreate.songReady') });
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
+
+        // Show onboarding tip for first vocal generation
+        if (mode === 'song') {
+          const hasSeenTip = localStorage.getItem('virtual_artist_tip_shown');
+          if (!hasSeenTip && virtualArtistsCount === 0) {
+            setTimeout(() => setShowVirtualArtistTip(true), 800);
+          }
+        }
 
         if (voiceIdToSave) {
           generationVoiceMapRef.current.set(savedGen.id, {
@@ -1745,6 +1755,88 @@ const AIStudioCreate = () => {
               ) : (
                 <><Save className="h-4 w-4" /> {t('aiCreate.saveArtistBtn')}</>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Virtual Artist Onboarding Tip Modal ── */}
+      <Dialog open={showVirtualArtistTip} onOpenChange={(open) => {
+        if (!open) {
+          localStorage.setItem('virtual_artist_tip_shown', 'true');
+          setShowVirtualArtistTip(false);
+        }
+      }}>
+        <DialogContent className="max-w-md sm:rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl">{t('aiCreate.onboardingTipTitle')}</DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {t('aiCreate.onboardingTipMsg')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Mockup illustration */}
+          <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <Play className="h-4 w-4 text-primary ml-0.5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{t('aiCreate.onboardingTipMockTitle')}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-1 flex-1 rounded-full bg-border">
+                    <div className="h-1 w-1/3 rounded-full bg-primary" />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">1:00</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
+                <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+              <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
+                <Heart className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+              {/* Highlighted person icon */}
+              <div className="relative flex flex-col items-center">
+                {/* Animated arrow */}
+                <div className="absolute -top-5 animate-bounce text-destructive text-lg leading-none">↓</div>
+                {/* Pulsing ring */}
+                <div className="absolute inset-0 rounded-md border-2 border-[hsl(263,70%,50%)] animate-pulse" />
+                <div className="h-8 w-8 rounded-md bg-[hsl(263,70%,50%)]/20 flex items-center justify-center relative z-10">
+                  <User className="h-3.5 w-3.5 text-[hsl(263,70%,50%)]" />
+                </div>
+              </div>
+              <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
+                <Download className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+              <div className="h-8 w-8 rounded-md bg-muted flex items-center justify-center">
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="sm:order-1"
+              onClick={() => {
+                localStorage.setItem('virtual_artist_tip_shown', 'true');
+                setShowVirtualArtistTip(false);
+                navigate('/dashboard/artist-profiles');
+              }}
+            >
+              {t('aiCreate.onboardingTipViewArtists')}
+            </Button>
+            <Button
+              className="sm:order-2"
+              onClick={() => {
+                localStorage.setItem('virtual_artist_tip_shown', 'true');
+                setShowVirtualArtistTip(false);
+              }}
+            >
+              {t('aiCreate.onboardingTipGotIt')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -168,6 +168,12 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       saveArtistLimit: 'Límite de artistas virtuales alcanzado (10 máx). Elimina uno para crear otro.',
       saveArtistTooltip: 'Guardar como Artista Virtual',
       saveArtistAlready: 'Ya guardado como Artista Virtual',
+      // Onboarding tip
+      onboardingTipTitle: '🎉 ¡Canción generada!',
+      onboardingTipMsg: '¿Te gusta esta voz y este estilo? Guarda esta configuración como un Artista Virtual para crear más canciones con el mismo estilo automáticamente.',
+      onboardingTipGotIt: '¡Entendido!',
+      onboardingTipViewArtists: 'Ver mis Artistas Virtuales',
+      onboardingTipMockTitle: 'Mi canción favorita',
     },
     aiEdit: {
       backToStudio: 'Volver a AI MusicDibs Studio',
@@ -684,6 +690,12 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       saveArtistLimit: 'Virtual artist limit reached (10 max). Delete one to create another.',
       saveArtistTooltip: 'Save as Virtual Artist',
       saveArtistAlready: 'Already saved as Virtual Artist',
+      // Onboarding tip
+      onboardingTipTitle: '🎉 Song generated!',
+      onboardingTipMsg: 'Like this voice and style? Save this configuration as a Virtual Artist to create more songs with the same style automatically.',
+      onboardingTipGotIt: 'Got it!',
+      onboardingTipViewArtists: 'View my Virtual Artists',
+      onboardingTipMockTitle: 'My favorite song',
     },
     aiEdit: {
       backToStudio: 'Back to AI MusicDibs Studio',
@@ -1197,6 +1209,12 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       saveArtistLimit: 'Limite de artistas virtuais atingido (10 máx). Exclua um para criar outro.',
       saveArtistTooltip: 'Salvar como Artista Virtual',
       saveArtistAlready: 'Já salvo como Artista Virtual',
+      // Onboarding tip
+      onboardingTipTitle: '🎉 Música gerada!',
+      onboardingTipMsg: 'Gostou desta voz e estilo? Salve esta configuração como um Artista Virtual para criar mais músicas com o mesmo estilo automaticamente.',
+      onboardingTipGotIt: 'Entendi!',
+      onboardingTipViewArtists: 'Ver meus Artistas Virtuais',
+      onboardingTipMockTitle: 'Minha música favorita',
     },
     aiEdit: {
       backToStudio: 'Voltar ao AI MusicDibs Studio',
