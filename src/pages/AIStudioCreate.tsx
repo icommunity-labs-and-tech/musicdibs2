@@ -45,6 +45,7 @@ import { useProductTracking } from "@/hooks/useProductTracking";
 
 // ── Music tab constants ──
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
+const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|base|beat|karaoke|sin voz|sin voces)\b/i;
 
 // ── Lyrics tab constants ──
 const LYRIC_STYLES = ["Narrativa", "Abstracta", "Descriptiva", "Reivindicativa", "Introspectiva", "Poética"];
@@ -179,7 +180,7 @@ const AIStudioCreate = () => {
   const [lastGeneratedVoiceName, setLastGeneratedVoiceName] = useState<string>('');
   const [saveArtistGenerationId, setSaveArtistGenerationId] = useState<string>('');
 
-  // Track which voice was used per generation (voice_id not stored in DB)
+  // Track voice used per generation, especially for historical rows without persisted metadata
   const generationVoiceMapRef = useRef<Map<string, { voiceId: string; voiceName: string }>>(new Map());
   // Track which generations already saved as virtual artist
   const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
@@ -191,6 +192,10 @@ const AIStudioCreate = () => {
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
   const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
+  const canSaveAsVirtualArtist = (result: GenerationResult) => {
+    if (result.voiceId || generationVoiceMapRef.current.has(result.id)) return true;
+    return !INSTRUMENTAL_PROMPT_REGEX.test(result.prompt);
+  };
 
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
