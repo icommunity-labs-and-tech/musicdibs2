@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { parseAiError } from '@/lib/aiErrorHandler';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -183,13 +184,13 @@ export default function AIStudioVocal() {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/clone-voice`,
         { method: 'POST', headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY }, body: form });
       const data = await response.json();
-      if (!response.ok) { toast({ title: vc('cloneError'), description: data.error, variant: 'destructive' }); return; }
+      if (!response.ok) { const { userMessage } = parseAiError({ status: response.status }, data); toast({ title: vc('cloneError'), description: userMessage, variant: 'destructive' }); return; }
       toast({ title: vc('cloneSuccess'), description: vc('cloneSuccessDesc', { name: cloneName.trim() }) });
       track('voice_cloned', { feature: 'voice_cloning' });
       setCloneName(''); setCloneDescription(''); setCloneAudioFile(null); setCloneAudioDuration(null); setCloneRemoveNoise(false); setShowCloneForm(false);
       if (cloneFileRef.current) cloneFileRef.current.value = '';
       await loadClones(); setActiveTab('sing');
-    } catch { toast({ title: vc('connectionError'), variant: 'destructive' }); }
+    } catch (err) { const { userMessage } = parseAiError(err); toast({ title: vc('connectionError'), description: userMessage, variant: 'destructive' }); }
     finally { setIsCloning(false); }
   };
 
@@ -228,7 +229,7 @@ export default function AIStudioVocal() {
       });
       if (error) throw error;
       if (data?.lyrics) { setLyrics(data.lyrics); toast({ title: tv('lyricsGenerated'), description: tv('lyricsGeneratedDesc') }); }
-    } catch { toast({ title: s('aiShared.error'), variant: 'destructive' }); }
+    } catch (err) { const { userMessage } = parseAiError(err); toast({ title: userMessage, variant: 'destructive' }); }
     finally { setIsGeneratingLyrics(false); }
   };
 
@@ -245,14 +246,14 @@ export default function AIStudioVocal() {
       const data = await res.json();
       if (!res.ok) {
         if (data.error === 'insufficient_credits') toast({ title: tv('insufficientCredits'), description: tv('insufficientCreditsDesc'), variant: 'destructive' });
-        else toast({ title: s('aiShared.error'), description: data.error, variant: 'destructive' });
+        else { const { userMessage } = parseAiError({ status: res.status }, data); toast({ title: s('aiShared.error'), description: userMessage, variant: 'destructive' }); }
         return;
       }
       setAudioUrl(data.audioUrl);
       setHistory(prev => [{ id: data.generationId, audio_url: data.audioUrl, prompt: `Pista vocal: ${selectedClone.name}`, created_at: new Date().toISOString() }, ...prev]);
       toast({ title: tv('vocalGenerated'), description: tv('vocalGeneratedDesc') });
       track('vocal_track_generated', { feature: 'vocal' });
-    } catch { toast({ title: s('aiShared.error'), variant: 'destructive' }); }
+    } catch (err) { const { userMessage } = parseAiError(err); toast({ title: s('aiShared.error'), description: userMessage, variant: 'destructive' }); }
     finally { setIsGenerating(false); }
   };
 

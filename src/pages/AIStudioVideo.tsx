@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useFFmpegMerge } from "@/hooks/useFFmpegMerge";
 import { supabase } from "@/integrations/supabase/client";
+import { parseAiError } from "@/lib/aiErrorHandler";
 import {
   ArrowLeft, Video, Music, Sparkles, Play, Pause,
   Image, Film, Layers, Wand2, Clock, Ratio, Upload,
@@ -293,7 +294,8 @@ const AIStudioVideo = () => {
       toast({ title: t('aiVideo.audioMerged'), description: t('aiVideo.audioMergedDesc') });
     } catch (err: any) {
       console.error('Merge error:', err);
-      toast({ title: t('aiShared.error'), description: err.message, variant: "destructive" });
+      const { userMessage } = parseAiError(err);
+      toast({ title: t('aiShared.error'), description: userMessage, variant: "destructive" });
     } finally {
       setIsMerging(false);
     }
@@ -487,7 +489,8 @@ const AIStudioVideo = () => {
       toast({ title: t('aiVideo.genStarted'), description: t('aiVideo.genStartedDesc') });
     } catch (err: any) {
       console.error('Generate error:', err);
-      setError(err.message || t('aiVideo.genFailed'));
+      const { userMessage } = parseAiError(err);
+      setError(userMessage);
     } finally {
       setIsGenerating(false);
     }
