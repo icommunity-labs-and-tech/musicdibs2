@@ -18,6 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { parseAiError } from "@/lib/aiErrorHandler";
 import { cn } from "@/lib/utils";
 import { 
   ArrowLeft, Wand2, Loader2, Play, Pause, Download, 
@@ -384,11 +385,12 @@ const AIStudioCreate = () => {
       }
     } catch (error: any) {
       console.error('Generation error:', error);
+      const { userMessage, isRetryable } = parseAiError(error);
       setGenerationError({
-        message: error.message || "No se pudo generar la música",
-        details: error.details || "Intenta ajustar tu descripción o la duración."
+        message: userMessage,
+        details: isRetryable ? "Intenta ajustar tu descripción o vuelve a intentarlo en unos minutos." : undefined,
       });
-      track('generation_failed', { feature: 'create_music', metadata: { error: error.message } });
+      track('generation_failed', { feature: 'create_music', metadata: { error: (error as any)?.message } });
     } finally {
       setIsGenerating(false);
     }
@@ -626,7 +628,8 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.promptImproved'), description: t('aiCreate.promptImprovedDesc') });
       }
     } catch (e: any) {
-      toast({ title: "Error al mejorar", description: e.message, variant: "destructive" });
+      const { userMessage } = parseAiError(e);
+      toast({ title: "Error al mejorar", description: userMessage, variant: "destructive" });
     } finally {
       setIsImprovingPrompt(false);
     }
