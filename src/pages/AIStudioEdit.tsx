@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useProductTracking } from "@/hooks/useProductTracking";
 import { supabase } from "@/integrations/supabase/client";
+import { parseAiError } from "@/lib/aiErrorHandler";
 import {
   ArrowLeft, Loader2, Play, Pause, Download,
   Music, Sparkles, CheckCircle2, AlertTriangle,
@@ -225,7 +226,8 @@ const AIStudioEdit = () => {
     } catch (err: any) {
       stopProgress();
       setIsProcessing(false);
-      setProcessError(err.message || tr('errorGeneric'));
+      const { userMessage } = parseAiError(err);
+      setProcessError(userMessage);
     }
   };
 

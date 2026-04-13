@@ -16,6 +16,7 @@ import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert"
 import { FEATURE_COSTS } from "@/lib/featureCosts"
 import { PricingLink } from "@/components/dashboard/PricingPopup"
 import { supabase } from "@/integrations/supabase/client"
+import { parseAiError } from "@/lib/aiErrorHandler"
 import { toast } from "sonner"
 import { useProductTracking } from "@/hooks/useProductTracking"
 import {
@@ -124,8 +125,9 @@ const AIStudioCovers = () => {
       toast.success(t('aiCovers.coverGenerated'))
       track('cover_generated', { feature: 'cover' })
     } catch (err: any) {
-      setGenError(err.message || t('aiShared.error'))
-      toast.error(err.message || t('aiShared.error'))
+      const { userMessage } = parseAiError(err)
+      setGenError(userMessage)
+      toast.error(userMessage)
     }
 
     setIsGenerating(false)
