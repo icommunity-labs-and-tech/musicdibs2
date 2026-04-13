@@ -484,7 +484,7 @@ const AIStudioCreate = () => {
     try {
       // Check limit of 10
       if (virtualArtistsCount >= 10) {
-        toast({ title: 'Límite alcanzado', description: 'Máximo 10 artistas virtuales. Elimina uno para crear otro.', variant: 'destructive' });
+        toast({ title: t('aiCreate.saveArtistLimit'), variant: 'destructive' });
         return;
       }
       const { data: newArtist, error } = await supabase
@@ -508,7 +508,7 @@ const AIStudioCreate = () => {
       if (saveArtistGenerationId) {
         setSavedArtistGenIds(prev => new Set(prev).add(saveArtistGenerationId));
       }
-      toast({ title: `Artista "${saveArtistName.trim()}" guardado ✅` });
+      toast({ title: t('aiCreate.saveArtistSuccess', { name: saveArtistName.trim() }) });
       setShowSaveArtistForm(false);
       setSaveArtistName('');
       setSaveArtistStyle('');
@@ -1605,7 +1605,7 @@ const AIStudioCreate = () => {
                                       )}
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>{savedArtistGenIds.has(result.id) ? 'Ya guardado como Artista Virtual' : 'Guardar como Artista Virtual'}</p>
+                                      <p>{savedArtistGenIds.has(result.id) ? t('aiCreate.saveArtistAlready') : t('aiCreate.saveArtistTooltip')}</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
@@ -1659,36 +1659,36 @@ const AIStudioCreate = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              Guardar como Artista Virtual
+              {t('aiCreate.saveArtistTitle')}
             </DialogTitle>
             <DialogDescription>
-              Guarda esta configuración de voz y estilo para crear más canciones similares automáticamente.
+              {t('aiCreate.saveArtistDesc')}
               {lastGeneratedVoiceName && (
                 <span className="block mt-2 text-foreground font-medium">
-                  🎤 Voz: {lastGeneratedVoiceName}
+                  {t('aiCreate.saveArtistVoice')} {lastGeneratedVoiceName}
                 </span>
               )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="save-artist-name">Nombre del artista virtual *</Label>
+              <Label htmlFor="save-artist-name">{t('aiCreate.saveArtistNameLabel')}</Label>
               <Input
                 id="save-artist-name"
-                placeholder="Ej: Mi voz trap, Estilo romántico, Voz energética..."
+                placeholder={t('aiCreate.saveArtistNamePlaceholder')}
                 value={saveArtistName}
                 onChange={(e) => setSaveArtistName(e.target.value)}
                 maxLength={50}
               />
               {saveArtistName.trim().length > 0 && saveArtistName.trim().length < 3 && (
-                <p className="text-xs text-destructive">Mínimo 3 caracteres</p>
+                <p className="text-xs text-destructive">{t('aiCreate.saveArtistNameMin')}</p>
               )}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="save-artist-style">Estilo (opcional)</Label>
+              <Label htmlFor="save-artist-style">{t('aiCreate.saveArtistStyleLabel')}</Label>
               <Input
                 id="save-artist-style"
-                placeholder="Ej: Pop romántico, Trap agresivo..."
+                placeholder={t('aiCreate.saveArtistStylePlaceholder')}
                 value={saveArtistStyle}
                 onChange={(e) => setSaveArtistStyle(e.target.value)}
                 maxLength={100}
@@ -1697,13 +1697,13 @@ const AIStudioCreate = () => {
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setShowSaveArtistForm(false)} disabled={isSavingArtist}>
-              Cancelar
+              {t('aiCreate.saveArtistCancel')}
             </Button>
             <Button onClick={handleSaveVirtualArtist} disabled={!saveArtistName.trim() || saveArtistName.trim().length < 3 || isSavingArtist} className="gap-2">
               {isSavingArtist ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Guardando...</>
+                <><Loader2 className="h-4 w-4 animate-spin" /> {t('aiCreate.saveArtistSaving')}</>
               ) : (
-                <><Save className="h-4 w-4" /> Guardar artista virtual</>
+                <><Save className="h-4 w-4" /> {t('aiCreate.saveArtistBtn')}</>
               )}
             </Button>
           </DialogFooter>
