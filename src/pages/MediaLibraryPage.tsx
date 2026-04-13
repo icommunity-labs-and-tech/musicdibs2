@@ -348,6 +348,24 @@ export default function MediaLibraryPage() {
     setPlayingId(asset.id);
   };
 
+  // ── Rename ──
+  const startEditing = (asset: MediaAsset) => {
+    setEditingId(asset.id);
+    setEditValue(customNames[asset.id] || asset.title);
+    setTimeout(() => editInputRef.current?.select(), 50);
+  };
+
+  const confirmRename = (id: string) => {
+    const trimmed = editValue.trim();
+    if (trimmed) {
+      const updated = { ...customNames, [id]: trimmed };
+      setCustomNames(updated);
+      localStorage.setItem("media_library_names", JSON.stringify(updated));
+      toast({ title: "Nombre actualizado" });
+    }
+    setEditingId(null);
+  };
+
   // ── Icon for type ──
   const typeIcon = (type: MediaAsset["type"]) => {
     switch (type) {
@@ -357,6 +375,8 @@ export default function MediaLibraryPage() {
       case "vocal": return <Mic className="h-4 w-4" />;
     }
   };
+
+  const getDisplayName = (asset: MediaAsset) => customNames[asset.id] || asset.title;
 
   const typeBadgeColor = (type: MediaAsset["type"]) => {
     switch (type) {
