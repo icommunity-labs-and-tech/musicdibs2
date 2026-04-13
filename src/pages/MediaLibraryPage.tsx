@@ -574,7 +574,7 @@ export default function MediaLibraryPage() {
                                 autoFocus
                               />
                               <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => confirmRename(asset.id)}>
-                                <Check className="h-3.5 w-3.5 text-green-500" />
+                                <Check className="h-3.5 w-3.5 text-primary" />
                               </Button>
                               <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditingId(null)}>
                                 <X className="h-3.5 w-3.5" />
