@@ -234,7 +234,8 @@ export default function MediaLibraryPage() {
       const resp = await fetch(asset.url);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
-      const filename = `${asset.title.substring(0, 50).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${ext}`;
+      const displayName = customNames[asset.id] || asset.title;
+      const filename = `${displayName.substring(0, 50).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${ext}`;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = filename;
