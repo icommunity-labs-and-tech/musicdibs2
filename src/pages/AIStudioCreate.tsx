@@ -530,10 +530,14 @@ const AIStudioCreate = () => {
 
   // ── Open save-as-artist modal from library ──
   const openSaveArtistFromLibrary = (generationId: string) => {
+    // Try in-memory map first, then fall back to DB-persisted data on the result
     const voiceInfo = generationVoiceMapRef.current.get(generationId);
-    if (!voiceInfo) return;
-    setLastGeneratedVoiceId(voiceInfo.voiceId);
-    setLastGeneratedVoiceName(voiceInfo.voiceName);
+    const result = results.find(r => r.id === generationId);
+    const voiceId = voiceInfo?.voiceId || result?.voiceId;
+    const voiceName = voiceInfo?.voiceName || result?.voiceName || '';
+    if (!voiceId) return;
+    setLastGeneratedVoiceId(voiceId);
+    setLastGeneratedVoiceName(voiceName);
     setSaveArtistGenerationId(generationId);
     setSaveArtistName('');
     setSaveArtistStyle('');
