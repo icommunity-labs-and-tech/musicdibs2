@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download, Music, Video, Image, Mic, Loader2, Search,
   CheckSquare, Square, Package, Play, Pause, Trash2, X,
-  FileAudio, Film, ImageIcon, FolderOpen, Lock
+  FileAudio, Film, ImageIcon, FolderOpen, Lock, Pencil, Check
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLibraryAccess, registerFreeDownload } from "@/hooks/useLibraryAccess";
@@ -53,7 +53,15 @@ export default function MediaLibraryPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabType>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [customNames, setCustomNames] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("media_library_names") || "{}");
+    } catch { return {}; }
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const editInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── Fetch all assets ──
   useEffect(() => {
@@ -188,9 +196,12 @@ export default function MediaLibraryPage() {
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
-        (a) =>
-          a.title.toLowerCase().includes(q) ||
-          Object.values(a.meta || {}).some((v) => v.toLowerCase().includes(q))
+        (a) => {
+          const displayName = customNames[a.id] || a.title;
+          return displayName.toLowerCase().includes(q) ||
+            a.title.toLowerCase().includes(q) ||
+            Object.values(a.meta || {}).some((v) => v.toLowerCase().includes(q));
+        }
       );
     }
     return list;
@@ -226,7 +237,8 @@ export default function MediaLibraryPage() {
       const resp = await fetch(asset.url);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
-      const filename = `${asset.title.substring(0, 50).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${ext}`;
+      const displayName = customNames[asset.id] || asset.title;
+      const filename = `${displayName.substring(0, 50).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${ext}`;
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = filename;
@@ -258,7 +270,8 @@ export default function MediaLibraryPage() {
           try {
             const resp = await fetch(asset.url!);
             const blob = await resp.blob();
-            const name = `${(i + 1).toString().padStart(2, "0")}_${asset.title.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
+            const dName = customNames[asset.id] || asset.title;
+            const name = `${(i + 1).toString().padStart(2, "0")}_${dName.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
             folders[asset.type].file(name, blob);
           } catch { /* skip failed */ }
         })
@@ -340,6 +353,24 @@ export default function MediaLibraryPage() {
     setPlayingId(asset.id);
   };
 
+  // ── Rename ──
+  const startEditing = (asset: MediaAsset) => {
+    setEditingId(asset.id);
+    setEditValue(customNames[asset.id] || asset.title);
+    setTimeout(() => editInputRef.current?.select(), 50);
+  };
+
+  const confirmRename = (id: string) => {
+    const trimmed = editValue.trim();
+    if (trimmed) {
+      const updated = { ...customNames, [id]: trimmed };
+      setCustomNames(updated);
+      localStorage.setItem("media_library_names", JSON.stringify(updated));
+      toast({ title: "Nombre actualizado" });
+    }
+    setEditingId(null);
+  };
+
   // ── Icon for type ──
   const typeIcon = (type: MediaAsset["type"]) => {
     switch (type) {
@@ -349,6 +380,8 @@ export default function MediaLibraryPage() {
       case "vocal": return <Mic className="h-4 w-4" />;
     }
   };
+
+  const getDisplayName = (asset: MediaAsset) => customNames[asset.id] || asset.title;
 
   const typeBadgeColor = (type: MediaAsset["type"]) => {
     switch (type) {
@@ -530,7 +563,35 @@ export default function MediaLibraryPage() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{asset.title}</p>
+                          {editingId === asset.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                ref={editInputRef}
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") confirmRename(asset.id);
+                                  if (e.key === "Escape") setEditingId(null);
+                                }}
+                                className="h-6 text-sm py-0 px-1"
+                                autoFocus
+                              />
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => confirmRename(asset.id)}>
+                                <Check className="h-3.5 w-3.5 text-primary" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditingId(null)}>
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <p
+                              className="text-sm font-medium truncate cursor-pointer hover:text-primary transition-colors"
+                              onDoubleClick={() => startEditing(asset)}
+                              title="Doble clic para renombrar"
+                            >
+                              {getDisplayName(asset)}
+                            </p>
+                          )}
                           <div className="flex items-center gap-2 mt-1">
                             <Badge
                               variant="outline"
@@ -582,6 +643,15 @@ export default function MediaLibraryPage() {
                             Ver
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => startEditing(asset)}
+                          title="Renombrar"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
                         <div className="flex-1" />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
@@ -602,7 +672,7 @@ export default function MediaLibraryPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>¿Eliminar este asset?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                "{asset.title.substring(0, 60)}" se eliminará permanentemente.
+                                "{getDisplayName(asset).substring(0, 60)}" se eliminará permanentemente.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
