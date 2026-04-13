@@ -638,7 +638,15 @@ export default function MediaLibraryPage() {
                             Ver
                           </Button>
                         )}
-                        <div className="flex-1" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => startEditing(asset)}
+                          title="Renombrar"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
