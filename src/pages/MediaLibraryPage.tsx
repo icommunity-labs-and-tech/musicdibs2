@@ -647,6 +647,7 @@ export default function MediaLibraryPage() {
                         >
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
+                        <div className="flex-1" />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button
