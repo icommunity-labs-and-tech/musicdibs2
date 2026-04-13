@@ -395,6 +395,14 @@ const AIStudioCreate = () => {
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
 
+        // Show onboarding tip for first vocal generation
+        if (mode === 'song') {
+          const hasSeenTip = localStorage.getItem('virtual_artist_tip_shown');
+          if (!hasSeenTip && virtualArtistsCount === 0) {
+            setTimeout(() => setShowVirtualArtistTip(true), 800);
+          }
+        }
+
         if (voiceIdToSave) {
           generationVoiceMapRef.current.set(savedGen.id, {
             voiceId: voiceIdToSave,
