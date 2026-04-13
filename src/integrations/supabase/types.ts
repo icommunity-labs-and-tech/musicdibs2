@@ -55,6 +55,8 @@ export type Database = {
           mood: string | null
           prompt: string
           user_id: string
+          voice_id: string | null
+          voice_name: string | null
         }
         Insert: {
           audio_url: string
@@ -66,6 +68,8 @@ export type Database = {
           mood?: string | null
           prompt: string
           user_id: string
+          voice_id?: string | null
+          voice_name?: string | null
         }
         Update: {
           audio_url?: string
@@ -77,6 +81,8 @@ export type Database = {
           mood?: string | null
           prompt?: string
           user_id?: string
+          voice_id?: string | null
+          voice_name?: string | null
         }
         Relationships: []
       }

@@ -274,6 +274,8 @@ const AIStudioCreate = () => {
         mood: item.mood || undefined,
         createdAt: new Date(item.created_at),
         isFavorite: item.is_favorite || false,
+        voiceId: (item as any).voice_id || undefined,
+        voiceName: (item as any).voice_name || undefined,
       })));
     } catch (error) {
       console.error('Error loading history:', error);
@@ -347,6 +349,9 @@ const AIStudioCreate = () => {
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
 
+        const voiceIdToSave = (mode === 'song' && selectedVoice && !selectedArtistId) ? selectedVoice : null;
+        const voiceNameToSave = voiceIdToSave ? (voiceProfiles.find(v => v.id === selectedVoice)?.label || '') : null;
+
         const { data: savedGen, error: saveError } = await supabase
           .from('ai_generations')
           .insert({
@@ -354,7 +359,8 @@ const AIStudioCreate = () => {
             prompt: prompt.trim(),
             duration: data.duration,
             audio_url: audioUrl,
-          })
+            ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
+          } as any)
           .select()
           .single();
 
@@ -366,7 +372,9 @@ const AIStudioCreate = () => {
           prompt: prompt.trim(),
           duration: data.duration,
           createdAt: new Date(savedGen.created_at),
-          isFavorite: false
+          isFavorite: false,
+          voiceId: voiceIdToSave || undefined,
+          voiceName: voiceNameToSave || undefined,
         };
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
@@ -522,10 +530,14 @@ const AIStudioCreate = () => {
 
   // ── Open save-as-artist modal from library ──
   const openSaveArtistFromLibrary = (generationId: string) => {
+    // Try in-memory map first, then fall back to DB-persisted data on the result
     const voiceInfo = generationVoiceMapRef.current.get(generationId);
-    if (!voiceInfo) return;
-    setLastGeneratedVoiceId(voiceInfo.voiceId);
-    setLastGeneratedVoiceName(voiceInfo.voiceName);
+    const result = results.find(r => r.id === generationId);
+    const voiceId = voiceInfo?.voiceId || result?.voiceId;
+    const voiceName = voiceInfo?.voiceName || result?.voiceName || '';
+    if (!voiceId) return;
+    setLastGeneratedVoiceId(voiceId);
+    setLastGeneratedVoiceName(voiceName);
     setSaveArtistGenerationId(generationId);
     setSaveArtistName('');
     setSaveArtistStyle('');
@@ -1590,8 +1602,8 @@ const AIStudioCreate = () => {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
-                                {/* Save as Virtual Artist button — only if this generation has a tracked voice */}
-                                {generationVoiceMapRef.current.has(result.id) && (
+                                {/* Save as Virtual Artist button — show if generation has voice */}
+                                {(result.voiceId || generationVoiceMapRef.current.has(result.id)) && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       {savedArtistGenIds.has(result.id) ? (
