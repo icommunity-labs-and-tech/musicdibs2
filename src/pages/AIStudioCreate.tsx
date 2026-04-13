@@ -45,6 +45,7 @@ import { useProductTracking } from "@/hooks/useProductTracking";
 
 // ── Music tab constants ──
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
+const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|karaoke|sin voz|sin voces|base instrumental)\b/i;
 
 // ── Lyrics tab constants ──
 const LYRIC_STYLES = ["Narrativa", "Abstracta", "Descriptiva", "Reivindicativa", "Introspectiva", "Poética"];
@@ -179,7 +180,7 @@ const AIStudioCreate = () => {
   const [lastGeneratedVoiceName, setLastGeneratedVoiceName] = useState<string>('');
   const [saveArtistGenerationId, setSaveArtistGenerationId] = useState<string>('');
 
-  // Track which voice was used per generation (voice_id not stored in DB)
+  // Track voice used per generation, especially for historical rows without persisted metadata
   const generationVoiceMapRef = useRef<Map<string, { voiceId: string; voiceName: string }>>(new Map());
   // Track which generations already saved as virtual artist
   const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
@@ -191,6 +192,10 @@ const AIStudioCreate = () => {
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
   const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
+  const canSaveAsVirtualArtist = (result: GenerationResult) => {
+    if (result.voiceId || generationVoiceMapRef.current.has(result.id)) return true;
+    return !INSTRUMENTAL_PROMPT_REGEX.test(result.prompt);
+  };
 
   const availableGenres = useMemo(() => {
     const genres = new Set<string>();
@@ -349,8 +354,14 @@ const AIStudioCreate = () => {
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
 
-        const voiceIdToSave = (mode === 'song' && selectedVoice && !selectedArtistId) ? selectedVoice : null;
-        const voiceNameToSave = voiceIdToSave ? (voiceProfiles.find(v => v.id === selectedVoice)?.label || '') : null;
+        const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
+        const artistVoiceId = selectedArtistId
+          ? (virtualArtists.find(artist => artist.id === selectedArtistId)?.voice_profile_id || null)
+          : null;
+        const voiceIdToSave = mode === 'song' ? (artistVoiceId || selectedVoice || null) : null;
+        const voiceNameToSave = voiceIdToSave
+          ? (selectedVoiceProfile?.label || virtualArtists.find(artist => artist.id === selectedArtistId)?.voice_profiles?.label || '')
+          : null;
 
         const { data: savedGen, error: saveError } = await supabase
           .from('ai_generations')
@@ -360,7 +371,7 @@ const AIStudioCreate = () => {
             duration: data.duration,
             audio_url: audioUrl,
             ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
-          } as any)
+          })
           .select()
           .single();
 
@@ -382,12 +393,10 @@ const AIStudioCreate = () => {
         track('generation_completed', { feature: 'create_music' });
         sessionStorage.setItem('md_last_generation', Date.now().toString());
 
-        // Track voice used for this generation (for save-as-artist button)
-        if (selectedVoice && !selectedArtistId) {
-          const vp = voiceProfiles.find(v => v.id === selectedVoice);
+        if (voiceIdToSave) {
           generationVoiceMapRef.current.set(savedGen.id, {
-            voiceId: selectedVoice,
-            voiceName: vp?.label || '',
+            voiceId: voiceIdToSave,
+            voiceName: voiceNameToSave || '',
           });
         }
       }
@@ -487,7 +496,9 @@ const AIStudioCreate = () => {
 
   // ── Save as Virtual Artist ──
   const handleSaveVirtualArtist = async () => {
-    if (!saveArtistName.trim() || !lastGeneratedVoiceId || !user) return;
+    if (!saveArtistName.trim() || !user) return;
+    const voiceIdToPersist = lastGeneratedVoiceId || voiceProfiles[0]?.id || '';
+    if (!voiceIdToPersist) return;
     setIsSavingArtist(true);
     try {
       // Check limit of 10
@@ -500,7 +511,7 @@ const AIStudioCreate = () => {
         .insert({
           user_id: user.id,
           name: saveArtistName.trim(),
-          voice_profile_id: lastGeneratedVoiceId,
+          voice_profile_id: voiceIdToPersist,
           voice_type: 'preset',
           genre: null,
           mood: null,
@@ -530,17 +541,17 @@ const AIStudioCreate = () => {
 
   // ── Open save-as-artist modal from library ──
   const openSaveArtistFromLibrary = (generationId: string) => {
-    // Try in-memory map first, then fall back to DB-persisted data on the result
     const voiceInfo = generationVoiceMapRef.current.get(generationId);
     const result = results.find(r => r.id === generationId);
-    const voiceId = voiceInfo?.voiceId || result?.voiceId;
-    const voiceName = voiceInfo?.voiceName || result?.voiceName || '';
-    if (!voiceId) return;
+    const fallbackVoice = voiceProfiles[0];
+    const voiceId = voiceInfo?.voiceId || result?.voiceId || fallbackVoice?.id || '';
+    const voiceName = voiceInfo?.voiceName || result?.voiceName || fallbackVoice?.label || '';
+
     setLastGeneratedVoiceId(voiceId);
     setLastGeneratedVoiceName(voiceName);
     setSaveArtistGenerationId(generationId);
     setSaveArtistName('');
-    setSaveArtistStyle('');
+    setSaveArtistStyle(result?.prompt || '');
     setShowSaveArtistForm(true);
   };
 
@@ -1602,8 +1613,8 @@ const AIStudioCreate = () => {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
-                                {/* Save as Virtual Artist button — show if generation has voice */}
-                                {(result.voiceId || generationVoiceMapRef.current.has(result.id)) && (
+                                {/* Save as Virtual Artist button */}
+                                {canSaveAsVirtualArtist(result) && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       {savedArtistGenIds.has(result.id) ? (
@@ -1675,14 +1686,31 @@ const AIStudioCreate = () => {
             </DialogTitle>
             <DialogDescription>
               {t('aiCreate.saveArtistDesc')}
-              {lastGeneratedVoiceName && (
-                <span className="block mt-2 text-foreground font-medium">
-                  {t('aiCreate.saveArtistVoice')} {lastGeneratedVoiceName}
-                </span>
-              )}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="save-artist-voice">{t('aiCreate.saveArtistVoice')}</Label>
+              <Select value={lastGeneratedVoiceId || voiceProfiles[0]?.id || ''} onValueChange={(value) => {
+                setLastGeneratedVoiceId(value);
+                const profile = voiceProfiles.find(v => v.id === value);
+                setLastGeneratedVoiceName(profile?.label || '');
+              }}>
+                <SelectTrigger id="save-artist-voice">
+                  <SelectValue placeholder={t('aiCreate.saveArtistVoiceOptional')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {voiceProfiles.map((voice) => (
+                    <SelectItem key={voice.id} value={voice.id}>{voice.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {lastGeneratedVoiceName && (
+              <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                {t('aiCreate.saveArtistVoice')} {lastGeneratedVoiceName}
+              </div>
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="save-artist-name">{t('aiCreate.saveArtistNameLabel')}</Label>
               <Input
