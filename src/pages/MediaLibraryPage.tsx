@@ -53,7 +53,15 @@ export default function MediaLibraryPage() {
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<TabType>("all");
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [customNames, setCustomNames] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("media_library_names") || "{}");
+    } catch { return {}; }
+  });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const editInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── Fetch all assets ──
   useEffect(() => {
