@@ -196,9 +196,12 @@ export default function MediaLibraryPage() {
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
-        (a) =>
-          a.title.toLowerCase().includes(q) ||
-          Object.values(a.meta || {}).some((v) => v.toLowerCase().includes(q))
+        (a) => {
+          const displayName = customNames[a.id] || a.title;
+          return displayName.toLowerCase().includes(q) ||
+            a.title.toLowerCase().includes(q) ||
+            Object.values(a.meta || {}).some((v) => v.toLowerCase().includes(q));
+        }
       );
     }
     return list;
