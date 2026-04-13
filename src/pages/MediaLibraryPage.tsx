@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Download, Music, Video, Image, Mic, Loader2, Search,
   CheckSquare, Square, Package, Play, Pause, Trash2, X,
-  FileAudio, Film, ImageIcon, FolderOpen, Lock
+  FileAudio, Film, ImageIcon, FolderOpen, Lock, Pencil, Check
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useLibraryAccess, registerFreeDownload } from "@/hooks/useLibraryAccess";
