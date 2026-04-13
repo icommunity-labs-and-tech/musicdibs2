@@ -185,6 +185,8 @@ const AIStudioCreate = () => {
   // Track which generations already saved as virtual artist
   const [savedArtistGenIds, setSavedArtistGenIds] = useState<Set<string>>(new Set());
 
+  // ── Virtual Artist onboarding tip state ──
+  const [showVirtualArtistTip, setShowVirtualArtistTip] = useState(false);
 
   // ── Derived values ──
   const selectedGenre: string | null = null;
