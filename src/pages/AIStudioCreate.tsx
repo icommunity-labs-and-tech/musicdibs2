@@ -372,7 +372,9 @@ const AIStudioCreate = () => {
           prompt: prompt.trim(),
           duration: data.duration,
           createdAt: new Date(savedGen.created_at),
-          isFavorite: false
+          isFavorite: false,
+          voiceId: voiceIdToSave || undefined,
+          voiceName: voiceNameToSave || undefined,
         };
         setResults(prev => [newResult, ...prev]);
         setLastResult(newResult);
@@ -1596,8 +1598,8 @@ const AIStudioCreate = () => {
                                   </TooltipTrigger>
                                   <TooltipContent><p>{result.isFavorite ? t('aiCreate.removeFav') : t('aiCreate.addFav')}</p></TooltipContent>
                                 </Tooltip>
-                                {/* Save as Virtual Artist button — only if this generation has a tracked voice */}
-                                {generationVoiceMapRef.current.has(result.id) && (
+                                {/* Save as Virtual Artist button — show if generation has voice */}
+                                {(result.voiceId || generationVoiceMapRef.current.has(result.id)) && (
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       {savedArtistGenIds.has(result.id) ? (
