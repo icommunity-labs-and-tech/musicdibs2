@@ -558,7 +558,35 @@ export default function MediaLibraryPage() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{asset.title}</p>
+                          {editingId === asset.id ? (
+                            <div className="flex items-center gap-1">
+                              <Input
+                                ref={editInputRef}
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") confirmRename(asset.id);
+                                  if (e.key === "Escape") setEditingId(null);
+                                }}
+                                className="h-6 text-sm py-0 px-1"
+                                autoFocus
+                              />
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => confirmRename(asset.id)}>
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setEditingId(null)}>
+                                <X className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <p
+                              className="text-sm font-medium truncate cursor-pointer hover:text-primary transition-colors"
+                              onDoubleClick={() => startEditing(asset)}
+                              title="Doble clic para renombrar"
+                            >
+                              {getDisplayName(asset)}
+                            </p>
+                          )}
                           <div className="flex items-center gap-2 mt-1">
                             <Badge
                               variant="outline"
