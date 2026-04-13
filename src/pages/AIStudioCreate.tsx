@@ -274,6 +274,8 @@ const AIStudioCreate = () => {
         mood: item.mood || undefined,
         createdAt: new Date(item.created_at),
         isFavorite: item.is_favorite || false,
+        voiceId: (item as any).voice_id || undefined,
+        voiceName: (item as any).voice_name || undefined,
       })));
     } catch (error) {
       console.error('Error loading history:', error);
@@ -347,6 +349,9 @@ const AIStudioCreate = () => {
       if (data?.audio) {
         const audioUrl = `data:${data.format};base64,${data.audio}`;
 
+        const voiceIdToSave = (mode === 'song' && selectedVoice && !selectedArtistId) ? selectedVoice : null;
+        const voiceNameToSave = voiceIdToSave ? (voiceProfiles.find(v => v.id === selectedVoice)?.label || '') : null;
+
         const { data: savedGen, error: saveError } = await supabase
           .from('ai_generations')
           .insert({
@@ -354,7 +359,8 @@ const AIStudioCreate = () => {
             prompt: prompt.trim(),
             duration: data.duration,
             audio_url: audioUrl,
-          })
+            ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
+          } as any)
           .select()
           .single();
 
