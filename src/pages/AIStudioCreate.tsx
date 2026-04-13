@@ -388,7 +388,7 @@ const AIStudioCreate = () => {
       const { userMessage, isRetryable } = parseAiError(error);
       setGenerationError({
         message: userMessage,
-        details: isRetryable ? "Intenta ajustar tu descripción o vuelve a intentarlo en unos minutos." : undefined,
+        details: isRetryable ? t('aiShared.aiRetryHint') : undefined,
       });
       track('generation_failed', { feature: 'create_music', metadata: { error: (error as any)?.message } });
     } finally {
