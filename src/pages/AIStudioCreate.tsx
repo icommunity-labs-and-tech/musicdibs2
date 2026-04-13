@@ -45,7 +45,7 @@ import { useProductTracking } from "@/hooks/useProductTracking";
 
 // ── Music tab constants ──
 const DURATION_OPTIONS = [30, 60, 90, 120] as const;
-const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|base|beat|karaoke|sin voz|sin voces)\b/i;
+const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|karaoke|sin voz|sin voces|base instrumental)\b/i;
 
 // ── Lyrics tab constants ──
 const LYRIC_STYLES = ["Narrativa", "Abstracta", "Descriptiva", "Reivindicativa", "Introspectiva", "Poética"];
