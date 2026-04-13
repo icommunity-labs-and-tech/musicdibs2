@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { parseAiError } from '@/lib/aiErrorHandler';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { WORK_TYPES, type WizardData } from './types';
@@ -53,8 +54,9 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
       } else {
         toast.error(t('wizard.stepTitle.descError'));
       }
-    } catch {
-      toast.error(t('wizard.stepTitle.descErrorGeneric'));
+    } catch (err) {
+      const { userMessage } = parseAiError(err);
+      toast.error(userMessage);
     }
     setGeneratingDesc(false);
   };
