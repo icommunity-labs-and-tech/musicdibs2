@@ -267,7 +267,8 @@ export default function MediaLibraryPage() {
           try {
             const resp = await fetch(asset.url!);
             const blob = await resp.blob();
-            const name = `${(i + 1).toString().padStart(2, "0")}_${asset.title.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
+            const dName = customNames[asset.id] || asset.title;
+            const name = `${(i + 1).toString().padStart(2, "0")}_${dName.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
             folders[asset.type].file(name, blob);
           } catch { /* skip failed */ }
         })
