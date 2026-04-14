@@ -383,10 +383,12 @@ const ArtistProfilesPage = () => {
               </div>
               <Textarea
                 value={formNotes}
-                onChange={e => setFormNotes(e.target.value)}
+                onChange={e => setFormNotes(e.target.value.slice(0, 2000))}
                 placeholder="Describe el estilo del artista: temática, idioma habitual, referencias..."
                 rows={3} className="resize-none"
+                maxLength={2000}
               />
+              <p className="text-xs text-muted-foreground text-right">{formNotes.length}/2000</p>
             </div>
 
             {/* Default checkbox */}
