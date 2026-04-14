@@ -188,6 +188,11 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
         </div>
       )}
 
+      <div className="flex items-center gap-2">
+        <AssetPicker onSelect={handleAssetSelect} disabled={data.files.length >= MAX_FILES} />
+        <span className="text-xs text-muted-foreground">o elige un audio de tu biblioteca</span>
+      </div>
+
       {errors.length > 0 && (
         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
