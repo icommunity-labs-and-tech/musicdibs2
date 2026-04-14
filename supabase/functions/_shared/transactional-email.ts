@@ -443,7 +443,108 @@ export function premiumPromoRejectedEmail(data: { name: string; artistName: stri
   return { subject: i.subject, html: wrap("❌", i.title, body, lang), text: `${greeting} ${data.name}, ${i.greeting}` };
 }
 
-// ─── 10. Metric Alert Notification (Admin) ───────────────────────────────────
+// ─── 10. Distribution Welcome Email (Annual subscribers) ────────────────────
+
+const t10: Record<Lang, { title: string; greeting: string; intro: string; included: string; onboarding: string; password: string; access: string; accessLabel: string; userLabel: string; userNote: string; questions: string; thanks: string; team: string; subject: string; text: (name: string) => string }> = {
+  es: {
+    title: "Distribución incluida en tu plan 🎶",
+    greeting: "¡Enhorabuena por activar tu suscripción anual! 🎉",
+    intro: "Con tu plan anual tienes acceso <strong style=\"color:#a855f7;\">gratuito</strong> al servicio de distribución de MusicDibs. Podrás llevar tu música a Spotify, Apple Music, Amazon Music, YouTube Music y muchas más plataformas.",
+    included: "Incluido con tu suscripción anual",
+    onboarding: "Plazo de alta",
+    password: "Acceso al servicio",
+    access: "https://dist.musicdibs.com/",
+    accessLabel: "Plataforma de distribución",
+    userLabel: "Tu usuario",
+    userNote: "Tu mismo email de MusicDibs (contraseña diferente)",
+    questions: "Si tienes alguna pregunta mientras tanto, no dudes en escribirnos a <a href=\"mailto:info@musicdibs.com\" style=\"color:#a855f7;text-decoration:none;\">info@musicdibs.com</a>.",
+    thanks: "¡Gracias por confiar en MusicDibs!",
+    team: "— El equipo de MusicDibs",
+    subject: "🎶 Distribución incluida en tu plan anual — MusicDibs",
+    text: (name) => `Hola ${name}, con tu suscripción anual tienes acceso gratuito a distribución. En 48-72h laborales recibirás un correo para generar tu contraseña de acceso a dist.musicdibs.com.`,
+  },
+  en: {
+    title: "Distribution included in your plan 🎶",
+    greeting: "Congratulations on activating your annual subscription! 🎉",
+    intro: "Your annual plan includes <strong style=\"color:#a855f7;\">free</strong> access to MusicDibs distribution service. You'll be able to get your music on Spotify, Apple Music, Amazon Music, YouTube Music and many more platforms.",
+    included: "Included with your annual subscription",
+    onboarding: "Setup time",
+    password: "Service access",
+    access: "https://dist.musicdibs.com/",
+    accessLabel: "Distribution platform",
+    userLabel: "Your username",
+    userNote: "Same email as MusicDibs (different password)",
+    questions: "If you have any questions in the meantime, feel free to reach out at <a href=\"mailto:info@musicdibs.com\" style=\"color:#a855f7;text-decoration:none;\">info@musicdibs.com</a>.",
+    thanks: "Thank you for trusting MusicDibs!",
+    team: "— The MusicDibs Team",
+    subject: "🎶 Distribution included in your annual plan — MusicDibs",
+    text: (name) => `Hi ${name}, your annual subscription includes free distribution access. Within 48-72 business hours you'll receive an email to create your password for dist.musicdibs.com.`,
+  },
+  pt: {
+    title: "Distribuição incluída no seu plano 🎶",
+    greeting: "Parabéns por ativar sua assinatura anual! 🎉",
+    intro: "Seu plano anual inclui acesso <strong style=\"color:#a855f7;\">gratuito</strong> ao serviço de distribuição do MusicDibs. Você poderá levar sua música ao Spotify, Apple Music, Amazon Music, YouTube Music e muitas outras plataformas.",
+    included: "Incluído com sua assinatura anual",
+    onboarding: "Prazo de configuração",
+    password: "Acesso ao serviço",
+    access: "https://dist.musicdibs.com/",
+    accessLabel: "Plataforma de distribuição",
+    userLabel: "Seu usuário",
+    userNote: "Mesmo email do MusicDibs (senha diferente)",
+    questions: "Se tiver alguma dúvida, não hesite em nos escrever em <a href=\"mailto:info@musicdibs.com\" style=\"color:#a855f7;text-decoration:none;\">info@musicdibs.com</a>.",
+    thanks: "Obrigado por confiar no MusicDibs!",
+    team: "— A equipe MusicDibs",
+    subject: "🎶 Distribuição incluída no seu plano anual — MusicDibs",
+    text: (name) => `Olá ${name}, sua assinatura anual inclui acesso gratuito à distribuição. Em 48-72 horas úteis você receberá um email para criar sua senha de acesso a dist.musicdibs.com.`,
+  },
+};
+
+export function distributionWelcomeEmail(data: { name: string; email: string; planId: string; lang?: string }) {
+  const lang = normLang(data.lang);
+  const i = t10[lang];
+  const safeName = escapeHtml(data.name);
+  const safeEmail = escapeHtml(data.email);
+  const greeting = lang === "en" ? "Hi" : lang === "pt" ? "Olá" : "Hola";
+
+  const onboardingLabels: Record<Lang, string> = {
+    es: "48-72 horas laborales",
+    en: "48-72 business hours",
+    pt: "48-72 horas úteis",
+  };
+
+  const passwordNotes: Record<Lang, string> = {
+    es: "Recibirás un correo para generar tu nueva contraseña",
+    en: "You will receive an email to create your new password",
+    pt: "Você receberá um email para criar sua nova senha",
+  };
+
+  const body = `
+    <p style="margin:0 0 8px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">${greeting} <strong style="color:#f3f4f6;">${safeName}</strong>,</p>
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:15px;line-height:1.7;text-align:center;">${i.greeting}</p>
+    <p style="margin:0 0 24px;color:#d1d5db;font-size:14px;line-height:1.7;text-align:center;">${i.intro}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(5,150,105,0.12));border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:20px 24px;margin-bottom:8px;">
+      ${infoRow(i.included, "✅")}
+      ${infoRow(i.onboarding, onboardingLabels[lang])}
+      ${infoRow(i.password, passwordNotes[lang])}
+      ${infoRow(i.userLabel, safeEmail)}
+    </table>
+    <div style="margin:20px 0;padding:16px 20px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:10px;">
+      <p style="margin:0 0 4px;color:#c084fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${i.accessLabel}</p>
+      <p style="margin:0;"><a href="${i.access}" style="color:#a855f7;text-decoration:none;font-size:14px;font-weight:600;">${i.access}</a></p>
+      <p style="margin:8px 0 0;color:#9ca3af;font-size:12px;">💡 ${i.userNote}</p>
+    </div>
+    <p style="margin:16px 0 0;color:#d1d5db;font-size:14px;text-align:center;">${i.questions}</p>
+    <p style="margin:20px 0 0;color:#d1d5db;font-size:14px;text-align:center;">${i.thanks}</p>
+    <p style="margin:8px 0 0;color:#9ca3af;font-size:13px;text-align:center;">${i.team}</p>`;
+
+  return {
+    subject: i.subject,
+    html: wrap("🎶", i.title, body, lang),
+    text: i.text(data.name),
+  };
+}
+
+// ─── 11. Metric Alert Notification (Admin) ───────────────────────────────────
 
 export function metricAlertEmail(data: { alerts: Array<{ title: string; description: string; severity: string }> }) {
   const alertRows = data.alerts.map(a => {
