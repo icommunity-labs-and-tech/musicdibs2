@@ -1021,13 +1021,16 @@ const AIStudioCreate = () => {
                       </div>
 
                       <div data-tour="mc-settings">
-                      {/* Voice selector — only for song mode */}
-                      {mode === 'song' && (
+                      {/* Voice/Preset selector */}
                       <div className="space-y-3">
-                         <Label className="text-sm font-medium">Elige una voz *</Label>
-                        {/* Tabs: Voces IA / Mis artistas virtuales */}
+                         <Label className="text-sm font-medium">
+                           {mode === 'song' ? 'Elige una voz *' : 'Mis presets musicales'}
+                         </Label>
+                        {/* Tabs: Voces IA / Mis artistas virtuales / Mis presets musicales */}
                         <TooltipProvider delayDuration={200}>
-                        <div className="flex gap-2 mb-3">
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {/* Tab: Voces IA — only in song mode */}
+                          {mode === 'song' && (
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
@@ -1050,30 +1053,62 @@ const AIStudioCreate = () => {
                               </TooltipContent>
                             </Tooltip>
                           </div>
+                          )}
+                          {/* Tab: Mis artistas virtuales — only in song mode */}
+                          {mode === 'song' && (
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
-                              onClick={() => { if (virtualArtistsCount > 0) setVoiceTab('my_artists'); }}
-                              disabled={virtualArtistsCount === 0}
+                              onClick={() => { if (vocalArtists.length > 0) setVoiceTab('my_artists'); }}
+                              disabled={vocalArtists.length === 0}
                               className={cn(
                                 "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
                                 voiceTab === 'my_artists'
                                   ? "border-primary bg-primary/10 text-primary border-2"
-                                  : virtualArtistsCount === 0
+                                  : vocalArtists.length === 0
                                     ? "border-border text-muted-foreground/40 cursor-not-allowed"
                                     : "border-border text-muted-foreground hover:border-primary/50"
                               )}
                             >
-                              👤 Mis artistas virtuales {virtualArtistsCount > 0 && `(${virtualArtistsCount})`}
+                              👤 Mis artistas virtuales {vocalArtists.length > 0 && `(${vocalArtists.length})`}
                             </button>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
                               </TooltipTrigger>
                               <TooltipContent side="top" className="max-w-xs text-sm">
-                                {virtualArtistsCount > 0
+                                {vocalArtists.length > 0
                                   ? "Los artistas virtuales son las voces que has guardado de otras canciones para crear nuevas con el mismo estilo."
                                   : "Aquí aparecen tus artistas guardados. Úsalos para crear canciones con el mismo estilo."}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                          )}
+                          {/* Tab: Mis presets musicales */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => { if (instrumentalPresets.length > 0) setVoiceTab('my_presets'); }}
+                              disabled={instrumentalPresets.length === 0}
+                              className={cn(
+                                "px-4 py-1.5 rounded-full text-[13px] font-medium border transition-all",
+                                voiceTab === 'my_presets'
+                                  ? "border-primary bg-primary/10 text-primary border-2"
+                                  : instrumentalPresets.length === 0
+                                    ? "border-border text-muted-foreground/40 cursor-not-allowed"
+                                    : "border-border text-muted-foreground hover:border-primary/50"
+                              )}
+                            >
+                              🎹 Mis presets musicales {instrumentalPresets.length > 0 && `(${instrumentalPresets.length})`}
+                            </button>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs text-sm">
+                                {instrumentalPresets.length > 0
+                                  ? "Presets musicales guardados de tus generaciones instrumentales. Reutiliza su configuración."
+                                  : "Genera una canción instrumental y guárdala como preset para reutilizar su estilo."}
                               </TooltipContent>
                             </Tooltip>
                           </div>
@@ -1081,7 +1116,7 @@ const AIStudioCreate = () => {
                         </TooltipProvider>
 
                         {/* TAB: Voces IA del catálogo */}
-                        {voiceTab === 'preset' && (
+                        {voiceTab === 'preset' && mode === 'song' && (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {voiceProfiles.map((v) => (
                               <button
@@ -1111,18 +1146,18 @@ const AIStudioCreate = () => {
                           </div>
                         )}
 
-                        {/* TAB: Mis artistas virtuales */}
+                        {/* TAB: Mis artistas virtuales (vocal only) */}
                         {voiceTab === 'my_artists' && (
                           <div className="space-y-2">
-                            {virtualArtistsCount === 0 ? (
+                            {vocalArtists.length === 0 ? (
                               <div className="text-center py-6 border border-dashed border-border rounded-lg">
                                 <User className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
                                 <p className="text-sm text-muted-foreground">Aún no tienes artistas guardados</p>
-                                <p className="text-xs text-muted-foreground mt-1">Aquí aparecen tus artistas guardados. Úsalos para crear canciones con el mismo estilo.</p>
+                                <p className="text-xs text-muted-foreground mt-1">Genera una canción con voz y guárdala como artista virtual.</p>
                               </div>
                             ) : (
                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {virtualArtists.map((artist) => (
+                                {vocalArtists.map((artist) => (
                                   <button
                                     key={artist.id}
                                     type="button"
@@ -1149,20 +1184,57 @@ const AIStudioCreate = () => {
                           </div>
                         )}
 
-                        {/* Micro-copy */}
-                        {voiceTab === 'my_artists' && virtualArtistsCount === 0 && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-2">
-                            💡 Los artistas virtuales son voces que has guardado de otras canciones para crear nuevas con el mismo estilo
-                          </p>
+                        {/* TAB: Mis presets musicales (instrumental only) */}
+                        {voiceTab === 'my_presets' && (
+                          <div className="space-y-2">
+                            {instrumentalPresets.length === 0 ? (
+                              <div className="text-center py-6 border border-dashed border-border rounded-lg">
+                                <Music2 className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                                <p className="text-sm text-muted-foreground">Aún no tienes presets musicales</p>
+                                <p className="text-xs text-muted-foreground mt-1">Genera una canción instrumental y guárdala como preset para reutilizar su estilo.</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                {instrumentalPresets.map((preset) => (
+                                  <button
+                                    key={preset.id}
+                                    type="button"
+                                    onClick={() => handleSelectArtist(preset)}
+                                    className={cn(
+                                      "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
+                                      selectedArtistId === preset.id
+                                        ? "border-2 border-primary bg-primary/5"
+                                        : "border-border hover:border-primary/30"
+                                    )}
+                                  >
+                                    <div className="w-7 h-7 rounded-md flex items-center justify-center mb-0.5" style={{ background: '#E1F5EE' }}>
+                                      <Music2 className="h-4 w-4" style={{ color: '#0F6E56' }} />
+                                    </div>
+                                    <span className="text-xs font-medium text-foreground">{preset.name}</span>
+                                    <div className="flex flex-wrap gap-1 mt-0.5">
+                                      {preset.genre && (
+                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: '#E1F5EE', color: '#085041' }}>{preset.genre}</span>
+                                      )}
+                                      {preset.mood && (
+                                        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: '#E1F5EE', color: '#085041' }}>{preset.mood}</span>
+                                      )}
+                                    </div>
+                                    {preset.style_notes && (
+                                      <span className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{preset.style_notes}</span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         )}
 
-                        {selectedVoice && !selectedArtistId && (
+                        {selectedVoice && !selectedArtistId && mode === 'song' && (
                           <p className="text-xs text-muted-foreground mt-1">
                             {voiceProfiles.find(v => v.id === selectedVoice)?.description}
                           </p>
                         )}
                       </div>
-                      )}
                       </div>{/* close data-tour="mc-settings" */}
 
 
