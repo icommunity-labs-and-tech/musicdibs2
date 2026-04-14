@@ -124,8 +124,22 @@ export default function AdminFeatureCostsPage() {
 
   const isDirty = (key: string) => !!editing[key];
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const paginatedRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const sortedRows = useMemo(() => {
+    const sorted = [...rows].sort((a, b) => {
+      const valA = a[sortField];
+      const valB = b[sortField];
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return 1;
+      if (valB == null) return -1;
+      if (typeof valA === 'boolean') return (valA === valB ? 0 : valA ? -1 : 1) * (sortDir === 'asc' ? 1 : -1);
+      if (typeof valA === 'number' && typeof valB === 'number') return (valA - valB) * (sortDir === 'asc' ? 1 : -1);
+      return String(valA).localeCompare(String(valB)) * (sortDir === 'asc' ? 1 : -1);
+    });
+    return sorted;
+  }, [rows, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const paginatedRows = sortedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
