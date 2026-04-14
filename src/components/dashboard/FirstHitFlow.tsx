@@ -431,14 +431,40 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
 
   const handlePromote = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!hasEnough(FEATURE_COSTS.promote_premium)) {
+      toast.error(t('dashboard.firstHit.noCreditsAudio'))
+      return
+    }
     setPromoting(true)
     try {
-      await submitPromotionRequest({
-        artistName: promoArtist, mainLink: promoLink,
-        workTitle: regTitle || promoDesc, description: promoDesc,
-        promotionGoal: promoGoal, socialNetworks: promoSocial,
-        consent: promoConsent,
+      // 1) Validate credits via spend-credits
+      const { data: spendData, error: spendError } = await supabase.functions.invoke('spend-credits', {
+        body: { feature: 'promote_premium', description: `Promo Premium: ${regTitle || promoArtist}` },
       })
+      if (spendError) throw new Error(spendError.message)
+      if (spendData?.error) throw new Error(spendData.error)
+
+      // 2) Build team_notes with promoGoal and promoSocial
+      const teamNotes = [
+        promoGoal ? `Objetivo: ${promoGoal}` : '',
+        promoSocial ? `Redes sociales: ${promoSocial}` : '',
+      ].filter(Boolean).join('\n') || null
+
+      // 3) Submit via submit-premium-promo edge function
+      const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
+        body: {
+          work_id: regId || null,
+          artist_name: promoArtist.trim(),
+          song_title: regTitle || promoDesc,
+          description: promoDesc.trim(),
+          external_link: promoLink.trim() || null,
+          team_notes: teamNotes,
+          media_file_path: null,
+        },
+      })
+      if (error) throw new Error(error.message)
+      if (data?.error) throw new Error(data.error)
+
       markDone(3)
       setActiveStep('done')
     } catch (err: any) {
