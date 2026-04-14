@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,9 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { toast } from 'sonner';
-import { Save, Loader2, Crown } from 'lucide-react';
+import { Save, Loader2, Crown, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 const PAGE_SIZE = 10;
+
+type SortField = 'operation_key' | 'operation_name' | 'category' | 'credits_cost' | 'display_order' | 'is_annual_only' | 'is_active';
+type SortDir = 'asc' | 'desc';
 
 const CATEGORY_LABELS: Record<string, string> = {
   gratis: 'Gratis',
