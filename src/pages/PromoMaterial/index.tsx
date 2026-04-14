@@ -24,7 +24,7 @@ const PromoMaterialPage = () => {
       <main className="container mx-auto px-4 py-12 pt-24">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
-          {t('aiStudio.backToDashboard', 'Volver a AI Studio')}
+          {t('aiStudio.backToDashboard', 'Volver a AI Music Studio')}
         </Link>
 
         <div className="mb-8 flex items-start justify-between">

@@ -1,4 +1,4 @@
-// AI Studio subpages translations — merged into main i18n at startup
+// AI Music Studio subpages translations — merged into main i18n at startup
 export const aiStudioTranslations: Record<string, Record<string, any>> = {
   es: {
     aiCreate: {
@@ -275,9 +275,9 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       aspect: 'Aspecto',
       duration: 'Duración',
       soundtrack: 'Banda Sonora (opcional)',
-      soundtrackDesc: 'Selecciona una pista de AI Studio para fusionar automáticamente con el vídeo',
+      soundtrackDesc: 'Selecciona una pista de AI Music Studio para fusionar automáticamente con el vídeo',
       noTracks: 'No hay pistas. Genera una en',
-      createMusicLink: 'AI Studio → Crear Música',
+      createMusicLink: 'AI Music Studio → Crear Música',
       autoMerge: 'Se fusionará automáticamente al completar el vídeo',
       startingGen: 'Iniciando generación...',
       generateBtn: 'Generar Videoclip (1 crédito)',
@@ -300,8 +300,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       withoutAudio: 'Sin audio',
       addAudio: 'Añadir audio',
       mergeTitle: 'Fusionar Audio + Vídeo',
-      mergeDesc: 'Selecciona una pista de tu historial de AI Studio para añadir como banda sonora',
-      noAudioTracks: 'No hay pistas de audio. Genera una en AI Studio → Crear Música.',
+      mergeDesc: 'Selecciona una pista de tu historial de AI Music Studio para añadir como banda sonora',
+      noAudioTracks: 'No hay pistas de audio. Genera una en AI Music Studio → Crear Música.',
       merging: 'Fusionando...',
       mergeBtn: 'Fusionar Audio + Vídeo',
       loadMore: 'Cargar más',
@@ -404,7 +404,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       },
     },
     aiVocal: {
-      backToStudio: 'Volver a AI Studio',
+      backToStudio: 'Volver a AI Music Studio',
       badge: 'Voz & Letra',
       title: 'Canta tu canción',
       subtitle: 'Tu voz clonada cantando tu letra. Descarga la pista vocal y mézclala con tu base.',
@@ -493,7 +493,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       audioOk: '⚠️ Funciona pero mejor con más de 1 minuto ({{dur}}s)',
       audioOptimal: '✓ Duración óptima ({{dur}}s)',
     },
-    // Shared keys for common labels across AI Studio subpages
+    // Shared keys for common labels across AI Music Studio subpages
     aiShared: {
       error: 'Error',
       cancel: 'Cancelar',
@@ -797,9 +797,9 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       aspect: 'Aspect',
       duration: 'Duration',
       soundtrack: 'Soundtrack (optional)',
-      soundtrackDesc: 'Select a track from AI Studio to automatically merge with the video',
+      soundtrackDesc: 'Select a track from AI Music Studio to automatically merge with the video',
       noTracks: 'No tracks. Generate one in',
-      createMusicLink: 'AI Studio → Create Music',
+      createMusicLink: 'AI Music Studio → Create Music',
       autoMerge: 'Will be automatically merged when the video is complete',
       startingGen: 'Starting generation...',
       generateBtn: 'Generate Videoclip (1 credit)',
@@ -822,8 +822,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       withoutAudio: 'Without audio',
       addAudio: 'Add audio',
       mergeTitle: 'Merge Audio + Video',
-      mergeDesc: 'Select a track from your AI Studio history to add as soundtrack',
-      noAudioTracks: 'No audio tracks. Generate one in AI Studio → Create Music.',
+      mergeDesc: 'Select a track from your AI Music Studio history to add as soundtrack',
+      noAudioTracks: 'No audio tracks. Generate one in AI Music Studio → Create Music.',
       merging: 'Merging...',
       mergeBtn: 'Merge Audio + Video',
       loadMore: 'Load more',
@@ -926,7 +926,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       },
     },
     aiVocal: {
-      backToStudio: 'Back to AI Studio',
+      backToStudio: 'Back to AI Music Studio',
       badge: 'Voice & Lyrics',
       title: 'Sing Your Song',
       subtitle: 'Your cloned voice singing your lyrics. Download the vocal track and mix it with your base.',
@@ -1316,9 +1316,9 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       aspect: 'Proporção',
       duration: 'Duração',
       soundtrack: 'Trilha Sonora (opcional)',
-      soundtrackDesc: 'Selecione uma faixa do AI Studio para fundir automaticamente com o vídeo',
+      soundtrackDesc: 'Selecione uma faixa do AI Music Studio para fundir automaticamente com o vídeo',
       noTracks: 'Sem faixas. Gere uma em',
-      createMusicLink: 'AI Studio → Criar Música',
+      createMusicLink: 'AI Music Studio → Criar Música',
       autoMerge: 'Será fundido automaticamente ao completar o vídeo',
       startingGen: 'Iniciando geração...',
       generateBtn: 'Gerar Videoclipe (1 crédito)',
@@ -1341,8 +1341,8 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       withoutAudio: 'Sem áudio',
       addAudio: 'Adicionar áudio',
       mergeTitle: 'Fundir Áudio + Vídeo',
-      mergeDesc: 'Selecione uma faixa do seu histórico do AI Studio para adicionar como trilha sonora',
-      noAudioTracks: 'Sem faixas de áudio. Gere uma em AI Studio → Criar Música.',
+      mergeDesc: 'Selecione uma faixa do seu histórico do AI Music Studio para adicionar como trilha sonora',
+      noAudioTracks: 'Sem faixas de áudio. Gere uma em AI Music Studio → Criar Música.',
       merging: 'Fundindo...',
       mergeBtn: 'Fundir Áudio + Vídeo',
       loadMore: 'Carregar mais',
@@ -1445,7 +1445,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       },
     },
     aiVocal: {
-      backToStudio: 'Voltar ao AI Studio',
+      backToStudio: 'Voltar ao AI Music Studio',
       badge: 'Voz & Letra',
       title: 'Cante sua música',
       subtitle: 'Sua voz clonada cantando sua letra. Baixe a faixa vocal e misture com sua base.',
