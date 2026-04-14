@@ -166,10 +166,14 @@ const AIStudioCreate = () => {
   const [audioRef] = useState<Record<string, HTMLAudioElement>>({});
 
   // ── Virtual Artists state ──
-  const [voiceTab, setVoiceTab] = useState<'preset' | 'my_artists'>('preset');
+  const [voiceTab, setVoiceTab] = useState<'preset' | 'my_artists' | 'my_presets'>('preset');
   const [virtualArtists, setVirtualArtists] = useState<any[]>([]);
   const [virtualArtistsCount, setVirtualArtistsCount] = useState(0);
   const [selectedArtistId, setSelectedArtistId] = useState<string>('');
+
+  // Derived counts by generation_type
+  const vocalArtists = useMemo(() => virtualArtists.filter(a => (a.generation_type || 'vocal') === 'vocal'), [virtualArtists]);
+  const instrumentalPresets = useMemo(() => virtualArtists.filter(a => a.generation_type === 'instrumental'), [virtualArtists]);
 
   // ── Save as Virtual Artist modal state ──
   const [showSaveArtistForm, setShowSaveArtistForm] = useState(false);
@@ -981,7 +985,10 @@ const AIStudioCreate = () => {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => setMode('song')}
+                            onClick={() => {
+                              setMode('song');
+                              setVoiceTab('preset');
+                            }}
                             className={cn(
                               "flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all flex items-center justify-center gap-2",
                               mode === 'song'
@@ -994,7 +1001,12 @@ const AIStudioCreate = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => { setMode('instrumental'); setSelectedVoice(''); setSelectedArtistId(''); }}
+                            onClick={() => {
+                              setMode('instrumental');
+                              setSelectedVoice('');
+                              setSelectedArtistId('');
+                              setVoiceTab(instrumentalPresets.length > 0 ? 'my_presets' : 'preset');
+                            }}
                             className={cn(
                               "flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border-2 transition-all flex items-center justify-center gap-2",
                               mode === 'instrumental'
