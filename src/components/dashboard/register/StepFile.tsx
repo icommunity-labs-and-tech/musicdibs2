@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 import type { WizardData } from './types';
 import { toast } from 'sonner';
+import { AssetPicker } from './AssetPicker';
 
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -30,6 +31,14 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
+
+  const handleAssetSelect = useCallback(
+    (audioUrl: string, _fileName: string) => {
+      onUpdate({ file: null, files: [], aiAudioUrl: audioUrl });
+      setErrors([]);
+    },
+    [onUpdate]
+  );
 
   const totalSize = data.files.reduce((sum, f) => sum + f.size, 0);
 
@@ -178,6 +187,11 @@ export function StepFile({ data, onUpdate, onNext, onBack }: StepFileProps) {
           </div>
         </div>
       )}
+
+      <div className="flex items-center gap-2">
+        <AssetPicker onSelect={handleAssetSelect} disabled={data.files.length >= MAX_FILES} />
+        <span className="text-xs text-muted-foreground">o elige un audio de tu biblioteca</span>
+      </div>
 
       {errors.length > 0 && (
         <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
