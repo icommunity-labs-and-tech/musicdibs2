@@ -556,12 +556,18 @@ const AIStudioCreate = () => {
   const openSaveArtistFromLibrary = (generationId: string) => {
     const voiceInfo = generationVoiceMapRef.current.get(generationId);
     const result = results.find(r => r.id === generationId);
-    const fallbackVoice = voiceProfiles[0];
-    const voiceId = voiceInfo?.voiceId || result?.voiceId || fallbackVoice?.id || '';
-    const voiceName = voiceInfo?.voiceName || result?.voiceName || fallbackVoice?.label || '';
 
-    setLastGeneratedVoiceId(voiceId);
-    setLastGeneratedVoiceName(voiceName);
+    if (mode === 'instrumental') {
+      setLastGeneratedVoiceId('');
+      setLastGeneratedVoiceName('');
+    } else {
+      const fallbackVoice = voiceProfiles[0];
+      const voiceId = voiceInfo?.voiceId || result?.voiceId || fallbackVoice?.id || '';
+      const voiceName = voiceInfo?.voiceName || result?.voiceName || fallbackVoice?.label || '';
+      setLastGeneratedVoiceId(voiceId);
+      setLastGeneratedVoiceName(voiceName);
+    }
+
     setSaveArtistGenerationId(generationId);
     setSaveArtistName('');
     setSaveArtistStyle(result?.prompt || '');
