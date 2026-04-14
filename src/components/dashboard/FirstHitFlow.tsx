@@ -213,6 +213,21 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
         const url = `data:${data.format || 'audio/mpeg'};base64,${data.audio}`
         setAudioUrl(url)
         setAudioTitle(prompt.slice(0, 50))
+
+        // Save to ai_generations so it appears in media library and AI Studio history
+        if (user) {
+          const voiceProfile = voiceProfiles.find((v: any) => v.id === selectedVoice)
+          const voiceIdToSave = genMode === 'song' ? (selectedVoice || null) : null
+          const voiceNameToSave = voiceIdToSave ? (voiceProfile?.label || '') : null
+          await supabase.from('ai_generations').insert({
+            user_id: user.id,
+            prompt: prompt.trim(),
+            duration: data.duration || 0,
+            audio_url: url,
+            ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
+          })
+        }
+
         toast.success(t('dashboard.firstHit.audioGenerated'))
       }
     } catch (err: any) {
