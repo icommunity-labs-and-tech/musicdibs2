@@ -194,9 +194,9 @@ const AIStudioCreate = () => {
   const currentCost = mode === 'song' ? FEATURE_COSTS.generate_audio_song : FEATURE_COSTS.generate_audio;
   const currentFeature = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
   const modeLabel = mode === 'song' ? t('aiCreate.songWithVoice') : t('aiCreate.instrumentalBase');
-  const canSaveAsVirtualArtist = (result: GenerationResult) => {
-    if (result.voiceId || generationVoiceMapRef.current.has(result.id)) return true;
-    return !INSTRUMENTAL_PROMPT_REGEX.test(result.prompt);
+  const canSaveAsVirtualArtist = (_result: GenerationResult) => {
+    // Allow saving any generation (vocal or instrumental) as a virtual artist
+    return true;
   };
 
   const availableGenres = useMemo(() => {
@@ -507,8 +507,9 @@ const AIStudioCreate = () => {
   // ── Save as Virtual Artist ──
   const handleSaveVirtualArtist = async () => {
     if (!saveArtistName.trim() || !user) return;
-    const voiceIdToPersist = lastGeneratedVoiceId || voiceProfiles[0]?.id || '';
-    if (!voiceIdToPersist) return;
+    const isInstrumentalSave = mode === 'instrumental' || !lastGeneratedVoiceId;
+    const voiceIdToPersist = isInstrumentalSave ? '' : (lastGeneratedVoiceId || voiceProfiles[0]?.id || '');
+    if (!isInstrumentalSave && !voiceIdToPersist) return;
     setIsSavingArtist(true);
     try {
       // Check limit of 10
@@ -516,13 +517,15 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.saveArtistLimit'), variant: 'destructive' });
         return;
       }
+      const isInstrumental = mode === 'instrumental';
       const { data: newArtist, error } = await supabase
         .from('user_artist_profiles')
         .insert({
           user_id: user.id,
           name: saveArtistName.trim(),
-          voice_profile_id: voiceIdToPersist,
-          voice_type: 'preset',
+          voice_profile_id: isInstrumental ? null : voiceIdToPersist,
+          voice_type: isInstrumental ? null : 'preset',
+          generation_type: mode === 'song' ? 'vocal' : 'instrumental',
           genre: null,
           mood: null,
           default_duration: duration,
@@ -573,8 +576,16 @@ const AIStudioCreate = () => {
       return;
     }
     setSelectedArtistId(artist.id);
-    setSelectedVoice(artist.voice_profile_id || '');
+    // Restore generation type
+    const artistGenType = artist.generation_type || 'vocal';
+    setMode(artistGenType === 'instrumental' ? 'instrumental' : 'song');
+    if (artistGenType === 'instrumental') {
+      setSelectedVoice('');
+    } else {
+      setSelectedVoice(artist.voice_profile_id || '');
+    }
     if (artist.default_duration) setDuration(artist.default_duration);
+    if (artist.style_notes) setPrompt(artist.style_notes);
   };
 
   // ── Bulk helpers ──
