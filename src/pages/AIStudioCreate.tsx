@@ -1793,10 +1793,12 @@ const AIStudioCreate = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              {t('aiCreate.saveArtistTitle')}
+              {mode === 'instrumental' ? 'Guardar como Preset Musical' : t('aiCreate.saveArtistTitle')}
             </DialogTitle>
             <DialogDescription>
-              {t('aiCreate.saveArtistDesc')}
+              {mode === 'instrumental'
+                ? 'Guarda la configuración de estilo para reutilizarla en futuras generaciones instrumentales.'
+                : t('aiCreate.saveArtistDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
