@@ -1865,7 +1865,7 @@ const AIStudioCreate = () => {
               {isSavingArtist ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> {t('aiCreate.saveArtistSaving')}</>
               ) : (
-                <><Save className="h-4 w-4" /> {t('aiCreate.saveArtistBtn')}</>
+                <><Save className="h-4 w-4" /> {mode === 'instrumental' ? 'Guardar preset musical' : t('aiCreate.saveArtistBtn')}</>
               )}
             </Button>
           </DialogFooter>
