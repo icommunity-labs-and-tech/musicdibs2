@@ -24,7 +24,7 @@ import { useCredits } from '@/hooks/useCredits'
 import { FEATURE_COSTS } from '@/lib/featureCosts'
 import {
   registerWork, listIbsSignatures, createIbsSignature,
-  syncIbsSignatures, submitPromotionRequest,
+  syncIbsSignatures,
 } from '@/services/dashboardApi'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
