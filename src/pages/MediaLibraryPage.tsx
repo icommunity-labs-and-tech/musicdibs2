@@ -131,7 +131,7 @@ export default function MediaLibraryPage() {
         );
       }
 
-      // Covers generated from AI Studio (stored in social-promo-images/covers/{userId}/)
+      // Covers generated from AI Music Studio (stored in social-promo-images/covers/{userId}/)
       const { data: coverFiles } = await supabase.storage
         .from("social-promo-images")
         .list(`covers/${user.id}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
@@ -409,7 +409,7 @@ export default function MediaLibraryPage() {
         <div>
           <h1 className="text-2xl font-bold">📂 Biblioteca multimedia</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Todos tus assets creados con AI Studio en un solo lugar
+            Todos tus assets creados con AI Music Studio en un solo lugar
           </p>
         </div>
         {selected.size > 0 && (
@@ -526,7 +526,7 @@ export default function MediaLibraryPage() {
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <FolderOpen className="h-12 w-12 mb-3 opacity-40" />
                 <p className="text-sm">No hay assets{t.value !== "all" ? ` de tipo "${t.label}"` : ""}</p>
-                <p className="text-xs mt-1">Crea contenido en AI Studio para verlo aquí</p>
+                <p className="text-xs mt-1">Crea contenido en AI Music Studio para verlo aquí</p>
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

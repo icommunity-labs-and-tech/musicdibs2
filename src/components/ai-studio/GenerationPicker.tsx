@@ -89,7 +89,7 @@ export const GenerationPicker = ({ onSelect }: GenerationPickerProps) => {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Music className="w-8 h-8 mx-auto mb-2 opacity-40" />
-        <p className="text-sm">{t("masterize.noGenerations", "Aún no tienes canciones generadas en AI Studio")}</p>
+        <p className="text-sm">{t("masterize.noGenerations", "Aún no tienes canciones generadas en AI Music Studio")}</p>
       </div>
     );
   }

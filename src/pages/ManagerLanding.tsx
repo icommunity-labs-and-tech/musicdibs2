@@ -49,8 +49,8 @@ const faqItems = [
     a: 'No. El precio se acuerda según el número de artistas, volumen anual de obras y servicios incluidos. Contáctanos para un presupuesto personalizado.',
   },
   {
-    q: '¿Incluye el AI Studio?',
-    a: 'Sí. Los managers tienen acceso completo al AI Studio para crear contenido para sus artistas.',
+    q: '¿Incluye el AI Music Studio?',
+    a: 'Sí. Los managers tienen acceso completo al AI Music Studio para crear contenido para sus artistas.',
   },
   {
     q: '¿Puedo distribuir las obras de mis artistas?',
@@ -369,7 +369,7 @@ export default function ManagerLanding() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Checkbox id="ai" checked={form.needs_ai_studio} onCheckedChange={v => set('needs_ai_studio', !!v)} />
-                  <Label htmlFor="ai" className="cursor-pointer">Necesito AI Studio</Label>
+                  <Label htmlFor="ai" className="cursor-pointer">Necesito AI Music Studio</Label>
                 </div>
               </div>
 

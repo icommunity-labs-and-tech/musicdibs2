@@ -28,7 +28,7 @@ function useSteps(): Step[] {
     },
     {
       target: '[data-tour="ai-studio"]',
-      title: t('dashboard.tour.aiStudioTitle', 'AI Studio'),
+      title: t('dashboard.tour.aiStudioTitle', 'AI Music Studio'),
       content: t('dashboard.tour.aiStudioContent', 'Crea música, voces y contenido visual con IA\n\n🎵 Música: Genera canciones completas\n🎤 Voces: Clona voces o usa 29 idiomas\n🎨 Imágenes: Portadas, creatividades, carteles\n🎬 Videos: Clips para redes sociales\n\nTodo en un solo lugar.'),
       disableBeacon: true,
     },
