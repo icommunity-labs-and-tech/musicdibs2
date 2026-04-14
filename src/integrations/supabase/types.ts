@@ -1847,6 +1847,7 @@ export type Database = {
         Row: {
           created_at: string
           default_duration: number | null
+          generation_type: string | null
           genre: string | null
           id: string
           is_default: boolean | null
@@ -1862,6 +1863,7 @@ export type Database = {
         Insert: {
           created_at?: string
           default_duration?: number | null
+          generation_type?: string | null
           genre?: string | null
           id?: string
           is_default?: boolean | null
@@ -1877,6 +1879,7 @@ export type Database = {
         Update: {
           created_at?: string
           default_duration?: number | null
+          generation_type?: string | null
           genre?: string | null
           id?: string
           is_default?: boolean | null
