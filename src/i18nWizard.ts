@@ -19,7 +19,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
       file: {
         title: 'Subir archivo(s)',
         subtitle: 'Se generará una huella digital de cada archivo para certificar su autoría. Puedes adjuntar varios archivos.',
-        aiAudioLabel: 'Audio generado con AI MusicDibs Studio',
+        aiAudioLabel: 'Audio generado con AI Music Studio',
         aiAudioSub: 'Se usará automáticamente',
         change: 'Cambiar',
         addMore: 'Añadir más archivos',
@@ -183,7 +183,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
       file: {
         title: 'Upload file(s)',
         subtitle: 'A digital fingerprint will be generated for each file to certify authorship. You can attach multiple files.',
-        aiAudioLabel: 'Audio generated with AI MusicDibs Studio',
+        aiAudioLabel: 'Audio generated with AI Music Studio',
         aiAudioSub: 'Will be used automatically',
         change: 'Change',
         addMore: 'Add more files',
@@ -337,7 +337,7 @@ export const wizardTranslations: Record<string, Record<string, any>> = {
       file: {
         title: 'Enviar arquivo(s)',
         subtitle: 'Uma impressão digital será gerada para cada arquivo para certificar a autoria. Você pode anexar vários arquivos.',
-        aiAudioLabel: 'Áudio gerado com AI MusicDibs Studio',
+        aiAudioLabel: 'Áudio gerado com AI Music Studio',
         aiAudioSub: 'Será usado automaticamente',
         change: 'Alterar',
         addMore: 'Adicionar mais arquivos',
