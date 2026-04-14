@@ -164,13 +164,23 @@ export default function AdminFeatureCostsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">Icono</TableHead>
-                  <TableHead className="w-[150px]">Clave</TableHead>
-                  <TableHead className="w-[180px]">Nombre</TableHead>
-                  <TableHead className="w-[100px]">Categoría</TableHead>
-                  <TableHead className="w-[80px]">Créditos</TableHead>
+                  <TableHead className="w-[150px] cursor-pointer select-none" onClick={() => toggleSort('operation_key')}>
+                    <span className="inline-flex items-center">Clave<SortIcon field="operation_key" /></span>
+                  </TableHead>
+                  <TableHead className="w-[180px] cursor-pointer select-none" onClick={() => toggleSort('operation_name')}>
+                    <span className="inline-flex items-center">Nombre<SortIcon field="operation_name" /></span>
+                  </TableHead>
+                  <TableHead className="w-[100px] cursor-pointer select-none" onClick={() => toggleSort('category')}>
+                    <span className="inline-flex items-center">Categoría<SortIcon field="category" /></span>
+                  </TableHead>
+                  <TableHead className="w-[80px] cursor-pointer select-none" onClick={() => toggleSort('credits_cost')}>
+                    <span className="inline-flex items-center">Créditos<SortIcon field="credits_cost" /></span>
+                  </TableHead>
                   <TableHead className="w-[80px]">€/op</TableHead>
                   <TableHead className="w-[200px]">Descripción (tooltip)</TableHead>
-                  <TableHead className="w-[60px]">Anual</TableHead>
+                  <TableHead className="w-[60px] cursor-pointer select-none" onClick={() => toggleSort('is_annual_only')}>
+                    <span className="inline-flex items-center">Anual<SortIcon field="is_annual_only" /></span>
+                  </TableHead>
                   <TableHead className="w-[60px]">Acción</TableHead>
                 </TableRow>
               </TableHeader>
