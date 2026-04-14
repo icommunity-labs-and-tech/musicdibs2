@@ -1710,27 +1710,36 @@ const AIStudioCreate = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="save-artist-voice">{t('aiCreate.saveArtistVoice')}</Label>
-              <Select value={lastGeneratedVoiceId || voiceProfiles[0]?.id || ''} onValueChange={(value) => {
-                setLastGeneratedVoiceId(value);
-                const profile = voiceProfiles.find(v => v.id === value);
-                setLastGeneratedVoiceName(profile?.label || '');
-              }}>
-                <SelectTrigger id="save-artist-voice">
-                  <SelectValue placeholder={t('aiCreate.saveArtistVoiceOptional')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {voiceProfiles.map((voice) => (
-                    <SelectItem key={voice.id} value={voice.id}>{voice.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {lastGeneratedVoiceName && (
-              <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
-                {t('aiCreate.saveArtistVoice')} {lastGeneratedVoiceName}
+            {mode === 'instrumental' ? (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 px-3.5 py-2.5 flex items-center gap-2">
+                <span>🎹</span>
+                <span className="text-sm text-primary font-medium">Canción instrumental (sin voz)</span>
               </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="save-artist-voice">{t('aiCreate.saveArtistVoice')}</Label>
+                  <Select value={lastGeneratedVoiceId || voiceProfiles[0]?.id || ''} onValueChange={(value) => {
+                    setLastGeneratedVoiceId(value);
+                    const profile = voiceProfiles.find(v => v.id === value);
+                    setLastGeneratedVoiceName(profile?.label || '');
+                  }}>
+                    <SelectTrigger id="save-artist-voice">
+                      <SelectValue placeholder={t('aiCreate.saveArtistVoiceOptional')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voiceProfiles.map((voice) => (
+                        <SelectItem key={voice.id} value={voice.id}>{voice.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {lastGeneratedVoiceName && (
+                  <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
+                    {t('aiCreate.saveArtistVoice')} {lastGeneratedVoiceName}
+                  </div>
+                )}
+              </>
             )}
             <div className="space-y-1.5">
               <Label htmlFor="save-artist-name">{t('aiCreate.saveArtistNameLabel')}</Label>
