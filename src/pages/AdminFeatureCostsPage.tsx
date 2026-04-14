@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,9 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { toast } from 'sonner';
-import { Save, Loader2, Crown } from 'lucide-react';
+import { Save, Loader2, Crown, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 const PAGE_SIZE = 10;
+
+type SortField = 'operation_key' | 'operation_name' | 'category' | 'credits_cost' | 'display_order' | 'is_annual_only' | 'is_active';
+type SortDir = 'asc' | 'desc';
 
 const CATEGORY_LABELS: Record<string, string> = {
   gratis: 'Gratis',
@@ -40,6 +43,25 @@ export default function AdminFeatureCostsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [sortField, setSortField] = useState<SortField>('display_order');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const toggleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+    setPage(1);
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3 w-3 ml-1" />
+      : <ArrowDown className="h-3 w-3 ml-1" />;
+  };
 
   const load = async () => {
     const { data, error } = await supabase
@@ -102,8 +124,22 @@ export default function AdminFeatureCostsPage() {
 
   const isDirty = (key: string) => !!editing[key];
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const paginatedRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const sortedRows = useMemo(() => {
+    const sorted = [...rows].sort((a, b) => {
+      const valA = a[sortField];
+      const valB = b[sortField];
+      if (valA == null && valB == null) return 0;
+      if (valA == null) return 1;
+      if (valB == null) return -1;
+      if (typeof valA === 'boolean') return (valA === valB ? 0 : valA ? -1 : 1) * (sortDir === 'asc' ? 1 : -1);
+      if (typeof valA === 'number' && typeof valB === 'number') return (valA - valB) * (sortDir === 'asc' ? 1 : -1);
+      return String(valA).localeCompare(String(valB)) * (sortDir === 'asc' ? 1 : -1);
+    });
+    return sorted;
+  }, [rows, sortField, sortDir]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / PAGE_SIZE));
+  const paginatedRows = sortedRows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (loading) {
     return (
@@ -128,13 +164,23 @@ export default function AdminFeatureCostsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">Icono</TableHead>
-                  <TableHead className="w-[150px]">Clave</TableHead>
-                  <TableHead className="w-[180px]">Nombre</TableHead>
-                  <TableHead className="w-[100px]">Categoría</TableHead>
-                  <TableHead className="w-[80px]">Créditos</TableHead>
+                  <TableHead className="w-[150px] cursor-pointer select-none" onClick={() => toggleSort('operation_key')}>
+                    <span className="inline-flex items-center">Clave<SortIcon field="operation_key" /></span>
+                  </TableHead>
+                  <TableHead className="w-[180px] cursor-pointer select-none" onClick={() => toggleSort('operation_name')}>
+                    <span className="inline-flex items-center">Nombre<SortIcon field="operation_name" /></span>
+                  </TableHead>
+                  <TableHead className="w-[100px] cursor-pointer select-none" onClick={() => toggleSort('category')}>
+                    <span className="inline-flex items-center">Categoría<SortIcon field="category" /></span>
+                  </TableHead>
+                  <TableHead className="w-[80px] cursor-pointer select-none" onClick={() => toggleSort('credits_cost')}>
+                    <span className="inline-flex items-center">Créditos<SortIcon field="credits_cost" /></span>
+                  </TableHead>
                   <TableHead className="w-[80px]">€/op</TableHead>
                   <TableHead className="w-[200px]">Descripción (tooltip)</TableHead>
-                  <TableHead className="w-[60px]">Anual</TableHead>
+                  <TableHead className="w-[60px] cursor-pointer select-none" onClick={() => toggleSort('is_annual_only')}>
+                    <span className="inline-flex items-center">Anual<SortIcon field="is_annual_only" /></span>
+                  </TableHead>
                   <TableHead className="w-[60px]">Acción</TableHead>
                 </TableRow>
               </TableHeader>
