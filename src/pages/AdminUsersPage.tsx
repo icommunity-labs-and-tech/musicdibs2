@@ -17,9 +17,11 @@ import UserDetailSheet from '@/components/admin/UserDetailSheet';
 export default function AdminUsersPage() {
   const { user } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
+  const pageSize = 50;
 
   // Credit modal
   const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
@@ -32,6 +34,7 @@ export default function AdminUsersPage() {
     try {
       const res = await adminApi.getUsers(offset, search);
       setUsers(res.users || []);
+      setTotal(res.total || 0);
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -247,13 +250,20 @@ export default function AdminUsersPage() {
         </Table>
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 50))}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-        </Button>
-        <Button variant="outline" size="sm" disabled={users.length < 50} onClick={() => setOffset(offset + 50)}>
-          Siguiente <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {total > 0
+            ? `Mostrando ${offset + 1}–${Math.min(offset + pageSize, total)} de ${total.toLocaleString()} usuarios`
+            : 'Sin resultados'}
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+          </Button>
+          <Button variant="outline" size="sm" disabled={offset + pageSize >= total} onClick={() => setOffset(offset + pageSize)}>
+            Siguiente <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       </div>
 
       {/* Credit adjustment modal */}
