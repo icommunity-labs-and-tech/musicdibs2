@@ -70,7 +70,7 @@ export function DashboardSidebar() {
     { title: tr('dashboard.sidebar.metrics', 'Métricas'), url: '/dashboard/admin/metrics', icon: BarChart3 },
     { title: 'Campañas', url: '/dashboard/admin/campaigns', icon: Megaphone },
     { title: tr('dashboard.sidebar.system', 'Sistema'), url: '/dashboard/admin/system', icon: Settings2 },
-    { title: tr('dashboard.sidebar.premiumPromos', 'Promos Premium'), url: '/dashboard/admin/premium-promos', icon: Megaphone },
+    { title: tr('dashboard.sidebar.premiumPromos', 'Promoción RRSS'), url: '/dashboard/admin/premium-promos', icon: Megaphone },
     { title: 'Costes Features', url: '/dashboard/admin/feature-costs', icon: Settings2 },
     { title: 'Rentabilidad APIs', url: '/dashboard/admin/api-costs', icon: BarChart3 },
     { title: '📊 Métricas Producto', url: '/dashboard/admin/product-metrics', icon: BarChart3 },
