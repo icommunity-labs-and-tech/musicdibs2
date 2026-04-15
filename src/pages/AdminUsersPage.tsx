@@ -17,9 +17,11 @@ import UserDetailSheet from '@/components/admin/UserDetailSheet';
 export default function AdminUsersPage() {
   const { user } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(false);
+  const pageSize = 50;
 
   // Credit modal
   const [creditModal, setCreditModal] = useState<{ open: boolean; userId: string; email: string; currentCredits: number }>({ open: false, userId: '', email: '', currentCredits: 0 });
