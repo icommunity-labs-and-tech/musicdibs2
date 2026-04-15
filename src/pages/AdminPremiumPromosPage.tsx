@@ -8,16 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { adminApi } from '@/services/adminApi';
-import { supabase } from '@/integrations/supabase/client';
+
 import { toast } from 'sonner';
-import { Crown, ChevronLeft, ChevronRight, Eye, Paperclip, Download, Trash2, FileAudio, Video, Image as ImageIcon } from 'lucide-react';
+import { Crown, ChevronLeft, ChevronRight, Eye, Paperclip, Download, FileAudio, Video, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
@@ -63,8 +63,6 @@ export default function AdminPremiumPromosPage() {
   // Files modal state
   const [filesTarget, setFilesTarget] = useState<any | null>(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -146,42 +144,6 @@ export default function AdminPremiumPromosPage() {
     }
   };
 
-  const handleDeleteFiles = async () => {
-    if (!filesTarget) return;
-    setDeleting(true);
-    try {
-      const removePaths: string[] = [];
-      if (filesTarget.audio_file_path) removePaths.push(filesTarget.audio_file_path);
-      if (filesTarget.media_file_path) removePaths.push(filesTarget.media_file_path);
-
-      if (removePaths.length > 0) {
-        const { error: storageErr } = await supabase.storage
-          .from('premium-promo-media')
-          .remove(removePaths);
-        if (storageErr) console.error('Storage delete error:', storageErr);
-      }
-
-      await adminApi.callAction('update_premium_promo_files', {
-        promo_id: filesTarget.id,
-        audio_file_path: null,
-        media_file_path: null,
-        media_file_type: null,
-      });
-
-      toast.success('Archivos eliminados permanentemente');
-      // Update local state
-      setPromos(prev => prev.map(p =>
-        p.id === filesTarget.id
-          ? { ...p, audio_file_path: null, media_file_path: null, media_file_type: null }
-          : p
-      ));
-      setShowDeleteConfirm(false);
-      setFilesTarget(null);
-    } catch (e: any) {
-      toast.error('Error eliminando archivos: ' + e.message);
-    }
-    setDeleting(false);
-  };
 
   const hasFiles = (p: any) => !!(p.audio_file_path || p.media_file_path);
 
@@ -386,38 +348,15 @@ export default function AdminPremiumPromosPage() {
                 )}
               </div>
 
-              {/* Delete button */}
-              {(filesTarget.audio_file_path || filesTarget.media_file_path) && (
-                <Button
-                  variant="destructive"
-                  className="w-full gap-2"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <Trash2 className="h-4 w-4" /> Eliminar archivos permanentemente
-                </Button>
-              )}
+              {/* Close button */}
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => { setFilesTarget(null); setMediaPreviewUrl(null); }}>Cerrar</Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar archivos</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Eliminar ambos archivos permanentemente? Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <Button variant="destructive" disabled={deleting} onClick={handleDeleteFiles}>
-              {deleting ? 'Eliminando...' : 'Eliminar permanentemente'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Rejection Reason Dialog */}
       <AlertDialog open={!!rejectTarget} onOpenChange={open => !open && setRejectTarget(null)}>
