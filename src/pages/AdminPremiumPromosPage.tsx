@@ -156,7 +156,7 @@ export default function AdminPremiumPromosPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Crown className="h-6 w-6 text-amber-400" />
-        <h1 className="text-2xl font-bold">Promos Premium</h1>
+        <h1 className="text-2xl font-bold">Promoción RRSS</h1>
       </div>
 
       {/* Filters */}
