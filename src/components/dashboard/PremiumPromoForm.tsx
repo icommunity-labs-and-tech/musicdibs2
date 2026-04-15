@@ -128,8 +128,16 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   };
 
   const handleSubmit = async () => {
-    if (!user || !artistName.trim() || !songTitle.trim() || !lyrics.trim() || !mediaFile) {
+    if (!user || !artistName.trim() || !songTitle.trim() || !lyrics.trim()) {
       toast.error(t('dashboard.premium.fillRequired'));
+      return;
+    }
+    if (!audioFile) {
+      toast.error(t('dashboard.premium.audioRequired', 'El audio de tu canción es obligatorio'));
+      return;
+    }
+    if (!mediaFile) {
+      toast.error(t('dashboard.premium.mediaRequired', 'El vídeo o imagen es obligatorio'));
       return;
     }
 
@@ -147,17 +155,28 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       }
       if (spendData?.error) throw new Error(spendData.error);
 
-      // Upload media file if present
-      let mediaFilePath: string | null = null;
-      if (mediaFile) {
-        const ext = mediaFile.name.split('.').pop() || 'bin';
-        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('premium-promo-media')
-          .upload(path, mediaFile);
-        if (uploadError) throw new Error(uploadError.message);
-        mediaFilePath = path;
-      }
+      const promoId = crypto.randomUUID();
+      const ts = Date.now();
+
+      // Upload audio file
+      const audioExt = audioFile.name.split('.').pop() || 'mp3';
+      const audioPath = `promotions/${user.id}/${promoId}/audio_${ts}.${audioExt}`;
+      const { error: audioUpErr } = await supabase.storage
+        .from('premium-promo-media')
+        .upload(audioPath, audioFile);
+      if (audioUpErr) throw new Error(audioUpErr.message);
+
+      // Upload media file (video/image)
+      const mediaExt = mediaFile.name.split('.').pop() || 'bin';
+      const mediaPath = `promotions/${user.id}/${promoId}/media_${ts}.${mediaExt}`;
+      const { error: mediaUpErr } = await supabase.storage
+        .from('premium-promo-media')
+        .upload(mediaPath, mediaFile);
+      if (mediaUpErr) throw new Error(mediaUpErr.message);
+
+      // Determine media_file_type
+      const extLower = '.' + mediaExt.toLowerCase();
+      const mediaFileType = VIDEO_EXTS.includes(extLower) ? 'video' : 'image';
 
       // Insert premium request via edge function
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
@@ -168,7 +187,9 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
           description: lyrics.trim(),
           external_link: linksAndNotes.trim() || null,
           team_notes: null,
-          media_file_path: mediaFilePath,
+          media_file_path: mediaPath,
+          audio_file_path: audioPath,
+          media_file_type: mediaFileType,
         },
       });
 
