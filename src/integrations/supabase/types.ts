@@ -1299,12 +1299,14 @@ export type Database = {
       premium_social_promotions: {
         Row: {
           artist_name: string
+          audio_file_path: string | null
           created_at: string
           credits_spent: number
           description: string
           external_link: string | null
           id: string
           media_file_path: string | null
+          media_file_type: string | null
           promo_message: string | null
           promo_style: string | null
           song_title: string
@@ -1316,12 +1318,14 @@ export type Database = {
         }
         Insert: {
           artist_name: string
+          audio_file_path?: string | null
           created_at?: string
           credits_spent?: number
           description: string
           external_link?: string | null
           id?: string
           media_file_path?: string | null
+          media_file_type?: string | null
           promo_message?: string | null
           promo_style?: string | null
           song_title: string
@@ -1333,12 +1337,14 @@ export type Database = {
         }
         Update: {
           artist_name?: string
+          audio_file_path?: string | null
           created_at?: string
           credits_spent?: number
           description?: string
           external_link?: string | null
           id?: string
           media_file_path?: string | null
+          media_file_type?: string | null
           promo_message?: string | null
           promo_style?: string | null
           song_title?: string
