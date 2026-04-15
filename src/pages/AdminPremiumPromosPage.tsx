@@ -63,8 +63,6 @@ export default function AdminPremiumPromosPage() {
   // Files modal state
   const [filesTarget, setFilesTarget] = useState<any | null>(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -386,38 +384,15 @@ export default function AdminPremiumPromosPage() {
                 )}
               </div>
 
-              {/* Delete button */}
-              {(filesTarget.audio_file_path || filesTarget.media_file_path) && (
-                <Button
-                  variant="destructive"
-                  className="w-full gap-2"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <Trash2 className="h-4 w-4" /> Eliminar archivos permanentemente
-                </Button>
-              )}
+              {/* Close button */}
+              <div className="flex justify-end pt-2">
+                <Button variant="outline" onClick={() => { setFilesTarget(null); setMediaPreviewUrl(null); }}>Cerrar</Button>
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar archivos</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Eliminar ambos archivos permanentemente? Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
-            <Button variant="destructive" disabled={deleting} onClick={handleDeleteFiles}>
-              {deleting ? 'Eliminando...' : 'Eliminar permanentemente'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Rejection Reason Dialog */}
       <AlertDialog open={!!rejectTarget} onOpenChange={open => !open && setRejectTarget(null)}>
