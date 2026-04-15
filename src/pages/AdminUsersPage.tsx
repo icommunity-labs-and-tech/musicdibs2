@@ -34,6 +34,7 @@ export default function AdminUsersPage() {
     try {
       const res = await adminApi.getUsers(offset, search);
       setUsers(res.users || []);
+      setTotal(res.total || 0);
     } catch (e: any) {
       toast.error(e.message);
     }
