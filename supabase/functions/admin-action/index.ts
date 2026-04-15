@@ -1401,6 +1401,24 @@ serve(async (req) => {
       return json({ signed_url: data.signedUrl });
     }
 
+    // ── update_premium_promo_files ───────────────────────────────
+    if (action === "update_premium_promo_files") {
+      const { promo_id, audio_file_path, media_file_path, media_file_type } = payload;
+      if (!promo_id) return json({ error: "promo_id required" }, 400);
+
+      const { error: updateErr } = await admin
+        .from("premium_social_promotions")
+        .update({
+          audio_file_path: audio_file_path ?? null,
+          media_file_path: media_file_path ?? null,
+          media_file_type: media_file_type ?? null,
+        })
+        .eq("id", promo_id);
+      if (updateErr) return json({ error: updateErr.message }, 500);
+
+      return json({ success: true });
+    }
+
     // ── delete_work ────────────────────────────────────────────
     if (action === "delete_work") {
       const { work_id } = payload;
