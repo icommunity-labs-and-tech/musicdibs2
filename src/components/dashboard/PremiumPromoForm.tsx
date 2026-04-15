@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   Crown, Loader2, CheckCircle2, Sparkles, Video, Users, Clock,
-  Instagram, Music, ArrowLeft, Upload, FileText, X, Import, AlertTriangle,
+  Instagram, Music, ArrowLeft, Upload, FileText, X, Import,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCredits } from '@/hooks/useCredits';
