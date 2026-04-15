@@ -181,7 +181,7 @@ export default function PromotionPage() {
           {t('promotion.title', 'Promoción RRSS')}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {t('promotion.subtitle', 'Da visibilidad a tu música en redes sociales y medios de comunicación')}
+          {t('promotion.subtitle', 'Da visibilidad a tu música en redes sociales')}
         </p>
       </div>
 
