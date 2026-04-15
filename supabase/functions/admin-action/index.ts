@@ -85,43 +85,85 @@ serve(async (req) => {
 
     if (action === "get_users") {
       const offset = payload.offset || 0;
-      const search = payload.search || "";
+      const pageSize = 50;
+      const search = (payload.search || "").trim();
 
-      const { data: profiles, error } = await admin
+      // Server-side search: if search is provided, find matching user_ids from auth
+      let matchingUserIds: string[] | null = null;
+      if (search) {
+        // Search by email in auth.users
+        const { data: allAuthSearch } = await admin.auth.admin.listUsers({ perPage: 1000 });
+        const searchLower = search.toLowerCase();
+        matchingUserIds = (allAuthSearch?.users || [])
+          .filter((u: any) => u.email?.toLowerCase().includes(searchLower))
+          .map((u: any) => u.id);
+
+        // Also search by display_name in profiles
+        const { data: nameMatches } = await admin
+          .from("profiles")
+          .select("user_id")
+          .ilike("display_name", `%${search}%`);
+        const nameIds = (nameMatches || []).map((p: any) => p.user_id);
+        const mergedSet = new Set([...matchingUserIds, ...nameIds]);
+        matchingUserIds = Array.from(mergedSet);
+
+        if (matchingUserIds.length === 0) {
+          return json({ users: [], total: 0 });
+        }
+      }
+
+      // Get total count
+      let countQuery = admin.from("profiles").select("*", { count: "exact", head: true });
+      if (matchingUserIds) {
+        countQuery = countQuery.in("user_id", matchingUserIds);
+      }
+      const { count: totalCount } = await countQuery;
+
+      // Get page of profiles
+      let profilesQuery = admin
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false })
-        .range(offset, offset + 49);
+        .range(offset, offset + pageSize - 1);
+      if (matchingUserIds) {
+        profilesQuery = profilesQuery.in("user_id", matchingUserIds);
+      }
+      const { data: profiles, error } = await profilesQuery;
       if (error) return json({ error: error.message }, 500);
 
       const userIds = (profiles || []).map((p: any) => p.user_id);
+      if (userIds.length === 0) return json({ users: [], total: totalCount || 0 });
 
-      // 1 query for all roles
-      const { data: roles } = await admin.from("user_roles").select("user_id, role").in("user_id", userIds);
+      // Batch queries for roles, works, and auth emails
+      const [rolesRes, worksRes] = await Promise.all([
+        admin.from("user_roles").select("user_id, role").in("user_id", userIds),
+        admin.from("works").select("user_id").in("user_id", userIds),
+      ]);
+
       const rolesMap: Record<string, string[]> = {};
-      (roles || []).forEach((r: any) => {
+      (rolesRes.data || []).forEach((r: any) => {
         if (!rolesMap[r.user_id]) rolesMap[r.user_id] = [];
         rolesMap[r.user_id].push(r.role);
       });
 
-      // 1 query for all works counts
-      const { data: worksCounts } = await admin.from("works").select("user_id").in("user_id", userIds);
       const worksCountMap: Record<string, number> = {};
-      (worksCounts || []).forEach((w: any) => {
+      (worksRes.data || []).forEach((w: any) => {
         worksCountMap[w.user_id] = (worksCountMap[w.user_id] || 0) + 1;
       });
 
-      // 1 call for all auth users (emails + metadata)
-      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
+      // Fetch emails only for this page's users
       const emailsMap: Record<string, string> = {};
       const metaNameMap: Record<string, string> = {};
-      (authUsers || []).forEach((u: any) => {
-        if (u.email) emailsMap[u.id] = u.email;
-        const metaName = u.user_metadata?.display_name || u.user_metadata?.full_name || "";
-        if (metaName) metaNameMap[u.id] = metaName;
-      });
+      for (const uid of userIds) {
+        try {
+          const { data: authData } = await admin.auth.admin.getUserById(uid);
+          if (authData?.user?.email) emailsMap[uid] = authData.user.email;
+          const metaName = authData?.user?.user_metadata?.display_name || authData?.user?.user_metadata?.full_name || "";
+          if (metaName) metaNameMap[uid] = metaName;
+        } catch { /* skip */ }
+      }
 
-      let result = (profiles || []).map((p: any) => ({
+      const result = (profiles || []).map((p: any) => ({
         ...p,
         display_name: p.display_name || metaNameMap[p.user_id] || "",
         roles: rolesMap[p.user_id] || ["user"],
@@ -129,14 +171,7 @@ serve(async (req) => {
         email: emailsMap[p.user_id] || "",
       }));
 
-      if (search) {
-        result = result.filter((u: any) =>
-          u.email.toLowerCase().includes(search.toLowerCase()) ||
-          u.display_name?.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      return json({ users: result, total: result.length });
+      return json({ users: result, total: totalCount || 0 });
     }
 
     if (action === "adjust_credits") {
