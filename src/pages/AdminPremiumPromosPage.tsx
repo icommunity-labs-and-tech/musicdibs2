@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
 } from '@/components/ui/alert-dialog';
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
