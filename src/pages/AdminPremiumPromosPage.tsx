@@ -8,9 +8,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { adminApi } from '@/services/adminApi';
-import { supabase } from '@/integrations/supabase/client';
+
 import { toast } from 'sonner';
-import { Crown, ChevronLeft, ChevronRight, Eye, Paperclip, Download, Trash2, FileAudio, Video, Image as ImageIcon } from 'lucide-react';
+import { Crown, ChevronLeft, ChevronRight, Eye, Paperclip, Download, FileAudio, Video, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
