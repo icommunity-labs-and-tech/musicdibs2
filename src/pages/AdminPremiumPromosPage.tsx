@@ -8,16 +8,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { adminApi } from '@/services/adminApi';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Crown, ChevronLeft, ChevronRight, Eye, Download } from 'lucide-react';
+import { Crown, ChevronLeft, ChevronRight, Eye, Paperclip, Download, Trash2, FileAudio, Video, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
 } from '@/components/ui/alert-dialog';
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const STATUS_OPTIONS = [
   { value: 'submitted', label: 'Pendiente', badge: 'bg-yellow-500/20 text-yellow-400' },
@@ -32,6 +36,11 @@ const statusBadge = (status: string) => {
   const s = STATUS_OPTIONS.find(o => o.value === status);
   return s ? <Badge className={s.badge}>{s.label}</Badge> : <Badge variant="outline">{status}</Badge>;
 };
+
+function extractFileName(path: string | null): string {
+  if (!path) return '';
+  return path.split('/').pop() || path;
+}
 
 export default function AdminPremiumPromosPage() {
   const [promos, setPromos] = useState<any[]>([]);
@@ -50,6 +59,12 @@ export default function AdminPremiumPromosPage() {
   const [igUrl, setIgUrl] = useState('');
   const [tiktokUrl, setTiktokUrl] = useState('');
   const [publishing, setPublishing] = useState(false);
+
+  // Files modal state
+  const [filesTarget, setFilesTarget] = useState<any | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -100,12 +115,11 @@ export default function AdminPremiumPromosPage() {
     if (selected?.id === publishTarget.id) setSelected(null);
   };
 
-  const downloadMedia = async (filePath: string) => {
+  const downloadFile = async (filePath: string) => {
     try {
       const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: filePath });
       if (!res?.signed_url) throw new Error('No se pudo obtener la URL del archivo');
-
-      const filename = filePath.split('/').pop() || 'media';
+      const filename = extractFileName(filePath);
       const response = await fetch(res.signed_url);
       if (!response.ok) throw new Error('Download failed');
       const blob = await response.blob();
@@ -119,6 +133,57 @@ export default function AdminPremiumPromosPage() {
       URL.revokeObjectURL(blobUrl);
     } catch (e: any) { toast.error('Error descargando archivo: ' + e.message); }
   };
+
+  const openFilesModal = async (promo: any) => {
+    setFilesTarget(promo);
+    setMediaPreviewUrl(null);
+    // If it's an image, get a preview URL
+    if (promo.media_file_path && promo.media_file_type === 'image') {
+      try {
+        const res = await adminApi.callAction('get_premium_promo_media_url', { file_path: promo.media_file_path });
+        if (res?.signed_url) setMediaPreviewUrl(res.signed_url);
+      } catch { /* ignore */ }
+    }
+  };
+
+  const handleDeleteFiles = async () => {
+    if (!filesTarget) return;
+    setDeleting(true);
+    try {
+      const removePaths: string[] = [];
+      if (filesTarget.audio_file_path) removePaths.push(filesTarget.audio_file_path);
+      if (filesTarget.media_file_path) removePaths.push(filesTarget.media_file_path);
+
+      if (removePaths.length > 0) {
+        const { error: storageErr } = await supabase.storage
+          .from('premium-promo-media')
+          .remove(removePaths);
+        if (storageErr) console.error('Storage delete error:', storageErr);
+      }
+
+      await adminApi.callAction('update_premium_promo_files', {
+        promo_id: filesTarget.id,
+        audio_file_path: null,
+        media_file_path: null,
+        media_file_type: null,
+      });
+
+      toast.success('Archivos eliminados permanentemente');
+      // Update local state
+      setPromos(prev => prev.map(p =>
+        p.id === filesTarget.id
+          ? { ...p, audio_file_path: null, media_file_path: null, media_file_type: null }
+          : p
+      ));
+      setShowDeleteConfirm(false);
+      setFilesTarget(null);
+    } catch (e: any) {
+      toast.error('Error eliminando archivos: ' + e.message);
+    }
+    setDeleting(false);
+  };
+
+  const hasFiles = (p: any) => !!(p.audio_file_path || p.media_file_path);
 
   return (
     <div className="space-y-6">
@@ -158,28 +223,46 @@ export default function AdminPremiumPromosPage() {
                 <TableHead>Artista</TableHead>
                 <TableHead>Canción</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead className="text-center">Archivos</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
               ) : promos.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Sin solicitudes</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Sin solicitudes</TableCell></TableRow>
               ) : promos.map(p => (
                 <TableRow key={p.id}>
                   <TableCell className="text-xs text-muted-foreground">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</TableCell>
                   <TableCell className="font-medium">{p.artist_name}</TableCell>
                   <TableCell>{p.song_title}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{p.user_email || '—'}</TableCell>
+                  <TableCell className="text-center">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => openFilesModal(p)}
+                          >
+                            <Paperclip
+                              className="h-4 w-4"
+                              style={{ color: hasFiles(p) ? '#7C3AED' : undefined }}
+                            />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {hasFiles(p) ? 'Ver archivos adjuntos' : 'Archivos eliminados'}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
                   <TableCell>{statusBadge(p.status)}</TableCell>
                   <TableCell className="text-right space-x-2">
-                    {p.media_file_path && (
-                      <Button variant="ghost" size="icon" onClick={() => downloadMedia(p.media_file_path)} title="Descargar archivo">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    )}
                     <Button variant="ghost" size="icon" onClick={() => setSelected(p)}><Eye className="h-4 w-4" /></Button>
                     {p.status === 'submitted' && (
                       <Button size="sm" variant="outline" onClick={() => changeStatus(p.id, 'approved')}>Aprobar</Button>
@@ -224,19 +307,6 @@ export default function AdminPremiumPromosPage() {
                 <span className="text-muted-foreground">Letra</span><span className="whitespace-pre-wrap max-h-40 overflow-y-auto">{selected.description}</span>
                 <span className="text-muted-foreground">Enlaces / Notas</span>
                 <span className="whitespace-pre-wrap">{selected.external_link || '—'}</span>
-                {selected.media_file_path && (
-                  <>
-                    <span className="text-muted-foreground">Archivo adjunto</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 w-fit"
-                      onClick={() => downloadMedia(selected.media_file_path)}
-                    >
-                      <Download className="h-3.5 w-3.5" /> Descargar
-                    </Button>
-                  </>
-                )}
                 {selected.team_notes && (
                   <>
                     <span className="text-muted-foreground">Motivo rechazo</span>
@@ -260,6 +330,94 @@ export default function AdminPremiumPromosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Files Modal */}
+      <Dialog open={!!filesTarget} onOpenChange={open => { if (!open) { setFilesTarget(null); setMediaPreviewUrl(null); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4" style={{ color: '#7C3AED' }} />
+              Archivos adjuntos — {filesTarget?.artist_name} · {filesTarget?.song_title}
+            </DialogTitle>
+          </DialogHeader>
+          {filesTarget && (
+            <div className="space-y-5">
+              {/* Audio section */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  <FileAudio className="h-4 w-4 text-muted-foreground" /> Audio
+                </h4>
+                {filesTarget.audio_file_path ? (
+                  <div className="flex items-center justify-between rounded-md border border-border/40 p-3">
+                    <span className="text-sm truncate flex-1">{extractFileName(filesTarget.audio_file_path)}</span>
+                    <Button variant="outline" size="sm" className="gap-1 shrink-0 ml-2" onClick={() => downloadFile(filesTarget.audio_file_path)}>
+                      <Download className="h-3.5 w-3.5" /> Descargar audio
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sin archivo de audio</p>
+                )}
+              </div>
+
+              {/* Media section */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium flex items-center gap-2">
+                  {filesTarget.media_file_type === 'video' ? (
+                    <Video className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  Vídeo / Imagen
+                </h4>
+                {filesTarget.media_file_path ? (
+                  <div className="space-y-2">
+                    {filesTarget.media_file_type === 'image' && mediaPreviewUrl && (
+                      <img src={mediaPreviewUrl} alt="Preview" className="w-full max-h-48 object-contain rounded-md border border-border/40" />
+                    )}
+                    <div className="flex items-center justify-between rounded-md border border-border/40 p-3">
+                      <span className="text-sm truncate flex-1">{extractFileName(filesTarget.media_file_path)}</span>
+                      <Button variant="outline" size="sm" className="gap-1 shrink-0 ml-2" onClick={() => downloadFile(filesTarget.media_file_path)}>
+                        <Download className="h-3.5 w-3.5" /> Descargar {filesTarget.media_file_type === 'video' ? 'vídeo' : 'imagen'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sin vídeo ni imagen</p>
+                )}
+              </div>
+
+              {/* Delete button */}
+              {(filesTarget.audio_file_path || filesTarget.media_file_path) && (
+                <Button
+                  variant="destructive"
+                  className="w-full gap-2"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="h-4 w-4" /> Eliminar archivos permanentemente
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar archivos</AlertDialogTitle>
+            <AlertDialogDescription>
+              ¿Eliminar ambos archivos permanentemente? Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <Button variant="destructive" disabled={deleting} onClick={handleDeleteFiles}>
+              {deleting ? 'Eliminando...' : 'Eliminar permanentemente'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Rejection Reason Dialog */}
       <AlertDialog open={!!rejectTarget} onOpenChange={open => !open && setRejectTarget(null)}>
