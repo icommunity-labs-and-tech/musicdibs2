@@ -144,42 +144,6 @@ export default function AdminPremiumPromosPage() {
     }
   };
 
-  const handleDeleteFiles = async () => {
-    if (!filesTarget) return;
-    setDeleting(true);
-    try {
-      const removePaths: string[] = [];
-      if (filesTarget.audio_file_path) removePaths.push(filesTarget.audio_file_path);
-      if (filesTarget.media_file_path) removePaths.push(filesTarget.media_file_path);
-
-      if (removePaths.length > 0) {
-        const { error: storageErr } = await supabase.storage
-          .from('premium-promo-media')
-          .remove(removePaths);
-        if (storageErr) console.error('Storage delete error:', storageErr);
-      }
-
-      await adminApi.callAction('update_premium_promo_files', {
-        promo_id: filesTarget.id,
-        audio_file_path: null,
-        media_file_path: null,
-        media_file_type: null,
-      });
-
-      toast.success('Archivos eliminados permanentemente');
-      // Update local state
-      setPromos(prev => prev.map(p =>
-        p.id === filesTarget.id
-          ? { ...p, audio_file_path: null, media_file_path: null, media_file_type: null }
-          : p
-      ));
-      setShowDeleteConfirm(false);
-      setFilesTarget(null);
-    } catch (e: any) {
-      toast.error('Error eliminando archivos: ' + e.message);
-    }
-    setDeleting(false);
-  };
 
   const hasFiles = (p: any) => !!(p.audio_file_path || p.media_file_path);
 
