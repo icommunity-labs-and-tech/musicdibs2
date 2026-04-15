@@ -250,13 +250,20 @@ export default function AdminUsersPage() {
         </Table>
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 50))}>
-          <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-        </Button>
-        <Button variant="outline" size="sm" disabled={users.length < 50} onClick={() => setOffset(offset + 50)}>
-          Siguiente <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {total > 0
+            ? `Mostrando ${offset + 1}–${Math.min(offset + pageSize, total)} de ${total.toLocaleString()} usuarios`
+            : 'Sin resultados'}
+        </p>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - pageSize))}>
+            <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+          </Button>
+          <Button variant="outline" size="sm" disabled={offset + pageSize >= total} onClick={() => setOffset(offset + pageSize)}>
+            Siguiente <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
       </div>
 
       {/* Credit adjustment modal */}
