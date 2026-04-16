@@ -193,7 +193,7 @@ Return ONLY the rewritten prompt as a single paragraph. No preamble, no explanat
           body: JSON.stringify({
             system_instruction: { parts: [{ text: systemPrompt }] },
             contents: [{ role: 'user', parts }],
-            generationConfig: { maxOutputTokens: 1200, temperature: 0.8 },
+            generationConfig: { maxOutputTokens: 4096, temperature: 0.8 },
           }),
         });
 
@@ -240,7 +240,7 @@ Return ONLY the rewritten prompt as a single paragraph. No preamble, no explanat
         },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1200,
+          max_tokens: 4096,
           system: systemPrompt,
           messages: [{ role: 'user', content: anthroContent }],
         }),
