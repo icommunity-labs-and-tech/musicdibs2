@@ -224,6 +224,7 @@ serve(async (req) => {
         errored,
         outputUrl,
         progress:  prod.status_progress ?? 0,
+        errorMessage: errored ? (prod.error_message || prod.status_string || null) : null,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
@@ -306,10 +307,32 @@ serve(async (req) => {
 
     if (!auphRes.ok) {
       const errText = await auphRes.text()
-      console.error("[AUPHONIC] API error:", errText)
-      await refundCredits(`Auphonic error: ${auphRes.status}`)
-      return new Response(JSON.stringify({ error: `Auphonic error: ${auphRes.status}` }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } })
+      console.error(`[AUPHONIC] API error status=${auphRes.status} body=${errText.slice(0, 500)}`)
+      await refundCredits(`Auphonic ${auphRes.status}`)
+
+      // Map upstream status to user-actionable error codes
+      let errorCode = "auphonic_error"
+      let httpStatus = 502
+      if (auphRes.status === 401 || auphRes.status === 403) {
+        errorCode = "auphonic_auth_error"
+        httpStatus = 500 // config issue on our side
+      } else if (auphRes.status === 400 || auphRes.status === 422) {
+        errorCode = "auphonic_invalid_audio"
+        httpStatus = 400
+      } else if (auphRes.status === 429) {
+        errorCode = "auphonic_rate_limited"
+        httpStatus = 429
+      } else if (auphRes.status >= 500) {
+        errorCode = "auphonic_service_unavailable"
+        httpStatus = 503
+      }
+
+      return new Response(JSON.stringify({
+        error: errorCode,
+        upstream_status: auphRes.status,
+        detail: errText.slice(0, 300),
+        retryable: httpStatus >= 500 || httpStatus === 429,
+      }), { status: httpStatus, headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
     const auphData = await auphRes.json()
