@@ -1313,13 +1313,13 @@ const AIStudioCreate = () => {
                           }
                         </button>
                       </div>
-                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={1000} placeholder={t('aiCreate.lyricsDescPlaceholder')} />
+                      <Textarea value={lyricsDesc} onChange={e => setLyricsDesc(e.target.value)} rows={3} className="resize-none" maxLength={2500} placeholder={t('aiCreate.lyricsDescPlaceholder')} />
                       {improvedLyricsDesc && (
                         <p className="text-xs text-muted-foreground mt-1">
                           {t('aiCreate.lyricsDescImproved')} — {t('aiCreate.lyricsDescImprovedSub')}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/1000</p>
+                      <p className="text-xs text-muted-foreground text-right">{lyricsDesc.length}/2500</p>
                     </div>
 
 
