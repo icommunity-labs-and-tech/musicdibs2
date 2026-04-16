@@ -189,15 +189,19 @@ const AIStudioEdit = () => {
       // Poll for result
       pollingRef.current = setInterval(async () => {
         try {
-          const { data: st } = await supabase.functions.invoke("auphonic-enhance", {
+          const { data: st, error: stErr } = await supabase.functions.invoke("auphonic-enhance", {
             body: { action: "status", productionUuid: uuid },
           });
+          if (stErr) {
+            console.warn('[Auphonic] status poll transient error', stErr);
+            return; // continue polling
+          }
           if (st?.done) {
             stopPolling();
             stopProgress();
             setProgressPercent(100);
             setActiveStep(PROCESSING_STEPS.length - 1);
-            
+
             setTimeout(() => {
               setProcessedUrl(st.outputUrl);
               setIsProcessing(false);
@@ -208,9 +212,19 @@ const AIStudioEdit = () => {
             stopPolling();
             stopProgress();
             setIsProcessing(false);
-            setProcessError(tr('errorGeneric'));
+            // Map upstream Auphonic error message via centralized handler
+            const { userMessage } = parseAiError(
+              new Error(st.errorMessage || 'auphonic_error'),
+              { error: st.errorMessage } as any,
+            );
+            setProcessError(userMessage);
+            console.error('[Auphonic] processing failed:', st.errorMessage);
+            track('enhance_audio_failed', { feature: 'enhance_audio', reason: st.errorMessage || 'unknown' });
           }
-        } catch { /* continue polling */ }
+        } catch (e) {
+          console.warn('[Auphonic] status poll exception', e);
+          /* continue polling */
+        }
       }, 8000);
 
       // Timeout after 5 min
@@ -226,8 +240,14 @@ const AIStudioEdit = () => {
     } catch (err: any) {
       stopProgress();
       setIsProcessing(false);
-      const { userMessage } = parseAiError(err);
+      // Edge function errors via supabase.functions.invoke include the response body in context
+      const responseData =
+        (err?.context?.body && typeof err.context.body === 'object') ? err.context.body :
+        (err?.context && typeof err.context === 'object' ? err.context : null);
+      const { userMessage } = parseAiError(err, responseData);
       setProcessError(userMessage);
+      console.error('[Auphonic] enhance failed:', err);
+      track('enhance_audio_failed', { feature: 'enhance_audio', reason: err?.message || 'unknown' });
     }
   };
 
