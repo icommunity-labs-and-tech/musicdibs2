@@ -21,6 +21,7 @@ type EventName =
   | 'premium_promotion_submitted'
   | 'enhance_audio_started'
   | 'enhance_audio_completed'
+  | 'enhance_audio_failed'
   | 'distribution_clicked'
   | 'ai_studio_tab_changed';
 
