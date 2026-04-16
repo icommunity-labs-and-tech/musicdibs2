@@ -1801,8 +1801,18 @@ const AIStudioCreate = () => {
             ) : (
               <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="save-artist-voice">{t('aiCreate.saveArtistVoice')}</Label>
-                  <Select value={lastGeneratedVoiceId || voiceProfiles[0]?.id || ''} onValueChange={(value) => {
+                  <Label htmlFor="save-artist-voice">
+                    {t('aiCreate.saveArtistVoice')}
+                    {saveArtistStyle.trim().length > 10 && (
+                      <span className="text-muted-foreground font-normal"> (opcional)</span>
+                    )}
+                  </Label>
+                  <Select value={lastGeneratedVoiceId || (saveArtistStyle.trim().length > 10 ? '' : voiceProfiles[0]?.id || '')} onValueChange={(value) => {
+                    if (value === '__none__') {
+                      setLastGeneratedVoiceId('');
+                      setLastGeneratedVoiceName('');
+                      return;
+                    }
                     setLastGeneratedVoiceId(value);
                     const profile = voiceProfiles.find(v => v.id === value);
                     setLastGeneratedVoiceName(profile?.label || '');
@@ -1811,11 +1821,19 @@ const AIStudioCreate = () => {
                       <SelectValue placeholder={t('aiCreate.saveArtistVoiceOptional')} />
                     </SelectTrigger>
                     <SelectContent>
+                      {saveArtistStyle.trim().length > 10 && (
+                        <SelectItem value="__none__">— Sin voz específica —</SelectItem>
+                      )}
                       {voiceProfiles.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>{voice.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {saveArtistStyle.trim().length > 10 && !lastGeneratedVoiceId && (
+                    <p className="text-xs text-muted-foreground">
+                      Como has añadido una descripción de estilo detallada, la voz es opcional.
+                    </p>
+                  )}
                 </div>
                 {lastGeneratedVoiceName && (
                   <div className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
