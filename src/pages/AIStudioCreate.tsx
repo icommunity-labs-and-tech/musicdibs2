@@ -1500,7 +1500,7 @@ const AIStudioCreate = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
                   {lyricsHistory.map((item) => (
                     <Card key={item.id} className="border-border/40">
                       <CardContent className="p-4 space-y-3">
@@ -1664,7 +1664,7 @@ const AIStudioCreate = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-2">
                     {filteredResults.map(result => (
                       <Card key={result.id} className="overflow-hidden">
                         <CardContent className="p-4">
