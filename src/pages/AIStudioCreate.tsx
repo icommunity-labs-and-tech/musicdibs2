@@ -1254,7 +1254,7 @@ const AIStudioCreate = () => {
                         <>
                         <Button
                           onClick={handleGenerate}
-                          disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10 || (mode === 'song' && !selectedVoice && !selectedArtistId)}
+                          disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10}
                           className="w-full"
                           size="lg"
                         >
