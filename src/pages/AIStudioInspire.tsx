@@ -61,7 +61,7 @@ const AIStudioInspire = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-12 pt-24">
+      <main className="container mx-auto px-4 py-6 pt-16">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
           <ArrowLeft className="w-4 h-4" />
           {t('aiInspire.backToStudio')}
