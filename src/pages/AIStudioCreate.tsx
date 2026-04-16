@@ -812,11 +812,11 @@ const AIStudioCreate = () => {
           {t('aiCreate.backToStudio')}
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 lg:items-stretch">
           {/* ═══ LEFT: Creation Panel ═══ */}
-          <div className="space-y-6" ref={formRef}>
+          <div className="space-y-6 flex flex-col" ref={formRef}>
             <MusicCreatorTour />
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between min-h-[68px]">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
                 <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
