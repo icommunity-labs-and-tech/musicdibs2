@@ -812,11 +812,11 @@ const AIStudioCreate = () => {
           {t('aiCreate.backToStudio')}
         </Link>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid lg:grid-cols-2 gap-8 lg:items-stretch">
           {/* ═══ LEFT: Creation Panel ═══ */}
-          <div className="space-y-6" ref={formRef}>
+          <div className="space-y-6 flex flex-col" ref={formRef}>
             <MusicCreatorTour />
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between min-h-[68px]">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{t('aiCreate.title')}</h1>
                 <p className="text-muted-foreground">{t('aiCreate.subtitle')}</p>
@@ -1460,8 +1460,8 @@ const AIStudioCreate = () => {
           </div>
 
           {/* ═══ RIGHT: Results Panel ═══ */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="space-y-6 flex flex-col">
+            <div className="flex items-center justify-between min-h-[68px]">
               <h2 className="text-xl font-semibold">
                 {activeTab === "lyrics" ? t('aiCreate.myLyrics') : t('aiCreate.results')}
               </h2>
@@ -1500,7 +1500,7 @@ const AIStudioCreate = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                <div className="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
                   {lyricsHistory.map((item) => (
                     <Card key={item.id} className="border-border/40">
                       <CardContent className="p-4 space-y-3">
@@ -1664,7 +1664,7 @@ const AIStudioCreate = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                  <div className="space-y-4 flex-1 min-h-0 overflow-y-auto pr-2">
                     {filteredResults.map(result => (
                       <Card key={result.id} className="overflow-hidden">
                         <CardContent className="p-4">
