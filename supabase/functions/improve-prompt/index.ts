@@ -90,8 +90,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
-    if (!ANTHROPIC_API_KEY) {
+    if (!GEMINI_API_KEY && !ANTHROPIC_API_KEY) {
       return new Response(JSON.stringify({ error: 'Server configuration error' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -101,7 +102,6 @@ serve(async (req) => {
 
     const isVisualMode = mode in VISUAL_SYSTEM_PROMPTS;
 
-    // For visual modes, prompt can be empty if image is provided
     if (!prompt?.trim() && !isVisualMode) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -115,90 +115,147 @@ serve(async (req) => {
     }
 
     let systemPrompt: string;
-    let userContent: any;
+    let userTextContent: string;
+    let userImageContent: { url: string } | null = null;
 
     if (isVisualMode) {
       systemPrompt = VISUAL_SYSTEM_PROMPTS[mode];
-
-      const parts: any[] = [];
-
-      if (image_base64) {
-        parts.push({
-          type: 'image',
-          source: { type: 'base64', media_type: 'image/jpeg', data: image_base64 }
-        });
-      }
-
-      const textInstruction = prompt?.trim()
+      userTextContent = prompt?.trim()
         ? `Create an optimized image generation prompt based on this description: "${prompt}". Return ONLY the improved prompt.`
         : `Analyze this photo and create an optimized image generation prompt for a music promotional creative inspired by it. Return ONLY the prompt.`;
-
-      parts.push({ type: 'text', text: textInstruction });
-
-      userContent = parts;
+      if (image_base64) {
+        userImageContent = { url: `data:image/jpeg;base64,${image_base64}` };
+      }
     } else {
       const modeContext = mode === 'instrumental'
         ? 'an instrumental track (no lyrics, no voice)'
-        : 'a full song with voice and lyrics';
+        : 'a full song with vocals and lyrics';
 
       const contextParts = [];
       if (genre) contextParts.push(`Genre: ${genre}`);
       if (mood) contextParts.push(`Mood: ${mood}`);
-      const contextStr = contextParts.length > 0 ? `\nAdditional context: ${contextParts.join(', ')}` : '';
+      const contextStr = contextParts.length > 0 ? `\nUser-selected context: ${contextParts.join(', ')}` : '';
 
-      systemPrompt = `You are an expert in music production and AI music generation systems.
-Your task is to improve and optimize song descriptions to get the best results from music generation APIs like ElevenLabs.
+      systemPrompt = `You are a world-class music producer and AI prompt engineer specialized in writing ultra-detailed prompts for AI music generation systems (Suno, ElevenLabs Music, Udio, Mureka).
 
-CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in.
-- If the user wrote in Spanish -> respond in Spanish
-- If the user wrote in English -> respond in English
-- If the user wrote in French -> respond in French
-- If the user wrote in any other language -> respond in that same language
-NEVER translate the response to a different language than the input.
+Your task: take the user's rough description and rewrite it as a PROFESSIONAL, PRODUCTION-READY prompt that maximizes audio quality and musical coherence.
 
-Other strict rules:
-1. Fix spelling and grammar errors
-2. Expand vague descriptions with specific musical details (tempo, instruments, structure, energy, BPM range)
-3. NEVER use words related to explicit violence, war, weapons, death, illegal drugs, sexual content
-4. Replace problematic terms with valid musical equivalents:
-   - "war" / "guerra" -> "inner conflict" / "conflicto interior", "struggle" / "lucha", "adversity" / "adversidad"
-   - "kill" / "matar" -> "overcome" / "superar", "conquer" / "vencer"
-   - "drugs" / "drogas" -> "excesses" / "excesos", "nightlife" / "vida nocturna"
-5. Keep the original spirit and style the user intended
-6. Description must be between 50-150 words
-7. Format: return ONLY the improved description, no explanations or additional comments
-8. Include elements like: music genre, subgenre, key instruments, tempo/energy, atmosphere, style references`;
+═══ CRITICAL LANGUAGE RULE ═══
+Detect the language the user wrote in and respond in that EXACT same language. Spanish → Spanish, English → English, Portuguese → Portuguese, French → French, etc. NEVER translate. Keep technical music terms (BPM, verse, drop, sidechain, reverb, etc.) in English even when responding in other languages — that's industry standard.
 
-      userContent = `Improve this description for ${modeContext}:${contextStr}\n\nOriginal description: "${prompt}"\n\nIMPORTANT: Respond in the EXACT SAME LANGUAGE as the original description above. Return ONLY the improved description.`;
+═══ STRUCTURE OF THE OUTPUT (MANDATORY) ═══
+Write a single flowing paragraph (no bullet points, no headers, no markdown) of 180–350 words that includes ALL of these elements naturally woven together:
+
+1. **Genre & subgenre**: be specific (e.g. "synthwave with vaporwave influences" instead of just "electronic"; "neo-soul with trap drums" instead of just "R&B").
+2. **BPM range**: give a precise tempo (e.g. "92 BPM", "128 BPM", "65–70 BPM").
+3. **Key & mode**: suggest a musical key (e.g. "C minor", "F# major", "A Dorian") that fits the mood.
+4. **Song structure**: describe sections in order (intro → verse → pre-chorus → chorus → bridge → outro) with bar counts when relevant.
+5. **Instrumentation**: name specific instruments and synths (e.g. "Juno-60 pads", "808 sub-bass", "Rhodes electric piano", "muted Strat guitar", "analog tape drums", "TR-909 hi-hats").
+6. **Production techniques**: include mixing/mastering cues (e.g. "warm analog saturation", "wide stereo reverb", "sidechain compression on the pads", "tape hiss", "lo-fi vinyl crackle", "punchy mastering").
+7. **Vocal direction** (only for full songs): voice type, gender, range, vocal style, FX (e.g. "breathy female alto with light autotune and slap delay", "raspy male tenor with doubled harmonies"), vocal placement (lead + backing).
+8. **Mood & atmosphere**: emotional arc, dynamics, energy curve.
+9. **Reference artists or tracks**: 2–4 reference artists in the same vein (e.g. "in the vein of The Weeknd, Daft Punk and Tame Impala") to anchor the style.
+10. **Lyrical theme** (full songs): topic, point of view, imagery — and PRESERVE any lyrics the user already wrote, embedding them verbatim with section tags like [Verse 1], [Chorus], [Bridge].
+
+═══ CONTENT SAFETY (STRICT) ═══
+Replace any unsafe terminology with creative musical equivalents:
+- violence/war → "inner conflict", "struggle", "adversity"
+- kill/death → "overcome", "transform", "let go"
+- drugs → "nightlife", "altered states", "excess"
+- explicit sexual content → "intimacy", "passion", "desire"
+Never include weapons, slurs, hate speech, or illegal activity.
+
+═══ OUTPUT FORMAT ═══
+Return ONLY the rewritten prompt as a single paragraph. No preamble, no explanation, no quotes around the response, no markdown headers. Length: 180–350 words.`;
+
+      userTextContent = `Rewrite this song description for ${modeContext}.${contextStr}\n\nOriginal description from the user:\n"""\n${prompt}\n"""\n\nProduce the final professional prompt now, in the SAME language as the original. Return ONLY the rewritten prompt as a single flowing paragraph.`;
     }
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userContent }],
-      }),
-    });
+    let improved: string | null = null;
+    let lastError = '';
 
-    if (!response.ok) {
-      const err = await response.text();
-      return new Response(JSON.stringify({ error: 'Claude API error', details: err }), {
-        status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    // Try Google Generative Language API (Gemini 3 Flash) first
+    if (GEMINI_API_KEY) {
+      try {
+        const geminiModel = 'gemini-3-flash-preview';
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`;
+
+        const parts: any[] = [{ text: userTextContent }];
+        if (image_base64) {
+          parts.unshift({
+            inline_data: { mime_type: 'image/jpeg', data: image_base64 },
+          });
+        }
+
+        const gResp = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts }],
+            generationConfig: { maxOutputTokens: 1200, temperature: 0.8 },
+          }),
+        });
+
+        if (gResp.status === 429) {
+          return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again later.' }), {
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        if (gResp.ok) {
+          const data = await gResp.json();
+          const text = data?.candidates?.[0]?.content?.parts
+            ?.map((p: any) => p?.text || '')
+            .join('')
+            .trim();
+          improved = text || null;
+        } else {
+          lastError = `Gemini ${gResp.status}: ${await gResp.text()}`;
+          console.error('[improve-prompt] Gemini failed:', lastError);
+        }
+      } catch (e) {
+        lastError = `Gemini exception: ${e instanceof Error ? e.message : String(e)}`;
+        console.error('[improve-prompt]', lastError);
+      }
+    }
+
+    // Fallback to Anthropic Claude if gateway failed
+    if (!improved && ANTHROPIC_API_KEY) {
+      const anthroContent: any[] = [];
+      if (userImageContent) {
+        anthroContent.push({
+          type: 'image',
+          source: { type: 'base64', media_type: 'image/jpeg', data: image_base64 }
+        });
+      }
+      anthroContent.push({ type: 'text', text: userTextContent });
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': ANTHROPIC_API_KEY,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1200,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: anthroContent }],
+        }),
       });
-    }
 
-    const data = await response.json();
-    const improved = data.content?.[0]?.text?.trim();
+      if (response.ok) {
+        const data = await response.json();
+        improved = data.content?.[0]?.text?.trim() || null;
+      } else {
+        lastError = `Claude ${response.status}: ${await response.text()}`;
+      }
+    }
 
     if (!improved) {
-      return new Response(JSON.stringify({ error: 'No response from Claude' }), {
+      return new Response(JSON.stringify({ error: 'Could not improve prompt', details: lastError }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
@@ -208,7 +265,8 @@ Other strict rules:
     });
 
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+    console.error('[improve-prompt] Fatal:', error);
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
