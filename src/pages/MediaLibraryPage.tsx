@@ -63,131 +63,156 @@ export default function MediaLibraryPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const editInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ── Fetch all assets ──
+  // ── Cache key ──
+  const cacheKey = user ? `media_library_cache_${user.id}` : '';
+
+  // ── Fetch all assets (parallel + cached) ──
   useEffect(() => {
     if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const allAssets: MediaAsset[] = [];
 
-      // Songs from ai_generations
-      const { data: songs } = await supabase
+    // Try to load from sessionStorage cache first for instant display
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { assets: cachedAssets, ts } = JSON.parse(cached);
+        // Use cache if less than 2 minutes old
+        if (Date.now() - ts < 120_000) {
+          setAssets(cachedAssets);
+          setLoading(false);
+          // Still refresh in background
+          loadAssets(user.id, false);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
+
+    loadAssets(user.id, true);
+  }, [user]);
+
+  const loadAssets = async (userId: string, showSpinner: boolean) => {
+    if (showSpinner) setLoading(true);
+
+    // Run ALL queries in parallel
+    const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
+      supabase
         .from("ai_generations")
         .select("id, prompt, audio_url, genre, mood, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (songs) {
-        songs.forEach((s) =>
-          allAssets.push({
-            id: s.id,
-            type: "song",
-            title: s.prompt?.substring(0, 80) || "Canción sin título",
-            url: s.audio_url,
-            createdAt: s.created_at,
-            meta: { genre: s.genre || "", mood: s.mood || "" },
-          })
-        );
-      }
-
-      // Videos from video_generations
-      const { data: videos } = await supabase
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase
         .from("video_generations")
         .select("id, prompt, video_url, merged_url, status, created_at, style")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("status", "COMPLETED")
-        .order("created_at", { ascending: false });
-
-      if (videos) {
-        videos.forEach((v) =>
-          allAssets.push({
-            id: v.id,
-            type: "video",
-            title: v.prompt?.substring(0, 80) || "Vídeo sin título",
-            url: v.merged_url || v.video_url,
-            createdAt: v.created_at,
-            meta: { style: v.style || "" },
-          })
-        );
-      }
-
-      // Covers from social_promotions
-      const { data: promos } = await supabase
+        .order("created_at", { ascending: false }),
+      supabase
         .from("social_promotions")
         .select("id, image_url, created_at, work_id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .not("image_url", "is", null)
-        .order("created_at", { ascending: false });
-
-      if (promos) {
-        promos.forEach((p) =>
-          allAssets.push({
-            id: p.id,
-            type: "cover",
-            title: `Portada promocional`,
-            url: p.image_url,
-            createdAt: p.created_at,
-          })
-        );
-      }
-
-      // Covers generated from AI Music Studio (stored in social-promo-images/covers/{userId}/)
-      const { data: coverFiles } = await supabase.storage
+        .order("created_at", { ascending: false }),
+      supabase.storage
         .from("social-promo-images")
-        .list(`covers/${user.id}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
-
-      if (coverFiles) {
-        const promoUrls = new Set(promos?.map((p) => p.image_url) || []);
-        coverFiles
-          .filter((f) => f.name.endsWith(".png") || f.name.endsWith(".jpg"))
-          .forEach((f) => {
-            const { data: pubUrl } = supabase.storage
-              .from("social-promo-images")
-              .getPublicUrl(`covers/${user.id}/${f.name}`);
-            // Skip if already added from social_promotions
-            if (promoUrls.has(pubUrl.publicUrl)) return;
-            allAssets.push({
-              id: `cover-file-${f.id || f.name}`,
-              type: "cover",
-              title: `Portada IA`,
-              url: pubUrl.publicUrl,
-              createdAt: f.created_at || new Date().toISOString(),
-            });
-          });
-      }
-
-      // Voice clones samples
-      const { data: clones } = await supabase
+        .list(`covers/${userId}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } }),
+      supabase
         .from("voice_clones")
         .select("id, name, sample_storage_path, created_at, status")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("status", "active")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false }),
+    ]);
 
-      if (clones) {
-        for (const c of clones) {
-          let url: string | null = null;
-          if (c.sample_storage_path) {
-            const { data: signedData } = await supabase.storage
-              .from("voice-clone-samples")
-              .createSignedUrl(c.sample_storage_path, 3600);
-            url = signedData?.signedUrl || null;
+    const allAssets: MediaAsset[] = [];
+
+    // Songs
+    if (songsRes.data) {
+      for (const s of songsRes.data) {
+        allAssets.push({
+          id: s.id, type: "song",
+          title: s.prompt?.substring(0, 80) || "Canción sin título",
+          url: s.audio_url, createdAt: s.created_at,
+          meta: { genre: s.genre || "", mood: s.mood || "" },
+        });
+      }
+    }
+
+    // Videos
+    if (videosRes.data) {
+      for (const v of videosRes.data) {
+        allAssets.push({
+          id: v.id, type: "video",
+          title: v.prompt?.substring(0, 80) || "Vídeo sin título",
+          url: v.merged_url || v.video_url, createdAt: v.created_at,
+          meta: { style: v.style || "" },
+        });
+      }
+    }
+
+    // Covers from social_promotions
+    const promoUrls = new Set<string>();
+    if (promosRes.data) {
+      for (const p of promosRes.data) {
+        if (p.image_url) promoUrls.add(p.image_url);
+        allAssets.push({
+          id: p.id, type: "cover",
+          title: "Portada promocional",
+          url: p.image_url, createdAt: p.created_at,
+        });
+      }
+    }
+
+    // Covers from storage
+    if (coverFilesRes.data) {
+      for (const f of coverFilesRes.data) {
+        if (!f.name.endsWith(".png") && !f.name.endsWith(".jpg")) continue;
+        const { data: pubUrl } = supabase.storage
+          .from("social-promo-images")
+          .getPublicUrl(`covers/${userId}/${f.name}`);
+        if (promoUrls.has(pubUrl.publicUrl)) continue;
+        allAssets.push({
+          id: `cover-file-${f.id || f.name}`, type: "cover",
+          title: "Portada IA",
+          url: pubUrl.publicUrl, createdAt: f.created_at || new Date().toISOString(),
+        });
+      }
+    }
+
+    // Voice clones - batch signed URLs
+    if (clonesRes.data && clonesRes.data.length > 0) {
+      const pathsToSign = clonesRes.data
+        .filter(c => c.sample_storage_path)
+        .map(c => c.sample_storage_path!);
+
+      let signedUrls: Record<string, string> = {};
+      if (pathsToSign.length > 0) {
+        const { data: signedData } = await supabase.storage
+          .from("voice-clone-samples")
+          .createSignedUrls(pathsToSign, 3600);
+        if (signedData) {
+          for (const s of signedData) {
+            if (s.signedUrl && s.path) signedUrls[s.path] = s.signedUrl;
           }
-          allAssets.push({
-            id: c.id,
-            type: "vocal",
-            title: c.name || "Voz clonada",
-            url,
-            createdAt: c.created_at,
-          });
         }
       }
 
-      setAssets(allAssets);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+      for (const c of clonesRes.data) {
+        allAssets.push({
+          id: c.id, type: "vocal",
+          title: c.name || "Voz clonada",
+          url: c.sample_storage_path ? (signedUrls[c.sample_storage_path] || null) : null,
+          createdAt: c.created_at,
+        });
+      }
+    }
+
+    setAssets(allAssets);
+    setLoading(false);
+
+    // Cache in sessionStorage
+    try {
+      sessionStorage.setItem(cacheKey, JSON.stringify({ assets: allAssets, ts: Date.now() }));
+    } catch { /* quota exceeded - ignore */ }
+  };
 
   // ── Filtering ──
   const filtered = useMemo(() => {
