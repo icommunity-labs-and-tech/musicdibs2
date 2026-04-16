@@ -961,14 +961,14 @@ const AIStudioCreate = () => {
                         <Textarea
                           placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con un ritmo enérgico y romántico. Incluye la letra si la tienes..."
                           value={prompt}
-                          onChange={(e) => setPrompt(e.target.value.slice(0, 2000))}
+                          onChange={(e) => setPrompt(e.target.value.slice(0, 2500))}
                           rows={5}
                           className="resize-none"
-                          maxLength={2000}
+                          maxLength={2500}
                         />
                         <div className="flex items-center justify-between">
                           <p className="text-xs text-muted-foreground">Incluye: género, mood, idioma, tema, ritmo, tipo de voz, letra...</p>
-                          <p className="text-xs text-muted-foreground">{prompt.length}/2000</p>
+                          <p className="text-xs text-muted-foreground">{prompt.length}/2500</p>
                         </div>
                       </div>
 
