@@ -504,9 +504,10 @@ const AIStudioCreate = () => {
   // ── Save as Virtual Artist ──
   const handleSaveVirtualArtist = async () => {
     if (!saveArtistName.trim() || !user) return;
-    const isInstrumentalSave = mode === 'instrumental' || !lastGeneratedVoiceId;
-    const voiceIdToPersist = isInstrumentalSave ? '' : (lastGeneratedVoiceId || voiceProfiles[0]?.id || '');
-    if (!isInstrumentalSave && !voiceIdToPersist) return;
+    const hasStyleFallback = saveArtistStyle.trim().length > 10;
+    const isInstrumentalSave = mode === 'instrumental' || (!lastGeneratedVoiceId && hasStyleFallback);
+    const voiceIdToPersist = isInstrumentalSave ? '' : (lastGeneratedVoiceId || (hasStyleFallback ? '' : voiceProfiles[0]?.id) || '');
+    if (!isInstrumentalSave && !voiceIdToPersist && !hasStyleFallback) return;
     setIsSavingArtist(true);
     try {
       // Check limit of 10
