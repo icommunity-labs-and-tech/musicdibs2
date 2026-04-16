@@ -219,7 +219,7 @@ const AIStudioEdit = () => {
             );
             setProcessError(userMessage);
             console.error('[Auphonic] processing failed:', st.errorMessage);
-            track('enhance_audio_failed', { feature: 'enhance_audio', reason: st.errorMessage || 'unknown' });
+            track('enhance_audio_failed', { feature: 'enhance_audio', metadata: { reason: st.errorMessage || 'unknown' } });
           }
         } catch (e) {
           console.warn('[Auphonic] status poll exception', e);
@@ -247,7 +247,7 @@ const AIStudioEdit = () => {
       const { userMessage } = parseAiError(err, responseData);
       setProcessError(userMessage);
       console.error('[Auphonic] enhance failed:', err);
-      track('enhance_audio_failed', { feature: 'enhance_audio', reason: err?.message || 'unknown' });
+      track('enhance_audio_failed', { feature: 'enhance_audio', metadata: { reason: err?.message || 'unknown' } });
     }
   };
 
