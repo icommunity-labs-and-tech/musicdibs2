@@ -298,10 +298,6 @@ const AIStudioCreate = () => {
       toast({ title: t('aiShared.error'), description: 'Escribe al menos 10 caracteres describiendo tu canción', variant: "destructive" });
       return;
     }
-    if (mode === 'song' && !selectedVoice) {
-      toast({ title: t('aiShared.error'), description: 'Selecciona una voz para tu canción', variant: "destructive" });
-      return;
-    }
     if (!user) {
       toast({ title: t('aiShared.error'), description: t('aiCreate.errorLogin'), variant: "destructive" });
       return;
