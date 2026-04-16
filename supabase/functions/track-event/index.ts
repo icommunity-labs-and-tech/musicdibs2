@@ -6,6 +6,12 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -13,70 +19,69 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!authHeader?.startsWith("Bearer ")) {
+      return json({ error: "unauthorized" }, 401);
     }
+    const token = authHeader.replace("Bearer ", "");
 
+    // Use service role for fast insert (no per-request auth client init).
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      { auth: { persistSession: false, autoRefreshToken: false } }
     );
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // Validate token with timeout protection.
+    const userPromise = supabase.auth.getUser(token);
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("auth_timeout")), 5000)
+    );
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: "unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    let userId: string;
+    try {
+      const { data, error } = (await Promise.race([
+        userPromise,
+        timeout,
+      ])) as Awaited<typeof userPromise>;
+      if (error || !data.user) return json({ error: "unauthorized" }, 401);
+      userId = data.user.id;
+    } catch {
+      return json({ error: "auth_timeout" }, 401);
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body?.event_name || !body?.feature) {
+      return json({ error: "event_name and feature are required" }, 400);
+    }
+
     const { event_name, feature, metadata, session_id } = body;
 
-    if (!event_name || !feature) {
-      return new Response(
-        JSON.stringify({ error: "event_name and feature are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const { error: insertError } = await supabase
-      .from("product_events")
-      .insert({
-        user_id: user.id,
-        event_name,
-        feature,
-        metadata: metadata || {},
-        session_id: session_id || null,
-      });
-
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      return new Response(JSON.stringify({ error: insertError.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Fire-and-forget insert: respond immediately, don't block on DB write.
+    const insertPromise = supabase.from("product_events").insert({
+      user_id: userId,
+      event_name,
+      feature,
+      metadata: metadata || {},
+      session_id: session_id || null,
     });
+
+    // @ts-ignore - EdgeRuntime is available in Supabase Edge runtime
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime?.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(
+        insertPromise.then(({ error }) => {
+          if (error) console.error("track-event insert error:", error);
+        })
+      );
+    } else {
+      insertPromise.then(({ error }) => {
+        if (error) console.error("track-event insert error:", error);
+      });
+    }
+
+    return json({ ok: true });
   } catch (err) {
     console.error("track-event error:", err);
-    return new Response(JSON.stringify({ error: "internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "internal error" }, 500);
   }
 });
