@@ -19,15 +19,17 @@ const statusToKey: Record<number, string> = {
 
 /** Known error strings mapped to i18n keys. */
 const KNOWN_ERRORS: Array<[RegExp, string]> = [
-  [/rate_limit/i, 'aiShared.aiRateLimit'],
+  [/rate_limit|auphonic_rate_limited/i, 'aiShared.aiRateLimit'],
   [/insufficient.?credits/i, 'aiShared.aiInsufficientCredits'],
   [/too many requests/i, 'aiShared.aiRateLimit'],
-  [/api.?key.?not.?configured/i, 'aiShared.aiConfigError'],
+  [/api.?key.?not.?configured|auphonic_auth_error/i, 'aiShared.aiConfigError'],
   [/timeout|timed?\s*out/i, 'aiShared.aiTimeout'],
   [/bad_prompt|content.?policy|moderation/i, 'aiShared.aiContentPolicy'],
   [/network|fetch|ECONNREFUSED|ENOTFOUND/i, 'aiShared.aiNetworkError'],
   [/unauthorized|jwt/i, 'aiShared.aiSessionExpired'],
-  [/providers? failed/i, 'aiShared.aiUnavailable'],
+  [/providers? failed|auphonic_service_unavailable/i, 'aiShared.aiServiceDown'],
+  [/auphonic_invalid_audio|invalid.?audio|unsupported.?format/i, 'aiShared.aiInvalidAudio'],
+  [/auphonic_error/i, 'aiShared.aiServiceDown'],
 ];
 
 export interface AiErrorInfo {
