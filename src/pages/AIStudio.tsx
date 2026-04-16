@@ -154,7 +154,7 @@ const AIStudio = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-12 pt-24">
+      <main className="container mx-auto px-4 py-6 pt-16">
         {/* Back Button */}
         {activeView === "grid" ? (
           <Link to="/dashboard" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
