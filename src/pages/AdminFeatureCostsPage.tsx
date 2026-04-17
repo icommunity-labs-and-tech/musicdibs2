@@ -39,6 +39,7 @@ interface OperationRow {
 
 export default function AdminFeatureCostsPage() {
   const [rows, setRows] = useState<OperationRow[]>([]);
+  const [models, setModels] = useState<Record<string, { model: string; provider: string }>>({});
   const [editing, setEditing] = useState<Record<string, Partial<OperationRow>>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
