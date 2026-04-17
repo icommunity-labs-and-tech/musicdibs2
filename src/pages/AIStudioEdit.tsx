@@ -98,7 +98,17 @@ const AIStudioEdit = () => {
     setPreviewError(null);
   };
 
+  const ACCEPTED_AUDIO_EXT = /\.(mp3|wav|flac|aac|m4a|ogg)$/i;
+
   const handleFileSelect = (file: File) => {
+    if (!ACCEPTED_AUDIO_EXT.test(file.name)) {
+      toast({
+        title: t('masterize.invalidFormat', 'Formato no soportado'),
+        description: t('masterize.invalidFormatDesc', 'Sube un archivo de audio (MP3, WAV, FLAC, AAC, M4A u OGG). Los vídeos no son compatibles.'),
+        variant: "destructive",
+      });
+      return;
+    }
     setAudioFile(file);
     setAudioUrl(URL.createObjectURL(file));
     setAudioName(file.name);
