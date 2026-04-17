@@ -368,16 +368,25 @@ const AIStudioEdit = () => {
 
   const handleReset = () => {
     stopAllAudio();
+    stopPreviewPolling();
     originalAudioRef.current = null;
     masteredAudioRef.current = null;
+    previewAudioRef.current = null;
     setAudioFile(null);
     setAudioUrl(null);
     setAudioName(null);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     setProgressPercent(0);
     setActiveStep(0);
   };
+
+  const PRESETS: { key: PresetKey; icon: typeof Headphones; labelKey: string; descKey: string }[] = [
+    { key: 'professional', icon: Headphones, labelKey: 'presets.professional.label', descKey: 'presets.professional.desc' },
+    { key: 'spotify',      icon: Radio,      labelKey: 'presets.spotify.label',      descKey: 'presets.spotify.desc' },
+    { key: 'clarity',      icon: Sparkles,   labelKey: 'presets.clarity.label',      descKey: 'presets.clarity.desc' },
+    { key: 'denoise',      icon: Wind,       labelKey: 'presets.denoise.label',      descKey: 'presets.denoise.desc' },
+    { key: 'reverb',       icon: Waves,      labelKey: 'presets.reverb.label',       descKey: 'presets.reverb.desc' },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
