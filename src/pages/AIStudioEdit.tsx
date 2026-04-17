@@ -77,6 +77,7 @@ const AIStudioEdit = () => {
     return () => {
       stopPolling();
       stopProgress();
+      stopPreviewPolling();
     };
   }, []);
 
@@ -86,13 +87,22 @@ const AIStudioEdit = () => {
   const stopProgress = () => {
     if (progressRef.current) { clearInterval(progressRef.current); progressRef.current = null; }
   };
+  const stopPreviewPolling = () => {
+    if (previewPollingRef.current) { clearInterval(previewPollingRef.current); previewPollingRef.current = null; }
+  };
+
+  const resetResults = () => {
+    setProcessedUrl(null);
+    setProcessError(null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+  };
 
   const handleFileSelect = (file: File) => {
     setAudioFile(file);
     setAudioUrl(URL.createObjectURL(file));
     setAudioName(file.name);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     setPlayingTrack(null);
   };
 
@@ -105,8 +115,7 @@ const AIStudioEdit = () => {
       setAudioFile(file);
       setAudioUrl(url);
       setAudioName(name);
-      setProcessedUrl(null);
-      setProcessError(null);
+      resetResults();
       setPlayingTrack(null);
     } catch {
       toast({ title: t("masterize.errorGeneric", "Error al cargar el audio"), variant: "destructive" });
@@ -117,14 +126,14 @@ const AIStudioEdit = () => {
     setAudioFile(null);
     setAudioUrl(null);
     setAudioName(null);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     stopAllAudio();
   };
 
   const stopAllAudio = () => {
     originalAudioRef.current?.pause();
     masteredAudioRef.current?.pause();
+    previewAudioRef.current?.pause();
     setPlayingTrack(null);
   };
 
