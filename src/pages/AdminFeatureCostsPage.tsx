@@ -64,15 +64,25 @@ export default function AdminFeatureCostsPage() {
   };
 
   const load = async () => {
-    const { data, error } = await supabase
-      .from('operation_pricing')
-      .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active, description')
-      .order('display_order');
-    if (error) {
+    const [opsRes, modelsRes] = await Promise.all([
+      supabase
+        .from('operation_pricing')
+        .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active, description')
+        .order('display_order'),
+      supabase
+        .from('api_cost_config')
+        .select('feature_key, api_model, api_provider'),
+    ]);
+    if (opsRes.error) {
       toast.error('Error cargando precios');
       return;
     }
-    setRows((data as OperationRow[]) || []);
+    const modelMap: Record<string, { model: string; provider: string }> = {};
+    for (const r of modelsRes.data || []) {
+      modelMap[r.feature_key] = { model: r.api_model, provider: r.api_provider };
+    }
+    setModels(modelMap);
+    setRows((opsRes.data as OperationRow[]) || []);
     setLoading(false);
   };
 
