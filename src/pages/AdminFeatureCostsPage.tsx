@@ -228,14 +228,18 @@ export default function AdminFeatureCostsPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs">{row.operation_key}</TableCell>
                     <TableCell className="text-xs">
-                      {models[row.operation_key] ? (
-                        <div className="flex flex-col">
-                          <span className="font-mono">{models[row.operation_key].model}</span>
-                          <span className="text-muted-foreground">{models[row.operation_key].provider}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic">—</span>
-                      )}
+                      {(() => {
+                        const fk = OPERATION_TO_FEATURE_KEY[row.operation_key] ?? row.operation_key;
+                        const m = models[fk];
+                        return m ? (
+                          <div className="flex flex-col">
+                            <span className="font-mono">{m.model}</span>
+                            <span className="text-muted-foreground">{m.provider}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic">—</span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       {isDirty(row.operation_key) ? (
