@@ -549,15 +549,27 @@ const AIStudioEdit = () => {
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handlePreview}
-                  disabled={isPreviewing}
-                  className="h-12 gap-2"
-                >
-                  {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                  {isPreviewing ? tr('preview.loading') : tr('preview.cta')}
-                </Button>
+                {!previewUrl ? (
+                  <Button
+                    variant="outline"
+                    onClick={handlePreview}
+                    disabled={isPreviewing}
+                    className="h-12 gap-2"
+                  >
+                    {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                    {isPreviewing ? tr('preview.loading') : tr('preview.cta')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={() => { setPreviewUrl(null); handlePreview(); }}
+                    disabled={isPreviewing}
+                    className="h-12 gap-2"
+                  >
+                    <Play className="w-4 h-4" />
+                    {tr('preview.regenerate', 'Regenerar preview')}
+                  </Button>
+                )}
 
                 {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
                   <NoCreditsAlert message={tr('ctaButton')} />
