@@ -17,6 +17,120 @@ const ROEX_MODES: Record<string, { musicalStyle: string; desiredLoudness: string
   reverb:       { musicalStyle: "POP",        desiredLoudness: "MEDIUM" },
 }
 const DEFAULT_MODE = { musicalStyle: "POP", desiredLoudness: "STREAMING" }
+const PLACEHOLDER_URL_PATTERNS = [/example\.com\/dummy/i, /dummy_dev_preview/i]
+
+const isPlaceholderUrl = (url: string | null | undefined) =>
+  !!url && PLACEHOLDER_URL_PATTERNS.some((pattern) => pattern.test(url))
+
+const collectHttpUrls = (value: unknown, seen = new Set<string>()) => {
+  if (typeof value === "string") {
+    if (/^https?:\/\//i.test(value)) seen.add(value)
+    return [...seen]
+  }
+
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectHttpUrls(item, seen))
+    return [...seen]
+  }
+
+  if (value && typeof value === "object") {
+    Object.values(value as Record<string, unknown>).forEach((item) => collectHttpUrls(item, seen))
+  }
+
+  return [...seen]
+}
+
+const extractOutputUrl = (payload: any, isPreview: boolean): string | null => {
+  const preferred = [
+    isPreview ? payload?.previewMasterTaskResults?.download_url_mastered_preview : payload?.finalMasterTaskResults?.download_url_mastered,
+    payload?.download_url_mastered_preview,
+    payload?.download_url_mastered,
+    payload?.downloadUrl,
+    payload?.url,
+  ].filter((value): value is string => typeof value === "string" && value.length > 0)
+
+  const discovered = collectHttpUrls(payload).filter((url) => !isPlaceholderUrl(url))
+
+  return [...preferred, ...discovered].find((url) => !isPlaceholderUrl(url)) ?? null
+}
+
+const inferAudioMeta = (sourceUrl: string, contentType: string | null) => {
+  const lowerType = (contentType || "").toLowerCase()
+  const urlMatch = sourceUrl.match(/\.([a-z0-9]+)(?:\?|$)/i)
+  const extensionFromUrl = urlMatch?.[1]?.toLowerCase()
+
+  if (lowerType.includes("wav")) return { contentType: "audio/wav", extension: "wav" }
+  if (lowerType.includes("flac")) return { contentType: "audio/flac", extension: "flac" }
+  if (lowerType.includes("ogg")) return { contentType: "audio/ogg", extension: "ogg" }
+  if (lowerType.includes("aac")) return { contentType: "audio/aac", extension: "aac" }
+  if (lowerType.includes("mp4") || lowerType.includes("m4a")) return { contentType: "audio/mp4", extension: "m4a" }
+  if (lowerType.includes("mpeg") || lowerType.includes("mp3")) return { contentType: "audio/mpeg", extension: "mp3" }
+
+  if (extensionFromUrl && ["mp3", "wav", "flac", "ogg", "aac", "m4a"].includes(extensionFromUrl)) {
+    return {
+      contentType: extensionFromUrl === "m4a" ? "audio/mp4" : `audio/${extensionFromUrl === "mp3" ? "mpeg" : extensionFromUrl}`,
+      extension: extensionFromUrl,
+    }
+  }
+
+  return { contentType: "audio/mpeg", extension: "mp3" }
+}
+
+const persistRemoteAudio = async ({
+  supabaseAdmin,
+  userId,
+  productionUuid,
+  sourceUrl,
+  isPreview,
+}: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  userId: string
+  productionUuid: string
+  sourceUrl: string
+  isPreview: boolean
+}) => {
+  if (isPlaceholderUrl(sourceUrl)) return null
+
+  try {
+    const audioRes = await fetch(sourceUrl)
+    if (!audioRes.ok) {
+      console.error(`[ROEX] Failed to fetch ${isPreview ? "preview" : "result"} audio: ${audioRes.status}`)
+      return null
+    }
+
+    const { contentType, extension } = inferAudioMeta(sourceUrl, audioRes.headers.get("content-type"))
+    if (!contentType.startsWith("audio/")) {
+      console.error(`[ROEX] Invalid ${isPreview ? "preview" : "result"} content-type: ${contentType}`)
+      return null
+    }
+
+    const audioBuffer = await audioRes.arrayBuffer()
+    const fileName = `${isPreview ? "roex-preview" : "roex-result"}/${userId}/${productionUuid}.${extension}`
+
+    const { error: uploadError } = await supabaseAdmin
+      .storage
+      .from("auphonic-temp")
+      .upload(fileName, audioBuffer, {
+        contentType,
+        upsert: true,
+      })
+
+    if (uploadError) {
+      console.error(`[ROEX] Error uploading ${isPreview ? "preview" : "result"} audio:`, uploadError)
+      return null
+    }
+
+    const { data: publicData } = supabaseAdmin
+      .storage
+      .from("auphonic-temp")
+      .getPublicUrl(fileName)
+
+    return publicData.publicUrl
+  } catch (e) {
+    console.error(`[ROEX] Error persisting ${isPreview ? "preview" : "result"} audio:`, e)
+    return null
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -85,20 +199,33 @@ serve(async (req) => {
       // 202 = still processing; 200 = ready; 4xx/5xx = error
       const statusData = await statusRes.json().catch(() => ({}))
 
-      const stillProcessing = statusRes.status === 202
-      const done = statusRes.status === 200 && !statusData.error
-      const errored = !done && !stillProcessing
+      let stillProcessing = statusRes.status === 202
+      let done = statusRes.status === 200 && !statusData.error
+      let errored = !done && !stillProcessing
+      let outputUrl: string | null = done ? extractOutputUrl(statusData, !!isPreview) : null
 
-      let outputUrl: string | null = null
-      if (done) {
-        outputUrl = isPreview
-          ? statusData?.previewMasterTaskResults?.download_url_mastered_preview ?? null
-          : statusData?.finalMasterTaskResults?.download_url_mastered ?? null
+      if (done && outputUrl) {
+        const persistedUrl = await persistRemoteAudio({
+          supabaseAdmin,
+          userId: user.id,
+          productionUuid,
+          sourceUrl: outputUrl,
+          isPreview: !!isPreview,
+        })
+        if (persistedUrl) outputUrl = persistedUrl
+      }
+
+      if (done && (!outputUrl || isPlaceholderUrl(outputUrl))) {
+        done = false
+        errored = true
+        stillProcessing = false
       }
 
       const progress = done ? 100 : (errored ? 0 : 50)
       const errorMessage = errored
-        ? (statusData?.message || statusData?.error_message || `RoEx ${statusRes.status}`)
+        ? (!outputUrl && statusRes.status === 200
+            ? "RoEx no devolvió una preview reproducible"
+            : (statusData?.message || statusData?.error_message || `RoEx ${statusRes.status}`))
         : null
 
       if ((done || errored) && !isPreview) {
@@ -130,41 +257,6 @@ serve(async (req) => {
             })
             console.log(`[ROEX] Refunded ${CREDITS_COST} credit to user ${user.id}: processing error`)
           }
-        }
-      }
-
-      // Re-upload final result to Supabase Storage for stable public URL (only for full process, not preview)
-      if (done && outputUrl && !isPreview) {
-        try {
-          const audioRes = await fetch(outputUrl)
-          if (audioRes.ok) {
-            const audioBuffer = await audioRes.arrayBuffer()
-            const fileName = `roex-result/${user.id}/${productionUuid}.mp3`
-
-            const { error: uploadError } = await supabaseAdmin
-              .storage
-              .from("auphonic-temp")
-              .upload(fileName, audioBuffer, {
-                contentType: "audio/mpeg",
-                upsert: true,
-              })
-
-            if (!uploadError) {
-              const { data: publicData } = supabaseAdmin
-                .storage
-                .from("auphonic-temp")
-                .getPublicUrl(fileName)
-
-              outputUrl = publicData.publicUrl
-
-              await supabaseAdmin
-                .from("auphonic_productions")
-                .update({ output_url: outputUrl })
-                .eq("auphonic_uuid", productionUuid)
-            }
-          }
-        } catch (e) {
-          console.error("[ROEX] Error re-uploading result:", e)
         }
       }
 

@@ -32,6 +32,11 @@ const PROCESSING_STEPS = [
   { icon: Sparkles, key: "stereo" },
 ] as const;
 
+const INVALID_PREVIEW_URL_PATTERNS = [/example\.com\/dummy/i, /dummy_dev_preview/i];
+
+const isPlayablePreviewUrl = (url: string | null | undefined): url is string =>
+  !!url && /^https?:\/\//i.test(url) && !INVALID_PREVIEW_URL_PATTERNS.some((pattern) => pattern.test(url));
+
 const AIStudioEdit = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -307,7 +312,16 @@ const AIStudioEdit = () => {
           if (stErr) return;
           if (st?.done) {
             stopPreviewPolling();
-            setPreviewUrl(st.outputUrl);
+            const nextPreviewUrl = isPlayablePreviewUrl(st.outputUrl) ? st.outputUrl : null;
+
+            if (!nextPreviewUrl) {
+              setPreviewError(tr('preview.unavailable', { defaultValue: 'No se ha podido cargar una preview válida. Inténtalo de nuevo.' }));
+              setIsPreviewing(false);
+              return;
+            }
+
+            previewAudioRef.current = null;
+            setPreviewUrl(nextPreviewUrl);
             setIsPreviewing(false);
             toast({ title: tr('preview.ready') });
           } else if (st?.errored) {
@@ -338,6 +352,14 @@ const AIStudioEdit = () => {
       const { userMessage } = parseAiError(err, responseData);
       setPreviewError(userMessage);
     }
+  };
+
+  const handlePreviewAudioError = () => {
+    previewAudioRef.current?.pause();
+    previewAudioRef.current = null;
+    setPlayingTrack((current) => (current === 'preview' ? null : current));
+    setPreviewUrl(null);
+    setPreviewError(tr('preview.unavailable', { defaultValue: 'La preview no está disponible. Regénérala para intentarlo de nuevo.' }));
   };
 
   const playAudio = (track: "original" | "mastered" | "preview") => {
@@ -533,7 +555,7 @@ const AIStudioEdit = () => {
                       <Sparkles className="w-4 h-4 text-primary" />
                       <p className="text-sm font-medium">{tr('preview.resultTitle')}</p>
                     </div>
-                    <audio src={previewUrl} className="w-full h-8" controls />
+                    <audio key={previewUrl} src={previewUrl} className="w-full h-8" controls preload="metadata" onError={handlePreviewAudioError} />
                     <p className="text-xs text-muted-foreground">{tr('preview.resultHint')}</p>
                   </CardContent>
                 </Card>
