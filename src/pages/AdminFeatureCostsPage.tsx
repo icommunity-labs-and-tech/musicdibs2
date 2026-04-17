@@ -211,6 +211,16 @@ export default function AdminFeatureCostsPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-mono text-xs">{row.operation_key}</TableCell>
+                    <TableCell className="text-xs">
+                      {models[row.operation_key] ? (
+                        <div className="flex flex-col">
+                          <span className="font-mono">{models[row.operation_key].model}</span>
+                          <span className="text-muted-foreground">{models[row.operation_key].provider}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground italic">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {isDirty(row.operation_key) ? (
                         <Input
