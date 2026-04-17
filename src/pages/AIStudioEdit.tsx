@@ -45,19 +45,30 @@ const AIStudioEdit = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState<string | null>(null);
 
-  // Processing
+  // Preset (mastering style)
+  type PresetKey = 'professional' | 'spotify' | 'clarity' | 'denoise' | 'reverb';
+  const [preset, setPreset] = useState<PresetKey>('professional');
+
+  // Processing (full)
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Preview (free)
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Result
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
   const [processError, setProcessError] = useState<string | null>(null);
 
   // A/B comparison
-  const [playingTrack, setPlayingTrack] = useState<"original" | "mastered" | null>(null);
+  const [playingTrack, setPlayingTrack] = useState<"original" | "mastered" | "preview" | null>(null);
   const originalAudioRef = useRef<HTMLAudioElement | null>(null);
   const masteredAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -66,6 +77,7 @@ const AIStudioEdit = () => {
     return () => {
       stopPolling();
       stopProgress();
+      stopPreviewPolling();
     };
   }, []);
 
@@ -75,13 +87,22 @@ const AIStudioEdit = () => {
   const stopProgress = () => {
     if (progressRef.current) { clearInterval(progressRef.current); progressRef.current = null; }
   };
+  const stopPreviewPolling = () => {
+    if (previewPollingRef.current) { clearInterval(previewPollingRef.current); previewPollingRef.current = null; }
+  };
+
+  const resetResults = () => {
+    setProcessedUrl(null);
+    setProcessError(null);
+    setPreviewUrl(null);
+    setPreviewError(null);
+  };
 
   const handleFileSelect = (file: File) => {
     setAudioFile(file);
     setAudioUrl(URL.createObjectURL(file));
     setAudioName(file.name);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     setPlayingTrack(null);
   };
 
@@ -94,8 +115,7 @@ const AIStudioEdit = () => {
       setAudioFile(file);
       setAudioUrl(url);
       setAudioName(name);
-      setProcessedUrl(null);
-      setProcessError(null);
+      resetResults();
       setPlayingTrack(null);
     } catch {
       toast({ title: t("masterize.errorGeneric", "Error al cargar el audio"), variant: "destructive" });
@@ -106,14 +126,14 @@ const AIStudioEdit = () => {
     setAudioFile(null);
     setAudioUrl(null);
     setAudioName(null);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     stopAllAudio();
   };
 
   const stopAllAudio = () => {
     originalAudioRef.current?.pause();
     masteredAudioRef.current?.pause();
+    previewAudioRef.current?.pause();
     setPlayingTrack(null);
   };
 
@@ -142,7 +162,7 @@ const AIStudioEdit = () => {
       return;
     }
 
-    track('enhance_audio_started', { feature: 'enhance_audio' });
+    track('enhance_audio_started', { feature: 'enhance_audio', metadata: { preset } });
     setIsProcessing(true);
     setProcessError(null);
     setProcessedUrl(null);
@@ -166,18 +186,18 @@ const AIStudioEdit = () => {
       // Validate credits
       const { data: spend, error: spendErr } = await supabase.functions.invoke(
         "spend-credits",
-        { body: { feature: "enhance_audio", description: "Masterización profesional" } }
+        { body: { feature: "enhance_audio", description: `Masterización (${preset})` } }
       );
       if (spendErr || spend?.error) throw new Error(spend?.error || "Error de créditos");
 
       // Upload file
       const uploadedUrl = await uploadForProcessing(audioFile);
 
-      // Start Auphonic processing with "professional" mode
+      // Start RoEx processing with selected preset
       const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
         body: {
           action: "process",
-          mode: "professional",
+          mode: preset,
           audioUrl: uploadedUrl,
           filename: audioFile.name,
         },
@@ -251,10 +271,70 @@ const AIStudioEdit = () => {
     }
   };
 
-  const playAudio = (track: "original" | "mastered") => {
-    // Stop both
+  const handlePreview = async () => {
+    if (!audioFile || !user) return;
+
+    setIsPreviewing(true);
+    setPreviewError(null);
+    setPreviewUrl(null);
+    stopAllAudio();
+
+    try {
+      const uploadedUrl = await uploadForProcessing(audioFile);
+
+      const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
+        body: { action: "preview", mode: preset, audioUrl: uploadedUrl, filename: audioFile.name },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+
+      const uuid = data.productionUuid;
+
+      previewPollingRef.current = setInterval(async () => {
+        try {
+          const { data: st, error: stErr } = await supabase.functions.invoke("auphonic-enhance", {
+            body: { action: "status", productionUuid: uuid, isPreview: true },
+          });
+          if (stErr) return;
+          if (st?.done) {
+            stopPreviewPolling();
+            setPreviewUrl(st.outputUrl);
+            setIsPreviewing(false);
+            toast({ title: tr('preview.ready') });
+          } else if (st?.errored) {
+            stopPreviewPolling();
+            setIsPreviewing(false);
+            const { userMessage } = parseAiError(
+              new Error(st.errorMessage || 'roex_error'),
+              { error: st.errorMessage } as any,
+            );
+            setPreviewError(userMessage);
+          }
+        } catch { /* keep polling */ }
+      }, 6000);
+
+      // Timeout after 3 min
+      setTimeout(() => {
+        if (previewPollingRef.current) {
+          stopPreviewPolling();
+          setIsPreviewing(false);
+          setPreviewError(tr('errorTimeout'));
+        }
+      }, 180_000);
+    } catch (err: any) {
+      setIsPreviewing(false);
+      const responseData =
+        (err?.context?.body && typeof err.context.body === 'object') ? err.context.body :
+        (err?.context && typeof err.context === 'object' ? err.context : null);
+      const { userMessage } = parseAiError(err, responseData);
+      setPreviewError(userMessage);
+    }
+  };
+
+  const playAudio = (track: "original" | "mastered" | "preview") => {
+    // Stop all
     originalAudioRef.current?.pause();
     masteredAudioRef.current?.pause();
+    previewAudioRef.current?.pause();
 
     if (playingTrack === track) {
       setPlayingTrack(null);
@@ -275,22 +355,38 @@ const AIStudioEdit = () => {
       }
       masteredAudioRef.current.currentTime = 0;
       masteredAudioRef.current.play();
+    } else if (track === "preview" && previewUrl) {
+      if (!previewAudioRef.current || previewAudioRef.current.src !== previewUrl) {
+        previewAudioRef.current = new Audio(previewUrl);
+        previewAudioRef.current.onended = () => setPlayingTrack(null);
+      }
+      previewAudioRef.current.currentTime = 0;
+      previewAudioRef.current.play();
     }
     setPlayingTrack(track);
   };
 
   const handleReset = () => {
     stopAllAudio();
+    stopPreviewPolling();
     originalAudioRef.current = null;
     masteredAudioRef.current = null;
+    previewAudioRef.current = null;
     setAudioFile(null);
     setAudioUrl(null);
     setAudioName(null);
-    setProcessedUrl(null);
-    setProcessError(null);
+    resetResults();
     setProgressPercent(0);
     setActiveStep(0);
   };
+
+  const PRESETS: { key: PresetKey; icon: typeof Headphones; labelKey: string; descKey: string }[] = [
+    { key: 'professional', icon: Headphones, labelKey: 'presets.professional.label', descKey: 'presets.professional.desc' },
+    { key: 'spotify',      icon: Radio,      labelKey: 'presets.spotify.label',      descKey: 'presets.spotify.desc' },
+    { key: 'clarity',      icon: Sparkles,   labelKey: 'presets.clarity.label',      descKey: 'presets.clarity.desc' },
+    { key: 'denoise',      icon: Wind,       labelKey: 'presets.denoise.label',      descKey: 'presets.denoise.desc' },
+    { key: 'reverb',       icon: Waves,      labelKey: 'presets.reverb.label',       descKey: 'presets.reverb.desc' },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -387,23 +483,87 @@ const AIStudioEdit = () => {
             </Card>
           )}
 
-          {/* CTA Button */}
+          {/* Preset selector + CTA */}
           {audioFile && !isProcessing && !processedUrl && (
-            <div className="space-y-2">
-              {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
-                <NoCreditsAlert message={tr('ctaButton')} />
-              ) : (
-                <Button
-                  onClick={handleMasterize}
-                  className="w-full h-14 text-base gap-3"
-                  size="lg"
-                >
-                  <Headphones className="w-5 h-5" />
-                  {tr('ctaButton')}
-                </Button>
+            <>
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-sm font-medium">{tr('presets.title')}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {PRESETS.map(p => {
+                      const Icon = p.icon;
+                      const selected = preset === p.key;
+                      return (
+                        <button
+                          key={p.key}
+                          type="button"
+                          onClick={() => { setPreset(p.key); setPreviewUrl(null); setPreviewError(null); }}
+                          className={`flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
+                            selected
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className={`w-4 h-4 ${selected ? 'text-primary' : ''}`} />
+                            <span className="text-sm font-medium">{tr(p.labelKey)}</span>
+                          </div>
+                          <span className="text-xs opacity-80">{tr(p.descKey)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {previewUrl && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <p className="text-sm font-medium">{tr('preview.resultTitle')}</p>
+                    </div>
+                    <audio src={previewUrl} className="w-full h-8" controls />
+                    <p className="text-xs text-muted-foreground">{tr('preview.resultHint')}</p>
+                  </CardContent>
+                </Card>
               )}
+
+              {previewError && (
+                <Card className="border-destructive/30">
+                  <CardContent className="p-3 flex items-start gap-2 text-destructive text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{previewError}</span>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handlePreview}
+                  disabled={isPreviewing}
+                  className="h-12 gap-2"
+                >
+                  {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                  {isPreviewing ? tr('preview.loading') : tr('preview.cta')}
+                </Button>
+
+                {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
+                  <NoCreditsAlert message={tr('ctaButton')} />
+                ) : (
+                  <Button
+                    onClick={handleMasterize}
+                    className="h-12 gap-2"
+                    size="lg"
+                  >
+                    <Headphones className="w-5 h-5" />
+                    {tr('ctaButton')}
+                  </Button>
+                )}
+              </div>
               <PricingLink className="block text-center" />
-            </div>
+            </>
           )}
 
           {/* Processing state */}
