@@ -483,23 +483,87 @@ const AIStudioEdit = () => {
             </Card>
           )}
 
-          {/* CTA Button */}
+          {/* Preset selector + CTA */}
           {audioFile && !isProcessing && !processedUrl && (
-            <div className="space-y-2">
-              {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
-                <NoCreditsAlert message={tr('ctaButton')} />
-              ) : (
-                <Button
-                  onClick={handleMasterize}
-                  className="w-full h-14 text-base gap-3"
-                  size="lg"
-                >
-                  <Headphones className="w-5 h-5" />
-                  {tr('ctaButton')}
-                </Button>
+            <>
+              <Card>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-sm font-medium">{tr('presets.title')}</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {PRESETS.map(p => {
+                      const Icon = p.icon;
+                      const selected = preset === p.key;
+                      return (
+                        <button
+                          key={p.key}
+                          type="button"
+                          onClick={() => { setPreset(p.key); setPreviewUrl(null); setPreviewError(null); }}
+                          className={`flex flex-col items-start gap-1 p-3 rounded-lg border text-left transition-all ${
+                            selected
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon className={`w-4 h-4 ${selected ? 'text-primary' : ''}`} />
+                            <span className="text-sm font-medium">{tr(p.labelKey)}</span>
+                          </div>
+                          <span className="text-xs opacity-80">{tr(p.descKey)}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {previewUrl && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <p className="text-sm font-medium">{tr('preview.resultTitle')}</p>
+                    </div>
+                    <audio src={previewUrl} className="w-full h-8" controls />
+                    <p className="text-xs text-muted-foreground">{tr('preview.resultHint')}</p>
+                  </CardContent>
+                </Card>
               )}
+
+              {previewError && (
+                <Card className="border-destructive/30">
+                  <CardContent className="p-3 flex items-start gap-2 text-destructive text-sm">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{previewError}</span>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handlePreview}
+                  disabled={isPreviewing}
+                  className="h-12 gap-2"
+                >
+                  {isPreviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                  {isPreviewing ? tr('preview.loading') : tr('preview.cta')}
+                </Button>
+
+                {!hasEnough(FEATURE_COSTS.enhance_audio) ? (
+                  <NoCreditsAlert message={tr('ctaButton')} />
+                ) : (
+                  <Button
+                    onClick={handleMasterize}
+                    className="h-12 gap-2"
+                    size="lg"
+                  >
+                    <Headphones className="w-5 h-5" />
+                    {tr('ctaButton')}
+                  </Button>
+                )}
+              </div>
               <PricingLink className="block text-center" />
-            </div>
+            </>
           )}
 
           {/* Processing state */}
