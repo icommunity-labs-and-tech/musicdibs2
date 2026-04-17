@@ -56,8 +56,8 @@ serve(async (req) => {
     const { action, mode, audioUrl, filename, productionUuid, isPreview } = await req.json()
 
     const roexHeaders = {
-      "Content-Type":  "application/json",
-      "Authorization": `Bearer ${ROEX_API_KEY}`,
+      "Content-Type": "application/json",
+      "x-api-key": ROEX_API_KEY,
     }
 
     const modeConfig = ROEX_MODES[mode] || DEFAULT_MODE
