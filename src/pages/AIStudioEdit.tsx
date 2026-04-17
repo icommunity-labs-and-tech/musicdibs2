@@ -45,19 +45,30 @@ const AIStudioEdit = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState<string | null>(null);
 
-  // Processing
+  // Preset (mastering style)
+  type PresetKey = 'professional' | 'spotify' | 'clarity' | 'denoise' | 'reverb';
+  const [preset, setPreset] = useState<PresetKey>('professional');
+
+  // Processing (full)
   const [isProcessing, setIsProcessing] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Preview (free)
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const previewPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
   // Result
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
   const [processError, setProcessError] = useState<string | null>(null);
 
   // A/B comparison
-  const [playingTrack, setPlayingTrack] = useState<"original" | "mastered" | null>(null);
+  const [playingTrack, setPlayingTrack] = useState<"original" | "mastered" | "preview" | null>(null);
   const originalAudioRef = useRef<HTMLAudioElement | null>(null);
   const masteredAudioRef = useRef<HTMLAudioElement | null>(null);
 
