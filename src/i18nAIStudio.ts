@@ -1289,6 +1289,21 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       info: 'Cada masterização consome 1 crédito',
       errorGeneric: 'Erro ao processar o áudio. Tente novamente.',
       errorTimeout: 'O processamento demorou demais. Tente novamente.',
+      presets: {
+        title: 'Escolha o estilo de masterização',
+        professional: { label: 'Profissional', desc: 'Equilíbrio musical universal' },
+        spotify:      { label: 'Streaming',    desc: 'Volume ótimo para Spotify' },
+        clarity:      { label: 'Clareza',      desc: 'Mais definição e ar (rock/indie)' },
+        denoise:      { label: 'Limpeza',      desc: 'Reduz ruído de fundo' },
+        reverb:       { label: 'Espaço',       desc: 'Ar e profundidade estéreo' },
+      },
+      preview: {
+        cta: 'Ouvir preview grátis',
+        loading: 'Gerando preview...',
+        ready: 'Preview pronto',
+        resultTitle: 'Preview gratuito (sem créditos)',
+        resultHint: 'Se gostar, masterize a música completa.',
+      },
     },
     aiInspire: {
       backToStudio: 'Voltar ao AI Music Studio',
