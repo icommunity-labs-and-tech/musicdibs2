@@ -178,6 +178,7 @@ export default function AdminFeatureCostsPage() {
                   <TableHead className="w-[150px] cursor-pointer select-none" onClick={() => toggleSort('operation_key')}>
                     <span className="inline-flex items-center">Clave<SortIcon field="operation_key" /></span>
                   </TableHead>
+                  <TableHead className="w-[180px]">Modelo LLM</TableHead>
                   <TableHead className="w-[180px] cursor-pointer select-none" onClick={() => toggleSort('operation_name')}>
                     <span className="inline-flex items-center">Nombre<SortIcon field="operation_name" /></span>
                   </TableHead>
