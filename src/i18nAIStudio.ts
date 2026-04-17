@@ -230,6 +230,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
         ready: 'Preview listo',
         resultTitle: 'Preview gratuito (sin créditos)',
         resultHint: 'Si te convence, masteriza la canción completa.',
+        hint: 'Esto puede tardar 30-90 segundos. Estamos analizando tu pista…',
       },
     },
     aiInspire: {
@@ -768,6 +769,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
         ready: 'Preview ready',
         resultTitle: 'Free preview (no credits)',
         resultHint: 'If you like it, master the full song.',
+        hint: 'This may take 30-90 seconds. Analyzing your track…',
       },
     },
     aiInspire: {
@@ -1303,6 +1305,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
         ready: 'Preview pronto',
         resultTitle: 'Preview gratuito (sem créditos)',
         resultHint: 'Se gostar, masterize a música completa.',
+        hint: 'Isto pode demorar 30-90 segundos. A analisar a sua faixa…',
       },
     },
     aiInspire: {
