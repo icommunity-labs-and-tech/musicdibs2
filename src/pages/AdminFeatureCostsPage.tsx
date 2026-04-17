@@ -15,6 +15,22 @@ const PAGE_SIZE = 10;
 type SortField = 'operation_key' | 'operation_name' | 'category' | 'credits_cost' | 'display_order' | 'is_annual_only' | 'is_active';
 type SortDir = 'asc' | 'desc';
 
+// Mapeo de operation_key (operation_pricing) a feature_key (api_cost_config)
+// Algunas operaciones de UI agregan varios features de API.
+const OPERATION_TO_FEATURE_KEY: Record<string, string> = {
+  ai_covers: 'generate_cover',
+  ai_creatives: 'instagram_creative',
+  song_ai_voice: 'generate_audio_song',
+  instrumental_base: 'generate_audio',
+  random_generator: 'generate_audio',
+  professional_mastering: 'enhance_audio',
+  video_fullhd: 'generate_video',
+  social_media_promo: 'instagram_creative',
+  composer_lyrics: 'generate_lyrics',
+  promote_premium: 'promote_work',
+  voice_translation_per_min: 'generate_vocal_track',
+};
+
 const CATEGORY_LABELS: Record<string, string> = {
   gratis: 'Gratis',
   distribucion: 'Distribución',
@@ -212,14 +228,18 @@ export default function AdminFeatureCostsPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs">{row.operation_key}</TableCell>
                     <TableCell className="text-xs">
-                      {models[row.operation_key] ? (
-                        <div className="flex flex-col">
-                          <span className="font-mono">{models[row.operation_key].model}</span>
-                          <span className="text-muted-foreground">{models[row.operation_key].provider}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic">—</span>
-                      )}
+                      {(() => {
+                        const fk = OPERATION_TO_FEATURE_KEY[row.operation_key] ?? row.operation_key;
+                        const m = models[fk];
+                        return m ? (
+                          <div className="flex flex-col">
+                            <span className="font-mono">{m.model}</span>
+                            <span className="text-muted-foreground">{m.provider}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground italic">—</span>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       {isDirty(row.operation_key) ? (
