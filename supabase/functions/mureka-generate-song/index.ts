@@ -53,7 +53,70 @@ serve(async (req) => {
 
     const fullPrompt = prompt;
 
-    console.log(`[MUREKA-GENERATE] User ${user.id}, prompt: "${fullPrompt}", vocal_id: ${mureka_vocal_id}`);
+    // ── Read credit cost from operation_pricing ──
+    let CREDITS_COST = 3;
+    try {
+      const { data: pricing } = await supabase
+        .from('operation_pricing')
+        .select('credits_cost')
+        .eq('operation_key', 'generate_audio_song')
+        .maybeSingle();
+      if (pricing?.credits_cost && pricing.credits_cost > 0) {
+        CREDITS_COST = pricing.credits_cost;
+      }
+    } catch (e) {
+      console.warn('[MUREKA-GENERATE] Could not read operation_pricing, using fallback 3 credits', e);
+    }
+
+    // ── Check available credits ──
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('available_credits')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!profile || profile.available_credits < CREDITS_COST) {
+      return new Response(JSON.stringify({
+        error: 'insufficient_credits',
+        available: profile?.available_credits ?? 0,
+        required: CREDITS_COST
+      }), {
+        status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // ── Deduct credits upfront ──
+    await supabase.from('profiles').update({
+      available_credits: profile.available_credits - CREDITS_COST,
+      updated_at: new Date().toISOString(),
+    }).eq('user_id', user.id).eq('available_credits', profile.available_credits);
+
+    await supabase.from('credit_transactions').insert({
+      user_id: user.id,
+      amount: -CREDITS_COST,
+      type: 'usage',
+      description: 'Generación canción con voz (Mureka)',
+    });
+
+    // ── Refund helper ──
+    const refundCredits = async (reason: string) => {
+      const { data: p } = await supabase.from('profiles').select('available_credits').eq('user_id', user.id).single();
+      if (p) {
+        await supabase.from('profiles').update({
+          available_credits: p.available_credits + CREDITS_COST,
+          updated_at: new Date().toISOString(),
+        }).eq('user_id', user.id);
+        await supabase.from('credit_transactions').insert({
+          user_id: user.id,
+          amount: CREDITS_COST,
+          type: 'refund',
+          description: `Reembolso: ${reason}`.slice(0, 200),
+        });
+        console.log(`[MUREKA-GENERATE] Refunded ${CREDITS_COST} credits to ${user.id}: ${reason}`);
+      }
+    };
+
+    console.log(`[MUREKA-GENERATE] User ${user.id}, prompt: "${fullPrompt}", vocal_id: ${mureka_vocal_id}, cost: ${CREDITS_COST}`);
 
     // Llamar a Mureka /v1/song/generate
     const body: Record<string, unknown> = {
@@ -75,6 +138,7 @@ serve(async (req) => {
     if (!murekaRes.ok) {
       const err = await murekaRes.text();
       console.error('[MUREKA-GENERATE] Error:', err);
+      await refundCredits(`Error Mureka API: ${murekaRes.status}`);
       return new Response(JSON.stringify({ error: 'Mureka generation failed', details: err }), {
         status: murekaRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -86,7 +150,7 @@ serve(async (req) => {
     console.log(`[MUREKA-GENERATE] Task created: ${taskId}`);
 
     // Polling hasta completar (máx 3 minutos)
-    const maxAttempts = 36; // 36 * 5s = 3 min
+    const maxAttempts = 36;
     let attempts = 0;
     let result = null;
 
@@ -107,6 +171,7 @@ serve(async (req) => {
         result = queryData;
         break;
       } else if (queryData.status === 'failed') {
+        await refundCredits('Mureka generation failed');
         return new Response(JSON.stringify({ error: 'Mureka generation failed', details: queryData }), {
           status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
@@ -114,17 +179,18 @@ serve(async (req) => {
     }
 
     if (!result) {
+      await refundCredits('Timeout tras 3 minutos');
       return new Response(JSON.stringify({ error: 'Generation timeout after 3 minutes' }), {
         status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
-    // Mureka devuelve array de canciones (normalmente 2)
     const songs = result.songs || result.choices || [];
     const firstSong = songs[0];
     const audioUrl = firstSong?.audio_url || firstSong?.url || firstSong?.mp3_url;
 
     if (!audioUrl) {
+      await refundCredits('No audio URL en resultado');
       return new Response(JSON.stringify({ error: 'No audio URL in result', result }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -142,7 +208,7 @@ serve(async (req) => {
       .select()
       .single();
 
-    console.log(`[MUREKA-GENERATE] Done, generation: ${generation?.id}`);
+    console.log(`[MUREKA-GENERATE] Done, generation: ${generation?.id}, ${CREDITS_COST} credits charged`);
 
     return new Response(JSON.stringify({
       success: true,

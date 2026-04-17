@@ -81,8 +81,23 @@ serve(async (req) => {
       });
     }
 
-    // ── Credit deduction ──────────────────────────────────────
-    const CREDITS_COST = mode === 'song' ? 3 : 2;
+    // ── Credit deduction (read from operation_pricing) ──────────────
+    const operationKey = mode === 'song' ? 'generate_audio_song' : 'generate_audio';
+    const fallbackCosts: Record<string, number> = { generate_audio_song: 3, generate_audio: 2 };
+    let CREDITS_COST = fallbackCosts[operationKey];
+    try {
+      const { data: pricing } = await supabaseAdmin
+        .from('operation_pricing')
+        .select('credits_cost')
+        .eq('operation_key', operationKey)
+        .maybeSingle();
+      if (pricing?.credits_cost && pricing.credits_cost > 0) {
+        CREDITS_COST = pricing.credits_cost;
+      }
+    } catch (e) {
+      console.warn(`[GENERATE-AUDIO] Could not read operation_pricing for ${operationKey}, using fallback ${CREDITS_COST}`, e);
+    }
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('available_credits')
