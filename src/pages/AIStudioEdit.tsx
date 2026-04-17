@@ -271,10 +271,70 @@ const AIStudioEdit = () => {
     }
   };
 
-  const playAudio = (track: "original" | "mastered") => {
-    // Stop both
+  const handlePreview = async () => {
+    if (!audioFile || !user) return;
+
+    setIsPreviewing(true);
+    setPreviewError(null);
+    setPreviewUrl(null);
+    stopAllAudio();
+
+    try {
+      const uploadedUrl = await uploadForProcessing(audioFile);
+
+      const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
+        body: { action: "preview", mode: preset, audioUrl: uploadedUrl, filename: audioFile.name },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+
+      const uuid = data.productionUuid;
+
+      previewPollingRef.current = setInterval(async () => {
+        try {
+          const { data: st, error: stErr } = await supabase.functions.invoke("auphonic-enhance", {
+            body: { action: "status", productionUuid: uuid, isPreview: true },
+          });
+          if (stErr) return;
+          if (st?.done) {
+            stopPreviewPolling();
+            setPreviewUrl(st.outputUrl);
+            setIsPreviewing(false);
+            toast({ title: tr('preview.ready') });
+          } else if (st?.errored) {
+            stopPreviewPolling();
+            setIsPreviewing(false);
+            const { userMessage } = parseAiError(
+              new Error(st.errorMessage || 'roex_error'),
+              { error: st.errorMessage } as any,
+            );
+            setPreviewError(userMessage);
+          }
+        } catch { /* keep polling */ }
+      }, 6000);
+
+      // Timeout after 3 min
+      setTimeout(() => {
+        if (previewPollingRef.current) {
+          stopPreviewPolling();
+          setIsPreviewing(false);
+          setPreviewError(tr('errorTimeout'));
+        }
+      }, 180_000);
+    } catch (err: any) {
+      setIsPreviewing(false);
+      const responseData =
+        (err?.context?.body && typeof err.context.body === 'object') ? err.context.body :
+        (err?.context && typeof err.context === 'object' ? err.context : null);
+      const { userMessage } = parseAiError(err, responseData);
+      setPreviewError(userMessage);
+    }
+  };
+
+  const playAudio = (track: "original" | "mastered" | "preview") => {
+    // Stop all
     originalAudioRef.current?.pause();
     masteredAudioRef.current?.pause();
+    previewAudioRef.current?.pause();
 
     if (playingTrack === track) {
       setPlayingTrack(null);
@@ -295,6 +355,13 @@ const AIStudioEdit = () => {
       }
       masteredAudioRef.current.currentTime = 0;
       masteredAudioRef.current.play();
+    } else if (track === "preview" && previewUrl) {
+      if (!previewAudioRef.current || previewAudioRef.current.src !== previewUrl) {
+        previewAudioRef.current = new Audio(previewUrl);
+        previewAudioRef.current.onended = () => setPlayingTrack(null);
+      }
+      previewAudioRef.current.currentTime = 0;
+      previewAudioRef.current.play();
     }
     setPlayingTrack(track);
   };
