@@ -438,7 +438,7 @@ const AIStudioEdit = () => {
                     <TabsContent value="upload">
                       <FileDropzone
                         fileType="audio"
-                        accept="audio/*"
+                        accept=".mp3,.wav,.flac,.aac,.m4a,.ogg,audio/mpeg,audio/wav,audio/flac,audio/aac,audio/mp4,audio/ogg"
                         maxSize={50}
                         label={tr('uploadLabel')}
                         description={tr('uploadDescription')}
@@ -456,7 +456,7 @@ const AIStudioEdit = () => {
                   <>
                     <FileDropzone
                       fileType="audio"
-                      accept="audio/*"
+                      accept=".mp3,.wav,.flac,.aac,.m4a,.ogg,audio/mpeg,audio/wav,audio/flac,audio/aac,audio/mp4,audio/ogg"
                       maxSize={50}
                       label={tr('uploadLabel')}
                       description={tr('uploadDescription')}
