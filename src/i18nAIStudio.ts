@@ -754,6 +754,21 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       info: 'Each mastering uses 1 credit',
       errorGeneric: 'Error processing audio. Please try again.',
       errorTimeout: 'Processing took too long. Try again.',
+      presets: {
+        title: 'Choose mastering style',
+        professional: { label: 'Professional', desc: 'Universal musical balance' },
+        spotify:      { label: 'Streaming',    desc: 'Optimal loudness for Spotify' },
+        clarity:      { label: 'Clarity',      desc: 'More definition and air (rock/indie)' },
+        denoise:      { label: 'Cleanup',      desc: 'Reduces background noise' },
+        reverb:       { label: 'Space',        desc: 'Air and stereo depth' },
+      },
+      preview: {
+        cta: 'Listen to free preview',
+        loading: 'Generating preview...',
+        ready: 'Preview ready',
+        resultTitle: 'Free preview (no credits)',
+        resultHint: 'If you like it, master the full song.',
+      },
     },
     aiInspire: {
       backToStudio: 'Back to AI Music Studio',
