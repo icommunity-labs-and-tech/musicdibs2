@@ -162,7 +162,7 @@ const AIStudioEdit = () => {
       return;
     }
 
-    track('enhance_audio_started', { feature: 'enhance_audio' });
+    track('enhance_audio_started', { feature: 'enhance_audio', metadata: { preset } });
     setIsProcessing(true);
     setProcessError(null);
     setProcessedUrl(null);
@@ -186,18 +186,18 @@ const AIStudioEdit = () => {
       // Validate credits
       const { data: spend, error: spendErr } = await supabase.functions.invoke(
         "spend-credits",
-        { body: { feature: "enhance_audio", description: "Masterización profesional" } }
+        { body: { feature: "enhance_audio", description: `Masterización (${preset})` } }
       );
       if (spendErr || spend?.error) throw new Error(spend?.error || "Error de créditos");
 
       // Upload file
       const uploadedUrl = await uploadForProcessing(audioFile);
 
-      // Start Auphonic processing with "professional" mode
+      // Start RoEx processing with selected preset
       const { data, error } = await supabase.functions.invoke("auphonic-enhance", {
         body: {
           action: "process",
-          mode: "professional",
+          mode: preset,
           audioUrl: uploadedUrl,
           filename: audioFile.name,
         },
