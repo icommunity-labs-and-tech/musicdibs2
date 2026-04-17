@@ -572,6 +572,11 @@ const AIStudioEdit = () => {
                   </Button>
                 )}
               </div>
+              {isPreviewing && (
+                <p className="text-xs text-center text-muted-foreground animate-pulse">
+                  {tr('preview.hint')}
+                </p>
+              )}
               <PricingLink className="block text-center" />
             </>
           )}
