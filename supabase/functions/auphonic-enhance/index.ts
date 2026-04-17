@@ -62,26 +62,44 @@ serve(async (req) => {
 
     const modeConfig = ROEX_MODES[mode] || DEFAULT_MODE
 
-    // ── ACTION: STATUS ──────────────────────────────────────
+    // ── ACTION: STATUS (polling) ────────────────────────────
     if (action === "status") {
       if (!productionUuid) {
         return new Response(JSON.stringify({ error: "productionUuid required" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } })
       }
 
+      // RoEx requires POST to retrieve* endpoints with masteringTaskId in body
       const endpoint = isPreview
-        ? `${ROEX_BASE_URL}/masteringpreview/${productionUuid}`
-        : `${ROEX_BASE_URL}/mastering/${productionUuid}`
+        ? `${ROEX_BASE_URL}/retrievepreviewmaster`
+        : `${ROEX_BASE_URL}/retrievefinalmaster`
 
-      const statusRes = await fetch(endpoint, { headers: roexHeaders })
-      const statusData = await statusRes.json()
+      const statusRes = await fetch(endpoint, {
+        method: "POST",
+        headers: roexHeaders,
+        body: JSON.stringify({
+          masteringData: { masteringTaskId: productionUuid },
+        }),
+      })
 
-      const roexStatus = String(statusData.status || statusData.task_status || "").toUpperCase()
-      const done    = roexStatus === "SUCCESS"
-      const errored = roexStatus === "ERROR" || roexStatus === "FAILED"
+      // 202 = still processing; 200 = ready; 4xx/5xx = error
+      const statusData = await statusRes.json().catch(() => ({}))
+
+      const stillProcessing = statusRes.status === 202
+      const done = statusRes.status === 200 && !statusData.error
+      const errored = !done && !stillProcessing
+
+      let outputUrl: string | null = null
+      if (done) {
+        outputUrl = isPreview
+          ? statusData?.previewMasterTaskResults?.download_url_mastered_preview ?? null
+          : statusData?.finalMasterTaskResults?.download_url_mastered ?? null
+      }
+
       const progress = done ? 100 : (errored ? 0 : 50)
-
-      let outputUrl: string | null = statusData.output_file_url || statusData.outputUrl || null
+      const errorMessage = errored
+        ? (statusData?.message || statusData?.error_message || `RoEx ${statusRes.status}`)
+        : null
 
       if ((done || errored) && !isPreview) {
         await supabaseAdmin
@@ -89,7 +107,7 @@ serve(async (req) => {
           .update({
             status:       done ? "done" : "error",
             output_url:   outputUrl,
-            error_detail: errored ? (statusData.error_message || statusData.message || "RoEx processing error") : null,
+            error_detail: errorMessage,
             updated_at:   new Date().toISOString(),
           })
           .eq("auphonic_uuid", productionUuid)
@@ -108,14 +126,14 @@ serve(async (req) => {
               user_id: user.id,
               amount: CREDITS_COST,
               type: "refund",
-              description: `Reembolso: fallo RoEx (${statusData.error_message || "error"})`.slice(0, 200),
+              description: `Reembolso: fallo RoEx (${errorMessage})`.slice(0, 200),
             })
             console.log(`[ROEX] Refunded ${CREDITS_COST} credit to user ${user.id}: processing error`)
           }
         }
       }
 
-      // Re-upload result to Supabase Storage for stable public URL (only for full process, not preview)
+      // Re-upload final result to Supabase Storage for stable public URL (only for full process, not preview)
       if (done && outputUrl && !isPreview) {
         try {
           const audioRes = await fetch(outputUrl)
@@ -151,13 +169,13 @@ serve(async (req) => {
       }
 
       return new Response(JSON.stringify({
-        status: roexStatus,
+        status: done ? "SUCCESS" : (errored ? "ERROR" : "PROCESSING"),
         done,
         errored,
         outputUrl,
         progress,
         isPreview: !!isPreview,
-        errorMessage: errored ? (statusData.error_message || statusData.message || null) : null,
+        errorMessage,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
@@ -209,7 +227,7 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
-    // ── ACTION: PROCESS ─────────────────────────────────────
+    // ── ACTION: PROCESS (full master, charges credits) ──────
     if (action !== "process") {
       return new Response(JSON.stringify({ error: "Invalid action" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } })
@@ -273,6 +291,7 @@ serve(async (req) => {
       }
     }
 
+    // RoEx uses /masteringpreview to create the task, then /retrievefinalmaster to fetch the full result
     const masteringBody = {
       masteringData: {
         trackData: [{ trackURL: audioUrl }],
@@ -282,7 +301,7 @@ serve(async (req) => {
       },
     }
 
-    const roexRes = await fetch(`${ROEX_BASE_URL}/mastering`, {
+    const roexRes = await fetch(`${ROEX_BASE_URL}/masteringpreview`, {
       method: "POST",
       headers: roexHeaders,
       body: JSON.stringify(masteringBody),
