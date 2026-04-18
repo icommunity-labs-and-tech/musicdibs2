@@ -105,6 +105,7 @@ const AIStudioCreate = () => {
   // ── Music tab state ──
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
   const [prompt, setPrompt] = useState("");
+  const [lyrics, setLyrics] = useState<string>('');
   const [duration, setDuration] = useState(60);
   const [lyricsText, setLyricsText] = useState("");
   const [lyricsExpanded, setLyricsExpanded] = useState(false);
@@ -327,6 +328,7 @@ const AIStudioCreate = () => {
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
           prompt: enrichedPrompt,
+          lyrics: mode === 'song' ? lyrics.trim() : '',
           mode,
         }
       });
@@ -926,10 +928,10 @@ const AIStudioCreate = () => {
                     </CardHeader>
                     <CardContent className="space-y-6">
 
-                      {/* Main textarea — description + lyrics combined */}
+                      {/* Main textarea — song description */}
                       <div className="space-y-1.5" data-tour="mc-description">
                         <div className="flex items-center justify-between">
-                          <Label>Describe tu canción y/o pega tu letra *</Label>
+                          <Label>Describe tu canción *</Label>
                           <button
                             type="button"
                             onClick={handleImprovePrompt}
@@ -960,7 +962,7 @@ const AIStudioCreate = () => {
                           </button>
                         </div>
                         <Textarea
-                          placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con un ritmo enérgico y romántico. Incluye la letra si la tienes..."
+                          placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con ritmo enérgico..."
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value.slice(0, 2500))}
                           rows={5}
@@ -968,10 +970,29 @@ const AIStudioCreate = () => {
                           maxLength={2500}
                         />
                         <div className="flex items-center justify-between">
-                          <p className="text-xs text-muted-foreground">Incluye: género, mood, idioma, tema, ritmo, tipo de voz, letra...</p>
+                          <p className="text-xs text-muted-foreground">Incluye: género, mood, idioma, tema, ritmo, tipo de voz...</p>
                           <p className="text-xs text-muted-foreground">{prompt.length}/2500</p>
                         </div>
                       </div>
+
+                      {/* Lyrics textarea — only visible in 'song' mode */}
+                      {mode === 'song' && (
+                        <div className="space-y-1.5">
+                          <Label>Letra de la canción (opcional)</Label>
+                          <Textarea
+                            placeholder="Pega aquí tu letra completa. La IA la cantará respetando cada palabra tal como la escribas..."
+                            value={lyrics}
+                            onChange={(e) => setLyrics(e.target.value.slice(0, 3000))}
+                            rows={6}
+                            className="resize-none"
+                            maxLength={3000}
+                          />
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground">💡 Si incluyes letra, ElevenLabs la cantará palabra por palabra. Cuanto más detallada, mejor resultado.</p>
+                            <p className="text-xs text-muted-foreground">{lyrics.length}/3000</p>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Mode selector: Canción con voz / Instrumental */}
                       <div className="space-y-2">
