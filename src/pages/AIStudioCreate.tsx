@@ -328,6 +328,7 @@ const AIStudioCreate = () => {
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
           prompt: enrichedPrompt,
+          lyrics: mode === 'song' ? lyrics.trim() : '',
           mode,
         }
       });
