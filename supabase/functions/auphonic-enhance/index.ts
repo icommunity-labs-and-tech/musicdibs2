@@ -222,10 +222,13 @@ serve(async (req) => {
       }
 
       const progress = done ? 100 : (errored ? 0 : 50)
+      const isDummyResponse = typeof statusData?.message === "string" && /dummy/i.test(statusData.message)
       const errorMessage = errored
-        ? (!outputUrl && statusRes.status === 200
-            ? "RoEx no devolvió una preview reproducible"
-            : (statusData?.message || statusData?.error_message || `RoEx ${statusRes.status}`))
+        ? (isDummyResponse
+            ? "La API de masterización está en modo DEV/sandbox y solo devuelve audio de prueba. Configura una clave de RoEx en producción para obtener previews reales."
+            : (!outputUrl && statusRes.status === 200
+                ? "RoEx no devolvió una preview reproducible"
+                : (statusData?.message || statusData?.error_message || `RoEx ${statusRes.status}`)))
         : null
 
       if ((done || errored) && !isPreview) {
