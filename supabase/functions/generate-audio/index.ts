@@ -74,6 +74,7 @@ serve(async (req) => {
     }
 
     const { prompt, lyrics, genre, mood, duration, mode } = await req.json();
+    // `lyrics` is destructured above and used below to forward to ElevenLabs.
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt required' }), {
@@ -152,21 +153,31 @@ serve(async (req) => {
       .replace(/\b(estilo|style)\s+(de|of)\s+.{1,60}/gi, '')
       .trim();
     if (cleanPrompt) parts.push(cleanPrompt);
+    // Si hay letra, indicárselo a ElevenLabs en el prompt de estilo también
+    if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
+      parts.push('use the provided lyrics exactly as written, sing every word');
+    }
     const enrichedPrompt = parts.join('. ');
 
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
 
     const callElevenLabs = async (promptText: string) => {
+      const elBody: Record<string, unknown> = {
+        prompt: promptText,
+        duration_seconds: duration || 60,
+      };
+      // Si el usuario ha pegado letra, enviarla como campo separado.
+      // ElevenLabs la cantará palabra por palabra respetando el texto exacto.
+      if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
+        elBody.lyrics = lyrics.trim();
+      }
       return fetch('https://api.elevenlabs.io/v1/music', {
         method: 'POST',
         headers: {
           'xi-api-key': ELEVENLABS_API_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          prompt: promptText,
-          duration_seconds: duration || 60,
-        }),
+        body: JSON.stringify(elBody),
       });
     };
 
