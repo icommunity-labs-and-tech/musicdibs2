@@ -142,6 +142,68 @@ serve(async (req) => {
       }
     };
 
+    async function buildCompositionPlan(
+      stylePrompt: string,
+      lyrics: string,
+      durationMs: number,
+      apiKey: string
+    ): Promise<object | null> {
+      try {
+        // Paso 1: generar plan base desde el prompt de estilo
+        const planRes = await fetch('https://api.elevenlabs.io/v1/music/composition-plan', {
+          method: 'POST',
+          headers: {
+            'xi-api-key': apiKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: stylePrompt,
+            music_length_ms: durationMs,
+          }),
+        });
+        if (!planRes.ok) {
+          console.warn(`[GENERATE-AUDIO] composition-plan failed: ${planRes.status}`);
+          return null;
+        }
+        const plan = await planRes.json();
+
+        // Paso 2: distribuir la letra del usuario entre las secciones del plan
+        const allLines = lyrics
+          .split('\n')
+          .map((l: string) => l.trim())
+          .filter((l: string) => l.length > 0)
+          .slice(0, 200);
+
+        if (plan.sections && plan.sections.length > 0) {
+          const vocalSections = plan.sections.filter(
+            (s: any) => !s.section_name?.toLowerCase().includes('intro') &&
+                        !s.section_name?.toLowerCase().includes('outro') &&
+                        !(s.positive_local_styles || []).some((st: string) =>
+                          st.toLowerCase().includes('instrumental') || st.toLowerCase().includes('no vocals')
+                        )
+          );
+
+          if (vocalSections.length > 0) {
+            const linesPerSection = Math.ceil(allLines.length / vocalSections.length);
+            let lineIndex = 0;
+            for (const section of vocalSections) {
+              section.lines = allLines
+                .slice(lineIndex, lineIndex + linesPerSection)
+                .map((l: string) => l.substring(0, 200));
+              lineIndex += linesPerSection;
+              if (lineIndex >= allLines.length) break;
+            }
+          }
+        }
+
+        console.log(`[GENERATE-AUDIO] Composition plan built with ${plan.sections?.length || 0} sections`);
+        return plan;
+      } catch (e: any) {
+        console.error('[GENERATE-AUDIO] Error building composition plan:', e.message);
+        return null;
+      }
+    }
+
     // Build enriched prompt for ElevenLabs Music API
     const parts: string[] = [];
     if (genre) parts.push(genre);
