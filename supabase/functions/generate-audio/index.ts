@@ -153,23 +153,37 @@ serve(async (req) => {
       .replace(/\b(estilo|style)\s+(de|of)\s+.{1,60}/gi, '')
       .trim();
     if (cleanPrompt) parts.push(cleanPrompt);
-    // Si hay letra, indicárselo a ElevenLabs en el prompt de estilo también
-    if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
-      parts.push('use the provided lyrics exactly as written, sing every word');
-    }
     const enrichedPrompt = parts.join('. ');
 
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
 
+    // Pre-calcular composition plan si hay letra (fuera de callElevenLabs)
+    let compositionPlan: object | null = null;
+    if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
+      const durationMs = (duration || 60) * 1000;
+      compositionPlan = await buildCompositionPlan(
+        enrichedPrompt,
+        lyrics.trim(),
+        durationMs,
+        ELEVENLABS_API_KEY
+      );
+      if (compositionPlan) {
+        console.log('[GENERATE-AUDIO] Using composition plan with user lyrics');
+      } else {
+        console.warn('[GENERATE-AUDIO] Composition plan failed, falling back to prompt-only');
+      }
+    }
+
     const callElevenLabs = async (promptText: string) => {
       const elBody: Record<string, unknown> = {
-        prompt: promptText,
         duration_seconds: duration || 60,
       };
-      // Si el usuario ha pegado letra, enviarla como campo separado.
-      // ElevenLabs la cantará palabra por palabra respetando el texto exacto.
-      if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
-        elBody.lyrics = lyrics.trim();
+      if (compositionPlan) {
+        // Con letra: usar composition plan (prompt y composition_plan son mutuamente excluyentes)
+        elBody.composition_plan = compositionPlan;
+      } else {
+        // Sin letra: usar prompt normal
+        elBody.prompt = promptText;
       }
       return fetch('https://api.elevenlabs.io/v1/music', {
         method: 'POST',
