@@ -75,8 +75,8 @@ export default function MediaLibraryPage() {
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         const { assets: cachedAssets, ts } = JSON.parse(cached);
-        // Use cache if less than 2 minutes old
-        if (Date.now() - ts < 120_000) {
+        // Use cache only if very recent (30s) to avoid showing stale data
+        if (Date.now() - ts < 30_000) {
           setAssets(cachedAssets);
           setLoading(false);
           // Still refresh in background
@@ -121,6 +121,13 @@ export default function MediaLibraryPage() {
         .eq("status", "active")
         .order("created_at", { ascending: false }),
     ]);
+
+    // Log any query errors so silent failures become visible
+    if (songsRes.error) console.error('[MediaLibrary] songs error:', songsRes.error);
+    if (videosRes.error) console.error('[MediaLibrary] videos error:', videosRes.error);
+    if (promosRes.error) console.error('[MediaLibrary] promos error:', promosRes.error);
+    if (coverFilesRes.error) console.error('[MediaLibrary] cover files error:', coverFilesRes.error);
+    if (clonesRes.error) console.error('[MediaLibrary] clones error:', clonesRes.error);
 
     const allAssets: MediaAsset[] = [];
 
