@@ -1368,6 +1368,7 @@ const AIStudioCreate = () => {
                           disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10}
                           className="w-full"
                           size="lg"
+                          data-tour="mc-generate"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
                           {t('aiCreate.generateBtn')} {mode === 'song' ? 'canción' : 'instrumental'} con IA
