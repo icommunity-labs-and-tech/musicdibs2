@@ -93,34 +93,40 @@ function buildManualPlan(stylePrompt: string, lyrics: string, durationMs: number
 
   return {
     positive_global_styles: [stylePrompt],
+    negative_global_styles: ['low quality', 'distorted', 'noisy'],
     sections: [
       {
         section_name: 'Intro',
         duration_ms: introDur,
         positive_local_styles: ['instrumental intro'],
+        negative_local_styles: ['vocals'],
       },
       {
         section_name: 'Verse 1',
         duration_ms: verseDur,
         lyrics: verse1Lyrics,
         positive_local_styles: ['verse with lead vocals'],
+        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Chorus',
         duration_ms: chorusDur,
         lyrics: verse2Lyrics,
         positive_local_styles: ['energetic chorus with vocals'],
+        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Verse 2',
         duration_ms: verseDur,
         lyrics: verse2Lyrics,
         positive_local_styles: ['verse with lead vocals'],
+        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Outro',
         duration_ms: outroDur,
         positive_local_styles: ['outro instrumental fade'],
+        negative_local_styles: ['vocals'],
       },
     ],
   };
