@@ -44,7 +44,14 @@ import { MusicCreatorTour } from "@/components/ai-studio/MusicCreatorTour";
 import { useProductTracking } from "@/hooks/useProductTracking";
 
 // ── Music tab constants ──
-const DURATION_OPTIONS = [30, 60, 90, 120] as const;
+const DURATION_OPTIONS: { value: number; label: string }[] = [
+  { value: 60,  label: "1 min" },
+  { value: 120, label: "2 min" },
+  { value: 180, label: "3 min" },
+  { value: 210, label: "3:30 min" },
+  { value: 240, label: "4 min" },
+];
+const DEFAULT_DURATION = 210;
 const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|karaoke|sin voz|sin voces|base instrumental)\b/i;
 
 // ── Lyrics tab constants ──
@@ -106,7 +113,7 @@ const AIStudioCreate = () => {
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
   const [prompt, setPrompt] = useState("");
   const [lyrics, setLyrics] = useState<string>('');
-  const [duration, setDuration] = useState(60);
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
   const [lyricsText, setLyricsText] = useState("");
   const [lyricsExpanded, setLyricsExpanded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -330,6 +337,7 @@ const AIStudioCreate = () => {
           prompt: enrichedPrompt,
           lyrics: mode === 'song' ? lyrics.trim() : '',
           mode,
+          duration,
         }
       });
 
@@ -1271,6 +1279,31 @@ const AIStudioCreate = () => {
                       </div>
                       </div>{/* close data-tour="mc-settings" */}
 
+
+                      {/* Duration selector */}
+                      <div className="space-y-2">
+                        <Label className="text-sm flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                          Duración
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                          {DURATION_OPTIONS.map((opt) => (
+                            <Badge
+                              key={opt.value}
+                              variant={duration === opt.value ? "default" : "outline"}
+                              className={cn(
+                                "cursor-pointer text-xs px-3 py-1.5 transition-colors",
+                                duration === opt.value
+                                  ? "bg-primary text-primary-foreground"
+                                  : "hover:bg-muted"
+                              )}
+                              onClick={() => setDuration(opt.value)}
+                            >
+                              {opt.label}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
 
                       {/* Error */}
                       {generationError && (
