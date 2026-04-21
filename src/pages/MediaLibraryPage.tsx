@@ -75,8 +75,8 @@ export default function MediaLibraryPage() {
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         const { assets: cachedAssets, ts } = JSON.parse(cached);
-        // Use cache if less than 2 minutes old
-        if (Date.now() - ts < 120_000) {
+        // Use cache only if very recent (30s) to avoid showing stale data
+        if (Date.now() - ts < 30_000) {
           setAssets(cachedAssets);
           setLoading(false);
           // Still refresh in background
