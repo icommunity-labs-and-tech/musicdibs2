@@ -220,9 +220,11 @@ serve(async (req) => {
     console.log(`[GENERATE-AUDIO] ElevenLabs Music: mode=${mode || 'song'} | "${enrichedPrompt.substring(0, 100)}"`);
 
     // Pre-calcular composition plan si hay letra (fuera de callElevenLabs)
-    let compositionPlan: object | null = null;
-    if (lyrics && lyrics.trim().length > 0 && mode === 'song') {
-      const durationMs = (duration || 60) * 1000;
+    const hasUserLyrics = !!(lyrics && lyrics.trim().length > 0 && mode === 'song');
+    let compositionPlan: any = null;
+    const durationMs = (duration || 60) * 1000;
+
+    if (hasUserLyrics) {
       compositionPlan = await buildCompositionPlan(
         enrichedPrompt,
         lyrics.trim(),
@@ -230,30 +232,60 @@ serve(async (req) => {
         ELEVENLABS_API_KEY
       );
       if (compositionPlan) {
-        console.log('[GENERATE-AUDIO] Using composition plan with user lyrics');
+        console.log('[GENERATE-AUDIO] Using ElevenLabs-generated composition plan with user lyrics');
       } else {
-        console.warn('[GENERATE-AUDIO] Composition plan failed, falling back to prompt-only');
+        // Fallback NO silencioso: construir un plan manual mínimo con la letra del usuario
+        console.warn('[GENERATE-AUDIO] composition-plan endpoint failed, building manual composition plan with user lyrics');
+        compositionPlan = {
+          positive_global_styles: [enrichedPrompt],
+          sections: [
+            {
+              section_name: 'Verse 1',
+              duration_ms: Math.floor(durationMs * 0.4),
+              lyrics: lyrics.trim(),
+              positive_local_styles: ['verse with vocals'],
+            },
+            {
+              section_name: 'Chorus',
+              duration_ms: Math.floor(durationMs * 0.3),
+              lyrics: lyrics.trim(),
+              positive_local_styles: ['chorus with vocals'],
+            },
+            {
+              section_name: 'Outro',
+              duration_ms: Math.floor(durationMs * 0.3),
+              positive_local_styles: ['outro instrumental'],
+            },
+          ],
+        };
+        console.log('[GENERATE-AUDIO] Manual composition plan built with user lyrics');
       }
     }
 
     const callElevenLabs = async (promptText: string) => {
-      const elBody: Record<string, unknown> = {
-        duration_seconds: duration || 60,
-      };
       if (compositionPlan) {
-        // Con letra: usar composition plan (prompt y composition_plan son mutuamente excluyentes)
-        elBody.composition_plan = compositionPlan;
-      } else {
-        // Sin letra: usar prompt normal
-        elBody.prompt = promptText;
+        // Con letra: usar endpoint /v1/music/compose con composition_plan
+        // (la duración va dentro de las secciones del plan, no como music_length_ms)
+        return fetch('https://api.elevenlabs.io/v1/music/compose', {
+          method: 'POST',
+          headers: {
+            'xi-api-key': ELEVENLABS_API_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ composition_plan: compositionPlan }),
+        });
       }
+      // Sin letra: endpoint estándar /v1/music con prompt y duración
       return fetch('https://api.elevenlabs.io/v1/music', {
         method: 'POST',
         headers: {
           'xi-api-key': ELEVENLABS_API_KEY,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(elBody),
+        body: JSON.stringify({
+          prompt: promptText,
+          duration_seconds: duration || 60,
+        }),
       });
     };
 
@@ -318,7 +350,7 @@ serve(async (req) => {
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = base64Encode(audioBuffer);
 
-    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes, ${CREDITS_COST} credits charged`);
+    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes, ${CREDITS_COST} credits charged, lyricsUsed=${hasUserLyrics}`);
 
     return new Response(
       JSON.stringify({
@@ -327,6 +359,7 @@ serve(async (req) => {
         duration: duration || 60,
         provider: 'elevenlabs',
         status: 'completed',
+        lyricsUsed: hasUserLyrics,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
