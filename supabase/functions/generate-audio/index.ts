@@ -86,6 +86,9 @@ function buildManualPlan(stylePrompt: string, lyrics: string): any {
 
   console.log(`[GENERATE-AUDIO] Using manual composition plan with lyrics (${lines.length} lines)`);
 
+  const verse1Lines = verse1Lyrics.split('\n').filter(l => l.trim());
+  const verse2Lines = verse2Lyrics.split('\n').filter(l => l.trim());
+
   // Durations in ms — let the model breathe naturally
   return {
     positive_global_styles: [stylePrompt],
@@ -94,30 +97,37 @@ function buildManualPlan(stylePrompt: string, lyrics: string): any {
       {
         section_name: 'Intro',
         duration_ms: 10000,
+        lines: [],
         positive_local_styles: ['instrumental intro'],
+        negative_local_styles: [],
       },
       {
         section_name: 'Verse 1',
         duration_ms: 30000,
-        lyrics: verse1Lyrics,
+        lines: verse1Lines,
         positive_local_styles: ['verse with lead vocals'],
+        negative_local_styles: [],
       },
       {
         section_name: 'Chorus',
         duration_ms: 25000,
-        lyrics: verse2Lyrics,
+        lines: verse2Lines,
         positive_local_styles: ['energetic chorus with vocals'],
+        negative_local_styles: [],
       },
       {
         section_name: 'Verse 2',
         duration_ms: 30000,
-        lyrics: verse2Lyrics,
+        lines: verse2Lines,
         positive_local_styles: ['verse with lead vocals'],
+        negative_local_styles: [],
       },
       {
         section_name: 'Outro',
         duration_ms: 10000,
+        lines: [],
         positive_local_styles: ['outro instrumental fade'],
+        negative_local_styles: [],
       },
     ],
   };
