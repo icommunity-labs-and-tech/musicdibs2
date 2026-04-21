@@ -10,7 +10,6 @@ const corsHeaders = {
 async function buildCompositionPlan(
   stylePrompt: string,
   lyrics: string,
-  durationMs: number,
   apiKey: string,
 ): Promise<any> {
   const cleanedLyrics = lyrics
@@ -20,19 +19,20 @@ async function buildCompositionPlan(
     .join('\n')
     .trim();
 
-  if (!cleanedLyrics) return buildManualPlan(stylePrompt, lyrics, durationMs);
+  if (!cleanedLyrics) return buildManualPlan(stylePrompt, lyrics);
 
   try {
-    const planResp = await fetch('https://api.elevenlabs.io/v1/music/plan', {
+    // No music_length_ms — let ElevenLabs decide duration from the plan
+    const planResp = await fetch('https://api.elevenlabs.io/v1/music/composition-plan', {
       method: 'POST',
       headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: stylePrompt, music_length_ms: durationMs }),
+      body: JSON.stringify({ prompt: stylePrompt }),
     });
 
     if (!planResp.ok) {
       const errText = await planResp.text().catch(() => '');
       console.warn(`[GENERATE-AUDIO] composition-plan API failed (${planResp.status}): ${errText.slice(0, 200)} — using manual plan`);
-      return buildManualPlan(stylePrompt, cleanedLyrics, durationMs);
+      return buildManualPlan(stylePrompt, cleanedLyrics);
     }
 
     const plan = await planResp.json();
@@ -40,7 +40,7 @@ async function buildCompositionPlan(
 
     if (sections.length === 0) {
       console.warn('[GENERATE-AUDIO] composition-plan returned 0 sections — using manual plan');
-      return buildManualPlan(stylePrompt, cleanedLyrics, durationMs);
+      return buildManualPlan(stylePrompt, cleanedLyrics);
     }
 
     const isVocal = (s: any): boolean => {
@@ -56,7 +56,7 @@ async function buildCompositionPlan(
 
     if (vocalIdxs.length === 0) {
       console.warn('[GENERATE-AUDIO] No vocal sections found in AI plan — using manual plan');
-      return buildManualPlan(stylePrompt, cleanedLyrics, durationMs);
+      return buildManualPlan(stylePrompt, cleanedLyrics);
     }
 
     const lines = cleanedLyrics.split('\n').filter(l => l.trim());
@@ -65,79 +65,58 @@ async function buildCompositionPlan(
 
     vocalIdxs.forEach((sIdx, k) => {
       const text = buckets[k].join('\n').trim();
-      if (text) sections[sIdx].lines = text.split('\n').filter(line => line.trim());
+      if (text) sections[sIdx].lyrics = text;
     });
 
-    plan.negative_global_styles = Array.isArray(plan.negative_global_styles) ? plan.negative_global_styles : ['low quality', 'distorted', 'noisy'];
-    plan.sections = sections.map((section: any) => ({
-      ...section,
-      positive_local_styles: Array.isArray(section.positive_local_styles) ? section.positive_local_styles : ['lead vocals'],
-      negative_local_styles: Array.isArray(section.negative_local_styles) ? section.negative_local_styles : ['low quality'],
-      lines: Array.isArray(section.lines) ? section.lines : [],
-    }));
+    plan.sections = sections;
     console.log(`[GENERATE-AUDIO] AI composition plan built: ${vocalIdxs.length} vocal sections with lyrics injected`);
     return plan;
 
   } catch (err) {
     console.warn('[GENERATE-AUDIO] composition-plan exception:', err, '— using manual plan');
-    return buildManualPlan(stylePrompt, cleanedLyrics, durationMs);
+    return buildManualPlan(stylePrompt, cleanedLyrics);
   }
 }
 
-function buildManualPlan(stylePrompt: string, lyrics: string, durationMs: number): any {
+function buildManualPlan(stylePrompt: string, lyrics: string): any {
   const lines = lyrics.split('\n').filter(l => l.trim());
   const half = Math.ceil(lines.length / 2);
   const verse1Lyrics = lines.slice(0, half).join('\n');
   const verse2Lyrics = lines.slice(half).join('\n') || verse1Lyrics;
 
-  const introDur  = Math.round(durationMs * 0.10);
-  const verseDur  = Math.round(durationMs * 0.30);
-  const chorusDur = Math.round(durationMs * 0.25);
-  const outroDur  = durationMs - introDur - verseDur * 2 - chorusDur;
-
   console.log(`[GENERATE-AUDIO] Using manual composition plan with lyrics (${lines.length} lines)`);
 
-  const verse1Lines = verse1Lyrics.split('\n').filter(line => line.trim());
-  const verse2Lines = verse2Lyrics.split('\n').filter(line => line.trim());
-
+  // Durations in ms — let the model breathe naturally
   return {
     positive_global_styles: [stylePrompt],
-    negative_global_styles: ['low quality', 'distorted', 'noisy'],
     sections: [
       {
         section_name: 'Intro',
-        duration_ms: introDur,
-        lines: ['(instrumental intro)'],
+        duration_ms: 10000,
         positive_local_styles: ['instrumental intro'],
-        negative_local_styles: ['vocals'],
       },
       {
         section_name: 'Verse 1',
-        duration_ms: verseDur,
-        lines: verse1Lines,
+        duration_ms: 30000,
+        lyrics: verse1Lyrics,
         positive_local_styles: ['verse with lead vocals'],
-        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Chorus',
-        duration_ms: chorusDur,
-        lines: verse2Lines,
+        duration_ms: 25000,
+        lyrics: verse2Lyrics,
         positive_local_styles: ['energetic chorus with vocals'],
-        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Verse 2',
-        duration_ms: verseDur,
-        lines: verse2Lines,
+        duration_ms: 30000,
+        lyrics: verse2Lyrics,
         positive_local_styles: ['verse with lead vocals'],
-        negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Outro',
-        duration_ms: outroDur,
-        lines: ['(instrumental outro)'],
+        duration_ms: 10000,
         positive_local_styles: ['outro instrumental fade'],
-        negative_local_styles: ['vocals'],
       },
     ],
   };
@@ -259,27 +238,35 @@ serve(async (req) => {
     if (cleanPrompt) parts.push(cleanPrompt);
     const enrichedPrompt = parts.join('. ');
 
-    const durationSecs = duration || 60;
-    const durationMs = durationSecs * 1000;
+    // Only use explicit duration from frontend if provided and > 0
+    const explicitDuration = typeof duration === 'number' && duration > 0 ? duration : null;
     const hasUserLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
 
     let compositionPlan: any | null = null;
     if (hasUserLyrics) {
       console.log(`[GENERATE-AUDIO] Lyrics provided (${lyrics.length} chars) — building composition plan`);
-      compositionPlan = await buildCompositionPlan(enrichedPrompt, lyrics.trim(), durationMs, ELEVENLABS_API_KEY);
+      compositionPlan = await buildCompositionPlan(enrichedPrompt, lyrics.trim(), ELEVENLABS_API_KEY);
     }
 
-    console.log(`[GENERATE-AUDIO] mode=${mode || 'instrumental'} | plan=${compositionPlan ? 'YES (lyrics)' : 'NO (prompt-only)'} | lyricsUsed=${hasUserLyrics} | prompt="${enrichedPrompt.substring(0, 80)}"`);
+    console.log(`[GENERATE-AUDIO] mode=${mode || 'instrumental'} | plan=${compositionPlan ? 'YES (lyrics)' : 'NO (prompt-only)'} | lyricsUsed=${hasUserLyrics} | explicitDuration=${explicitDuration} | prompt="${enrichedPrompt.substring(0, 80)}"`);
 
+    // ElevenLabs: composition_plan and prompt are MUTUALLY EXCLUSIVE.
+    // When using composition_plan: no music_length_ms (duration defined in sections).
+    // When using prompt: include music_length_ms only if user explicitly provided duration.
     const callElevenLabs = async (opts: { plan?: any; promptText?: string }) => {
       const body: Record<string, unknown> = {};
       if (opts.plan) {
+        // composition_plan mode — ElevenLabs determines total duration from sections
         body.composition_plan = opts.plan;
       } else {
         body.prompt = opts.promptText;
-        body.music_length_ms = durationMs;
+        // Only set music_length_ms if user explicitly chose a duration
+        // Otherwise let ElevenLabs decide the natural length for the prompt
+        if (explicitDuration) {
+          body.music_length_ms = explicitDuration * 1000;
+        }
       }
-      return fetch(opts.plan ? 'https://api.elevenlabs.io/v1/music/compose' : 'https://api.elevenlabs.io/v1/music', {
+      return fetch('https://api.elevenlabs.io/v1/music', {
         method: 'POST',
         headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -348,7 +335,9 @@ serve(async (req) => {
     const base64Audio = base64Encode(audioBuffer);
     const audioBytes = new Uint8Array(audioBuffer);
 
-    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes | lyricsUsed=${hasUserLyrics} | plan=${!!compositionPlan}`);
+    // Calculate actual duration from audio size (rough estimate: ~128kbps mp3)
+    const actualDurationSecs = Math.round(audioBuffer.byteLength / 16000);
+    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=${!!compositionPlan}`);
 
     let savedAudioUrl: string | null = null;
     let generationId: string | null = null;
@@ -365,12 +354,12 @@ serve(async (req) => {
           user_id: userId,
           prompt: prompt.slice(0, 500),
           audio_url: savedAudioUrl,
-          duration: durationSecs,
+          duration: actualDurationSecs,
           genre: genre || null,
           mood: mood || null,
         }).select('id').single();
         generationId = gen?.id || null;
-        console.log(`[GENERATE-AUDIO] Saved generation: ${generationId}`);
+        console.log(`[GENERATE-AUDIO] Saved generation: ${generationId} (${actualDurationSecs}s)`);
       } else {
         console.error('[GENERATE-AUDIO] Upload error:', uploadError);
       }
@@ -382,7 +371,7 @@ serve(async (req) => {
       JSON.stringify({
         audio: base64Audio,
         format: 'audio/mpeg',
-        duration: durationSecs,
+        duration: actualDurationSecs,
         provider: 'elevenlabs',
         status: 'completed',
         generationId,
