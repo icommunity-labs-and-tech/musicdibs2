@@ -350,7 +350,7 @@ serve(async (req) => {
     const audioBuffer = await response.arrayBuffer();
     const base64Audio = base64Encode(audioBuffer);
 
-    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes, ${CREDITS_COST} credits charged`);
+    console.log(`[GENERATE-AUDIO] Success! Audio size: ${audioBuffer.byteLength} bytes, ${CREDITS_COST} credits charged, lyricsUsed=${hasUserLyrics}`);
 
     return new Response(
       JSON.stringify({
@@ -359,6 +359,7 @@ serve(async (req) => {
         duration: duration || 60,
         provider: 'elevenlabs',
         status: 'completed',
+        lyricsUsed: hasUserLyrics,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
