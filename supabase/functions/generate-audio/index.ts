@@ -331,7 +331,7 @@ serve(async (req) => {
 
     // Calculate actual duration from audio size (rough estimate: ~128kbps mp3)
     const actualDurationSecs = Math.round(audioBuffer.byteLength / 16000);
-    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=${!!compositionPlan}`);
+    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=false`);
 
     let savedAudioUrl: string | null = null;
     let generationId: string | null = null;
@@ -378,8 +378,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[GENERATE-AUDIO] Fatal error:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
