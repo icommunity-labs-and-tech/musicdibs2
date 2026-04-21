@@ -94,6 +94,8 @@ export default function MediaLibraryPage() {
 
     // Run ALL queries in parallel
     const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
+      // @ts-ignore - log helper
+      ...[],
       supabase
         .from("ai_generations")
         .select("id, prompt, audio_url, genre, mood, created_at")
