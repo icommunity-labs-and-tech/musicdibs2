@@ -890,7 +890,7 @@ const AIStudioCreate = () => {
                   <Music className="h-4 w-4" />
                   {t('aiCreate.tabMusic')}
                 </TabsTrigger>
-                <TabsTrigger value="lyrics" className="gap-2">
+                <TabsTrigger value="lyrics" className="gap-2" data-tour="mc-tab-lyrics">
                   <FileText className="h-4 w-4" />
                   {t('aiCreate.tabLyrics')}
                 </TabsTrigger>
