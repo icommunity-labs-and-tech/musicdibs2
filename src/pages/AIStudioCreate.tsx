@@ -1571,7 +1571,7 @@ const AIStudioCreate = () => {
           </div>
 
           {/* ═══ RIGHT: Results Panel ═══ */}
-          <div className="space-y-6 flex flex-col">
+          <div className="space-y-6 flex flex-col" data-tour="mc-results">
             <div className="flex items-center justify-between min-h-[68px]">
               <h2 className="text-xl font-semibold">
                 {activeTab === "lyrics" ? t('aiCreate.myLyrics') : t('aiCreate.results')}
