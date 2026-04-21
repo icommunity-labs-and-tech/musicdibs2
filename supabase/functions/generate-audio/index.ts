@@ -23,7 +23,7 @@ async function buildCompositionPlan(
   if (!cleanedLyrics) return buildManualPlan(stylePrompt, lyrics, durationMs);
 
   try {
-    const planResp = await fetch('https://api.elevenlabs.io/v1/music/composition-plan', {
+    const planResp = await fetch('https://api.elevenlabs.io/v1/music/plan', {
       method: 'POST',
       headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: stylePrompt, music_length_ms: durationMs }),
@@ -65,10 +65,16 @@ async function buildCompositionPlan(
 
     vocalIdxs.forEach((sIdx, k) => {
       const text = buckets[k].join('\n').trim();
-      if (text) sections[sIdx].lyrics = text;
+      if (text) sections[sIdx].lines = text.split('\n').filter(line => line.trim());
     });
 
-    plan.sections = sections;
+    plan.negative_global_styles = Array.isArray(plan.negative_global_styles) ? plan.negative_global_styles : ['low quality', 'distorted', 'noisy'];
+    plan.sections = sections.map((section: any) => ({
+      ...section,
+      positive_local_styles: Array.isArray(section.positive_local_styles) ? section.positive_local_styles : ['lead vocals'],
+      negative_local_styles: Array.isArray(section.negative_local_styles) ? section.negative_local_styles : ['low quality'],
+      lines: Array.isArray(section.lines) ? section.lines : [],
+    }));
     console.log(`[GENERATE-AUDIO] AI composition plan built: ${vocalIdxs.length} vocal sections with lyrics injected`);
     return plan;
 
@@ -91,6 +97,9 @@ function buildManualPlan(stylePrompt: string, lyrics: string, durationMs: number
 
   console.log(`[GENERATE-AUDIO] Using manual composition plan with lyrics (${lines.length} lines)`);
 
+  const verse1Lines = verse1Lyrics.split('\n').filter(line => line.trim());
+  const verse2Lines = verse2Lyrics.split('\n').filter(line => line.trim());
+
   return {
     positive_global_styles: [stylePrompt],
     negative_global_styles: ['low quality', 'distorted', 'noisy'],
@@ -98,33 +107,35 @@ function buildManualPlan(stylePrompt: string, lyrics: string, durationMs: number
       {
         section_name: 'Intro',
         duration_ms: introDur,
+        lines: ['(instrumental intro)'],
         positive_local_styles: ['instrumental intro'],
         negative_local_styles: ['vocals'],
       },
       {
         section_name: 'Verse 1',
         duration_ms: verseDur,
-        lyrics: verse1Lyrics,
+        lines: verse1Lines,
         positive_local_styles: ['verse with lead vocals'],
         negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Chorus',
         duration_ms: chorusDur,
-        lyrics: verse2Lyrics,
+        lines: verse2Lines,
         positive_local_styles: ['energetic chorus with vocals'],
         negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Verse 2',
         duration_ms: verseDur,
-        lyrics: verse2Lyrics,
+        lines: verse2Lines,
         positive_local_styles: ['verse with lead vocals'],
         negative_local_styles: ['instrumental only'],
       },
       {
         section_name: 'Outro',
         duration_ms: outroDur,
+        lines: ['(instrumental outro)'],
         positive_local_styles: ['outro instrumental fade'],
         negative_local_styles: ['vocals'],
       },
@@ -268,7 +279,7 @@ serve(async (req) => {
         body.prompt = opts.promptText;
         body.music_length_ms = durationMs;
       }
-      return fetch('https://api.elevenlabs.io/v1/music', {
+      return fetch(opts.plan ? 'https://api.elevenlabs.io/v1/music/compose' : 'https://api.elevenlabs.io/v1/music', {
         method: 'POST',
         headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
