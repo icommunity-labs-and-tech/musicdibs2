@@ -522,11 +522,31 @@ const AIStudioCreate = () => {
     if (error) { toast({ title: t('aiShared.error'), variant: "destructive" }); loadHistory(); }
   };
 
-  const downloadAudio = (result: GenerationResult) => {
-    const link = document.createElement('a');
-    link.href = result.audioUrl;
-    link.download = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
-    link.click();
+  const downloadAudio = async (result: GenerationResult) => {
+    const filename = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
+    try {
+      // Fetch as blob to force download (avoids browser opening cross-origin URL in new tab)
+      const response = await fetch(result.audioUrl);
+      if (!response.ok) throw new Error('fetch failed');
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      // Fallback: direct link with download attribute
+      const link = document.createElement('a');
+      link.href = result.audioUrl;
+      link.download = filename;
+      link.rel = 'noopener';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
     track('audio_downloaded', { feature: 'create_music' });
   };
 
