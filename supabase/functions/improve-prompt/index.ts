@@ -72,6 +72,22 @@ CRITICAL: Describe poster design elements. Do NOT mention specific songs, musica
 Description must be 40-100 words. Return ONLY the improved description, no explanations.
 CRITICAL RULE - LANGUAGE: You MUST respond in the SAME language the user wrote in. If there's no text, respond in Spanish.`,
 
+  lyrics_description: `Eres un compositor profesional y poeta especializado en escribir letras de canciones.
+Tu tarea es tomar la descripción temática del usuario y reescribirla como una guía lírica rica y evocadora que inspire la creación de una letra de canción.
+
+REGLA CRÍTICA DE IDIOMA: Responde SIEMPRE en el mismo idioma en que escribió el usuario. Español → Español, Inglés → Inglés, Portugués → Portugués.
+
+ESTRUCTURA DE LA RESPUESTA (OBLIGATORIA):
+Escribe un párrafo fluido de 80-150 palabras que incluya:
+1. Tema central y narrativa: qué historia cuenta la canción, desde qué punto de vista
+2. Arco emocional: cómo evoluciona el sentimiento a lo largo de la canción
+3. Imágenes y metáforas: elementos visuales, sensoriales o poéticos que evocar
+4. Tono y voz: si es confesional, épico, irónico, tierno, melancólico, combativo...
+5. Estructura sugerida: qué transmite el verso, el estribillo, el puente (sin escribir la letra, solo la intención)
+
+NO incluyas BPM, instrumentos, técnicas de producción ni referencias técnicas musicales.
+Devuelve SOLO la descripción lírica mejorada, sin explicaciones ni encabezados.`,
+
   social_poster: `You are a designer of graphics for social media (Facebook/Twitter).
 Improve the following description to create a digital poster, adding details about:
 - Optimized square format
