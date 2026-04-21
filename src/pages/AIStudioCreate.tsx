@@ -353,7 +353,8 @@ const AIStudioCreate = () => {
       }
 
       if (data?.audio) {
-        const audioUrl = `data:${data.format};base64,${data.audio}`;
+        // Prefer the persisted signed URL from the edge function; fall back to inline data URL
+        const audioUrl = data.audioUrl || `data:${data.format};base64,${data.audio}`;
 
         const selectedVoiceProfile = voiceProfiles.find(v => v.id === selectedVoice);
         const artistVoiceId = selectedArtistId
@@ -364,26 +365,44 @@ const AIStudioCreate = () => {
           ? (selectedVoiceProfile?.label || virtualArtists.find(artist => artist.id === selectedArtistId)?.voice_profiles?.label || '')
           : null;
 
-        const { data: savedGen, error: saveError } = await supabase
-          .from('ai_generations')
-          .insert({
-            user_id: user.id,
-            prompt: prompt.trim(),
-            duration: data.duration,
-            audio_url: audioUrl,
-            ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
-          })
-          .select()
-          .single();
+        // The edge function already inserts the row in ai_generations and returns its id.
+        // Just update the voice metadata if applicable — never insert again to avoid duplicates.
+        let generationId: string | null = data.generationId || null;
+        let createdAt = new Date();
 
-        if (saveError) throw { message: saveError.message };
+        if (generationId && voiceIdToSave) {
+          const { error: updateError } = await supabase
+            .from('ai_generations')
+            .update({ voice_id: voiceIdToSave, voice_name: voiceNameToSave })
+            .eq('id', generationId)
+            .eq('user_id', user.id);
+          if (updateError) console.error('[AIStudioCreate] voice metadata update failed:', updateError);
+        }
+
+        // Fallback: only insert if the edge function failed to persist (no generationId returned)
+        if (!generationId) {
+          const { data: savedGen, error: saveError } = await supabase
+            .from('ai_generations')
+            .insert({
+              user_id: user.id,
+              prompt: prompt.trim(),
+              duration: data.duration,
+              audio_url: audioUrl,
+              ...(voiceIdToSave ? { voice_id: voiceIdToSave, voice_name: voiceNameToSave } : {}),
+            })
+            .select()
+            .single();
+          if (saveError) throw { message: saveError.message };
+          generationId = savedGen.id;
+          createdAt = new Date(savedGen.created_at);
+        }
 
         const newResult: GenerationResult = {
-          id: savedGen.id,
+          id: generationId!,
           audioUrl,
           prompt: prompt.trim(),
           duration: data.duration,
-          createdAt: new Date(savedGen.created_at),
+          createdAt,
           isFavorite: false,
           voiceId: voiceIdToSave || undefined,
           voiceName: voiceNameToSave || undefined,
