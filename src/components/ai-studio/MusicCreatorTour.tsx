@@ -10,49 +10,95 @@ function getTourKey(userId: string) {
   return `${TOUR_KEY}_${userId}`;
 }
 
-function useSteps(): Step[] {
+interface ExtendedStep extends Step {
+  bullets?: string[];
+  highlight?: string;
+  warning?: string;
+  closing?: string;
+}
+
+function useSteps(): ExtendedStep[] {
   const { t } = useTranslation();
   return useMemo(() => [
     {
       target: 'body',
       placement: 'center' as const,
-      title: t('aiCreate.tour.welcomeTitle', 'Crea música completa con IA 🎵'),
-      content: t('aiCreate.tour.welcomeContent', 'Esta herramienta genera canciones completas a partir de una descripción.\n\nPuedes crear:\n• Canciones originales con letra\n• Bases instrumentales\n• Cualquier género musical\n\nTe mostramos cómo obtener los mejores resultados.'),
+      title: t('aiCreate.tour.s1Title', 'Crea música completa con IA 🎵'),
+      content: t('aiCreate.tour.s1Content', 'Esta herramienta genera canciones completas a partir de una descripción.'),
+      bullets: [
+        t('aiCreate.tour.s1B1', 'Canciones originales con letra'),
+        t('aiCreate.tour.s1B2', 'Bases instrumentales'),
+        t('aiCreate.tour.s1B3', 'Cualquier género musical'),
+      ],
+      closing: t('aiCreate.tour.s1Closing', 'Te mostramos cómo obtener los mejores resultados en pocos pasos.'),
       disableBeacon: true,
     },
     {
       target: '[data-tour="mc-description"]',
-      title: t('aiCreate.tour.descTitle', 'Describe tu canción (lo más importante)'),
-      content: t('aiCreate.tour.descContent', 'Cuanto más detallado seas, mejor será el resultado.\n\nIncluye en tu descripción:\n✓ Género (ej: pop, rock, reggaeton)\n✓ Mood/ambiente (ej: romántico, energético)\n✓ Idioma (ej: en español, in English)\n✓ Tema de la letra (ej: amor, fiesta)\n✓ Tipo de voz (ej: voz femenina suave)\n\n💡 Usa "Mejorar con IA" para enriquecer tu descripción automáticamente.'),
+      title: t('aiCreate.tour.s2Title', 'Describe tu canción ✍️'),
+      content: t('aiCreate.tour.s2Content', 'Escribe cómo quieres que suene tu canción. Cuanto más detalle incluyas, mejores serán los resultados.'),
+      highlight: t('aiCreate.tour.s2Highlight', '"Una canción pop sobre un amor de verano, voz femenina, estilo Aitana"'),
+      warning: t('aiCreate.tour.s2Warning', 'No pongas textos contradictorios en la descripción y el campo de letra. En ese caso la IA elegirá uno de los dos de forma aleatoria.'),
       disableBeacon: true,
     },
     {
       target: '[data-tour="mc-lyrics"]',
-      title: t('aiCreate.tour.lyricsTitle', 'Letra de la canción (opcional)'),
-      content: t('aiCreate.tour.lyricsContent', 'Puedes:\n• Dejar que la IA genere la letra automáticamente\n• Escribir tu propia letra aquí\n\nSi escribes tu letra:\n✓ La IA la adaptará musicalmente\n✓ Mantiene tu contenido exacto\n✓ Mejor control creativo'),
+      title: t('aiCreate.tour.s3Title', 'Añade tu letra (opcional) 🎤'),
+      content: t('aiCreate.tour.s3Content', 'Si tienes una letra escrita, pégala en el campo correspondiente. La IA la usará como base para la canción.'),
+      warning: t('aiCreate.tour.s3Warning', 'La IA puede modificar la letra para adaptarla a la descripción musical.'),
       disableBeacon: true,
     },
     {
-      target: '[data-tour="mc-voice"]',
-      title: t('aiCreate.tour.voiceTitle', 'Elige la voz 🎤'),
-      content: t('aiCreate.tour.voiceContent', 'Selecciona entre voces predefinidas o usa tu propia voz clonada.\n\n🎤 Predefinidas: variedad de estilos y géneros\n🎙️ Mi voz: usa un clon de tu voz\n\nSi eliges "Solo instrumental", no se aplicará ninguna voz.'),
+      target: '[data-tour="mc-settings"]',
+      title: t('aiCreate.tour.s4Title', 'Ajusta el estilo musical 🎧'),
+      content: t('aiCreate.tour.s4Content', 'Selecciona una voz del catálogo o elige un artista virtual guardado para personalizar el estilo vocal de tu canción.'),
       disableBeacon: true,
     },
     {
-      target: '[data-tour="mc-duration"]',
-      title: t('aiCreate.tour.durationTitle', 'Duración de la pista ⏱️'),
-      content: t('aiCreate.tour.durationContent', 'Elige la duración de tu canción:\n\n• 30s — Ideal para previews y reels\n• 60s — Formato corto perfecto\n• 120s — Canción completa\n\n💡 Consejo: Empieza con 60s para probar tu idea.'),
+      target: '[data-tour="mc-generate"]',
+      title: t('aiCreate.tour.s5Title', 'Genera tu canción ⚡'),
+      content: t('aiCreate.tour.s5Content', 'Cuando tengas todo listo, pulsa el botón para que la IA cree tu canción. El proceso puede tardar unos segundos.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="mc-results"]',
+      title: t('aiCreate.tour.s6Title', 'Explora tus resultados 🎶'),
+      content: t('aiCreate.tour.s6Content', 'Aquí verás todas las canciones generadas.'),
+      bullets: [
+        t('aiCreate.tour.s6B1', 'Escuchar cada versión'),
+        t('aiCreate.tour.s6B2', 'Guardarlas como favoritas'),
+        t('aiCreate.tour.s6B3', 'Descargar tus canciones'),
+      ],
+      closing: t('aiCreate.tour.s6Closing', 'Prueba varias hasta encontrar la que mejor encaje contigo.'),
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="mc-tab-lyrics"]',
+      title: t('aiCreate.tour.s7Title', 'Crea letras con IA 📝'),
+      content: t('aiCreate.tour.s7Content', 'En el tab "Compositor de Letras" puedes generar letras automáticamente describiendo:'),
+      bullets: [
+        t('aiCreate.tour.s7B1', 'Tema de la canción'),
+        t('aiCreate.tour.s7B2', 'Estilo musical'),
+        t('aiCreate.tour.s7B3', 'Emoción que quieres transmitir'),
+      ],
+      closing: t('aiCreate.tour.s7Closing', 'La IA generará una letra lista para usar en tu canción.'),
+      disableBeacon: true,
+    },
+    {
+      target: 'body',
+      placement: 'center' as const,
+      title: t('aiCreate.tour.s8Title', 'Todo listo para crear 🚀'),
+      content: t('aiCreate.tour.s8Content', 'Ya conoces las funciones principales del AI Music Studio.'),
+      closing: t('aiCreate.tour.s8Closing', 'Empieza ahora a crear tu primera canción y explora todas las posibilidades. Cuanto más pruebes, mejores resultados obtendrás.'),
       disableBeacon: true,
     },
   ], [t]);
 }
 
 function CustomTooltip({
-  continuous,
   index,
   step,
   backProps,
-  closeProps,
   primaryProps,
   tooltipProps,
   isLastStep,
@@ -60,10 +106,12 @@ function CustomTooltip({
   skipProps,
 }: TooltipRenderProps) {
   const { t } = useTranslation();
+  const ext = step as ExtendedStep;
+
   return (
     <div
       {...tooltipProps}
-      className="w-80 rounded-2xl border border-border/40 bg-background p-5 shadow-2xl"
+      className="w-[360px] max-w-[92vw] rounded-2xl border border-border/40 bg-background p-5 shadow-2xl"
       style={{ zIndex: 10002 }}
     >
       {step.title && (
@@ -71,11 +119,45 @@ function CustomTooltip({
           {step.title as string}
         </h3>
       )}
-      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line mb-4">
-        {step.content as string}
-      </p>
 
-      <div className="flex items-center justify-between">
+      {step.content && (
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+          {step.content as string}
+        </p>
+      )}
+
+      {ext.bullets && ext.bullets.length > 0 && (
+        <ul className="mt-3 space-y-1.5">
+          {ext.bullets.map((b, i) => (
+            <li key={i} className="text-sm text-muted-foreground leading-relaxed flex gap-2">
+              <span className="text-primary">•</span>
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {ext.highlight && (
+        <div className="mt-3 rounded-lg bg-primary/10 border border-primary/20 px-3 py-2">
+          <p className="text-sm italic text-foreground/90">{ext.highlight}</p>
+        </div>
+      )}
+
+      {ext.warning && (
+        <div className="mt-3 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+          <p className="text-xs text-foreground/90 leading-relaxed">
+            <span className="mr-1">⚠️</span>{ext.warning}
+          </p>
+        </div>
+      )}
+
+      {ext.closing && (
+        <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+          {ext.closing}
+        </p>
+      )}
+
+      <div className="flex items-center justify-between mt-5">
         <div className="flex items-center gap-1">
           {Array.from({ length: size }).map((_, i) => (
             <div
@@ -88,33 +170,25 @@ function CustomTooltip({
         </div>
 
         <div className="flex items-center gap-2">
-          {index === 0 ? (
-            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" {...skipProps}>
-              {t('dashboard.tour.skip', 'Saltar')}
-            </Button>
-          ) : (
+          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" {...skipProps}>
+            {t('aiCreate.tour.skip', 'Saltar tutorial')}
+          </Button>
+
+          {index > 0 && !isLastStep && (
             <Button variant="ghost" size="sm" className="text-xs" {...backProps}>
               {t('dashboard.tour.back', 'Atrás')}
             </Button>
           )}
 
-          {isLastStep ? (
-            <Button
-              size="sm"
-              className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
-              {...closeProps}
-            >
-              {t('dashboard.tour.start', '¡Empezar!')}
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
-              {...primaryProps}
-            >
-              {t('dashboard.tour.next', 'Siguiente')}
-            </Button>
-          )}
+          <Button
+            size="sm"
+            className="text-xs bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground shadow-md"
+            {...primaryProps}
+          >
+            {isLastStep
+              ? t('aiCreate.tour.createFirst', 'Crear mi primera canción')
+              : `${t('dashboard.tour.next', 'Siguiente')} →`}
+          </Button>
         </div>
       </div>
     </div>
@@ -145,28 +219,50 @@ export function MusicCreatorTour() {
     return () => window.removeEventListener('musicdibs:start-music-tour', handler);
   }, []);
 
+  const finishTour = useCallback((focusDescription: boolean) => {
+    setRun(false);
+    setStepIndex(0);
+    if (user) {
+      localStorage.setItem(getTourKey(user.id), 'true');
+    }
+    if (focusDescription) {
+      // Wait for overlay to disappear, then focus the description textarea
+      setTimeout(() => {
+        const el = document.getElementById('mc-description-textarea') as HTMLTextAreaElement | null;
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.focus({ preventScroll: true });
+        }
+      }, 200);
+    }
+  }, [user]);
+
   const handleCallback = useCallback(
     (data: CallBackProps) => {
       const { status, action, index, type } = data;
 
-      if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-        setRun(false);
-        setStepIndex(0);
-        if (user) {
-          localStorage.setItem(getTourKey(user.id), 'true');
-        }
+      if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
+        finishTour(false);
+        return;
+      }
+
+      if (status === STATUS.FINISHED) {
+        // Last step "Crear mi primera canción" → focus description
+        finishTour(true);
         return;
       }
 
       if (type === 'step:after') {
         if (action === ACTIONS.PREV) {
           setStepIndex(index - 1);
-        } else {
+        } else if (action === ACTIONS.NEXT) {
           setStepIndex(index + 1);
+        } else if (action === ACTIONS.CLOSE) {
+          finishTour(false);
         }
       }
     },
-    [user],
+    [finishTour],
   );
 
   return (
