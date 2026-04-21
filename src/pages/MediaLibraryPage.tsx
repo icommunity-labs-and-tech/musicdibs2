@@ -39,6 +39,9 @@ const TAB_CONFIG: { value: TabType; label: string; icon: React.ElementType }[] =
   { value: "vocal", label: "Voces", icon: Mic },
 ];
 
+const MEDIA_LIBRARY_CACHE_VERSION = "v2";
+const MEDIA_LIBRARY_QUERY_LIMIT = 100;
+
 export default function MediaLibraryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -64,7 +67,7 @@ export default function MediaLibraryPage() {
   const editInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── Cache key ──
-  const cacheKey = user ? `media_library_cache_${user.id}` : '';
+  const cacheKey = user ? `media_library_cache_${MEDIA_LIBRARY_CACHE_VERSION}_${user.id}` : '';
 
   // ── Fetch all assets (parallel + cached) ──
   useEffect(() => {
@@ -98,28 +101,32 @@ export default function MediaLibraryPage() {
         .from("ai_generations")
         .select("id, prompt, audio_url, genre, mood, created_at")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase
         .from("video_generations")
         .select("id, prompt, video_url, merged_url, status, created_at, style")
         .eq("user_id", userId)
         .eq("status", "COMPLETED")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase
         .from("social_promotions")
         .select("id, image_url, created_at, work_id")
         .eq("user_id", userId)
         .not("image_url", "is", null)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase.storage
         .from("social-promo-images")
-        .list(`covers/${userId}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } }),
+        .list(`covers/${userId}`, { limit: MEDIA_LIBRARY_QUERY_LIMIT, sortBy: { column: "created_at", order: "desc" } }),
       supabase
         .from("voice_clones")
         .select("id, name, sample_storage_path, created_at, status")
         .eq("user_id", userId)
         .eq("status", "active")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
     ]);
 
     // Log any query errors so silent failures become visible
