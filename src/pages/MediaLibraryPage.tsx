@@ -311,7 +311,7 @@ export default function MediaLibraryPage() {
 
   // ── Download ZIP ──
   const downloadZip = async () => {
-    const items = assets.filter((a) => selected.has(a.id) && a.url);
+    const items = assets.filter((a) => selected.has(a.id));
     if (!items.length) return;
     setDownloadingZip(true);
     try {
@@ -327,7 +327,9 @@ export default function MediaLibraryPage() {
       await Promise.all(
         items.map(async (asset, i) => {
           try {
-            const resp = await fetch(asset.url!);
+            const assetUrl = await resolveAssetUrl(asset);
+            if (!assetUrl) return;
+            const resp = await fetch(assetUrl);
             const blob = await resp.blob();
             const dName = customNames[asset.id] || asset.title;
             const name = `${(i + 1).toString().padStart(2, "0")}_${dName.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
@@ -397,19 +399,24 @@ export default function MediaLibraryPage() {
   };
 
   // ── Playback ──
-  const togglePlay = (asset: MediaAsset) => {
-    if (!asset.url) return;
+  const togglePlay = async (asset: MediaAsset) => {
     if (playingId === asset.id) {
       audioRef.current?.pause();
       setPlayingId(null);
       return;
     }
-    if (audioRef.current) audioRef.current.pause();
-    const audio = new Audio(asset.url);
-    audio.onended = () => setPlayingId(null);
-    audio.play();
-    audioRef.current = audio;
-    setPlayingId(asset.id);
+    try {
+      const assetUrl = await resolveAssetUrl(asset);
+      if (!assetUrl) throw new Error("Audio no disponible");
+      if (audioRef.current) audioRef.current.pause();
+      const audio = new Audio(assetUrl);
+      audio.onended = () => setPlayingId(null);
+      audio.play();
+      audioRef.current = audio;
+      setPlayingId(asset.id);
+    } catch {
+      toast({ title: "Error al reproducir", variant: "destructive" });
+    }
   };
 
   // ── Rename ──
@@ -676,7 +683,7 @@ export default function MediaLibraryPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/40">
-                        {(asset.type === "song" || asset.type === "vocal") && asset.url && (
+                        {(asset.type === "song" || asset.type === "vocal") && (asset.url || asset.type === "song") && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -747,7 +754,7 @@ export default function MediaLibraryPage() {
                             variant="ghost"
                             size="sm"
                             className="h-7 text-xs"
-                            disabled={!asset.url || downloading === asset.id}
+                            disabled={(!asset.url && asset.type !== "song") || downloading === asset.id}
                             onClick={() => downloadSingle(asset)}
                           >
                             {downloading === asset.id ? (
