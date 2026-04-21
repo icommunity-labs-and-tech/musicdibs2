@@ -890,7 +890,7 @@ const AIStudioCreate = () => {
                   <Music className="h-4 w-4" />
                   {t('aiCreate.tabMusic')}
                 </TabsTrigger>
-                <TabsTrigger value="lyrics" className="gap-2">
+                <TabsTrigger value="lyrics" className="gap-2" data-tour="mc-tab-lyrics">
                   <FileText className="h-4 w-4" />
                   {t('aiCreate.tabLyrics')}
                 </TabsTrigger>
@@ -1013,6 +1013,7 @@ const AIStudioCreate = () => {
                           </button>
                         </div>
                         <Textarea
+                          id="mc-description-textarea"
                           placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con ritmo enérgico..."
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value.slice(0, 2500))}
@@ -1028,7 +1029,7 @@ const AIStudioCreate = () => {
 
                       {/* Lyrics textarea — only visible in 'song' mode */}
                       {mode === 'song' && (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5" data-tour="mc-lyrics">
                           <Label>Letra de la canción (opcional)</Label>
                           <Textarea
                             placeholder="Pega aquí tu letra completa. La IA la cantará respetando cada palabra tal como la escribas..."
@@ -1367,6 +1368,7 @@ const AIStudioCreate = () => {
                           disabled={isGenerating || !prompt.trim() || prompt.trim().length < 10}
                           className="w-full"
                           size="lg"
+                          data-tour="mc-generate"
                         >
                           <Wand2 className="w-4 h-4 mr-2" />
                           {t('aiCreate.generateBtn')} {mode === 'song' ? 'canción' : 'instrumental'} con IA
@@ -1569,7 +1571,7 @@ const AIStudioCreate = () => {
           </div>
 
           {/* ═══ RIGHT: Results Panel ═══ */}
-          <div className="space-y-6 flex flex-col">
+          <div className="space-y-6 flex flex-col" data-tour="mc-results">
             <div className="flex items-center justify-between min-h-[68px]">
               <h2 className="text-xl font-semibold">
                 {activeTab === "lyrics" ? t('aiCreate.myLyrics') : t('aiCreate.results')}
