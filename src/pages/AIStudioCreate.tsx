@@ -51,7 +51,7 @@ const DURATION_OPTIONS: { value: number; label: string }[] = [
   { value: 210, label: "3:30 min" },
   { value: 240, label: "4 min" },
 ];
-const DEFAULT_DURATION = 210;
+const DEFAULT_DURATION: number | null = null;
 const INSTRUMENTAL_PROMPT_REGEX = /\b(instrumental|karaoke|sin voz|sin voces|base instrumental)\b/i;
 
 // ── Lyrics tab constants ──
@@ -113,7 +113,7 @@ const AIStudioCreate = () => {
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
   const [prompt, setPrompt] = useState("");
   const [lyrics, setLyrics] = useState<string>('');
-  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [duration, setDuration] = useState<number | null>(DEFAULT_DURATION);
   const [lyricsText, setLyricsText] = useState("");
   const [lyricsExpanded, setLyricsExpanded] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -337,7 +337,7 @@ const AIStudioCreate = () => {
           prompt: enrichedPrompt,
           lyrics: mode === 'song' ? lyrics.trim() : '',
           mode,
-          duration,
+          ...(duration ? { duration } : {}),
         }
       });
 
@@ -1311,6 +1311,18 @@ const AIStudioCreate = () => {
                           Duración
                         </Label>
                         <div className="flex flex-wrap gap-2">
+                          <Badge
+                            variant={duration === null ? "default" : "outline"}
+                            className={cn(
+                              "cursor-pointer text-xs px-3 py-1.5 transition-colors",
+                              duration === null
+                                ? "bg-primary text-primary-foreground"
+                                : "hover:bg-muted"
+                            )}
+                            onClick={() => setDuration(null)}
+                          >
+                            Auto (IA decide)
+                          </Badge>
                           {DURATION_OPTIONS.map((opt) => (
                             <Badge
                               key={opt.value}
