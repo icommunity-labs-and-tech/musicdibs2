@@ -950,7 +950,11 @@ const AIStudioCreate = () => {
                       </div>
 
                       {/* Action buttons */}
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <Button variant="outline" onClick={handleRegenerate} className="gap-2">
+                          <ArrowLeft className="h-4 w-4" />
+                          {t('aiCreate.newSong', 'Nueva canción')}
+                        </Button>
                         <Button variant="outline" onClick={() => downloadAudio(lastResult)} className="gap-2">
                           <Download className="h-4 w-4" />
                           {t('aiCreate.download')}
