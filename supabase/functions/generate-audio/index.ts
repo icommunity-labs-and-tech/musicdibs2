@@ -253,13 +253,11 @@ serve(async (req) => {
     const explicitDuration = typeof duration === 'number' && duration > 0 ? duration : null;
     const hasUserLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
 
-    let compositionPlan: any | null = null;
-    if (hasUserLyrics) {
-      console.log(`[GENERATE-AUDIO] Lyrics provided (${lyrics.length} chars) — building composition plan`);
-      compositionPlan = await buildCompositionPlan(enrichedPrompt, lyrics.trim(), ELEVENLABS_API_KEY);
-    }
+    const lyricsAwarePrompt = hasUserLyrics
+      ? `${enrichedPrompt}. Create an original song using these lyrics exactly as the vocal content. Do not reference real artists or copyrighted songs. Lyrics:\n${lyrics.trim()}`
+      : enrichedPrompt;
 
-    console.log(`[GENERATE-AUDIO] mode=${mode || 'instrumental'} | plan=${compositionPlan ? 'YES (lyrics)' : 'NO (prompt-only)'} | lyricsUsed=${hasUserLyrics} | explicitDuration=${explicitDuration} | prompt="${enrichedPrompt.substring(0, 80)}"`);
+    console.log(`[GENERATE-AUDIO] mode=${mode || 'instrumental'} | plan=NO (prompt-only) | lyricsUsed=${hasUserLyrics} | explicitDuration=${explicitDuration} | prompt="${enrichedPrompt.substring(0, 80)}"`);
 
     // ElevenLabs: composition_plan and prompt are MUTUALLY EXCLUSIVE.
     // When using composition_plan: no music_length_ms (duration defined in sections).
@@ -284,28 +282,14 @@ serve(async (req) => {
       });
     };
 
-    let response = compositionPlan
-      ? await callElevenLabs({ plan: compositionPlan })
-      : await callElevenLabs({ promptText: enrichedPrompt });
+    let response = await callElevenLabs({ promptText: lyricsAwarePrompt });
 
     if (!response.ok) {
       const errText = await response.text();
       console.warn(`[GENERATE-AUDIO] ElevenLabs error ${response.status}: ${errText.substring(0, 300)}`);
 
       if (response.status === 400) {
-        if (compositionPlan) {
-          console.log('[GENERATE-AUDIO] Composition plan rejected — retrying prompt-only');
-          response = await callElevenLabs({ promptText: enrichedPrompt });
-          if (!response.ok) {
-            const retryErr = await response.text();
-            await refundCredits(`Plan+prompt rejected: ${response.status}`);
-            return new Response(
-              JSON.stringify({ error: `Generation failed: ${response.status}`, details: retryErr }),
-              { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-        } else {
-          try {
+        try {
             const errJson = JSON.parse(errText);
             const suggestion = errJson?.detail?.data?.prompt_suggestion;
             if (errJson?.detail?.status === 'bad_prompt' && suggestion) {
@@ -325,13 +309,12 @@ serve(async (req) => {
                 { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
               );
             }
-          } catch {
+        } catch {
             await refundCredits('Fallo generación: 400');
             return new Response(
               JSON.stringify({ error: 'Generation failed: 400', details: errText }),
               { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
-          }
         }
       } else {
         await refundCredits(`Error ElevenLabs: ${response.status}`);
@@ -348,7 +331,7 @@ serve(async (req) => {
 
     // Calculate actual duration from audio size (rough estimate: ~128kbps mp3)
     const actualDurationSecs = Math.round(audioBuffer.byteLength / 16000);
-    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=${!!compositionPlan}`);
+    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=false`);
 
     let savedAudioUrl: string | null = null;
     let generationId: string | null = null;
@@ -388,15 +371,16 @@ serve(async (req) => {
         generationId,
         audioUrl: savedAudioUrl,
         lyricsUsed: hasUserLyrics,
-        usedCompositionPlan: !!compositionPlan,
+        usedCompositionPlan: false,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('[GENERATE-AUDIO] Fatal error:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
