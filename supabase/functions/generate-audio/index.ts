@@ -89,6 +89,7 @@ function buildManualPlan(stylePrompt: string, lyrics: string): any {
   // Durations in ms — let the model breathe naturally
   return {
     positive_global_styles: [stylePrompt],
+    negative_global_styles: [],
     sections: [
       {
         section_name: 'Intro',
