@@ -421,8 +421,8 @@ const AIStudioCreate = () => {
           }
         }
 
-        if (voiceIdToSave) {
-          generationVoiceMapRef.current.set(savedGen.id, {
+        if (voiceIdToSave && generationId) {
+          generationVoiceMapRef.current.set(generationId, {
             voiceId: voiceIdToSave,
             voiceName: voiceNameToSave || '',
           });
