@@ -1029,7 +1029,7 @@ const AIStudioCreate = () => {
 
                       {/* Lyrics textarea — only visible in 'song' mode */}
                       {mode === 'song' && (
-                        <div className="space-y-1.5">
+                        <div className="space-y-1.5" data-tour="mc-lyrics">
                           <Label>Letra de la canción (opcional)</Label>
                           <Textarea
                             placeholder="Pega aquí tu letra completa. La IA la cantará respetando cada palabra tal como la escribas..."
