@@ -122,6 +122,13 @@ export default function MediaLibraryPage() {
         .order("created_at", { ascending: false }),
     ]);
 
+    // Log any query errors so silent failures become visible
+    if (songsRes.error) console.error('[MediaLibrary] songs error:', songsRes.error);
+    if (videosRes.error) console.error('[MediaLibrary] videos error:', videosRes.error);
+    if (promosRes.error) console.error('[MediaLibrary] promos error:', promosRes.error);
+    if (coverFilesRes.error) console.error('[MediaLibrary] cover files error:', coverFilesRes.error);
+    if (clonesRes.error) console.error('[MediaLibrary] clones error:', clonesRes.error);
+
     const allAssets: MediaAsset[] = [];
 
     // Songs
