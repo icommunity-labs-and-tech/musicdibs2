@@ -1013,6 +1013,7 @@ const AIStudioCreate = () => {
                           </button>
                         </div>
                         <Textarea
+                          id="mc-description-textarea"
                           placeholder="Ej: Una canción pop alegre en español sobre amor de verano, con ritmo enérgico..."
                           value={prompt}
                           onChange={(e) => setPrompt(e.target.value.slice(0, 2500))}
