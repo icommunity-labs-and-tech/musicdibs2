@@ -39,7 +39,7 @@ const TAB_CONFIG: { value: TabType; label: string; icon: React.ElementType }[] =
   { value: "vocal", label: "Voces", icon: Mic },
 ];
 
-const MEDIA_LIBRARY_CACHE_VERSION = "v2";
+const MEDIA_LIBRARY_CACHE_VERSION = "v3";
 const MEDIA_LIBRARY_QUERY_LIMIT = 100;
 
 export default function MediaLibraryPage() {
@@ -99,7 +99,7 @@ export default function MediaLibraryPage() {
     const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
       supabase
         .from("ai_generations")
-        .select("id, prompt, audio_url, genre, mood, created_at")
+        .select("id, prompt, genre, mood, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(MEDIA_LIBRARY_QUERY_LIMIT),
@@ -144,7 +144,7 @@ export default function MediaLibraryPage() {
         allAssets.push({
           id: s.id, type: "song",
           title: s.prompt?.substring(0, 80) || "Canción sin título",
-          url: s.audio_url, createdAt: s.created_at,
+          url: null, createdAt: s.created_at,
           meta: { genre: s.genre || "", mood: s.mood || "" },
         });
       }
@@ -263,17 +263,37 @@ export default function MediaLibraryPage() {
     }
   };
 
+  const resolveAssetUrl = async (asset: MediaAsset): Promise<string | null> => {
+    if (asset.url || asset.type !== "song" || !user) return asset.url;
+
+    const { data, error } = await supabase
+      .from("ai_generations")
+      .select("audio_url")
+      .eq("id", asset.id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) throw error;
+
+    const audioUrl = data?.audio_url ?? null;
+    if (audioUrl) {
+      setAssets((prev) => prev.map((item) => item.id === asset.id ? { ...item, url: audioUrl } : item));
+    }
+    return audioUrl;
+  };
+
   // ── Download single ──
   const downloadSingle = async (asset: MediaAsset) => {
-    if (!asset.url) return;
     if (!libraryAccess.canDownload) return;
     setDownloading(asset.id);
     try {
+      const assetUrl = await resolveAssetUrl(asset);
+      if (!assetUrl) throw new Error("Asset sin URL disponible");
       // Register free download if in warning tier
       if (libraryAccess.tier === 'warning' && user) {
         await registerFreeDownload(user.id);
       }
-      const resp = await fetch(asset.url);
+      const resp = await fetch(assetUrl);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
       const displayName = customNames[asset.id] || asset.title;
