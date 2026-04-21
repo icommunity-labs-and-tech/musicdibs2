@@ -721,7 +721,7 @@ const AIStudioCreate = () => {
         body: {
           prompt: lyricsDesc,
           genre: lyricsGenre || '',
-          mode: 'lyrics',
+          mode: 'lyrics_description',
         },
       });
       if (error || !data?.improved) throw new Error(error?.message || 'No response');
