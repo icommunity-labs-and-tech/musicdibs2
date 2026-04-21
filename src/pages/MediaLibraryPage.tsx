@@ -39,6 +39,9 @@ const TAB_CONFIG: { value: TabType; label: string; icon: React.ElementType }[] =
   { value: "vocal", label: "Voces", icon: Mic },
 ];
 
+const MEDIA_LIBRARY_CACHE_VERSION = "v3";
+const MEDIA_LIBRARY_QUERY_LIMIT = 100;
+
 export default function MediaLibraryPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -64,7 +67,7 @@ export default function MediaLibraryPage() {
   const editInputRef = useRef<HTMLInputElement | null>(null);
 
   // ── Cache key ──
-  const cacheKey = user ? `media_library_cache_${user.id}` : '';
+  const cacheKey = user ? `media_library_cache_${MEDIA_LIBRARY_CACHE_VERSION}_${user.id}` : '';
 
   // ── Fetch all assets (parallel + cached) ──
   useEffect(() => {
@@ -96,30 +99,34 @@ export default function MediaLibraryPage() {
     const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
       supabase
         .from("ai_generations")
-        .select("id, prompt, audio_url, genre, mood, created_at")
+        .select("id, prompt, genre, mood, created_at")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase
         .from("video_generations")
         .select("id, prompt, video_url, merged_url, status, created_at, style")
         .eq("user_id", userId)
         .eq("status", "COMPLETED")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase
         .from("social_promotions")
         .select("id, image_url, created_at, work_id")
         .eq("user_id", userId)
         .not("image_url", "is", null)
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
       supabase.storage
         .from("social-promo-images")
-        .list(`covers/${userId}`, { limit: 200, sortBy: { column: "created_at", order: "desc" } }),
+        .list(`covers/${userId}`, { limit: MEDIA_LIBRARY_QUERY_LIMIT, sortBy: { column: "created_at", order: "desc" } }),
       supabase
         .from("voice_clones")
         .select("id, name, sample_storage_path, created_at, status")
         .eq("user_id", userId)
         .eq("status", "active")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(MEDIA_LIBRARY_QUERY_LIMIT),
     ]);
 
     // Log any query errors so silent failures become visible
@@ -137,7 +144,7 @@ export default function MediaLibraryPage() {
         allAssets.push({
           id: s.id, type: "song",
           title: s.prompt?.substring(0, 80) || "Canción sin título",
-          url: s.audio_url, createdAt: s.created_at,
+          url: null, createdAt: s.created_at,
           meta: { genre: s.genre || "", mood: s.mood || "" },
         });
       }
@@ -256,17 +263,37 @@ export default function MediaLibraryPage() {
     }
   };
 
+  const resolveAssetUrl = async (asset: MediaAsset): Promise<string | null> => {
+    if (asset.url || asset.type !== "song" || !user) return asset.url;
+
+    const { data, error } = await supabase
+      .from("ai_generations")
+      .select("audio_url")
+      .eq("id", asset.id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (error) throw error;
+
+    const audioUrl = data?.audio_url ?? null;
+    if (audioUrl) {
+      setAssets((prev) => prev.map((item) => item.id === asset.id ? { ...item, url: audioUrl } : item));
+    }
+    return audioUrl;
+  };
+
   // ── Download single ──
   const downloadSingle = async (asset: MediaAsset) => {
-    if (!asset.url) return;
     if (!libraryAccess.canDownload) return;
     setDownloading(asset.id);
     try {
+      const assetUrl = await resolveAssetUrl(asset);
+      if (!assetUrl) throw new Error("Asset sin URL disponible");
       // Register free download if in warning tier
       if (libraryAccess.tier === 'warning' && user) {
         await registerFreeDownload(user.id);
       }
-      const resp = await fetch(asset.url);
+      const resp = await fetch(assetUrl);
       const blob = await resp.blob();
       const ext = asset.type === "song" ? "mp3" : asset.type === "video" ? "mp4" : asset.type === "cover" ? "png" : "mp3";
       const displayName = customNames[asset.id] || asset.title;
@@ -284,7 +311,7 @@ export default function MediaLibraryPage() {
 
   // ── Download ZIP ──
   const downloadZip = async () => {
-    const items = assets.filter((a) => selected.has(a.id) && a.url);
+    const items = assets.filter((a) => selected.has(a.id));
     if (!items.length) return;
     setDownloadingZip(true);
     try {
@@ -300,7 +327,9 @@ export default function MediaLibraryPage() {
       await Promise.all(
         items.map(async (asset, i) => {
           try {
-            const resp = await fetch(asset.url!);
+            const assetUrl = await resolveAssetUrl(asset);
+            if (!assetUrl) return;
+            const resp = await fetch(assetUrl);
             const blob = await resp.blob();
             const dName = customNames[asset.id] || asset.title;
             const name = `${(i + 1).toString().padStart(2, "0")}_${dName.substring(0, 40).replace(/[^a-zA-Z0-9áéíóúñ ]/g, "")}.${extMap[asset.type]}`;
@@ -370,19 +399,24 @@ export default function MediaLibraryPage() {
   };
 
   // ── Playback ──
-  const togglePlay = (asset: MediaAsset) => {
-    if (!asset.url) return;
+  const togglePlay = async (asset: MediaAsset) => {
     if (playingId === asset.id) {
       audioRef.current?.pause();
       setPlayingId(null);
       return;
     }
-    if (audioRef.current) audioRef.current.pause();
-    const audio = new Audio(asset.url);
-    audio.onended = () => setPlayingId(null);
-    audio.play();
-    audioRef.current = audio;
-    setPlayingId(asset.id);
+    try {
+      const assetUrl = await resolveAssetUrl(asset);
+      if (!assetUrl) throw new Error("Audio no disponible");
+      if (audioRef.current) audioRef.current.pause();
+      const audio = new Audio(assetUrl);
+      audio.onended = () => setPlayingId(null);
+      audio.play();
+      audioRef.current = audio;
+      setPlayingId(asset.id);
+    } catch {
+      toast({ title: "Error al reproducir", variant: "destructive" });
+    }
   };
 
   // ── Rename ──
@@ -649,7 +683,7 @@ export default function MediaLibraryPage() {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 mt-3 pt-3 border-t border-border/40">
-                        {(asset.type === "song" || asset.type === "vocal") && asset.url && (
+                        {(asset.type === "song" || asset.type === "vocal") && (asset.url || asset.type === "song") && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -720,7 +754,7 @@ export default function MediaLibraryPage() {
                             variant="ghost"
                             size="sm"
                             className="h-7 text-xs"
-                            disabled={!asset.url || downloading === asset.id}
+                            disabled={(!asset.url && asset.type !== "song") || downloading === asset.id}
                             onClick={() => downloadSingle(asset)}
                           >
                             {downloading === asset.id ? (
