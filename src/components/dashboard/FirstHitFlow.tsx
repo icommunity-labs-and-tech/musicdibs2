@@ -17,7 +17,12 @@ import {
   Music2, FileUp, AlertTriangle, Rocket,
   ArrowRight, Key, RefreshCw, Link as LinkIcon,
   Share2, Plus, Trash2, Download,
+  Crown, Video, Users, Clock, Instagram, Music,
+  Upload, FileText, X, Import,
 } from 'lucide-react'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/hooks/useAuth'
 import { useCredits } from '@/hooks/useCredits'
@@ -412,54 +417,133 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
     setRegistering(false)
   }
 
-  // ── PASO 3: Promoción ─────────────────────────────────────────
-  const [promoArtist,  setPromoArtist]  = useState('')
-  const [promoLink,    setPromoLink]    = useState('')
-  const [promoDesc,    setPromoDesc]    = useState('')
-  const [promoGoal,    setPromoGoal]    = useState('')
-  const [promoSocial,  setPromoSocial]  = useState('')
-  const [promoConsent, setPromoConsent] = useState(false)
-  const [promoting,    setPromoting]    = useState(false)
-  const [skipWarning,  setSkipWarning]  = useState(false)
+  // ── PASO 3: Promoción Premium (alineado con PremiumPromoForm) ────
+  const ACCEPTED_AUDIO = '.mp3,.aac'
+  const ACCEPTED_VISUAL = '.mp4,.mov,.jpg,.jpeg,.png'
+  const VIDEO_EXTS = ['.mp4', '.mov']
+
+  const [promoArtist,    setPromoArtist]    = useState('')
+  const [promoSongTitle, setPromoSongTitle] = useState('')
+  const [promoLyrics,    setPromoLyrics]    = useState('')
+  const [promoLinks,     setPromoLinks]     = useState('')
+  const [promoAudioFile, setPromoAudioFile] = useState<File | null>(null)
+  const [promoMediaFile, setPromoMediaFile] = useState<File | null>(null)
+  const [promoConsent,   setPromoConsent]   = useState(false)
+  const [promoting,      setPromoting]      = useState(false)
+  const [skipWarning,    setSkipWarning]    = useState(false)
+
+  // Lyrics import dialog
+  const [showLyricsImport, setShowLyricsImport] = useState(false)
+  const [savedLyrics, setSavedLyrics] = useState<any[]>([])
+  const [loadingLyrics, setLoadingLyrics] = useState(false)
+
+  const loadSavedLyrics = async () => {
+    if (!user) return
+    setLoadingLyrics(true)
+    const { data } = await supabase
+      .from('lyrics_generations' as any)
+      .select('id, lyrics, description, theme, genre, mood, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    setSavedLyrics((data as any[]) || [])
+    setLoadingLyrics(false)
+  }
 
   useEffect(() => {
-    if (activeStep === 3 && regAuthor) setPromoArtist(regAuthor)
-    if (activeStep === 3 && regTitle)  {
-      setPromoDesc(`${t('dashboard.firstHit.workTitle')}: ${regTitle}`)
+    if (activeStep === 3 && regAuthor && !promoArtist) setPromoArtist(regAuthor)
+    if (activeStep === 3 && regTitle && !promoSongTitle) setPromoSongTitle(regTitle)
+  }, [activeStep, regAuthor, regTitle])
+
+  const handlePromoAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error(t('dashboard.premium.fileTooLarge', 'Archivo demasiado grande (máx. 50 MB)'))
+      return
     }
-  }, [activeStep, regAuthor, regTitle, t])
+    setPromoAudioFile(file)
+  }
+
+  const handlePromoMediaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error(t('dashboard.premium.fileTooLarge', 'Archivo demasiado grande (máx. 50 MB)'))
+      return
+    }
+    setPromoMediaFile(file)
+  }
+
+  const handleImportLyrics = (item: any) => {
+    setPromoLyrics(item.lyrics)
+    setShowLyricsImport(false)
+    toast.success(t('dashboard.premium.lyricsImported', 'Letra importada'))
+  }
 
   const handlePromote = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!user) return
+    if (!promoArtist.trim() || !promoSongTitle.trim() || !promoLyrics.trim()) {
+      toast.error(t('dashboard.premium.fillRequired'))
+      return
+    }
+    if (!promoAudioFile) {
+      toast.error(t('dashboard.premium.audioRequired', 'El audio de tu canción es obligatorio'))
+      return
+    }
+    if (!promoMediaFile) {
+      toast.error(t('dashboard.premium.mediaRequired', 'El vídeo o imagen es obligatorio'))
+      return
+    }
     if (!hasEnough(FEATURE_COSTS.promote_premium)) {
       toast.error(t('dashboard.firstHit.noCreditsAudio'))
       return
     }
     setPromoting(true)
     try {
-      // 1) Validate credits via spend-credits
       const { data: spendData, error: spendError } = await supabase.functions.invoke('spend-credits', {
-        body: { feature: 'promote_premium', description: `Promo Premium: ${regTitle || promoArtist}` },
+        body: { feature: 'promote_premium', description: `Promo Premium: ${promoSongTitle.trim()}` },
       })
       if (spendError) throw new Error(spendError.message)
+      if (spendData?.error === 'insufficient_credits') {
+        toast.error(t('dashboard.premium.insufficientCredits'))
+        setPromoting(false)
+        return
+      }
       if (spendData?.error) throw new Error(spendData.error)
 
-      // 2) Build team_notes with promoGoal and promoSocial
-      const teamNotes = [
-        promoGoal ? `Objetivo: ${promoGoal}` : '',
-        promoSocial ? `Redes sociales: ${promoSocial}` : '',
-      ].filter(Boolean).join('\n') || null
+      const promoId = crypto.randomUUID()
+      const ts = Date.now()
 
-      // 3) Submit via submit-premium-promo edge function
+      const audioExt = promoAudioFile.name.split('.').pop() || 'mp3'
+      const audioPath = `promotions/${user.id}/${promoId}/audio_${ts}.${audioExt}`
+      const { error: audioUpErr } = await supabase.storage
+        .from('premium-promo-media')
+        .upload(audioPath, promoAudioFile)
+      if (audioUpErr) throw new Error(audioUpErr.message)
+
+      const mediaExt = promoMediaFile.name.split('.').pop() || 'bin'
+      const mediaPath = `promotions/${user.id}/${promoId}/media_${ts}.${mediaExt}`
+      const { error: mediaUpErr } = await supabase.storage
+        .from('premium-promo-media')
+        .upload(mediaPath, promoMediaFile)
+      if (mediaUpErr) throw new Error(mediaUpErr.message)
+
+      const extLower = '.' + mediaExt.toLowerCase()
+      const mediaFileType = VIDEO_EXTS.includes(extLower) ? 'video' : 'image'
+
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
         body: {
           work_id: regId || null,
           artist_name: promoArtist.trim(),
-          song_title: regTitle || promoDesc,
-          description: promoDesc.trim(),
-          external_link: promoLink.trim() || null,
-          team_notes: teamNotes,
-          media_file_path: null,
+          song_title: promoSongTitle.trim(),
+          description: promoLyrics.trim(),
+          external_link: promoLinks.trim() || null,
+          team_notes: null,
+          media_file_path: mediaPath,
+          audio_file_path: audioPath,
+          media_file_type: mediaFileType,
         },
       })
       if (error) throw new Error(error.message)
@@ -1154,74 +1238,138 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
           />
 
           {activeStep === 3 && (
-            <div className="px-5 pb-6 border-t border-border/40 pt-4">
-              <div className="mb-4 space-y-1">
-                <p className="text-sm font-medium">
-                  {t('dashboard.firstHit.promoTitle')}
-                </p>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Más de <strong>100.000 seguidores reales</strong> entre
-                  Instagram y TikTok — fans que buscan artistas como tú.
-                  Tu música, delante de las personas correctas.
+            <div className="px-5 pb-6 border-t border-border/40 pt-4 space-y-5">
+              {/* Info banner Promo Premium */}
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+                  <Crown className="h-4 w-4" /> {t('dashboard.premium.whatIncluded')}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Video className="h-3.5 w-3.5 text-amber-500/70" />
+                    {t('dashboard.premium.includesVideo')}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-3.5 w-3.5 text-amber-500/70" />
+                    {t('dashboard.premium.includesAudience')}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Instagram className="h-3.5 w-3.5 text-amber-500/70" />
+                    {t('dashboard.premium.includesChannels')}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-3.5 w-3.5 text-amber-500/70" />
+                    {t('dashboard.premium.includesManual')}
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground/70 mt-1">
+                  {t('dashboard.premium.manualNote')}
                 </p>
               </div>
 
-              <form onSubmit={handlePromote} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handlePromote} className="space-y-4">
+                {/* Artist + Song title row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs">
-                      {t('dashboard.firstHit.artistName')}
-                      <span className="text-destructive ml-1">*</span>
-                    </Label>
-                    <Input value={promoArtist}
+                    <Label className="text-sm">{t('dashboard.premium.artistName')} *</Label>
+                    <Input
+                      value={promoArtist}
                       onChange={e => setPromoArtist(e.target.value)}
-                      required className="h-9 text-sm"
-                      placeholder={t('dashboard.firstHit.artistNamePromoPlaceholder')} />
+                      placeholder={t('dashboard.premium.artistPlaceholder')}
+                    />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">
-                      {t('dashboard.firstHit.mainLink')}
-                      <span className="text-destructive ml-1">*</span>
-                    </Label>
-                    <Input value={promoLink}
-                      onChange={e => setPromoLink(e.target.value)}
-                      required type="url" className="h-9 text-sm"
-                      placeholder="https://..." />
+                    <Label className="text-sm">{t('dashboard.premium.songTitle')} *</Label>
+                    <Input
+                      value={promoSongTitle}
+                      onChange={e => setPromoSongTitle(e.target.value)}
+                      placeholder={t('dashboard.premium.songPlaceholder')}
+                    />
                   </div>
                 </div>
 
+                {/* Lyrics with import */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">
-                      {t('dashboard.firstHit.aboutSong')}
-                    <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Textarea value={promoDesc}
-                    onChange={e => setPromoDesc(e.target.value)}
-                    required rows={2} className="text-sm resize-none"
-                    placeholder={t('dashboard.firstHit.aboutSongPlaceholder')} />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">{t('dashboard.premium.lyricsLabel')} *</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[11px] gap-1 text-primary"
+                      onClick={() => { setShowLyricsImport(true); loadSavedLyrics(); }}
+                    >
+                      <Import className="h-3 w-3" /> {t('dashboard.premium.importLyrics')}
+                    </Button>
+                  </div>
+                  <Textarea
+                    value={promoLyrics}
+                    onChange={e => setPromoLyrics(e.target.value)}
+                    placeholder={t('dashboard.premium.lyricsPlaceholder')}
+                    rows={6}
+                  />
                 </div>
 
+                {/* Audio file upload */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">
-                    {t('dashboard.firstHit.promoGoal')}
-                    <span className="text-destructive ml-1">*</span>
-                  </Label>
-                  <Input value={promoGoal}
-                    onChange={e => setPromoGoal(e.target.value)}
-                    required className="h-9 text-sm"
-                    placeholder={t('dashboard.firstHit.promoGoalPlaceholder')} />
+                  <Label className="text-sm">{t('dashboard.premium.audioLabel', 'Audio de tu canción')} *</Label>
+                  <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.audioDesc', 'Sube tu propio audio para que nuestro equipo lo use en la promoción.')}</p>
+                  {promoAudioFile ? (
+                    <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
+                      <Music className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="truncate flex-1">{promoAudioFile.name}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {(promoAudioFile.size / (1024 * 1024)).toFixed(1)} MB
+                      </span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setPromoAudioFile(null)}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center gap-2 cursor-pointer rounded-md border border-dashed border-border/60 p-4 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
+                      <Upload className="h-4 w-4" />
+                      {t('dashboard.premium.audioUploadCta', 'Subir audio (MP3, AAC)')}
+                      <input type="file" accept={ACCEPTED_AUDIO} className="hidden" onChange={handlePromoAudioChange} />
+                    </label>
+                  )}
                 </div>
 
+                {/* Video/Image upload */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">
-                    {t('dashboard.firstHit.yourSocials')}
-                  </Label>
-                  <Input value={promoSocial}
-                    onChange={e => setPromoSocial(e.target.value)}
-                    className="h-9 text-sm"
-                    placeholder={t('dashboard.firstHit.yourSocialsPlaceholder')} />
+                  <Label className="text-sm">{t('dashboard.premium.visualLabel', 'Vídeo o imagen')} *</Label>
+                  <p className="text-[11px] text-muted-foreground">{t('dashboard.premium.visualDesc', 'Vídeo: MP4 o MOV, 1080×1920px (9:16). Imagen: JPG o PNG (9:16).')}</p>
+                  {promoMediaFile ? (
+                    <div className="flex items-center gap-2 rounded-md border border-border/40 p-2 text-sm">
+                      <Upload className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="truncate flex-1">{promoMediaFile.name}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {(promoMediaFile.size / (1024 * 1024)).toFixed(1)} MB
+                      </span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setPromoMediaFile(null)}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label className="flex items-center justify-center gap-2 cursor-pointer rounded-md border border-dashed border-border/60 p-4 text-sm text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors">
+                      <Upload className="h-4 w-4" />
+                      {t('dashboard.premium.visualUploadCta', 'Subir vídeo o imagen')}
+                      <input type="file" accept={ACCEPTED_VISUAL} className="hidden" onChange={handlePromoMediaChange} />
+                    </label>
+                  )}
                 </div>
 
+                {/* Links and notes */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">{t('dashboard.premium.linksAndNotes')}</Label>
+                  <Textarea
+                    value={promoLinks}
+                    onChange={e => setPromoLinks(e.target.value)}
+                    placeholder={t('dashboard.premium.linksAndNotesPlaceholder')}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Consent */}
                 <div className="flex items-start gap-2">
                   <Checkbox id="promo-consent" checked={promoConsent}
                     onCheckedChange={v => setPromoConsent(!!v)} />
@@ -1232,7 +1380,11 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
                 </div>
 
                 <Button type="submit" className="w-full gap-2"
-                  disabled={promoting || !promoConsent || !promoArtist || !promoLink || !promoDesc || !promoGoal}>
+                  disabled={
+                    promoting || !promoConsent ||
+                    !promoArtist.trim() || !promoSongTitle.trim() || !promoLyrics.trim() ||
+                    !promoAudioFile || !promoMediaFile
+                  }>
                   {promoting
                     ? <><Loader2 className="h-4 w-4 animate-spin" />{t('dashboard.firstHit.sendingRequest')}</>
                     : <><Megaphone className="h-4 w-4" />{t('dashboard.firstHit.wantPromotion')}</>
@@ -1248,6 +1400,40 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
             </div>
           )}
         </div>
+
+        {/* Lyrics Import Dialog */}
+        <Dialog open={showLyricsImport} onOpenChange={setShowLyricsImport}>
+          <DialogContent className="max-w-lg max-h-[70vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-4 w-4" /> {t('dashboard.premium.importLyricsTitle')}
+              </DialogTitle>
+              <DialogDescription>{t('dashboard.premium.importLyricsDesc')}</DialogDescription>
+            </DialogHeader>
+            {loadingLyrics ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : savedLyrics.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">{t('dashboard.premium.noSavedLyrics')}</p>
+            ) : (
+              <div className="space-y-2">
+                {savedLyrics.map(l => (
+                  <button
+                    key={l.id}
+                    className="w-full text-left rounded-lg border border-border/40 p-3 hover:border-primary/40 hover:bg-accent/30 transition-colors space-y-1"
+                    onClick={() => handleImportLyrics(l)}
+                  >
+                    <p className="text-sm font-medium truncate">{l.description || l.theme || l.lyrics.slice(0, 60)}</p>
+                    <p className="text-[11px] text-muted-foreground line-clamp-2">{l.lyrics.slice(0, 120)}…</p>
+                    <div className="flex gap-2 mt-1">
+                      {l.genre && <Badge variant="outline" className="text-[9px] px-1 py-0">{l.genre}</Badge>}
+                      {l.mood && <Badge variant="outline" className="text-[9px] px-1 py-0">{l.mood}</Badge>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Skip total */}
         <div className="text-center">
