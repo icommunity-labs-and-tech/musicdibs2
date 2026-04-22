@@ -453,6 +453,58 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             </div>
           </div>
 
+          {/* Progress indicator (only while submitting) */}
+          {submitting && progressStep > 0 && (
+            <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs font-medium">
+                <span className="text-foreground">
+                  {t('dashboard.premium.progressTitle', 'Procesando solicitud')} ({progressStep}/4)
+                </span>
+                <span className="text-muted-foreground">
+                  {progressSteps[progressStep - 1]?.label}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-border/40 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-300"
+                  style={{ width: `${(progressStep / 4) * 100}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-1 pt-1">
+                {progressSteps.map((step, idx) => {
+                  const stepNum = idx + 1;
+                  const isDone = progressStep > stepNum;
+                  const isActive = progressStep === stepNum;
+                  return (
+                    <div
+                      key={step.key}
+                      className="flex flex-col items-center gap-1 flex-1 min-w-0"
+                    >
+                      <div
+                        className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 transition-colors ${
+                          isDone
+                            ? 'bg-primary text-primary-foreground'
+                            : isActive
+                              ? 'bg-primary/20 text-primary border border-primary'
+                              : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {isDone ? <CheckCircle2 className="h-3 w-3" /> : isActive ? <Loader2 className="h-3 w-3 animate-spin" /> : stepNum}
+                      </div>
+                      <span
+                        className={`text-[10px] text-center leading-tight truncate w-full ${
+                          isActive ? 'text-foreground font-medium' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Submit */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30">
             <PricingLink />
@@ -466,7 +518,9 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
               ) : (
                 <Crown className="h-4 w-4" />
               )}
-              {t('dashboard.premium.submit')}
+              {submitting && progressStep > 0
+                ? t('dashboard.premium.submittingStep', 'Paso {{n}}/4…', { n: progressStep })
+                : t('dashboard.premium.submit')}
             </Button>
           </div>
         </CardContent>
