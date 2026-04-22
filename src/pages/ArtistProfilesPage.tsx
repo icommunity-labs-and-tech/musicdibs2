@@ -230,7 +230,7 @@ const ArtistProfilesPage = () => {
 
   return (
     <div className="space-y-6">
-      <VirtualArtistsTour />
+      <VirtualArtistsTour autoStart={false} />
       <VirtualArtistsWelcomeModal
         open={showWelcomeModal}
         onOpenChange={setShowWelcomeModal}
