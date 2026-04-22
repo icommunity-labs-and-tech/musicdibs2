@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, HelpCircle } from "lucide-react";
 import { VirtualArtistsWelcomeModal } from "@/components/dashboard/VirtualArtistsWelcomeModal";
+import { VirtualArtistsTour } from "@/components/dashboard/VirtualArtistsTour";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
@@ -229,11 +230,22 @@ const ArtistProfilesPage = () => {
 
   return (
     <div className="space-y-6">
+      <VirtualArtistsTour autoStart={false} />
       <VirtualArtistsWelcomeModal
         open={showWelcomeModal}
         onOpenChange={setShowWelcomeModal}
         onCreateFirst={() => { setShowWelcomeModal(false); resetForm(); setShowForm(true); }}
+        onShowTutorial={() => {
+          setShowWelcomeModal(false);
+          resetForm();
+          setShowForm(true);
+          // Wait for form to render before starting tour
+          setTimeout(() => {
+            window.dispatchEvent(new Event('musicdibs:start-virtual-artists-tour'));
+          }, 250);
+        }}
       />
+
 
       <div className="flex items-center justify-between">
         <div>
@@ -264,7 +276,7 @@ const ArtistProfilesPage = () => {
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Name */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="va-name">
               <Label>Nombre del artista *</Label>
               <input
                 type="text"
@@ -277,7 +289,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Voice selection — preset only */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-voice">
               <Label>Voz del artista</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {voiceProfiles.map((v) => (
@@ -315,7 +327,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Genre chips */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-genre">
               <Label>Género</Label>
               <div className="flex flex-wrap gap-2">
                 {MUSIC_GENRES.map(g => (
@@ -327,7 +339,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Mood chips */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-mood">
               <Label>Mood</Label>
               <div className="flex flex-wrap gap-2">
                 {MUSIC_MOODS.map(m => (
@@ -339,7 +351,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Style notes */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="va-notes">
               <div className="flex items-center justify-between">
                 <Label>Notas de estilo</Label>
                 <div className="flex items-center gap-1">
@@ -387,7 +399,7 @@ const ArtistProfilesPage = () => {
             </label>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-3" data-tour="va-save">
               <Button onClick={handleSave} disabled={!formName.trim() || saving} className="gap-2">
                 <Check className="h-4 w-4" />
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear perfil'}
