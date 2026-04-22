@@ -887,6 +887,37 @@ serve(async (req) => {
         } else if (status === "canceled" || status === "incomplete_expired") {
           await supabase.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", profile.user_id);
         }
+
+        // ── Sincronizar tabla subscriptions local ──
+        const subStatus = mapStripeStatus(status);
+        const itemPeriodStart = (subscription.items.data[0] as any)?.current_period_start;
+        const itemPeriodEnd = (subscription.items.data[0] as any)?.current_period_end;
+        const periodStartRaw = itemPeriodStart ?? (subscription as any).current_period_start;
+        const periodEndRaw = itemPeriodEnd ?? (subscription as any).current_period_end;
+        const periodStart = periodStartRaw ? new Date(periodStartRaw * 1000).toISOString() : null;
+        const periodEnd = periodEndRaw ? new Date(periodEndRaw * 1000).toISOString() : null;
+
+        await supabase.from("subscriptions").upsert({
+          user_id: profile.user_id,
+          stripe_customer_id: customerId,
+          plan: planName || "Annual",
+          status: subStatus,
+          current_period_start: periodStart,
+          current_period_end: periodEnd,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+
+        if (subStatus === "active" && planName) {
+          await supabase.from("profiles")
+            .update({ subscription_plan: planName, updated_at: new Date().toISOString() })
+            .eq("user_id", profile.user_id);
+        } else if (["cancelled", "expired"].includes(subStatus)) {
+          await supabase.from("profiles")
+            .update({ subscription_plan: "Free", updated_at: new Date().toISOString() })
+            .eq("user_id", profile.user_id);
+        }
+
+        console.log(`[WEBHOOK] subscription.updated → synced subscriptions table for user ${profile.user_id} (status=${subStatus})`);
       }
     }
 
