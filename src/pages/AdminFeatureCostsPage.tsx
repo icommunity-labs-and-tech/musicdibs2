@@ -51,6 +51,8 @@ interface OperationRow {
   display_order: number;
   is_active: boolean | null;
   description: string | null;
+  llm_provider: string | null;
+  llm_model: string | null;
 }
 
 export default function AdminFeatureCostsPage() {
