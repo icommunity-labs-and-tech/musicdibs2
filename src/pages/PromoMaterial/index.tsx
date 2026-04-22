@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Image, Sparkles, Video, ArrowLeft, Palette, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/Navbar';
+import { AIStudioThemeBar } from '@/components/ai-studio/AIStudioThemeBar';
 
 import { CoversSection } from './components/CoversSection';
 import { CreativesSection } from './components/CreativesSection';

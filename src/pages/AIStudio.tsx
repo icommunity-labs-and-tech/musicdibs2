@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wand2, Sparkles, Music, AlertTriangle, ArrowLeft, Zap, Edit3, Lightbulb, Coins, Image, Users } from "lucide-react";
 import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { Navbar } from "@/components/Navbar";
+import { AIStudioThemeBar } from "@/components/ai-studio/AIStudioThemeBar";
 
 import { useCredits } from "@/hooks/useCredits";
 import { FEATURE_COSTS } from "@/lib/featureCosts";
@@ -153,7 +154,7 @@ const AIStudio = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+      <AIStudioThemeBar />
       <main className="container mx-auto px-4 py-6 pt-16">
         {/* Back Button */}
         {activeView === "grid" ? (

@@ -17,6 +17,7 @@ import {
   Headphones, Volume2, Waves, Wind, Radio, RefreshCw, Upload
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { AIStudioThemeBar } from "@/components/ai-studio/AIStudioThemeBar";
 
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
