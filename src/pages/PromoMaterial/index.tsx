@@ -21,6 +21,7 @@ const PromoMaterialPage = () => {
   return (
     <div className="min-h-screen bg-background" key={i18n.language}>
       <Navbar />
+      <AIStudioThemeBar />
       <PromoMaterialTour />
       <main className="container mx-auto px-4 py-6 pt-16">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
