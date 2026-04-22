@@ -1,0 +1,1 @@
+UPDATE public.operation_pricing SET operation_name = 'Crear en 1 click', operation_icon = '🎵' WHERE operation_key = 'random_generator';
