@@ -9,14 +9,17 @@ import { NotificationBell } from '@/components/dashboard/NotificationBell';
 import { NotificationToaster } from '@/components/dashboard/NotificationToaster';
 import { CreditBadge } from '@/components/dashboard/CreditBadge';
 import { DashboardTour } from '@/components/dashboard/DashboardTour';
+import { DashboardThemeToggle } from '@/components/dashboard/DashboardThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus } from 'lucide-react';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useDashboardTheme } from '@/hooks/useDashboardTheme';
 
 export default function DashboardLayout() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { guardRegister } = useKycGuard();
+  const { theme, toggleTheme } = useDashboardTheme();
   useUsageTracking(); // auto-tracks login_after_purchase on mount
 
   useEffect(() => {
@@ -52,6 +55,7 @@ export default function DashboardLayout() {
                   <Plus className="h-3.5 w-3.5 mr-1" />
                   Registrar obra
                 </Button>
+                <DashboardThemeToggle theme={theme} onToggle={toggleTheme} />
                 <CreditBadge />
                 <NotificationBell />
               </div>
