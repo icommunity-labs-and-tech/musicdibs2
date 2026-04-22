@@ -92,6 +92,9 @@ export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }
             <Button variant="hero" className="flex-1" onClick={onCreateFirst}>
               👉 {t('virtualArtists.welcome.ctaPrimary', 'Crear mi primer artista virtual')}
             </Button>
+            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+              {t('virtualArtists.welcome.ctaSecondary', 'Ver cómo funciona')}
+            </Button>
           </div>
 
           {/* Footnote */}
