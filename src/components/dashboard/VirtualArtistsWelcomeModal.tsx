@@ -7,9 +7,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateFirst: () => void;
+  onShowTutorial?: () => void;
 }
 
-export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst }: Props) => {
+export const VirtualArtistsWelcomeModal = ({ open, onOpenChange, onCreateFirst, onShowTutorial }: Props) => {
   const { t } = useTranslation();
 
   const flowSteps = [
