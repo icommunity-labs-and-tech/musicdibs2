@@ -86,7 +86,7 @@ export default function AdminFeatureCostsPage() {
     const [opsRes, modelsRes] = await Promise.all([
       supabase
         .from('operation_pricing')
-        .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active, description')
+        .select('operation_key, operation_name, operation_icon, credits_cost, euro_cost, category, is_annual_only, display_order, is_active, description, llm_provider, llm_model')
         .order('display_order'),
       supabase
         .from('api_cost_config')
