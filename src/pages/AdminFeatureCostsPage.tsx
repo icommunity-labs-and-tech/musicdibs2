@@ -232,20 +232,46 @@ export default function AdminFeatureCostsPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs">{row.operation_key}</TableCell>
                     <TableCell className="text-xs">
-                      {(() => {
-                        const fk = OPERATION_TO_FEATURE_KEY[row.operation_key] ?? row.operation_key;
-                        const m = models[fk];
-                        return m ? (
-                          <div className="flex flex-col">
-                            <span className="font-mono">{m.model}</span>
-                            <span className="text-muted-foreground">{m.provider}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground italic">—</span>
-                        );
-                      })()}
+                      {isDirty(row.operation_key) ? (
+                        <div className="flex flex-col gap-1">
+                          <Input
+                            value={String(getValue(row, 'llm_provider') || '')}
+                            onChange={e => handleChange(row.operation_key, 'llm_provider', e.target.value)}
+                            placeholder="Proveedor"
+                            className="h-7 text-xs"
+                          />
+                          <Input
+                            value={String(getValue(row, 'llm_model') || '')}
+                            onChange={e => handleChange(row.operation_key, 'llm_model', e.target.value)}
+                            placeholder="Modelo"
+                            className="h-7 text-xs font-mono"
+                          />
+                        </div>
+                      ) : (
+                        (() => {
+                          const provider = row.llm_provider;
+                          const model = row.llm_model;
+                          if (!provider && !model) {
+                            const fk = OPERATION_TO_FEATURE_KEY[row.operation_key] ?? row.operation_key;
+                            const m = models[fk];
+                            return m ? (
+                              <div className="flex flex-col">
+                                <span className="text-muted-foreground italic">{m.provider} · {m.model}</span>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic">—</span>
+                            );
+                          }
+                          return (
+                            <div className="flex flex-col">
+                              <span>{provider || '—'}</span>
+                              <span className="font-mono text-muted-foreground">{model || '—'}</span>
+                            </div>
+                          );
+                        })()
+                      )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell title={row.description ?? undefined}>
                       {isDirty(row.operation_key) ? (
                         <Input
                           value={String(getValue(row, 'operation_name'))}
