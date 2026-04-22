@@ -199,8 +199,7 @@ export default function PromotionPage() {
 
             {/* Premium promo card — enhanced */}
             <Card
-              className="border-amber-400/30 bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-300 cursor-pointer group relative overflow-hidden"
-              onClick={() => setShowForm(true)}
+              className="border-amber-400/30 bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 shadow-lg hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
             >
               {/* Decorative background pattern */}
               <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
@@ -291,7 +290,11 @@ export default function PromotionPage() {
                 </p>
 
                 {/* CTA */}
-                <Button size="lg" className="w-full text-sm font-semibold h-12 gap-2 group-hover:shadow-lg transition-all bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white border-0">
+                <Button
+                  size="lg"
+                  onClick={() => setShowForm(true)}
+                  className="w-full text-sm font-semibold h-12 gap-2 group-hover:shadow-lg transition-all bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white border-0"
+                >
                   <Rocket className="h-4 w-4" />
                   {t('dashboard.promoSelector.premiumCtaNew', 'Impulsar mi canción ahora 🚀')}
                 </Button>
