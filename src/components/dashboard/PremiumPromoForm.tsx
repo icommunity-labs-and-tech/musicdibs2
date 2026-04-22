@@ -144,7 +144,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
     }
 
     setSubmitting(true);
-    let creditsSpent = false;
+    setProgressStep(1);
     let audioPath: string | null = null;
     let mediaPath: string | null = null;
 
@@ -157,6 +157,11 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
           console.warn('[PremiumPromoForm] Failed to cleanup uploads:', cleanupErr);
         }
       }
+    };
+
+    const failAndReset = () => {
+      setSubmitting(false);
+      setProgressStep(0);
     };
 
     try {
@@ -175,25 +180,25 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
           const { userMessage } = parseAiError(spendError, spendData as any);
           toast.error(t('dashboard.premium.creditsError', 'No se pudieron validar los créditos: {{msg}}', { msg: userMessage }));
         }
-        setSubmitting(false);
+        failAndReset();
         return;
       }
       if (spendData?.error === 'insufficient_credits' || spendData?.error === 'Créditos insuficientes') {
         toast.error(t('dashboard.premium.insufficientCredits'));
-        setSubmitting(false);
+        failAndReset();
         return;
       }
       if (spendData?.error) {
         toast.error(t('dashboard.premium.creditsError', 'No se pudieron validar los créditos: {{msg}}', { msg: spendData.error }));
-        setSubmitting(false);
+        failAndReset();
         return;
       }
-      creditsSpent = true;
 
       const promoId = crypto.randomUUID();
       const ts = Date.now();
 
       // ── 2. Upload audio file ────────────────────────────────
+      setProgressStep(2);
       const audioExt = audioFile.name.split('.').pop() || 'mp3';
       audioPath = `promotions/${user.id}/${promoId}/audio_${ts}.${audioExt}`;
       const { error: audioUpErr } = await supabase.storage
@@ -203,11 +208,12 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         console.error('[PremiumPromoForm] Audio upload failed:', audioUpErr);
         audioPath = null;
         toast.error(t('dashboard.premium.audioUploadError', 'No se pudo subir el audio: {{msg}}', { msg: audioUpErr.message }));
-        setSubmitting(false);
+        failAndReset();
         return;
       }
 
       // ── 3. Upload media file (video/image) ──────────────────
+      setProgressStep(3);
       const mediaExt = mediaFile.name.split('.').pop() || 'bin';
       mediaPath = `promotions/${user.id}/${promoId}/media_${ts}.${mediaExt}`;
       const { error: mediaUpErr } = await supabase.storage
@@ -217,7 +223,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         console.error('[PremiumPromoForm] Media upload failed:', mediaUpErr);
         await cleanupUploads();
         toast.error(t('dashboard.premium.mediaUploadError', 'No se pudo subir el vídeo o imagen: {{msg}}', { msg: mediaUpErr.message }));
-        setSubmitting(false);
+        failAndReset();
         return;
       }
 
@@ -226,6 +232,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       const mediaFileType = VIDEO_EXTS.includes(extLower) ? 'video' : 'image';
 
       // ── 5. Submit promotion request via edge function ───────
+      setProgressStep(4);
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
         body: {
           work_id: selectedWorkId || null,
@@ -245,7 +252,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         await cleanupUploads();
         const { userMessage } = parseAiError(error, data as any);
         toast.error(t('dashboard.premium.submitErrorDetailed', 'No se pudo enviar la solicitud: {{msg}}. Tus créditos serán reembolsados automáticamente.', { msg: userMessage }));
-        setSubmitting(false);
+        failAndReset();
         return;
       }
 
@@ -259,8 +266,17 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       toast.error(t('dashboard.premium.unexpectedError', 'Error inesperado: {{msg}}', { msg: userMessage || err?.message || 'desconocido' }));
     } finally {
       setSubmitting(false);
+      setProgressStep(0);
     }
   };
+
+  // ── Progress steps definition ────────────────────────────
+  const progressSteps = [
+    { key: 'credits', label: t('dashboard.premium.stepCredits', 'Validando créditos') },
+    { key: 'audio', label: t('dashboard.premium.stepAudio', 'Subiendo audio') },
+    { key: 'media', label: t('dashboard.premium.stepMedia', 'Subiendo vídeo/imagen') },
+    { key: 'submit', label: t('dashboard.premium.stepSubmit', 'Enviando solicitud') },
+  ];
 
   if (showSuccess) {
     return (
