@@ -1445,7 +1445,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       modules: {
         createMusic: { title: 'Crear música', desc: 'Genera canciones completas o bases instrumentales a partir de una descripción.' },
         editModify: { title: 'Masterizado profesional con IA', desc: 'Consigue un sonido listo para Spotify: más volumen, claridad y potencia en segundos.' },
-        inspire: { title: 'Inspiración', desc: 'Descubre prompts, combinaciones y referencias para empezar más rápido.' },
+        inspire: { title: 'Crear en 1 click 🎵', desc: '¿No sabes por dónde empezar? Genera una canción automáticamente y empieza a crear al instante.' },
         createVideoclips: { title: 'Videoclips', desc: 'Genera vídeos musicales y fusiónalos con audio de tu historial.' },
         createCovers: { title: 'Material promocional', desc: 'Crea portadas, flyers, posts y todo lo que necesitas para promocionar tu música.' },
         singYourSong: { title: 'Herramientas de Voz', desc: 'Tu estudio vocal IA: clona tu voz, canta en 29 idiomas, traduce audios y mucho más' },
@@ -1477,7 +1477,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       modules: {
         createMusic: { title: 'Create music', desc: 'Generate songs or instrumentals from a text description.' },
         editModify: { title: 'Professional AI Mastering', desc: 'Get a Spotify-ready sound: more volume, clarity and power in seconds.' },
-        inspire: { title: 'Inspiration', desc: 'Discover prompts, combinations and references to start faster.' },
+        inspire: { title: 'Create in 1 click 🎵', desc: "Don't know where to start? Generate a song automatically and start creating instantly." },
         createVideoclips: { title: 'Videoclips', desc: 'Generate music videos and merge them with audio from your history.' },
         createCovers: { title: 'Promotional Material', desc: 'Create covers, flyers, posts and everything you need to promote your music.' },
         singYourSong: { title: 'Voice Tools', desc: 'Your AI vocal studio: clone your voice, sing in 29 languages, translate audio and much more' },
@@ -1509,7 +1509,7 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       modules: {
         createMusic: { title: 'Criar música', desc: 'Gere músicas ou instrumentais a partir de uma descrição.' },
         editModify: { title: 'Masterização profissional com IA', desc: 'Consiga um som pronto para o Spotify: mais volume, clareza e potência em segundos.' },
-        inspire: { title: 'Inspiração', desc: 'Descubra prompts, combinações e referências para começar mais rápido.' },
+        inspire: { title: 'Criar em 1 clique 🎵', desc: 'Não sabe por onde começar? Gere uma música automaticamente e comece a criar instantaneamente.' },
         createVideoclips: { title: 'Videoclipes', desc: 'Gere vídeos musicais e combine com áudio do seu histórico.' },
         createCovers: { title: 'Material promocional', desc: 'Crie capas, flyers, posts e tudo o que você precisa para promover sua música.' },
         singYourSong: { title: 'Ferramentas de Voz', desc: 'Seu estúdio vocal IA: clone sua voz, cante em 29 idiomas, traduza áudios e muito mais' },
