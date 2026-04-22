@@ -351,9 +351,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Style notes */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label>Notas de estilo</Label>
+            <div className="space-y-1.5" data-tour="va-notes">
                 <div className="flex items-center gap-1">
                   {formNotes.trim() && (
                     <Button
