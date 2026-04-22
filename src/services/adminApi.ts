@@ -39,4 +39,5 @@ export const adminApi = {
   exportOrdersCsv: () => adminAction('export_csv', { dataset: 'orders' }),
   getChurnData: () => adminAction('get_churn_data'),
   forceDeleteUser: (user_id: string) => adminAction('force_delete_user', { user_id }),
+  sendPasswordReset: (user_id: string) => adminAction('send_password_reset', { user_id }),
 };
