@@ -327,7 +327,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Genre chips */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-genre">
               <Label>Género</Label>
               <div className="flex flex-wrap gap-2">
                 {MUSIC_GENRES.map(g => (
@@ -339,7 +339,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Mood chips */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-mood">
               <Label>Mood</Label>
               <div className="flex flex-wrap gap-2">
                 {MUSIC_MOODS.map(m => (
