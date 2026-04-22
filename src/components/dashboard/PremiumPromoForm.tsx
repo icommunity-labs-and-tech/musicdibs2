@@ -143,43 +143,88 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
     }
 
     setSubmitting(true);
+    let creditsSpent = false;
+    let audioPath: string | null = null;
+    let mediaPath: string | null = null;
+
+    const cleanupUploads = async () => {
+      const paths = [audioPath, mediaPath].filter(Boolean) as string[];
+      if (paths.length > 0) {
+        try {
+          await supabase.storage.from('premium-promo-media').remove(paths);
+        } catch (cleanupErr) {
+          console.warn('[PremiumPromoForm] Failed to cleanup uploads:', cleanupErr);
+        }
+      }
+    };
+
     try {
-      // Validate and spend credits
+      // ── 1. Validate and spend credits ───────────────────────
       const { data: spendData, error: spendError } = await supabase.functions.invoke('spend-credits', {
         body: { feature: 'promote_premium', description: `Promo Premium: ${songTitle.trim()}` },
       });
-      if (spendError) throw new Error(spendError.message);
-      if (spendData?.error === 'insufficient_credits') {
+
+      if (spendError) {
+        const status = (spendError as any)?.context?.status;
+        if (status === 402) {
+          toast.error(t('dashboard.premium.insufficientCredits'));
+        } else if (status === 401) {
+          toast.error(t('dashboard.premium.sessionExpired', 'Tu sesión ha expirado. Vuelve a iniciar sesión.'));
+        } else {
+          const { userMessage } = parseAiError(spendError, spendData as any);
+          toast.error(t('dashboard.premium.creditsError', 'No se pudieron validar los créditos: {{msg}}', { msg: userMessage }));
+        }
+        setSubmitting(false);
+        return;
+      }
+      if (spendData?.error === 'insufficient_credits' || spendData?.error === 'Créditos insuficientes') {
         toast.error(t('dashboard.premium.insufficientCredits'));
         setSubmitting(false);
         return;
       }
-      if (spendData?.error) throw new Error(spendData.error);
+      if (spendData?.error) {
+        toast.error(t('dashboard.premium.creditsError', 'No se pudieron validar los créditos: {{msg}}', { msg: spendData.error }));
+        setSubmitting(false);
+        return;
+      }
+      creditsSpent = true;
 
       const promoId = crypto.randomUUID();
       const ts = Date.now();
 
-      // Upload audio file
+      // ── 2. Upload audio file ────────────────────────────────
       const audioExt = audioFile.name.split('.').pop() || 'mp3';
-      const audioPath = `promotions/${user.id}/${promoId}/audio_${ts}.${audioExt}`;
+      audioPath = `promotions/${user.id}/${promoId}/audio_${ts}.${audioExt}`;
       const { error: audioUpErr } = await supabase.storage
         .from('premium-promo-media')
         .upload(audioPath, audioFile);
-      if (audioUpErr) throw new Error(audioUpErr.message);
+      if (audioUpErr) {
+        console.error('[PremiumPromoForm] Audio upload failed:', audioUpErr);
+        audioPath = null;
+        toast.error(t('dashboard.premium.audioUploadError', 'No se pudo subir el audio: {{msg}}', { msg: audioUpErr.message }));
+        setSubmitting(false);
+        return;
+      }
 
-      // Upload media file (video/image)
+      // ── 3. Upload media file (video/image) ──────────────────
       const mediaExt = mediaFile.name.split('.').pop() || 'bin';
-      const mediaPath = `promotions/${user.id}/${promoId}/media_${ts}.${mediaExt}`;
+      mediaPath = `promotions/${user.id}/${promoId}/media_${ts}.${mediaExt}`;
       const { error: mediaUpErr } = await supabase.storage
         .from('premium-promo-media')
         .upload(mediaPath, mediaFile);
-      if (mediaUpErr) throw new Error(mediaUpErr.message);
+      if (mediaUpErr) {
+        console.error('[PremiumPromoForm] Media upload failed:', mediaUpErr);
+        await cleanupUploads();
+        toast.error(t('dashboard.premium.mediaUploadError', 'No se pudo subir el vídeo o imagen: {{msg}}', { msg: mediaUpErr.message }));
+        setSubmitting(false);
+        return;
+      }
 
-      // Determine media_file_type
+      // ── 4. Determine media_file_type ────────────────────────
       const extLower = '.' + mediaExt.toLowerCase();
       const mediaFileType = VIDEO_EXTS.includes(extLower) ? 'video' : 'image';
 
-      // Insert premium request via edge function
+      // ── 5. Submit promotion request via edge function ───────
       const { data, error } = await supabase.functions.invoke('submit-premium-promo', {
         body: {
           work_id: selectedWorkId || null,
@@ -194,14 +239,23 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         },
       });
 
-      if (error) throw new Error(error.message);
-      if (data?.error) throw new Error(data.error);
+      if (error || data?.error) {
+        console.error('[PremiumPromoForm] submit-premium-promo failed:', error, data);
+        await cleanupUploads();
+        const { userMessage } = parseAiError(error, data as any);
+        toast.error(t('dashboard.premium.submitErrorDetailed', 'No se pudo enviar la solicitud: {{msg}}. Tus créditos serán reembolsados automáticamente.', { msg: userMessage }));
+        setSubmitting(false);
+        return;
+      }
 
       setShowSuccess(true);
       toast.success(t('dashboard.premium.requestSent'));
       track('premium_promotion_submitted', { feature: 'premium_promotion' });
     } catch (err: any) {
-      toast.error(err.message || t('dashboard.premium.submitError'));
+      console.error('[PremiumPromoForm] Unexpected error:', err);
+      await cleanupUploads();
+      const { userMessage } = parseAiError(err);
+      toast.error(t('dashboard.premium.unexpectedError', 'Error inesperado: {{msg}}', { msg: userMessage || err?.message || 'desconocido' }));
     } finally {
       setSubmitting(false);
     }
