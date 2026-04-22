@@ -350,8 +350,13 @@ serve(async (req) => {
       const siteUrl = Deno.env.get("SITE_URL") || "https://musicdibs.com";
       const redirectTo = `${siteUrl}/reset-password`;
 
-      const { error: linkErr } = await admin.auth.resetPasswordForEmail(targetEmail, { redirectTo });
-      if (linkErr) return json({ error: linkErr.message }, 500);
+      // Use anon client to trigger the standard recovery email flow (auth-email-hook will render & enqueue)
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!
+      );
+      const { error: resetErr } = await anonClient.auth.resetPasswordForEmail(targetEmail, { redirectTo });
+      if (resetErr) return json({ error: resetErr.message }, 500);
 
       await audit({
         action: "send_password_reset",
