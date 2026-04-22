@@ -360,6 +360,48 @@ export default function AdminUsersPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Temporary password result modal */}
+      <Dialog open={tempPwdModal.open} onOpenChange={open => !open && setTempPwdModal({ open: false, email: '', password: '', emailSent: false })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contraseña temporal generada</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Se ha establecido una nueva contraseña temporal para <span className="font-medium text-foreground">{tempPwdModal.email}</span>.
+            </p>
+            {tempPwdModal.emailSent ? (
+              <div className="p-2 rounded bg-green-500/10 border border-green-500/30 text-green-400 text-xs">
+                ✓ Se ha enviado un correo al usuario con la contraseña temporal.
+              </div>
+            ) : (
+              <div className="p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                ⚠️ La contraseña se cambió, pero el envío por correo falló. Compártela manualmente.
+              </div>
+            )}
+            <div>
+              <Label>Contraseña temporal</Label>
+              <div className="flex gap-2 mt-1">
+                <Input readOnly value={tempPwdModal.password} className="font-mono" onFocus={e => e.currentTarget.select()} />
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    navigator.clipboard.writeText(tempPwdModal.password);
+                    toast.success('Copiada al portapapeles');
+                  }}
+                >Copiar</Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Recomienda al usuario cambiarla inmediatamente tras iniciar sesión.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setTempPwdModal({ open: false, email: '', password: '', emailSent: false })}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <UserDetailSheet user={selectedUser} open={!!selectedUser} onOpenChange={open => !open && setSelectedUser(null)} />
     </div>
   );
