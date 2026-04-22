@@ -130,6 +130,8 @@ export default function AdminFeatureCostsPage() {
         category: (changes.category ?? row.category),
         operation_icon: (changes.operation_icon ?? row.operation_icon),
         description: (changes.description ?? row.description),
+        llm_provider: (changes.llm_provider ?? row.llm_provider),
+        llm_model: (changes.llm_model ?? row.llm_model),
       })
       .eq('operation_key', row.operation_key);
 
