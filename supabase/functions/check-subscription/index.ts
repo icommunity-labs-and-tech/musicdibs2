@@ -121,11 +121,81 @@ serve(async (req) => {
     const subscription = subscriptions.data.find((sub) => ACTIVE_SUB_STATUSES.has(sub.status));
 
     if (!subscription) {
-      logStep("No active-like subscription, setting Free plan");
-      await supabaseClient.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", userId);
-      return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      logStep("No active Stripe subscription — checking local subscriptions table");
+
+      // ── Buscar suscripción local vigente (usuarios migrados sin Stripe Sub object) ──
+      const { data: localSub } = await supabaseClient
+        .from("subscriptions")
+        .select("id, user_id, plan, status, current_period_end, tier")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .gte("current_period_end", new Date().toISOString())
+        .maybeSingle();
+
+      if (localSub) {
+        logStep("Found valid local subscription", {
+          plan: localSub.plan,
+          current_period_end: localSub.current_period_end,
+        });
+
+        await supabaseClient
+          .from("profiles")
+          .update({ subscription_plan: localSub.plan, updated_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .neq("subscription_plan", localSub.plan);
+
+        return new Response(
+          JSON.stringify({
+            subscribed: true,
+            plan: localSub.plan,
+            subscription_end: localSub.current_period_end,
+            cancel_at_period_end: false,
+            source: "local_subscription",
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+
+      // ── Auto-expiración: si hay una sub active pero ya vencida → corregirla ──
+      const { data: staleSub } = await supabaseClient
+        .from("subscriptions")
+        .select("id, user_id, plan")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .lt("current_period_end", new Date().toISOString())
+        .maybeSingle();
+
+      if (staleSub) {
+        logStep("Auto-expiring stale subscription", { subId: staleSub.id, plan: staleSub.plan });
+        await supabaseClient
+          .from("subscriptions")
+          .update({ status: "expired", updated_at: new Date().toISOString() })
+          .eq("id", staleSub.id);
+
+        await supabaseClient
+          .from("profiles")
+          .update({ subscription_plan: "Free", updated_at: new Date().toISOString() })
+          .eq("user_id", staleSub.user_id)
+          .neq("subscription_plan", "Free");
+
+        logStep(`Auto-expired stale sub for user ${staleSub.user_id} (was ${staleSub.plan})`);
+      }
+
+      logStep("No valid subscription found, setting Free plan");
+      await supabaseClient
+        .from("profiles")
+        .update({ subscription_plan: "Free" })
+        .eq("user_id", userId);
+
+      return new Response(
+        JSON.stringify({
+          subscribed: false,
+          plan: "Free",
+          cancel_at_period_end: false,
+          subscription_end: null,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const priceId = subscription.items.data[0]?.price?.id;
