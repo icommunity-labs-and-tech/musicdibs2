@@ -93,6 +93,14 @@ export default function AdminUsersPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const handleSendPasswordReset = async (userId: string, email: string) => {
+    if (!confirm(`¿Enviar enlace de restablecimiento de contraseña a ${email}?`)) return;
+    try {
+      await adminApi.sendPasswordReset(userId);
+      toast.success(`Enlace enviado a ${email}`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
   // Force delete user
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
