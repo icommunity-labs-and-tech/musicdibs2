@@ -137,13 +137,14 @@ const AIStudioInspire = () => {
     track("generation_started", { feature: "create_music", metadata: { mode: "song", source: "inspire" } });
 
     try {
-      // Spend credits
+      // Spend credits — use the same feature key as the music creator (song mode)
       const { data: spendResult, error: spendError } = await supabase.functions.invoke("spend-credits", {
-        body: { feature: "create_music_song", description: `Canción (Inspire): ${prompt.slice(0, 80)}` },
+        body: { feature: "generate_audio_song", description: `Canción: ${prompt.slice(0, 80)}` },
       });
       if (spendError) throw new Error(spendError.message || "Error al descontar créditos");
       if (spendResult?.error) throw new Error(spendResult.error);
 
+      // Identical payload to AIStudioCreate (song mode, no duration → IA decides)
       const { data, error: invokeError } = await supabase.functions.invoke("generate-audio", {
         body: {
           prompt,
