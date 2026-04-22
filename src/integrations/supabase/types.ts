@@ -1088,6 +1088,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_annual_only: boolean | null
+          llm_model: string | null
+          llm_provider: string | null
           operation_icon: string | null
           operation_key: string
           operation_name: string
@@ -1103,6 +1105,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_annual_only?: boolean | null
+          llm_model?: string | null
+          llm_provider?: string | null
           operation_icon?: string | null
           operation_key: string
           operation_name: string
@@ -1118,6 +1122,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_annual_only?: boolean | null
+          llm_model?: string | null
+          llm_provider?: string | null
           operation_icon?: string | null
           operation_key?: string
           operation_name?: string
