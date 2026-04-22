@@ -298,21 +298,6 @@ export default function PromotionPage() {
               </CardContent>
             </Card>
 
-            {/* Social links */}
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">{t('dashboard.promoSelector.followUs', 'Síguenos en nuestras redes')}</p>
-              <div className="flex flex-wrap gap-2">
-                <a href="https://www.tiktok.com/@musicdibs_" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 border border-border hover:border-primary/50 rounded-lg transition-colors text-sm">
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" /></svg>
-                  @musicdibs_
-                </a>
-                <a href="https://www.instagram.com/musicdibs/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 border border-border hover:border-primary/50 rounded-lg transition-colors text-sm">
-                  <Instagram className="h-4 w-4" />
-                  @musicdibs
-                </a>
-              </div>
-            </div>
-
             {/* Premium promo history */}
             {premiumPromos.length > 0 && (
               <div className="space-y-3">
