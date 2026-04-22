@@ -368,6 +368,106 @@ serve(async (req) => {
       return json({ success: true, email: targetEmail });
     }
 
+    if (action === "set_temporary_password") {
+      const { user_id } = payload;
+      if (!user_id) return json({ error: "user_id is required" }, 400);
+
+      const { data: targetAuth, error: getErr } = await admin.auth.admin.getUserById(user_id);
+      if (getErr || !targetAuth?.user?.email) return json({ error: getErr?.message || "User not found" }, 404);
+      const targetEmail = targetAuth.user.email;
+
+      // Generate a strong temporary password (16 chars, mixed)
+      const charset = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*";
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      let tempPassword = "";
+      for (let i = 0; i < bytes.length; i++) tempPassword += charset[bytes[i] % charset.length];
+
+      const { error: updErr } = await admin.auth.admin.updateUserById(user_id, { password: tempPassword });
+      if (updErr) return json({ error: updErr.message }, 500);
+
+      // Try to send email with the temporary password
+      let emailSent = false;
+      try {
+        const { data: profile } = await admin.from("profiles").select("display_name, language").eq("user_id", user_id).single();
+        const name = profile?.display_name || targetEmail.split("@")[0] || "Usuario";
+        const lang = profile?.language || "es";
+        const siteUrl = Deno.env.get("SITE_URL") || "https://musicdibs.com";
+
+        const subjects: Record<string, string> = {
+          es: "Tu contraseña temporal de MusicDibs",
+          en: "Your MusicDibs temporary password",
+          pt: "Sua senha temporária do MusicDibs",
+        };
+        const greetings: Record<string, string> = { es: "Hola", en: "Hi", pt: "Olá" };
+        const intros: Record<string, string> = {
+          es: "Un administrador ha establecido una contraseña temporal para tu cuenta. Úsala para iniciar sesión y cámbiala cuanto antes.",
+          en: "An administrator has set a temporary password for your account. Use it to sign in and change it as soon as possible.",
+          pt: "Um administrador definiu uma senha temporária para sua conta. Use-a para entrar e altere-a o quanto antes.",
+        };
+        const labels: Record<string, string> = { es: "Contraseña temporal", en: "Temporary password", pt: "Senha temporária" };
+        const ctas: Record<string, string> = { es: "Iniciar sesión", en: "Sign in", pt: "Entrar" };
+
+        const subject = subjects[lang] || subjects.es;
+        const greeting = greetings[lang] || greetings.es;
+        const intro = intros[lang] || intros.es;
+        const label = labels[lang] || labels.es;
+        const cta = ctas[lang] || ctas.es;
+
+        const html = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#ffffff;padding:24px;color:#111;">
+<div style="max-width:560px;margin:0 auto;">
+<h2 style="margin:0 0 16px;">${greeting} ${name},</h2>
+<p style="line-height:1.6;color:#444;">${intro}</p>
+<div style="background:#f4f4f5;border:1px solid #e4e4e7;border-radius:8px;padding:16px;margin:20px 0;">
+<p style="margin:0 0 6px;font-size:12px;color:#666;text-transform:uppercase;letter-spacing:0.5px;">${label}</p>
+<p style="margin:0;font-family:'Courier New',monospace;font-size:18px;font-weight:bold;letter-spacing:1px;">${tempPassword}</p>
+</div>
+<p style="text-align:center;margin:24px 0;">
+<a href="${siteUrl}/login" style="background:#000;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;">${cta}</a>
+</p>
+<p style="font-size:12px;color:#888;line-height:1.5;">MusicDibs</p>
+</div></body></html>`;
+
+        const text = `${greeting} ${name},\n\n${intro}\n\n${label}: ${tempPassword}\n\n${cta}: ${siteUrl}/login`;
+
+        const messageId = crypto.randomUUID();
+        await admin.from("email_send_log").insert({
+          message_id: messageId,
+          template_name: "temporary_password",
+          recipient_email: targetEmail,
+          status: "pending",
+        });
+        await admin.rpc("enqueue_email", {
+          queue_name: "transactional_emails",
+          payload: {
+            message_id: messageId,
+            to: targetEmail,
+            from: "MusicDibs <noreply@notify.musicdibs.com>",
+            sender_domain: "notify.musicdibs.com",
+            subject,
+            html,
+            text,
+            purpose: "transactional",
+            label: "temporary_password",
+            idempotency_key: `temp-pwd-${user_id}-${Date.now()}`,
+            queued_at: new Date().toISOString(),
+          },
+        });
+        emailSent = true;
+      } catch (emailErr) {
+        console.error("[ADMIN] Failed to enqueue temp password email:", emailErr);
+      }
+
+      await audit({
+        action: "set_temporary_password",
+        target_user_id: user_id,
+        target_email: targetEmail,
+        details: { email_sent: emailSent },
+      });
+
+      return json({ success: true, email: targetEmail, temporary_password: tempPassword, email_sent: emailSent });
+    }
+
     if (action === "set_admin_role") {
       const { user_id, is_admin } = payload;
       if (user_id === callerUserId && !is_admin) return json({ error: "No puedes quitarte el rol de admin a ti mismo" }, 400);
