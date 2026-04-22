@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Pencil, Music, X, Check, ExternalLink, Copy, Sparkles, Loader2, HelpCircle } from "lucide-react";
 import { VirtualArtistsWelcomeModal } from "@/components/dashboard/VirtualArtistsWelcomeModal";
+import { VirtualArtistsTour } from "@/components/dashboard/VirtualArtistsTour";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const MUSIC_GENRES = ['Pop', 'Rock', 'Hip-Hop', 'Reggaeton', 'Flamenco', 'Electrónica', 'Jazz', 'Clásica', 'R&B', 'Latin'];
