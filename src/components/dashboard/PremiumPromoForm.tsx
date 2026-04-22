@@ -72,6 +72,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [progressStep, setProgressStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Lyrics import
