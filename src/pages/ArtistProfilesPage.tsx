@@ -230,11 +230,22 @@ const ArtistProfilesPage = () => {
 
   return (
     <div className="space-y-6">
+      <VirtualArtistsTour />
       <VirtualArtistsWelcomeModal
         open={showWelcomeModal}
         onOpenChange={setShowWelcomeModal}
         onCreateFirst={() => { setShowWelcomeModal(false); resetForm(); setShowForm(true); }}
+        onShowTutorial={() => {
+          setShowWelcomeModal(false);
+          resetForm();
+          setShowForm(true);
+          // Wait for form to render before starting tour
+          setTimeout(() => {
+            window.dispatchEvent(new Event('musicdibs:start-virtual-artists-tour'));
+          }, 250);
+        }}
       />
+
 
       <div className="flex items-center justify-between">
         <div>
