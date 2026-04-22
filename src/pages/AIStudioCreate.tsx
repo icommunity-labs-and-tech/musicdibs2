@@ -273,6 +273,20 @@ const AIStudioCreate = () => {
 
   }, [user]);
 
+  // ── Preload prompt and mode from URL params (e.g. from /ai-studio/inspire) ──
+  useEffect(() => {
+    const urlPrompt = searchParams.get('prompt');
+    const urlMode = searchParams.get('mode');
+    if (urlPrompt) {
+      setPrompt(urlPrompt.slice(0, 2500));
+      setActiveTab('music');
+    }
+    if (urlMode === 'song' || urlMode === 'instrumental') {
+      setMode(urlMode);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const loadHistory = async () => {
     try {
       const { data, error } = await supabase
