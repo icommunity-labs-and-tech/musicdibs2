@@ -257,6 +257,9 @@ export default function AdminUsersPage() {
                       <DropdownMenuItem onClick={() => handleSendPasswordReset(u.user_id, u.email)}>
                         Enviar enlace de restablecer contraseña
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSetTemporaryPassword(u.user_id, u.email)}>
+                        Establecer contraseña temporal y enviar
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
