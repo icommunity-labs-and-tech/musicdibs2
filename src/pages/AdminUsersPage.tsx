@@ -101,6 +101,18 @@ export default function AdminUsersPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  // Temporary password modal
+  const [tempPwdModal, setTempPwdModal] = useState<{ open: boolean; email: string; password: string; emailSent: boolean }>({ open: false, email: '', password: '', emailSent: false });
+
+  const handleSetTemporaryPassword = async (userId: string, email: string) => {
+    if (!confirm(`¿Generar una contraseña temporal para ${email}? Se enviará por correo y se mostrará en pantalla.`)) return;
+    try {
+      const res = await adminApi.setTemporaryPassword(userId);
+      setTempPwdModal({ open: true, email: res.email, password: res.temporary_password, emailSent: !!res.email_sent });
+      toast.success(res.email_sent ? `Contraseña temporal generada y enviada a ${email}` : `Contraseña temporal generada (envío por correo falló)`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
   // Force delete user
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
