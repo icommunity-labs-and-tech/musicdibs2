@@ -933,6 +933,16 @@ serve(async (req) => {
         await supabase.from("profiles").update({ subscription_plan: "Free" }).eq("user_id", profile.user_id);
         console.log(`[WEBHOOK] Reset to Free for user ${profile.user_id} (cancellation)`);
 
+        // ── Sincronizar tabla subscriptions local ──
+        await supabase.from("subscriptions").upsert({
+          user_id: profile.user_id,
+          stripe_customer_id: customerId,
+          plan: "Annual",
+          status: "cancelled",
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+        console.log(`[WEBHOOK] subscription.deleted → marked subscriptions as cancelled for user ${profile.user_id}`);
+
         try {
           const { data: { user: cancelUser } } = await supabase.auth.admin.getUserById(profile.user_id);
           if (cancelUser?.email) {
