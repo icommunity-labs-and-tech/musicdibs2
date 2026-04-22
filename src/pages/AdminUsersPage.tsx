@@ -242,6 +242,10 @@ export default function AdminUsersPage() {
                         {(u.roles || []).includes('manager') ? 'Quitar manager' : 'Dar manager'}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleSendPasswordReset(u.user_id, u.email)}>
+                        Enviar enlace de restablecer contraseña
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
                         disabled={u.user_id === user?.id}
