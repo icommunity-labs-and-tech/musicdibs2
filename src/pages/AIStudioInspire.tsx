@@ -7,6 +7,7 @@ import { useProductTracking } from "@/hooks/useProductTracking";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { PricingLink } from "@/components/dashboard/PricingPopup";
 import { ArrowLeft, Sparkles, Dice5, Loader2, Download, RefreshCw, ArrowRight, AlertCircle } from "lucide-react";
 
 const GENEROS = ["pop", "pop urbano", "reggaeton", "trap", "indie pop", "electrónica", "balada"];
@@ -347,6 +348,11 @@ const AIStudioInspire = () => {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Pricing link */}
+          <div className="mt-6 flex justify-center">
+            <PricingLink />
           </div>
         </div>
       </main>
