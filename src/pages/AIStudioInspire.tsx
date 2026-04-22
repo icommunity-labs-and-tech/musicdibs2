@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
+import { AIStudioThemeBar } from "@/components/ai-studio/AIStudioThemeBar";
 import { useProductTracking } from "@/hooks/useProductTracking";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -215,6 +216,7 @@ const AIStudioInspire = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <AIStudioThemeBar />
 
       <main className="container mx-auto px-4 py-6 pt-16">
         <Link

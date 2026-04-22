@@ -17,6 +17,7 @@ import {
   Headphones, Volume2, Waves, Wind, Radio, RefreshCw, Upload
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { AIStudioThemeBar } from "@/components/ai-studio/AIStudioThemeBar";
 
 import { useCredits } from "@/hooks/useCredits";
 import { NoCreditsAlert } from "@/components/dashboard/NoCreditsAlert";
@@ -423,6 +424,7 @@ const AIStudioEdit = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <AIStudioThemeBar />
 
       <main className="container mx-auto px-4 py-6 pt-16 max-w-2xl">
         <Link to="/ai-studio" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
