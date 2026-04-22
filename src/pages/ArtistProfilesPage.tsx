@@ -276,7 +276,7 @@ const ArtistProfilesPage = () => {
           </CardHeader>
           <CardContent className="space-y-5">
             {/* Name */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5" data-tour="va-name">
               <Label>Nombre del artista *</Label>
               <input
                 type="text"
@@ -289,7 +289,7 @@ const ArtistProfilesPage = () => {
             </div>
 
             {/* Voice selection — preset only */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="va-voice">
               <Label>Voz del artista</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {voiceProfiles.map((v) => (
