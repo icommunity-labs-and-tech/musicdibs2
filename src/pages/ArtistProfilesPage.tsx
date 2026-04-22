@@ -399,7 +399,7 @@ const ArtistProfilesPage = () => {
             </label>
 
             {/* Actions */}
-            <div className="flex gap-3">
+            <div className="flex gap-3" data-tour="va-save">
               <Button onClick={handleSave} disabled={!formName.trim() || saving} className="gap-2">
                 <Check className="h-4 w-4" />
                 {saving ? 'Guardando...' : editingId ? 'Actualizar' : 'Crear perfil'}
