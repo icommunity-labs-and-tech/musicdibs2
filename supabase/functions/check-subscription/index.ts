@@ -13,15 +13,22 @@ const logStep = (step: string, details?: any) => {
 };
 
 const PRICE_TO_PLAN: Record<string, string> = {
-  // Annual plans (tiered by credits)
+  // Legacy / test prices (kept for backward compatibility)
   "price_1T9TnyF9ZCIiqrz6ruOlBcnZ": "Annual",
-  "price_1THT7cF9ZCIiqrz6sWS67Q4V": "Annual",  // annual_100
-  "price_1THT7gF9ZCIiqrz6Acb2CkDC": "Annual",  // annual_200
-  "price_1THT7jF9ZCIiqrz6i02J4bj4": "Annual",  // annual_300
-  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "Annual",  // annual_500
-  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "Annual",  // annual_1000
-  // Monthly plan
+  "price_1THT7cF9ZCIiqrz6sWS67Q4V": "Annual",
+  "price_1THT7gF9ZCIiqrz6Acb2CkDC": "Annual",
+  "price_1THT7jF9ZCIiqrz6i02J4bj4": "Annual",
+  "price_1THT7nF9ZCIiqrz6r1ZcqH8L": "Annual",
+  "price_1THT7rF9ZCIiqrz6UmJDkBNZ": "Annual",
   "price_1T9SZvF9ZCIiqrz6TWLtfMBs": "Monthly",
+  // Annual plans — producción (FULeu7PzK6)
+  "price_1T8n6CFULeu7PzK6vs7NZyiJ": "Annual",  // annual_100
+  "price_1TMapTFULeu7PzK640B5uuEq": "Annual",  // annual_200
+  "price_1TMapTFULeu7PzK6D4GnB3Il": "Annual",  // annual_300
+  "price_1TMapTFULeu7PzK6cNJMf2oL": "Annual",  // annual_400
+  "price_1TMapTFULeu7PzK6ziUW5fLn": "Annual",  // annual_500
+  // Monthly plan — producción (FULeu7PzK6)
+  "price_1T8n6lFULeu7PzK60TbO76hE": "Monthly",
 };
 
 const ACTIVE_SUB_STATUSES = new Set(["active", "trialing", "past_due", "unpaid"]);
