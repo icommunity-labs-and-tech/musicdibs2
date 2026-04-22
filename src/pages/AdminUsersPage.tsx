@@ -93,6 +93,14 @@ export default function AdminUsersPage() {
     } catch (e: any) { toast.error(e.message); }
   };
 
+  const handleSendPasswordReset = async (userId: string, email: string) => {
+    if (!confirm(`¿Enviar enlace de restablecimiento de contraseña a ${email}?`)) return;
+    try {
+      await adminApi.sendPasswordReset(userId);
+      toast.success(`Enlace enviado a ${email}`);
+    } catch (e: any) { toast.error(e.message); }
+  };
+
   // Force delete user
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; userId: string; email: string }>({ open: false, userId: '', email: '' });
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -232,6 +240,10 @@ export default function AdminUsersPage() {
                         onClick={() => handleToggleManager(u.user_id, !(u.roles || []).includes('manager'))}
                       >
                         {(u.roles || []).includes('manager') ? 'Quitar manager' : 'Dar manager'}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleSendPasswordReset(u.user_id, u.email)}>
+                        Enviar enlace de restablecer contraseña
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

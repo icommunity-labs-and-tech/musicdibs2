@@ -339,6 +339,35 @@ serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "send_password_reset") {
+      const { user_id } = payload;
+      if (!user_id) return json({ error: "user_id is required" }, 400);
+
+      const { data: targetAuth, error: getErr } = await admin.auth.admin.getUserById(user_id);
+      if (getErr || !targetAuth?.user?.email) return json({ error: getErr?.message || "User not found" }, 404);
+
+      const targetEmail = targetAuth.user.email;
+      const siteUrl = Deno.env.get("SITE_URL") || "https://musicdibs.com";
+      const redirectTo = `${siteUrl}/reset-password`;
+
+      // Use anon client to trigger the standard recovery email flow (auth-email-hook will render & enqueue)
+      const anonClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!
+      );
+      const { error: resetErr } = await anonClient.auth.resetPasswordForEmail(targetEmail, { redirectTo });
+      if (resetErr) return json({ error: resetErr.message }, 500);
+
+      await audit({
+        action: "send_password_reset",
+        target_user_id: user_id,
+        target_email: targetEmail,
+        details: {},
+      });
+
+      return json({ success: true, email: targetEmail });
+    }
+
     if (action === "set_admin_role") {
       const { user_id, is_admin } = payload;
       if (user_id === callerUserId && !is_admin) return json({ error: "No puedes quitarte el rol de admin a ti mismo" }, 400);
