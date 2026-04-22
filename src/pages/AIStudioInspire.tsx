@@ -99,8 +99,7 @@ const AIStudioInspire = () => {
     track("ai_studio_entered", { feature: "inspire" });
   }, []);
 
-  const goToCreator = (prompt: string, source: string) => {
-    track("inspire_prompt_selected", { source, prompt: prompt.slice(0, 80) });
+  const goToCreator = (prompt: string, _source: string) => {
     const params = new URLSearchParams({ prompt, mode: "song", tab: "music" });
     navigate(`/ai-studio/create?${params.toString()}`);
   };
