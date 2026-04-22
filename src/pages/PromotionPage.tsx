@@ -244,13 +244,28 @@ export default function PromotionPage() {
                 </p>
 
                 {/* Stats chips */}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
                     <Eye className="h-3 w-3" /> 5-50K {t('dashboard.promoSelector.potentialViews', 'visualizaciones potenciales')}
                   </Badge>
-                  <Badge variant="secondary" className="text-xs px-3 py-1 gap-1.5 font-medium">
-                    <Instagram className="h-3 w-3" /> TikTok + Instagram
-                  </Badge>
+                  <a
+                    href="https://www.tiktok.com/@musicdibs_"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.75a8.18 8.18 0 004.77 1.52V6.84a4.84 4.84 0 01-1-.15z" /></svg>
+                    @musicdibs_
+                  </a>
+                  <a
+                    href="https://www.instagram.com/musicdibs/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full bg-secondary text-secondary-foreground font-medium hover:bg-secondary/80 transition-colors"
+                  >
+                    <Instagram className="h-3 w-3" />
+                    @musicdibs
+                  </a>
                 </div>
 
                 {/* Feature badges */}
