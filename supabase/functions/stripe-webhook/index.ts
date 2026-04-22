@@ -96,6 +96,13 @@ function getProductType(planId: string): string {
   return "unknown";
 }
 
+function mapStripeStatus(stripeStatus: string): string {
+  if (["active", "trialing"].includes(stripeStatus)) return "active";
+  if (["past_due", "unpaid"].includes(stripeStatus)) return "past_due";
+  if (["canceled", "incomplete_expired"].includes(stripeStatus)) return "cancelled";
+  return "past_due";
+}
+
 async function findProfileByCustomerId(
   supabase: any, stripe: any, customerId: string,
 ): Promise<{ user_id: string; available_credits: number } | null> {
