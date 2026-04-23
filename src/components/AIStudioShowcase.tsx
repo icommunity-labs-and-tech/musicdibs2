@@ -247,10 +247,10 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center mb-10">
-            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-700 mb-2">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-300 mb-2">
               En menos de 10 minutos
             </span>
-            <h3 className="text-2xl md:text-3xl font-bold text-purple-950">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
               Cuatro pasos. Una canción al mundo.
             </h3>
           </div>
@@ -261,18 +261,18 @@ export const AIStudioShowcase = () => {
             {STEPS.map((step) => (
               <div
                 key={step.n}
-                className="relative text-center px-4 py-6 rounded-xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-white/70 hover:bg-white/55 transition-all shadow-sm"
+                className="relative text-center px-4 py-6 rounded-xl border border-white/15 bg-white/5 backdrop-blur-sm hover:border-white/30 hover:bg-white/10 transition-all shadow-lg"
               >
-                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-600/30 border border-white/40 flex items-center justify-center shadow-inner">
-                  <step.icon className="w-5 h-5 text-fuchsia-700" />
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/40 to-purple-600/40 border border-white/20 flex items-center justify-center shadow-inner">
+                  <step.icon className="w-5 h-5 text-fuchsia-200" />
                 </div>
-                <div className="text-[10px] tracking-[0.25em] font-semibold text-purple-700/60 mb-1">
+                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/50 mb-1">
                   {step.n}
                 </div>
-                <h4 className="text-purple-950 font-semibold text-base mb-1.5">
+                <h4 className="text-white font-semibold text-base mb-1.5">
                   {step.title}
                 </h4>
-                <p className="text-purple-900/70 text-sm leading-snug">
+                <p className="text-white/65 text-sm leading-snug">
                   {step.desc}
                 </p>
               </div>
