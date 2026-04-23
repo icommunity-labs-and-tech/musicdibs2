@@ -24,23 +24,31 @@ Deno.serve(async (req) => {
     }
     const token = authHeader.replace("Bearer ", "");
 
-    // Use service role for fast insert (no per-request auth client init).
+    // Auth client (anon key) to validate the user JWT.
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Service role client for fast insert (bypasses RLS).
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       { auth: { persistSession: false, autoRefreshToken: false } }
     );
 
-    // Validate JWT locally (no network round-trip) to avoid auth timeouts.
+    // Validate user via auth client.
     let userId: string;
     try {
-      const { data, error } = await supabase.auth.getClaims(token);
-      if (error || !data?.claims?.sub) {
+      const { data, error } = await authClient.auth.getUser(token);
+      if (error || !data?.user?.id) {
+        console.error("track-event auth error:", error);
         return json({ error: "unauthorized" }, 401);
       }
-      userId = data.claims.sub as string;
+      userId = data.user.id;
     } catch (e) {
-      console.error("track-event auth error:", e);
+      console.error("track-event auth exception:", e);
       return json({ error: "unauthorized" }, 401);
     }
 
