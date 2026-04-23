@@ -101,27 +101,27 @@ const resources = {
       },
       why: {
         heading: 'La plataforma todo-en-uno para artistas independientes',
-        subheading: 'Creación de música, mejoras y recursos con IA + registro de propiedad intelectual legal con tecnología blockchain + distribución en 220+ plataformas y hasta un 95% en royalties.\nTodo desde un solo lugar.',
+        subheading: 'Crea con IA, registra tu propiedad intelectual, distribuye tu música en 220+ plataformas y promociónala ante una comunidad de más de 200k seguidores.\nTodo desde un solo lugar.',
         features: {
           legal: {
-            title: 'Crea y Edita',
-            desc: 'Crea, reinterpreta y documenta ideas musicales asistidas por IA y conviértelas en obras registrables y distribuibles',
-            popup: `Nuestro módulo de IA musical está diseñado como una herramienta de apoyo creativo para compositores y productores. Te ayuda a explorar ideas, probar arreglos, generar bases o mejorar composiciones existentes, manteniendo siempre al músico en el centro del proceso creativo.\n\nLa inteligencia artificial actúa como un asistente de inspiración, permitiéndote experimentar con nuevas posibilidades musicales, desbloquear ideas y desarrollar demos más completas en menos tiempo.\n\nCuando tu obra esté lista, podrás registrarla y protegerla inmediatamente en MusicDibs, garantizando prueba de autoría y protección legal desde el primer momento.\n\nCon este módulo podrás:\n\n• Explorar ideas musicales e inspiración creativa\n• Probar arreglos, estilos o variaciones\n• Mejorar composiciones existentes\n• Crear demos o bases de forma rápida\n• Registrar y proteger tu obra final en MusicDibs\n\nEste enfoque deja claro que la creatividad sigue siendo humana, y que la IA simplemente amplía las herramientas disponibles para el músico.`,
+            title: 'AI Music Studio',
+            desc: 'Crea canciones con IA, masterízalas y genera portadas, vídeos y materiales promocionales para tus lanzamientos desde un solo lugar.',
+            popup: `El AI Music Studio es el corazón creativo de MusicDibs: un entorno completo para llevar tu música de la idea al lanzamiento.\n\nCon una sola plataforma puedes:\n\n• Crear canciones originales con IA (instrumentales o con voz)\n• Editar, masterizar y mejorar tus producciones\n• Generar portadas profesionales de álbum y single\n• Diseñar creatividades para Instagram, TikTok y YouTube\n• Producir vídeos promocionales cortos para tus lanzamientos\n• Crear carteles para eventos y cabeceras para redes sociales\n\nLa IA actúa como tu asistente creativo, manteniéndote siempre en el centro del proceso. Cuando tu obra esté lista, podrás registrarla, distribuirla y promocionarla sin salir de MusicDibs.`,
           },
           instant: {
             title: 'Registro de PI',
-            desc: 'Protege tus obras y todo su contenido (letra, melodía, etc.) en segundos, con validez legal mundial gracias a la tecnología blockchain',
+            desc: 'Protege tus obras y su contenido en segundos con certificación blockchain y validez legal internacional.',
             popup: `Protección al instante, sin complicaciones. Olvídate del papeleo y de los procesos lentos y costosos. Con Musicdibs, registrar tu música es <strong1>tan fácil como subir tu archivo: en solo segundos generamos una huella digital única</strong1> y la registramos en blockchain <strong2>con validez legal internacional</strong2>. Sin intermediarios y por una fracción del coste de un registro tradicional.\n\nCada registro en Musicdibs genera un certificado digital inmutable respaldado por tecnología Blockchain, válido como prueba legal de autoría. Este certificado cumple con normativas internacionales y nacionales, incluyendo el <a1>Convenio de Berna</a1>, el <a2>Tratado de la OMPI</a2>, la <a3>Directiva sobre Derechos de Autor en la Era Digital</a3> y regulaciones sobre Blockchain aplicadas a la propiedad intelectual.`,
           },
           distribution: {
-            title: 'Distribución Mundial',
-            desc: 'Lanza en +220 plataformas digitales y GANA hasta un 95% en royalties',
-            popup: `Distribución Mundial. Lanza tu música en las <strong1>plataformas digitales más importantes del mundo: Spotify, Apple Music, Amazon Music, YouTube Music</strong1> y muchas más, hasta 220. <strong2>Gana royalties desde el primer stream</strong2> y haz que tu talento cruce fronteras sin intermediarios ni comisiones ocultas. Controla todo desde una sola plataforma, con estadísticas en tiempo real y soporte personalizado.`,
+            title: 'Distribución Global',
+            desc: 'Lanza tu música en Spotify, Apple Music, YouTube y más de 200 plataformas digitales desde una única integración.',
+            popup: `Distribución Global. Lanza tu música en las <strong1>plataformas digitales más importantes del mundo: Spotify, Apple Music, Amazon Music, YouTube Music</strong1> y muchas más, hasta 220. <strong2>Gana royalties desde el primer stream</strong2> y haz que tu talento cruce fronteras sin intermediarios ni comisiones ocultas. Controla todo desde una sola plataforma, con estadísticas en tiempo real y soporte personalizado.`,
           },
           promo: {
-            title: 'Material Promocional',
-            desc: 'Crea impresionantes portadas, carteles, vídeos y creatividades mediante IA, para tus RRSS, conciertos, promociones, etc..',
-            popup: `Desde el AI Music Studio puedes generar todo el material visual que necesitas para promocionar tu música:\n\n• Portadas de álbum y single con fotomontaje o foto del artista\n• Creatividades optimizadas para Instagram (Feed y Stories) y YouTube (miniaturas)\n• Vídeos promocionales de 5 a 15 segundos\n• Carteles para eventos en formatos profesionales (A5, A4, A3) y cabeceras para redes sociales\n\nTodo generado con modelos de IA de alta calidad, listo para publicar en tus plataformas favoritas.`,
+            title: 'Promoción en RRSS',
+            desc: 'Impulsa tus lanzamientos en nuestras redes sociales y gana visibilidad ante una comunidad de más de 200k seguidores.',
+            popup: `Amplifica el alcance de tu música a través de nuestras redes sociales oficiales:\n\n• Comunidad combinada de más de 200.000 seguidores en TikTok e Instagram\n• Promociones destacadas en nuestros perfiles para impulsar tus lanzamientos\n• Visibilidad ante una audiencia altamente segmentada de fans de música urbana e independiente\n• Estrategias de promoción adaptadas a cada single o álbum\n• Material promocional optimizado para cada red social\n\nNuestra red de seguidores se convierte en tu trampolín para ganar tracción real desde el día uno del lanzamiento.`,
           },
         },
       },
