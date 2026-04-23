@@ -1,0 +1,279 @@
+import { Play, Sparkles, Music, Shield, Globe, Lightbulb } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
+
+interface DemoSong {
+  title: string;
+  tag: string;
+  subtitle: string;
+  colors: [string, string]; // tailwind from / to
+  glow: string; // tailwind shadow color class
+}
+
+const DEMO_SONGS: DemoSong[] = [
+  {
+    title: "Midnight Drive",
+    tag: "Lo-Fi",
+    subtitle: "Lo-fi hip hop · nostálgico y soñador",
+    colors: ["from-purple-500", "to-fuchsia-500"],
+    glow: "shadow-purple-500/30",
+  },
+  {
+    title: "Fuego Latino",
+    tag: "Reggaeton",
+    subtitle: "Reggaeton urbano · energético & bailable",
+    colors: ["from-orange-400", "to-pink-500"],
+    glow: "shadow-pink-500/30",
+  },
+  {
+    title: "Neon Pulse",
+    tag: "EDM",
+    subtitle: "Dance electrónico · oscuro e hipnótico",
+    colors: ["from-cyan-400", "to-blue-500"],
+    glow: "shadow-cyan-500/30",
+  },
+  {
+    title: "Alma Libre",
+    tag: "Indie Folk",
+    subtitle: "Indie folk · acústico y emotivo",
+    colors: ["from-amber-300", "to-rose-400"],
+    glow: "shadow-amber-400/30",
+  },
+  {
+    title: "City Lights",
+    tag: "R&B",
+    subtitle: "R&B pop · suave y sensual",
+    colors: ["from-fuchsia-500", "to-violet-600"],
+    glow: "shadow-fuchsia-500/30",
+  },
+  {
+    title: "Trap God",
+    tag: "Hip Hop",
+    subtitle: "Hip hop trap · duro y cinematográfico",
+    colors: ["from-blue-500", "to-purple-700"],
+    glow: "shadow-blue-500/30",
+  },
+];
+
+const STEPS = [
+  {
+    n: "01",
+    icon: Lightbulb,
+    title: "Describe tu idea",
+    desc: "género, mood, tempo, vibe…",
+  },
+  {
+    n: "02",
+    icon: Sparkles,
+    title: "La IA genera tu canción",
+    desc: "música, letra y producción",
+  },
+  {
+    n: "03",
+    icon: Shield,
+    title: "Registra tus derechos",
+    desc: "certificado blockchain con validez legal",
+  },
+  {
+    n: "04",
+    icon: Globe,
+    title: "Distribuye al mundo",
+    desc: "Spotify, Apple Music, YouTube y 200+ plataformas",
+  },
+];
+
+// Animated waveform — pure CSS bars with random heights & delays
+const Waveform = ({ from, to }: { from: string; to: string }) => {
+  // 28 bars for desktop density
+  const bars = Array.from({ length: 28 });
+  return (
+    <div className="flex items-end justify-center gap-[3px] h-20 px-4 overflow-hidden">
+      {bars.map((_, i) => {
+        // Pseudo-random heights using a deterministic pattern based on index
+        const seed = (Math.sin(i * 1.7) + 1) / 2; // 0-1
+        const baseH = 18 + seed * 70; // 18% - 88%
+        const delay = (i * 0.07) % 1.4;
+        const duration = 0.9 + ((i * 13) % 7) * 0.15;
+        return (
+          <span
+            key={i}
+            className={`w-[3px] rounded-full bg-gradient-to-t ${from} ${to} animate-[wave_1.2s_ease-in-out_infinite]`}
+            style={{
+              height: `${baseH}%`,
+              animationDelay: `${delay}s`,
+              animationDuration: `${duration}s`,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+export const AIStudioShowcase = () => {
+  return (
+    <section
+      className="relative overflow-hidden py-24"
+      style={{
+        background:
+          "radial-gradient(ellipse at top, #2a0a4a 0%, #14061f 45%, #0a0312 100%)",
+      }}
+    >
+      {/* Inline keyframes for the waveform — kept local to avoid touching tailwind config */}
+      <style>{`
+        @keyframes wave {
+          0%, 100% { transform: scaleY(0.35); opacity: 0.7; }
+          50% { transform: scaleY(1); opacity: 1; }
+        }
+        .ai-card-glow::before {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border-radius: 1rem;
+          padding: 1px;
+          background: linear-gradient(135deg, rgba(168,85,247,0.5), rgba(236,72,153,0.4), rgba(59,130,246,0.3));
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          pointer-events: none;
+          opacity: 0.6;
+        }
+      `}</style>
+
+      {/* Decorative blurred orbs */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-purple-600/30 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-pink-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-700/10 blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Header */}
+        <ScrollReveal>
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-pink-300" />
+              <span className="text-xs font-medium text-white/80 tracking-wide">
+                AI Music Studio
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] mb-5">
+              Crea música con IA.
+              <br />
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 bg-clip-text text-transparent">
+                De la idea a Spotify
+              </span>{" "}
+              en minutos 🎵
+            </h2>
+            <p className="text-base md:text-lg text-white/70 leading-relaxed mb-8">
+              Genera canciones completas, regístralas y distribúyelas en 200+
+              plataformas. Todo en un solo lugar.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button
+                asChild
+                size="lg"
+                className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 text-white border-0 shadow-[0_0_40px_rgba(217,70,239,0.45)] hover:shadow-[0_0_55px_rgba(217,70,239,0.7)] hover:scale-105 transition-all"
+              >
+                <Link to="/ai-studio/create">
+                  <Sparkles className="w-4 h-4" />
+                  Crear mi canción
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="bg-white/5 border-white/15 text-white hover:bg-white/10 hover:text-white backdrop-blur-sm"
+              >
+                <Link to="/ai-studio">
+                  <Play className="w-4 h-4" />
+                  Ver demo
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Demo cards grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-20">
+          <StaggerGrid baseDelay={120} staggerDelay={90} scale>
+            {DEMO_SONGS.map((song) => (
+              <div
+                key={song.title}
+                className={`ai-card-glow group relative rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.02] backdrop-blur-sm p-5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 shadow-lg ${song.glow} hover:shadow-2xl`}
+              >
+                {/* Tag */}
+                <div className="flex items-start justify-between mb-4">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-white/10 text-white/90 border border-white/10">
+                    <Music className="w-3 h-3" />
+                    {song.tag}
+                  </span>
+                </div>
+
+                {/* Waveform */}
+                <div className="rounded-xl bg-black/30 border border-white/5 mb-5 py-3">
+                  <Waveform from={song.colors[0]} to={song.colors[1]} />
+                </div>
+
+                {/* Footer: title + play */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-white font-semibold text-lg truncate">
+                      {song.title}
+                    </h3>
+                    <p className="text-white/55 text-xs mt-0.5 truncate">
+                      {song.subtitle}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Reproducir demo ${song.title}`}
+                    className={`shrink-0 w-11 h-11 rounded-full bg-gradient-to-br ${song.colors[0]} ${song.colors[1]} flex items-center justify-center text-white shadow-lg ${song.glow} hover:scale-110 active:scale-95 transition-transform`}
+                  >
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </StaggerGrid>
+        </div>
+
+        {/* Steps block */}
+        <ScrollReveal>
+          <div className="text-center mb-10">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-pink-300/80 mb-2">
+              En menos de 10 minutos
+            </span>
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
+              Cuatro pasos. Una canción al mundo.
+            </h3>
+          </div>
+        </ScrollReveal>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StaggerGrid baseDelay={100} staggerDelay={120}>
+            {STEPS.map((step) => (
+              <div
+                key={step.n}
+                className="relative text-center px-4 py-6 rounded-xl border border-white/5 hover:border-white/15 transition-colors"
+              >
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-white/10 flex items-center justify-center">
+                  <step.icon className="w-5 h-5 text-pink-300" />
+                </div>
+                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/40 mb-1">
+                  {step.n}
+                </div>
+                <h4 className="text-white font-semibold text-base mb-1.5">
+                  {step.title}
+                </h4>
+                <p className="text-white/55 text-sm leading-snug">
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </StaggerGrid>
+        </div>
+      </div>
+    </section>
+  );
+};
