@@ -105,7 +105,7 @@ const resources = {
         features: {
           legal: {
             title: 'AI Music Studio',
-            desc: 'Crea canciones con IA, masterízalas y genera portadas, vídeos y materiales promocionales para tus lanzamientos desde un solo lugar.',
+            desc: 'Crea canciones con IA, masterízalas y genera portadas y vídeos promocionales impresionantes.',
             popup: `El AI Music Studio es el corazón creativo de MusicDibs: un entorno completo para llevar tu música de la idea al lanzamiento.\n\nCon una sola plataforma puedes:\n\n• Crear canciones originales con IA (instrumentales o con voz)\n• Editar, masterizar y mejorar tus producciones\n• Generar portadas profesionales de álbum y single\n• Diseñar creatividades para Instagram, TikTok y YouTube\n• Producir vídeos promocionales cortos para tus lanzamientos\n• Crear carteles para eventos y cabeceras para redes sociales\n\nLa IA actúa como tu asistente creativo, manteniéndote siempre en el centro del proceso. Cuando tu obra esté lista, podrás registrarla, distribuirla y promocionarla sin salir de MusicDibs.`,
           },
           instant: {
