@@ -119,7 +119,7 @@ export const AIStudioShowcase = () => {
       className="relative overflow-hidden py-24"
       style={{
         background:
-          "linear-gradient(180deg, #f5f0ff 0%, #ede4ff 18%, #c9b3ff 50%, #a98bf0 78%, #8b6fd9 100%)",
+          "linear-gradient(180deg, #2a1747 0%, #2e1a4f 22%, #36205c 50%, #2c1a4d 78%, #251541 100%)",
       }}
     >
       {/* Inline keyframes for the waveform — kept local to avoid touching tailwind config */}
