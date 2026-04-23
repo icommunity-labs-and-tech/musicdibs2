@@ -156,21 +156,21 @@ export const AIStudioShowcase = () => {
         {/* Header */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-300/50 bg-white/60 backdrop-blur-sm mb-6 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" />
-              <span className="text-xs font-semibold text-purple-900 tracking-wide">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm mb-6 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
+              <span className="text-xs font-semibold text-white/90 tracking-wide">
                 AI Music Studio
               </span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-bold text-purple-950 leading-[1.1] mb-5">
+            <h2 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] mb-5">
               Crea música con IA.
               <br />
-              <span className="bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-700 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
                 De la idea a Spotify
               </span>{" "}
               en minutos 🎵
             </h2>
-            <p className="text-base md:text-lg text-purple-900/75 leading-relaxed mb-8">
+            <p className="text-base md:text-lg text-white/75 leading-relaxed mb-8">
               Genera canciones completas, regístralas y distribúyelas en 200+
               plataformas. Todo en un solo lugar.
             </p>
@@ -189,7 +189,7 @@ export const AIStudioShowcase = () => {
                 asChild
                 size="lg"
                 variant="outline"
-                className="bg-white/70 border-purple-300/60 text-purple-900 hover:bg-white hover:text-purple-900 backdrop-blur-sm"
+                className="bg-white/10 border-white/25 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
               >
                 <Link to="/ai-studio">
                   <Play className="w-4 h-4" />
