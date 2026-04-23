@@ -83,26 +83,28 @@ const STEPS = [
   },
 ];
 
-// Animated waveform — pure CSS bars with random heights & delays
+// Elegant continuous waveform — vertically centered bars forming a fluid silhouette
 const Waveform = ({ from, to }: { from: string; to: string }) => {
-  // 28 bars for desktop density
-  const bars = Array.from({ length: 28 });
+  // 56 thin bars to simulate a continuous horizontal waveform
+  const bars = Array.from({ length: 56 });
   return (
-    <div className="flex items-end justify-center gap-[3px] h-20 px-4 overflow-hidden">
+    <div className="relative flex items-center justify-between h-16 px-3 overflow-hidden">
       {bars.map((_, i) => {
-        // Pseudo-random heights using a deterministic pattern based on index
-        const seed = (Math.sin(i * 1.7) + 1) / 2; // 0-1
-        const baseH = 18 + seed * 70; // 18% - 88%
-        const delay = (i * 0.07) % 1.4;
-        const duration = 0.9 + ((i * 13) % 7) * 0.15;
+        // Combine two sines for a more organic, musical envelope
+        const envelope =
+          (Math.sin(i * 0.35) * 0.55 + Math.sin(i * 0.9 + 1.3) * 0.35 + 1) / 2; // 0-1
+        const baseH = 14 + envelope * 78; // 14% - 92%
+        // Smooth, sequential delay across the bar to create a traveling wave feel
+        const delay = (i / bars.length) * 1.6;
         return (
           <span
             key={i}
-            className={`w-[3px] rounded-full bg-gradient-to-t ${from} ${to} animate-[wave_1.2s_ease-in-out_infinite]`}
+            className={`flex-1 mx-[1px] rounded-full bg-gradient-to-t ${from} ${to} animate-[wave_2.4s_ease-in-out_infinite]`}
             style={{
               height: `${baseH}%`,
               animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
+              transformOrigin: "center",
+              opacity: 0.85,
             }}
           />
         );
@@ -117,14 +119,14 @@ export const AIStudioShowcase = () => {
       className="relative overflow-hidden py-24"
       style={{
         background:
-          "radial-gradient(ellipse at top, #2a0a4a 0%, #14061f 45%, #0a0312 100%)",
+          "linear-gradient(180deg, #f5f0ff 0%, #ede4ff 18%, #c9b3ff 50%, #a98bf0 78%, #8b6fd9 100%)",
       }}
     >
       {/* Inline keyframes for the waveform — kept local to avoid touching tailwind config */}
       <style>{`
         @keyframes wave {
-          0%, 100% { transform: scaleY(0.35); opacity: 0.7; }
-          50% { transform: scaleY(1); opacity: 1; }
+          0%, 100% { transform: scaleY(0.55); }
+          50% { transform: scaleY(1); }
         }
         .ai-card-glow::before {
           content: "";
@@ -141,10 +143,14 @@ export const AIStudioShowcase = () => {
         }
       `}</style>
 
-      {/* Decorative blurred orbs */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-purple-600/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-pink-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-700/10 blur-3xl" />
+      {/* Soft top/bottom fades to blend with neighbouring sections */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 to-transparent" />
+
+      {/* Decorative blurred orbs (lighter, more luminous) */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-pink-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-fuchsia-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-300/30 blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Header */}
