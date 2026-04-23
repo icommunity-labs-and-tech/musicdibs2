@@ -83,26 +83,28 @@ const STEPS = [
   },
 ];
 
-// Animated waveform — pure CSS bars with random heights & delays
+// Elegant continuous waveform — vertically centered bars forming a fluid silhouette
 const Waveform = ({ from, to }: { from: string; to: string }) => {
-  // 28 bars for desktop density
-  const bars = Array.from({ length: 28 });
+  // 56 thin bars to simulate a continuous horizontal waveform
+  const bars = Array.from({ length: 56 });
   return (
-    <div className="flex items-end justify-center gap-[3px] h-20 px-4 overflow-hidden">
+    <div className="relative flex items-center justify-between h-16 px-3 overflow-hidden">
       {bars.map((_, i) => {
-        // Pseudo-random heights using a deterministic pattern based on index
-        const seed = (Math.sin(i * 1.7) + 1) / 2; // 0-1
-        const baseH = 18 + seed * 70; // 18% - 88%
-        const delay = (i * 0.07) % 1.4;
-        const duration = 0.9 + ((i * 13) % 7) * 0.15;
+        // Combine two sines for a more organic, musical envelope
+        const envelope =
+          (Math.sin(i * 0.35) * 0.55 + Math.sin(i * 0.9 + 1.3) * 0.35 + 1) / 2; // 0-1
+        const baseH = 14 + envelope * 78; // 14% - 92%
+        // Smooth, sequential delay across the bar to create a traveling wave feel
+        const delay = (i / bars.length) * 1.6;
         return (
           <span
             key={i}
-            className={`w-[3px] rounded-full bg-gradient-to-t ${from} ${to} animate-[wave_1.2s_ease-in-out_infinite]`}
+            className={`flex-1 mx-[1px] rounded-full bg-gradient-to-t ${from} ${to} animate-[wave_2.4s_ease-in-out_infinite]`}
             style={{
               height: `${baseH}%`,
               animationDelay: `${delay}s`,
-              animationDuration: `${duration}s`,
+              transformOrigin: "center",
+              opacity: 0.85,
             }}
           />
         );
@@ -117,14 +119,14 @@ export const AIStudioShowcase = () => {
       className="relative overflow-hidden py-24"
       style={{
         background:
-          "radial-gradient(ellipse at top, #2a0a4a 0%, #14061f 45%, #0a0312 100%)",
+          "linear-gradient(180deg, #f5f0ff 0%, #ede4ff 18%, #c9b3ff 50%, #a98bf0 78%, #8b6fd9 100%)",
       }}
     >
       {/* Inline keyframes for the waveform — kept local to avoid touching tailwind config */}
       <style>{`
         @keyframes wave {
-          0%, 100% { transform: scaleY(0.35); opacity: 0.7; }
-          50% { transform: scaleY(1); opacity: 1; }
+          0%, 100% { transform: scaleY(0.55); }
+          50% { transform: scaleY(1); }
         }
         .ai-card-glow::before {
           content: "";
@@ -141,30 +143,34 @@ export const AIStudioShowcase = () => {
         }
       `}</style>
 
-      {/* Decorative blurred orbs */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-purple-600/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-pink-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-700/10 blur-3xl" />
+      {/* Soft top/bottom fades to blend with neighbouring sections */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 to-transparent" />
+
+      {/* Decorative blurred orbs (lighter, more luminous) */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-pink-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-fuchsia-300/40 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-300/30 blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Header */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm mb-6">
-              <Sparkles className="w-3.5 h-3.5 text-pink-300" />
-              <span className="text-xs font-medium text-white/80 tracking-wide">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-300/50 bg-white/60 backdrop-blur-sm mb-6 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" />
+              <span className="text-xs font-semibold text-purple-900 tracking-wide">
                 AI Music Studio
               </span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] mb-5">
+            <h2 className="text-4xl md:text-6xl font-bold text-purple-950 leading-[1.1] mb-5">
               Crea música con IA.
               <br />
-              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-700 bg-clip-text text-transparent">
                 De la idea a Spotify
               </span>{" "}
               en minutos 🎵
             </h2>
-            <p className="text-base md:text-lg text-white/70 leading-relaxed mb-8">
+            <p className="text-base md:text-lg text-purple-900/75 leading-relaxed mb-8">
               Genera canciones completas, regístralas y distribúyelas en 200+
               plataformas. Todo en un solo lugar.
             </p>
@@ -183,7 +189,7 @@ export const AIStudioShowcase = () => {
                 asChild
                 size="lg"
                 variant="outline"
-                className="bg-white/5 border-white/15 text-white hover:bg-white/10 hover:text-white backdrop-blur-sm"
+                className="bg-white/70 border-purple-300/60 text-purple-900 hover:bg-white hover:text-purple-900 backdrop-blur-sm"
               >
                 <Link to="/ai-studio">
                   <Play className="w-4 h-4" />
@@ -200,18 +206,18 @@ export const AIStudioShowcase = () => {
             {DEMO_SONGS.map((song) => (
               <div
                 key={song.title}
-                className={`ai-card-glow group relative rounded-2xl bg-gradient-to-b from-white/[0.07] to-white/[0.02] backdrop-blur-sm p-5 border border-white/10 hover:border-white/20 transition-all duration-300 hover:-translate-y-1 shadow-lg ${song.glow} hover:shadow-2xl`}
+                className={`ai-card-glow group relative rounded-2xl bg-gradient-to-b from-purple-950/85 to-purple-900/75 backdrop-blur-md p-5 border border-white/15 hover:border-white/25 transition-all duration-300 hover:-translate-y-1 shadow-xl ${song.glow} hover:shadow-2xl`}
               >
                 {/* Tag */}
                 <div className="flex items-start justify-between mb-4">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-white/10 text-white/90 border border-white/10">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-wide uppercase bg-white/10 text-white/90 border border-white/15">
                     <Music className="w-3 h-3" />
                     {song.tag}
                   </span>
                 </div>
 
                 {/* Waveform */}
-                <div className="rounded-xl bg-black/30 border border-white/5 mb-5 py-3">
+                <div className="rounded-xl bg-black/35 border border-white/5 mb-5 py-3">
                   <Waveform from={song.colors[0]} to={song.colors[1]} />
                 </div>
 
@@ -221,7 +227,7 @@ export const AIStudioShowcase = () => {
                     <h3 className="text-white font-semibold text-lg truncate">
                       {song.title}
                     </h3>
-                    <p className="text-white/55 text-xs mt-0.5 truncate">
+                    <p className="text-white/60 text-xs mt-0.5 truncate">
                       {song.subtitle}
                     </p>
                   </div>
@@ -241,10 +247,10 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center mb-10">
-            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-pink-300/80 mb-2">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-700 mb-2">
               En menos de 10 minutos
             </span>
-            <h3 className="text-2xl md:text-3xl font-bold text-white">
+            <h3 className="text-2xl md:text-3xl font-bold text-purple-950">
               Cuatro pasos. Una canción al mundo.
             </h3>
           </div>
@@ -255,18 +261,18 @@ export const AIStudioShowcase = () => {
             {STEPS.map((step) => (
               <div
                 key={step.n}
-                className="relative text-center px-4 py-6 rounded-xl border border-white/5 hover:border-white/15 transition-colors"
+                className="relative text-center px-4 py-6 rounded-xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-white/70 hover:bg-white/55 transition-all shadow-sm"
               >
-                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-white/10 flex items-center justify-center">
-                  <step.icon className="w-5 h-5 text-pink-300" />
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-600/30 border border-white/40 flex items-center justify-center shadow-inner">
+                  <step.icon className="w-5 h-5 text-fuchsia-700" />
                 </div>
-                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/40 mb-1">
+                <div className="text-[10px] tracking-[0.25em] font-semibold text-purple-700/60 mb-1">
                   {step.n}
                 </div>
-                <h4 className="text-white font-semibold text-base mb-1.5">
+                <h4 className="text-purple-950 font-semibold text-base mb-1.5">
                   {step.title}
                 </h4>
-                <p className="text-white/55 text-sm leading-snug">
+                <p className="text-purple-900/70 text-sm leading-snug">
                   {step.desc}
                 </p>
               </div>
