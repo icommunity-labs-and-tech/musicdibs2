@@ -1516,7 +1516,7 @@ const AIStudioCreate = () => {
                       </p>
                     )}
 
-                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || !lyricsDesc.trim() || !lyricsGenre} className="w-full" size="lg">
+                    <Button onClick={() => handleGenerateLyrics()} disabled={isGeneratingLyrics || !lyricsDesc.trim()} className="w-full" size="lg">
                       {isGeneratingLyrics
                          ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('aiCreate.composingLyrics')}</>
                          : <>📝 {t('aiCreate.generateLyricsFree')}</>
