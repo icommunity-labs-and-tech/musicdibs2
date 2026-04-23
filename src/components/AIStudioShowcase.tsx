@@ -59,27 +59,27 @@ const DEMO_SONGS: DemoSong[] = [
 const STEPS = [
   {
     n: "01",
-    icon: Lightbulb,
     title: "Describe tu idea",
-    desc: "género, mood, tempo, vibe…",
+    desc: "género, mood, tempo, vibra… en palabras simples",
+    time: "~1 MIN",
   },
   {
     n: "02",
-    icon: Sparkles,
     title: "La IA genera tu canción",
-    desc: "música, letra y producción",
+    desc: "track completo con melodía, letra y producción",
+    time: "~2 MIN",
   },
   {
     n: "03",
-    icon: Shield,
     title: "Registra tus derechos",
     desc: "certificado blockchain con validez legal",
+    time: "~1 MIN",
   },
   {
     n: "04",
-    icon: Globe,
     title: "Distribuye al mundo",
     desc: "Spotify, Apple Music, YouTube y 200+ plataformas",
+    time: "~1 MIN",
   },
 ];
 
