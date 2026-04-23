@@ -1,4 +1,4 @@
-import { Play, Sparkles, Music, Shield, Globe, Lightbulb } from "lucide-react";
+import { Play, Sparkles, Music } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
