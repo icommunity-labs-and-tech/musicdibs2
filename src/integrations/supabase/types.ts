@@ -57,6 +57,7 @@ export type Database = {
           user_id: string
           voice_id: string | null
           voice_name: string | null
+          voice_profile_id: string | null
         }
         Insert: {
           audio_url: string
@@ -70,6 +71,7 @@ export type Database = {
           user_id: string
           voice_id?: string | null
           voice_name?: string | null
+          voice_profile_id?: string | null
         }
         Update: {
           audio_url?: string
@@ -83,6 +85,7 @@ export type Database = {
           user_id?: string
           voice_id?: string | null
           voice_name?: string | null
+          voice_profile_id?: string | null
         }
         Relationships: []
       }
@@ -189,6 +192,24 @@ export type Database = {
             referencedColumns: ["feature_key"]
           },
         ]
+      }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
       }
       audiomack_connections: {
         Row: {
@@ -625,6 +646,81 @@ export type Database = {
         }
         Relationships: []
       }
+      generation_jobs: {
+        Row: {
+          audio_duration_seconds: number | null
+          audio_url: string | null
+          completed_at: string | null
+          created_at: string
+          credits_cost: number
+          credits_refunded: boolean | null
+          duration_seconds: number | null
+          error_message: string | null
+          genre: string | null
+          id: string
+          lyrics: string | null
+          mode: string
+          mood: string | null
+          prompt: string | null
+          provider: string
+          provider_job_id: string | null
+          started_at: string | null
+          status: string
+          type: string
+          updated_at: string
+          user_id: string
+          voice_id: string | null
+        }
+        Insert: {
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          credits_cost?: number
+          credits_refunded?: boolean | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          genre?: string | null
+          id?: string
+          lyrics?: string | null
+          mode?: string
+          mood?: string | null
+          prompt?: string | null
+          provider?: string
+          provider_job_id?: string | null
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id: string
+          voice_id?: string | null
+        }
+        Update: {
+          audio_duration_seconds?: number | null
+          audio_url?: string | null
+          completed_at?: string | null
+          created_at?: string
+          credits_cost?: number
+          credits_refunded?: boolean | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          genre?: string | null
+          id?: string
+          lyrics?: string | null
+          mode?: string
+          mood?: string | null
+          prompt?: string | null
+          provider?: string
+          provider_job_id?: string | null
+          started_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string | null
+        }
+        Relationships: []
+      }
       ibs_signatures: {
         Row: {
           created_at: string
@@ -707,6 +803,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      library_deletion_queue: {
+        Row: {
+          asset_id: string
+          asset_type: string
+          created_at: string | null
+          deleted_at: string | null
+          id: string
+          notified_at: string | null
+          scheduled_deletion_at: string
+          status: string | null
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          asset_type: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          notified_at?: string | null
+          scheduled_deletion_at: string
+          status?: string | null
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          asset_type?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          id?: string
+          notified_at?: string | null
+          scheduled_deletion_at?: string
+          status?: string | null
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       lyrics_generations: {
         Row: {
@@ -1527,10 +1662,13 @@ export type Database = {
           ibs_signature_id: string | null
           id: string
           is_blocked: boolean | null
+          is_managed_artist: boolean | null
           kyc_status: string
           language: string
+          last_active_at: string | null
           library_status: string
           library_status_since: string | null
+          managed_by_manager_id: string | null
           phone: string | null
           stripe_customer_id: string | null
           subscription_plan: string
@@ -1545,10 +1683,13 @@ export type Database = {
           ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
+          is_managed_artist?: boolean | null
           kyc_status?: string
           language?: string
+          last_active_at?: string | null
           library_status?: string
           library_status_since?: string | null
+          managed_by_manager_id?: string | null
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
@@ -1563,10 +1704,13 @@ export type Database = {
           ibs_signature_id?: string | null
           id?: string
           is_blocked?: boolean | null
+          is_managed_artist?: boolean | null
           kyc_status?: string
           language?: string
+          last_active_at?: string | null
           library_status?: string
           library_status_since?: string | null
+          managed_by_manager_id?: string | null
           phone?: string | null
           stripe_customer_id?: string | null
           subscription_plan?: string
@@ -1780,6 +1924,33 @@ export type Database = {
           },
         ]
       }
+      renewal_log: {
+        Row: {
+          action: string
+          created_at: string
+          detail: string | null
+          email: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: string | null
+          email?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: string | null
+          email?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       social_promotions: {
         Row: {
           copy_ig_feed: string | null
@@ -1831,6 +2002,51 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan: string
+          status: string
+          stripe_customer_id: string | null
+          tier: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan: string
+          status?: string
+          stripe_customer_id?: string | null
+          tier?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          tier?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1858,6 +2074,7 @@ export type Database = {
       user_artist_profiles: {
         Row: {
           created_at: string
+          created_from_generation_id: string | null
           default_duration: number | null
           generation_type: string | null
           genre: string | null
@@ -1874,6 +2091,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_from_generation_id?: string | null
           default_duration?: number | null
           generation_type?: string | null
           genre?: string | null
@@ -1890,6 +2108,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_from_generation_id?: string | null
           default_duration?: number | null
           generation_type?: string | null
           genre?: string | null
@@ -2092,6 +2311,8 @@ export type Database = {
           gender: string
           id: string
           label: string
+          preview_generated_at: string | null
+          preview_url: string | null
           prompt_tag: string
           sample_generated_at: string | null
           sample_url: string | null
@@ -2106,6 +2327,8 @@ export type Database = {
           gender: string
           id: string
           label: string
+          preview_generated_at?: string | null
+          preview_url?: string | null
           prompt_tag: string
           sample_generated_at?: string | null
           sample_url?: string | null
@@ -2120,6 +2343,8 @@ export type Database = {
           gender?: string
           id?: string
           label?: string
+          preview_generated_at?: string | null
+          preview_url?: string | null
           prompt_tag?: string
           sample_generated_at?: string | null
           sample_url?: string | null
@@ -2141,6 +2366,7 @@ export type Database = {
           distributed_at: string | null
           distribution_clicks: number | null
           file_hash: string | null
+          file_hash_sha512_b64: string | null
           file_path: string | null
           ibs_evidence_id: string | null
           ibs_payload_algorithm: string | null
@@ -2165,6 +2391,7 @@ export type Database = {
           distributed_at?: string | null
           distribution_clicks?: number | null
           file_hash?: string | null
+          file_hash_sha512_b64?: string | null
           file_path?: string | null
           ibs_evidence_id?: string | null
           ibs_payload_algorithm?: string | null
@@ -2189,6 +2416,7 @@ export type Database = {
           distributed_at?: string | null
           distribution_clicks?: number | null
           file_hash?: string | null
+          file_hash_sha512_b64?: string | null
           file_path?: string | null
           ibs_evidence_id?: string | null
           ibs_payload_algorithm?: string | null
