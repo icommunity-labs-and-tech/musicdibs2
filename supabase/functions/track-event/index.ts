@@ -31,22 +31,17 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false, autoRefreshToken: false } }
     );
 
-    // Validate token with timeout protection.
-    const userPromise = supabase.auth.getUser(token);
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("auth_timeout")), 5000)
-    );
-
+    // Validate JWT locally (no network round-trip) to avoid auth timeouts.
     let userId: string;
     try {
-      const { data, error } = (await Promise.race([
-        userPromise,
-        timeout,
-      ])) as Awaited<typeof userPromise>;
-      if (error || !data.user) return json({ error: "unauthorized" }, 401);
-      userId = data.user.id;
-    } catch {
-      return json({ error: "auth_timeout" }, 401);
+      const { data, error } = await supabase.auth.getClaims(token);
+      if (error || !data?.claims?.sub) {
+        return json({ error: "unauthorized" }, 401);
+      }
+      userId = data.claims.sub as string;
+    } catch (e) {
+      console.error("track-event auth error:", e);
+      return json({ error: "unauthorized" }, 401);
     }
 
     const body = await req.json().catch(() => null);
