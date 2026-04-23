@@ -261,18 +261,18 @@ export const AIStudioShowcase = () => {
             {STEPS.map((step) => (
               <div
                 key={step.n}
-                className="relative text-center px-4 py-6 rounded-xl border border-white/5 hover:border-white/15 transition-colors"
+                className="relative text-center px-4 py-6 rounded-xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-white/70 hover:bg-white/55 transition-all shadow-sm"
               >
-                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/20 to-purple-600/20 border border-white/10 flex items-center justify-center">
-                  <step.icon className="w-5 h-5 text-pink-300" />
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-600/30 border border-white/40 flex items-center justify-center shadow-inner">
+                  <step.icon className="w-5 h-5 text-fuchsia-700" />
                 </div>
-                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/40 mb-1">
+                <div className="text-[10px] tracking-[0.25em] font-semibold text-purple-700/60 mb-1">
                   {step.n}
                 </div>
-                <h4 className="text-white font-semibold text-base mb-1.5">
+                <h4 className="text-purple-950 font-semibold text-base mb-1.5">
                   {step.title}
                 </h4>
-                <p className="text-white/55 text-sm leading-snug">
+                <p className="text-purple-900/70 text-sm leading-snug">
                   {step.desc}
                 </p>
               </div>
