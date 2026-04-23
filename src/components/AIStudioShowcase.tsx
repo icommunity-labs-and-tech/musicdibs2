@@ -1,4 +1,4 @@
-import { Play, Sparkles, Music, Shield, Globe, Lightbulb } from "lucide-react";
+import { Play, Sparkles, Music } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
@@ -59,27 +59,27 @@ const DEMO_SONGS: DemoSong[] = [
 const STEPS = [
   {
     n: "01",
-    icon: Lightbulb,
     title: "Describe tu idea",
-    desc: "género, mood, tempo, vibe…",
+    desc: "género, mood, tempo, vibra… en palabras simples",
+    time: "~1 MIN",
   },
   {
     n: "02",
-    icon: Sparkles,
     title: "La IA genera tu canción",
-    desc: "música, letra y producción",
+    desc: "track completo con melodía, letra y producción",
+    time: "~2 MIN",
   },
   {
     n: "03",
-    icon: Shield,
     title: "Registra tus derechos",
     desc: "certificado blockchain con validez legal",
+    time: "~1 MIN",
   },
   {
     n: "04",
-    icon: Globe,
     title: "Distribuye al mundo",
     desc: "Spotify, Apple Music, YouTube y 200+ plataformas",
+    time: "~1 MIN",
   },
 ];
 
@@ -256,28 +256,54 @@ export const AIStudioShowcase = () => {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StaggerGrid baseDelay={100} staggerDelay={120}>
-            {STEPS.map((step) => (
-              <div
-                key={step.n}
-                className="relative text-center px-4 py-6 rounded-xl border border-white/15 bg-white/5 backdrop-blur-sm hover:border-white/30 hover:bg-white/10 transition-all shadow-lg"
-              >
-                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/40 to-purple-600/40 border border-white/20 flex items-center justify-center shadow-inner">
-                  <step.icon className="w-5 h-5 text-fuchsia-200" />
+        <div className="relative">
+          {/* Horizontal connecting line — desktop only */}
+          <div
+            aria-hidden
+            className="hidden lg:block absolute top-6 left-0 right-0 h-px"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, rgba(244,114,182,0.35) 12%, rgba(217,70,239,0.45) 50%, rgba(168,85,247,0.35) 88%, transparent 100%)",
+            }}
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-10 lg:gap-x-6">
+            <StaggerGrid baseDelay={100} staggerDelay={120}>
+              {STEPS.map((step) => (
+                <div
+                  key={step.n}
+                  className="relative flex flex-col items-center text-center px-3"
+                >
+                  {/* Numbered badge */}
+                  <div className="relative z-10 mb-5">
+                    <span
+                      className="absolute inset-0 rounded-full blur-xl opacity-70"
+                      style={{
+                        background:
+                          "radial-gradient(circle, rgba(217,70,239,0.55) 0%, rgba(168,85,247,0.25) 60%, transparent 80%)",
+                      }}
+                      aria-hidden
+                    />
+                    <div className="relative w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-[#1d0f33] to-[#2a1747] border border-white/20 shadow-[0_0_20px_rgba(217,70,239,0.35)]">
+                      <span className="text-sm font-semibold tracking-wide bg-gradient-to-br from-pink-300 to-fuchsia-300 bg-clip-text text-transparent">
+                        {step.n}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h4 className="text-white font-semibold text-base md:text-[17px] mb-1.5 leading-tight max-w-[220px]">
+                    {step.title}
+                  </h4>
+                  <p className="text-white/65 text-sm leading-snug max-w-[230px] mb-3">
+                    {step.desc}
+                  </p>
+                  <span className="text-[10px] font-semibold tracking-[0.2em] text-fuchsia-300/90">
+                    {step.time}
+                  </span>
                 </div>
-                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/50 mb-1">
-                  {step.n}
-                </div>
-                <h4 className="text-white font-semibold text-base mb-1.5">
-                  {step.title}
-                </h4>
-                <p className="text-white/65 text-sm leading-snug">
-                  {step.desc}
-                </p>
-              </div>
-            ))}
-          </StaggerGrid>
+              ))}
+            </StaggerGrid>
+          </div>
         </div>
       </div>
     </section>
