@@ -247,11 +247,11 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center mb-10">
-            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-300 mb-2">
-              En menos de 10 minutos
-            </span>
             <h3 className="text-2xl md:text-3xl font-bold text-white">
-              Cuatro pasos. Una canción al mundo.
+              En menos de 10 minutos.{" "}
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
+                Tu canción al mundo
+              </span>
             </h3>
           </div>
         </ScrollReveal>
