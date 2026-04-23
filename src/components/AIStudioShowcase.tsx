@@ -119,7 +119,7 @@ export const AIStudioShowcase = () => {
       className="relative overflow-hidden py-24"
       style={{
         background:
-          "linear-gradient(180deg, #f5f0ff 0%, #ede4ff 18%, #c9b3ff 50%, #a98bf0 78%, #8b6fd9 100%)",
+          "linear-gradient(180deg, #2a1747 0%, #2e1a4f 22%, #36205c 50%, #2c1a4d 78%, #251541 100%)",
       }}
     >
       {/* Inline keyframes for the waveform — kept local to avoid touching tailwind config */}
@@ -143,34 +143,34 @@ export const AIStudioShowcase = () => {
         }
       `}</style>
 
-      {/* Soft top/bottom fades to blend with neighbouring sections */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white/40 to-transparent" />
+      {/* Soft top/bottom fades to blend with neighbouring (light) sections */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/12 via-white/4 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/8 to-transparent" />
 
-      {/* Decorative blurred orbs (lighter, more luminous) */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-[28rem] h-[28rem] rounded-full bg-pink-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 w-[28rem] h-[28rem] rounded-full bg-fuchsia-300/40 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-violet-300/30 blur-3xl" />
+      {/* Decorative ambient glow orbs (richer, premium violet palette) */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-[32rem] h-[32rem] rounded-full bg-fuchsia-600/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 w-[32rem] h-[32rem] rounded-full bg-violet-600/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[44rem] h-[44rem] rounded-full bg-purple-500/15 blur-3xl" />
 
       <div className="relative max-w-7xl mx-auto px-6">
         {/* Header */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-300/50 bg-white/60 backdrop-blur-sm mb-6 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-600" />
-              <span className="text-xs font-semibold text-purple-900 tracking-wide">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm mb-6 shadow-sm">
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
+              <span className="text-xs font-semibold text-white/90 tracking-wide">
                 AI Music Studio
               </span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-bold text-purple-950 leading-[1.1] mb-5">
+            <h2 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] mb-5">
               Crea música con IA.
               <br />
-              <span className="bg-gradient-to-r from-pink-600 via-fuchsia-600 to-purple-700 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
                 De la idea a Spotify
               </span>{" "}
               en minutos 🎵
             </h2>
-            <p className="text-base md:text-lg text-purple-900/75 leading-relaxed mb-8">
+            <p className="text-base md:text-lg text-white/75 leading-relaxed mb-8">
               Genera canciones completas, regístralas y distribúyelas en 200+
               plataformas. Todo en un solo lugar.
             </p>
@@ -189,7 +189,7 @@ export const AIStudioShowcase = () => {
                 asChild
                 size="lg"
                 variant="outline"
-                className="bg-white/70 border-purple-300/60 text-purple-900 hover:bg-white hover:text-purple-900 backdrop-blur-sm"
+                className="bg-white/10 border-white/25 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
               >
                 <Link to="/ai-studio">
                   <Play className="w-4 h-4" />
@@ -247,10 +247,10 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center mb-10">
-            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-700 mb-2">
+            <span className="inline-block text-xs font-semibold tracking-[0.2em] uppercase text-fuchsia-300 mb-2">
               En menos de 10 minutos
             </span>
-            <h3 className="text-2xl md:text-3xl font-bold text-purple-950">
+            <h3 className="text-2xl md:text-3xl font-bold text-white">
               Cuatro pasos. Una canción al mundo.
             </h3>
           </div>
@@ -261,18 +261,18 @@ export const AIStudioShowcase = () => {
             {STEPS.map((step) => (
               <div
                 key={step.n}
-                className="relative text-center px-4 py-6 rounded-xl border border-white/40 bg-white/40 backdrop-blur-sm hover:border-white/70 hover:bg-white/55 transition-all shadow-sm"
+                className="relative text-center px-4 py-6 rounded-xl border border-white/15 bg-white/5 backdrop-blur-sm hover:border-white/30 hover:bg-white/10 transition-all shadow-lg"
               >
-                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-600/30 border border-white/40 flex items-center justify-center shadow-inner">
-                  <step.icon className="w-5 h-5 text-fuchsia-700" />
+                <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/40 to-purple-600/40 border border-white/20 flex items-center justify-center shadow-inner">
+                  <step.icon className="w-5 h-5 text-fuchsia-200" />
                 </div>
-                <div className="text-[10px] tracking-[0.25em] font-semibold text-purple-700/60 mb-1">
+                <div className="text-[10px] tracking-[0.25em] font-semibold text-white/50 mb-1">
                   {step.n}
                 </div>
-                <h4 className="text-purple-950 font-semibold text-base mb-1.5">
+                <h4 className="text-white font-semibold text-base mb-1.5">
                   {step.title}
                 </h4>
-                <p className="text-purple-900/70 text-sm leading-snug">
+                <p className="text-white/65 text-sm leading-snug">
                   {step.desc}
                 </p>
               </div>
