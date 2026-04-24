@@ -2,7 +2,7 @@ import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as I
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
-import { Link } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 
 const AIMusicStudioPopup = () => {
