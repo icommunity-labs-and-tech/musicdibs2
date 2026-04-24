@@ -247,7 +247,7 @@ export const PromoVisualsShowcase = () => {
               <Sparkles className="w-4 h-4 mr-2" />
               Crear mi material promocional
             </Button>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-white/60">
               Portadas, posts, flyers y vídeos generados con IA en minutos.
             </p>
           </div>
