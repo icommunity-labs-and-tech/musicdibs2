@@ -2,7 +2,7 @@ import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as I
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
-import { Link } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 
 const AIMusicStudioPopup = () => {
@@ -49,6 +49,21 @@ const AIMusicStudioPopup = () => {
         ))}
       </div>
 
+      {/* CTA contextual */}
+      <div className="flex justify-center">
+        <DialogClose asChild>
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
+          >
+            <a href="/#pricing-section">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Quiero crear mi canción
+            </a>
+          </Button>
+        </DialogClose>
+      </div>
     </div>
   );
 };
@@ -141,12 +156,12 @@ const IPRegistryPopup = () => {
           <Button
             asChild
             size="lg"
-            className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:from-purple-700 hover:via-violet-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/30 border-0"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
           >
-            <Link to="/dashboard/register">
+            <a href="/#pricing-section">
               <Shield className="w-4 h-4 mr-2" />
-              Registrar mi obra
-            </Link>
+              Quiero registrar mi obra
+            </a>
           </Button>
         </DialogClose>
       </div>
@@ -196,6 +211,21 @@ const GlobalDistributionPopup = () => {
         ))}
       </div>
 
+      {/* CTA contextual */}
+      <div className="flex justify-center">
+        <DialogClose asChild>
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
+          >
+            <a href="/#pricing-section">
+              <Globe className="w-4 h-4 mr-2" />
+              Quiero distribuir mi música
+            </a>
+          </Button>
+        </DialogClose>
+      </div>
     </div>
   );
 };
@@ -242,6 +272,21 @@ const SocialPromoPopup = () => {
         ))}
       </div>
 
+      {/* CTA contextual */}
+      <div className="flex justify-center">
+        <DialogClose asChild>
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
+          >
+            <a href="/#pricing-section">
+              <Megaphone className="w-4 h-4 mr-2" />
+              Quiero promocionar mi lanzamiento
+            </a>
+          </Button>
+        </DialogClose>
+      </div>
     </div>
   );
 };
