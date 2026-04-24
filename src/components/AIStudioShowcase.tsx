@@ -176,25 +176,14 @@ export const AIStudioShowcase = () => {
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Button
-                asChild
                 size="lg"
+                onClick={() => {
+                  document.getElementById("pricing-section")?.scrollIntoView({ behavior: "smooth" });
+                }}
                 className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 text-white border-0 shadow-[0_0_40px_rgba(217,70,239,0.45)] hover:shadow-[0_0_55px_rgba(217,70,239,0.7)] hover:scale-105 transition-all"
               >
-                <Link to="/ai-studio/create">
-                  <Sparkles className="w-4 h-4" />
-                  Crear mi canción
-                </Link>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="bg-white/10 border-white/25 text-white hover:bg-white/20 hover:text-white backdrop-blur-sm"
-              >
-                <Link to="/ai-studio">
-                  <Play className="w-4 h-4" />
-                  Ver demo
-                </Link>
+                <Sparkles className="w-4 h-4" />
+                Crear mi canción
               </Button>
             </div>
           </div>
