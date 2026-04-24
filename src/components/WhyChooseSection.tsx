@@ -156,12 +156,12 @@ const IPRegistryPopup = () => {
           <Button
             asChild
             size="lg"
-            className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:from-purple-700 hover:via-violet-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/30 border-0"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
           >
-            <Link to="/dashboard/register">
+            <a href="/#pricing-section">
               <Shield className="w-4 h-4 mr-2" />
-              Registrar mi obra
-            </Link>
+              Quiero registrar mi obra
+            </a>
           </Button>
         </DialogClose>
       </div>
