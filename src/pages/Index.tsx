@@ -82,6 +82,7 @@ const Index = () => {
       <Suspense fallback={null}>
         <WhyChooseSection />
         <AIStudioShowcase />
+        <BridgeStatement />
         <PromoVisualsShowcase />
         <DistributionSection />
         <TestimonialsSection />
