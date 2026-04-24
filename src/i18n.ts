@@ -198,8 +198,8 @@ const resources = {
         footnote: "*Oferta por tiempo limitado",
       },
       distro: {
-        heading: 'Todo lo que necesitas para triunfar con tu música',
-        subheading: 'Protege tu música, llévala al mundo entero, véndela directamente y conecta con millones de fans',
+        heading: 'Lanza tu música y haz que llegue más lejos',
+        subheading: 'Distribuye tus canciones en las principales plataformas y promociónalas en nuestras redes para ganar visibilidad desde el primer día.',
         world: { title: 'Distribución', desc: 'Lanza tus obras en más de 220 plataformas digitales de todo el mundo y GANA hasta el 95% en royalties', cta: 'Saber más' },
         social: { title: 'Promoción en RRSS', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!', cta: 'Saber más' },
         market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero', cta: 'Accede a nuestro Market' },
@@ -693,7 +693,7 @@ const resources = {
       },
       promoBanner: { text: "Valentine's Day: -20% on all subscriptions" },
       summerPromo: { title: "VALENTINE'S DAY", discount: '-20%', onAllSubs: 'On all subscriptions', enterCoupon: 'Enter the coupon at checkout.', discountCode: 'Discount code', code: 'LOVE20', footnote: '*Limited time offer' },
-      distro: { heading: 'Everything you need to succeed with your music', subheading: 'Protect your music, take it worldwide, sell it directly and reach millions of fans', world: { title: 'Distribution', desc: 'Release your works worldwide on 220+ DSPs and EARN royalties', cta: 'Learn more' }, social: { title: 'Social Media Promotion', desc: 'Promote yourself on our socials with 300,000+ followers!', cta: 'Learn more' }, market: { title: 'Marketplace', desc: 'Sell your creations in our market and EARN money', cta: 'Go to our Market' }, nfts: { title: 'Promotional Material', desc: 'Create stunning covers and videos for your releases and marketing campaigns', cta: 'Learn more' } },
+      distro: { heading: 'Release your music and take it further', subheading: 'Distribute your songs across the major platforms and promote them on our socials to gain visibility from day one.', world: { title: 'Distribution', desc: 'Release your works worldwide on 220+ DSPs and EARN royalties', cta: 'Learn more' }, social: { title: 'Social Media Promotion', desc: 'Promote yourself on our socials with 300,000+ followers!', cta: 'Learn more' }, market: { title: 'Marketplace', desc: 'Sell your creations in our market and EARN money', cta: 'Go to our Market' }, nfts: { title: 'Promotional Material', desc: 'Create stunning covers and videos for your releases and marketing campaigns', cta: 'Learn more' } },
       calculator: {
         badge: 'Royalties Calculator',
         title: 'How much could you earn from your streams?',
@@ -1158,7 +1158,7 @@ const resources = {
       tutorial: { heading: 'É tão fácil começar', subtitle: 'Em apenas 3 passos sua música estará protegida e disponível no mundo todo.', steps: { step: 'Passo', s1: { title: 'Cadastre-se', desc: 'Registre-se e verifique sua identidade para dar validade jurídica aos seus registros.' }, s2: { title: 'Registre sua música', desc: 'Envie sua obra; geramos uma impressão digital e registramos na blockchain em segundos. Baixe seu certificado com carimbo de data e hora.', link: 'Ver exemplo de certificado' }, s3: { title: 'Distribua sua música', desc: 'Chegue ao Spotify, Apple Music, YouTube e mais de 200 plataformas com um clique. Controle e monetize no seu painel.' } }, ctaTitle: 'O que está esperando? Proteja e monetize sua música hoje', ctaButton: 'Começar agora' },
       promoBanner: { text: 'Dia dos Namorados: -20% em todas as assinaturas' },
       summerPromo: { title: 'DIA DOS NAMORADOS', discount: '-20%', onAllSubs: 'Em todas as assinaturas', enterCoupon: 'Insira o cupom na finalização da compra.', discountCode: 'Código de desconto', code: 'LOVE20', footnote: '*Oferta por tempo limitado' },
-      distro: { heading: 'Tudo o que você precisa para triunfar com sua música', subheading: 'Proteja sua música, leve-a ao mundo, venda diretamente e alcance milhões de fãs', world: { title: 'Distribuição', desc: 'Lance suas obras no mundo inteiro em 220+ DSPs e GANHE royalties', cta: 'Saiba mais' }, social: { title: 'Promoção em RRSS', desc: 'Promova-se nas nossas redes com mais de 300.000 seguidores!', cta: 'Saiba mais' }, market: { title: 'Marketplace', desc: 'Venda suas criações no nosso market e GANHE dinheiro', cta: 'Acesse nosso Market' }, nfts: { title: 'Material promocional', desc: 'Crie capas e vídeos incríveis para seus lançamentos e campanhas de marketing', cta: 'Saiba mais' } },
+      distro: { heading: 'Lance sua música e faça-a chegar mais longe', subheading: 'Distribua suas canções nas principais plataformas e promova-as em nossas redes para ganhar visibilidade desde o primeiro dia.', world: { title: 'Distribuição', desc: 'Lance suas obras no mundo inteiro em 220+ DSPs e GANHE royalties', cta: 'Saiba mais' }, social: { title: 'Promoção em RRSS', desc: 'Promova-se nas nossas redes com mais de 300.000 seguidores!', cta: 'Saiba mais' }, market: { title: 'Marketplace', desc: 'Venda suas criações no nosso market e GANHE dinheiro', cta: 'Acesse nosso Market' }, nfts: { title: 'Material promocional', desc: 'Crie capas e vídeos incríveis para seus lançamentos e campanhas de marketing', cta: 'Saiba mais' } },
       calculator: {
         badge: 'Calculadora de Royalties',
         title: 'Quanto você ganharia com suas reproduções?',
