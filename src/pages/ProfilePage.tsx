@@ -379,6 +379,28 @@ export default function ProfilePage() {
           ) : (
             <form onSubmit={handleChangePassword} className="space-y-3 max-w-sm">
               <div className="space-y-2">
+                <Label className="text-xs">{t('dashboard.profile.currentPassword')}</Label>
+                <div className="relative">
+                  <Input
+                    type={showCurrentPw ? 'text' : 'password'}
+                    value={currentPw}
+                    onChange={e => setCurrentPw(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="h-9 text-sm pr-9"
+                    placeholder={t('dashboard.profile.currentPasswordPlaceholder')}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showCurrentPw ? 'Ocultar' : 'Mostrar'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowCurrentPw(v => !v)}
+                  >
+                    {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-xs">{t('dashboard.profile.newPassword')}</Label>
                 <div className="relative">
                   <Input
@@ -386,36 +408,50 @@ export default function ProfilePage() {
                     value={newPw}
                     onChange={e => setNewPw(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
+                    autoComplete="new-password"
                     className="h-9 text-sm pr-9"
                     placeholder={t('dashboard.profile.newPasswordPlaceholder')}
                   />
                   <button
                     type="button"
+                    aria-label={showPw ? 'Ocultar' : 'Mostrar'}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPw(v => !v)}
                   >
                     {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <p className="text-[10px] text-muted-foreground">{t('dashboard.profile.pwPolicy')}</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">{t('dashboard.profile.confirmPassword')}</Label>
-                <Input
-                  type={showPw ? 'text' : 'password'}
-                  value={confirmPw}
-                  onChange={e => setConfirmPw(e.target.value)}
-                  required
-                  minLength={6}
-                  className="h-9 text-sm"
-                  placeholder={t('dashboard.profile.confirmPasswordPlaceholder')}
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirmPw ? 'text' : 'password'}
+                    value={confirmPw}
+                    onChange={e => setConfirmPw(e.target.value)}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    className="h-9 text-sm pr-9"
+                    placeholder={t('dashboard.profile.confirmPasswordPlaceholder')}
+                  />
+                  <button
+                    type="button"
+                    aria-label={showConfirmPw ? 'Ocultar' : 'Mostrar'}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowConfirmPw(v => !v)}
+                  >
+                    {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button type="submit" size="sm" disabled={pwLoading}>
                   {pwLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t('dashboard.profile.update')}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => { setShowPwForm(false); setNewPw(''); setConfirmPw(''); setPwMsg(null); }}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setShowPwForm(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); setPwMsg(null); }}>
                   {t('dashboard.profile.cancel')}
                 </Button>
               </div>
