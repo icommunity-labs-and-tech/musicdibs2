@@ -242,12 +242,6 @@ const SocialPromoPopup = () => {
         ))}
       </div>
 
-      {/* Frase final destacada */}
-      <div className="relative rounded-xl p-4 bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 shadow-lg shadow-pink-500/20">
-        <p className="text-center text-white font-semibold text-sm sm:text-base">
-          Tu lanzamiento no termina al publicarlo: dale el empujón que necesita para llegar a más oyentes.
-        </p>
-      </div>
     </div>
   );
 };
