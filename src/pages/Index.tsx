@@ -13,7 +13,7 @@ const DistributionSection = lazyWithRetry(() => import("@/components/Distributio
 const TestimonialsSection = lazyWithRetry(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const PricingSection = lazyWithRetry(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
 const RoyaltiesCalculator = lazyWithRetry(() => import("@/components/RoyaltiesCalculator").then(m => ({ default: m.RoyaltiesCalculator })));
-const TutorialSection = lazyWithRetry(() => import("@/components/TutorialSection").then(m => ({ default: m.TutorialSection })));
+
 const ManagerBannerSection = lazyWithRetry(() => import("@/components/ManagerBannerSection").then(m => ({ default: m.ManagerBannerSection })));
 const Footer = lazyWithRetry(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
@@ -87,7 +87,6 @@ const Index = () => {
         <RoyaltiesCalculator />
         <PricingSection />
         <ManagerBannerSection />
-        <TutorialSection />
         <Footer />
       </Suspense>
     </div>
