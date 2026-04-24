@@ -332,7 +332,7 @@ export const WhyChooseSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-b from-purple-900 to-purple-800">
+    <section id="all-in-one-section" className="py-20 bg-gradient-to-b from-purple-900 to-purple-800">
       <div className="max-w-6xl mx-auto px-6">
         {/* Section header */}
         <ScrollReveal>
