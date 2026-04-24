@@ -47,12 +47,6 @@ const AIMusicStudioPopup = () => {
         ))}
       </div>
 
-      {/* Frase final destacada */}
-      <div className="relative rounded-xl p-4 bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 shadow-lg shadow-purple-500/20">
-        <p className="text-center text-white font-semibold text-sm sm:text-base">
-          De la idea al lanzamiento, sin saltar entre herramientas.
-        </p>
-      </div>
     </div>
   );
 };
