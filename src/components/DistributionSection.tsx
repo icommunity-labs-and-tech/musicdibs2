@@ -1,13 +1,11 @@
-import { Music, Users, ShoppingCart, Zap, ArrowRight } from "lucide-react";
+import { Music, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
-import { getNavLinks } from "@/i18nLinks";
 import { Link } from "react-router-dom";
 
 export const DistributionSection = () => {
-  const { t, i18n } = useTranslation();
-  const links = getNavLinks(i18n.resolvedLanguage || i18n.language);
+  const { t } = useTranslation();
   return (
     <section 
       id="services-section"
@@ -106,47 +104,6 @@ export const DistributionSection = () => {
               </div>
             </Link>
 
-            {/* NFTs & Marketing */}
-            <Link to="/marketing" className="block">
-              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 rounded-full bg-pink-500 flex items-center justify-center mb-6">
-                    <Zap className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">{t("distro.nfts.title")}</h3>
-                  <p className="text-white/80 text-lg">{t("distro.nfts.desc")}</p>
-                  <div className="mt-6">
-                    <Button variant="hero" size="lg" className="font-semibold">
-                      <span className="flex items-center gap-2">
-                        {t("distro.nfts.cta", "Saber más")}
-                        <ArrowRight className="w-4 h-4" />
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Marketplace */}
-            <a href={links.market} target="_blank" rel="noopener noreferrer" className="block">
-              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-20 h-20 rounded-full bg-orange-500 flex items-center justify-center mb-6">
-                    <ShoppingCart className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-4">{t("distro.market.title")}</h3>
-                  <p className="text-white/80 text-lg">{t("distro.market.desc")}</p>
-                  <div className="mt-6">
-                    <Button variant="hero" size="lg" className="font-semibold">
-                      <span className="flex items-center gap-2">
-                        {t("distro.market.cta", "Accede a nuestro Market")}
-                        <ArrowRight className="w-4 h-4" />
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </a>
           </StaggerGrid>
         </div>
       </div>
