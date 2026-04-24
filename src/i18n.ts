@@ -198,8 +198,8 @@ const resources = {
         footnote: "*Oferta por tiempo limitado",
       },
       distro: {
-        heading: 'Todo lo que necesitas para triunfar con tu música',
-        subheading: 'Protege tu música, llévala al mundo entero, véndela directamente y conecta con millones de fans',
+        heading: 'Lanza tu música y haz que llegue más lejos',
+        subheading: 'Distribuye tus canciones en las principales plataformas y promociónalas en nuestras redes para ganar visibilidad desde el primer día.',
         world: { title: 'Distribución', desc: 'Lanza tus obras en más de 220 plataformas digitales de todo el mundo y GANA hasta el 95% en royalties', cta: 'Saber más' },
         social: { title: 'Promoción en RRSS', desc: 'Publica tus vídeos en nuestras redes sociales ante una audiencia de ¡+300.000 seguidores!', cta: 'Saber más' },
         market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero', cta: 'Accede a nuestro Market' },
