@@ -142,9 +142,8 @@ export const AIStudioShowcase = () => {
         }
       `}</style>
 
-      {/* Soft top/bottom fades to blend with neighbouring (light) sections */}
+      {/* Soft top fade to blend with the previous (light) section. Bottom intentionally left open to flow into the bridge + promo visuals block. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/12 via-white/4 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/8 to-transparent" />
 
       {/* Decorative ambient glow orbs (richer, premium violet palette) */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-[32rem] h-[32rem] rounded-full bg-fuchsia-600/25 blur-3xl" />
