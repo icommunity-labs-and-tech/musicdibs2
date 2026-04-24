@@ -8,6 +8,7 @@ import { lazyWithRetry } from "@/lib/lazyWithRetry";
 // Lazy-load below-fold sections to reduce initial JS and improve TTI
 const WhyChooseSection = lazyWithRetry(() => import("@/components/WhyChooseSection").then(m => ({ default: m.WhyChooseSection })));
 const AIStudioShowcase = lazyWithRetry(() => import("@/components/AIStudioShowcase").then(m => ({ default: m.AIStudioShowcase })));
+const PromoVisualsShowcase = lazyWithRetry(() => import("@/components/PromoVisualsShowcase").then(m => ({ default: m.PromoVisualsShowcase })));
 const DistributionSection = lazyWithRetry(() => import("@/components/DistributionSection").then(m => ({ default: m.DistributionSection })));
 const TestimonialsSection = lazyWithRetry(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const PricingSection = lazyWithRetry(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
@@ -80,6 +81,7 @@ const Index = () => {
       <Suspense fallback={null}>
         <WhyChooseSection />
         <AIStudioShowcase />
+        <PromoVisualsShowcase />
         <DistributionSection />
         <TestimonialsSection />
         <RoyaltiesCalculator />
