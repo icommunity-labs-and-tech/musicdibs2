@@ -287,10 +287,8 @@ export const WhyChooseSection = () => {
       title: t("why.features.promo.title"), // "Promoción en RRSS"
       description: t("why.features.promo.desc"),
       color: "from-cyan-500 to-pink-500",
-      featured: false,
-      popupContent: (
-        <span style={{ whiteSpace: 'pre-line' }}>{t("why.features.promo.popup")}</span>
-      ),
+      featured: true,
+      popupContent: <SocialPromoPopup />,
     },
   ];
 
