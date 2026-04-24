@@ -1,4 +1,4 @@
-import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film, Fingerprint, Link2, FileCheck, Scale, Radio, Headphones, DollarSign, Layers } from "lucide-react";
+import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film, Fingerprint, Link2, FileCheck, Scale, Radio, Headphones, DollarSign, Layers, Users, Star, Palette, TrendingUp } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
@@ -200,6 +200,58 @@ const GlobalDistributionPopup = () => {
   );
 };
 
+const SocialPromoPopup = () => {
+  const items = [
+    { icon: Users, title: "Comunidad +200k", desc: "Da visibilidad a tu música en nuestros canales oficiales de TikTok e Instagram.", color: "from-pink-500 to-rose-500" },
+    { icon: Star, title: "Promoción destacada", desc: "Publicamos tu canción o contenido promocional para ayudarte a ganar exposición.", color: "from-rose-500 to-orange-500" },
+    { icon: Palette, title: "Creatividad personalizada", desc: "Preparamos el formato visual más adecuado para cada red social y tipo de lanzamiento.", color: "from-orange-500 to-fuchsia-500" },
+    { icon: TrendingUp, title: "Más visibilidad", desc: "Llega a una audiencia interesada en música emergente, urbana e independiente.", color: "from-fuchsia-500 to-purple-500" },
+  ];
+
+  return (
+    <div className="-m-6 p-6 sm:p-8 bg-gradient-to-br from-white via-pink-50/40 to-orange-50/60 rounded-lg">
+      {/* Header */}
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="relative mb-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-orange-500 blur-xl opacity-40 rounded-full" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 via-rose-500 to-orange-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
+            <Megaphone className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-600 via-rose-600 to-orange-600 bg-clip-text text-transparent mb-2">
+          Promoción en RRSS
+        </h3>
+        <p className="text-sm sm:text-base text-gray-600 max-w-md">
+          Impulsa tus lanzamientos en TikTok e Instagram con visibilidad en la comunidad de MusicDibs.
+        </p>
+      </div>
+
+      {/* Grid de capacidades */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+        {items.map((item, i) => (
+          <div
+            key={i}
+            className="group relative rounded-xl p-4 bg-white/80 backdrop-blur-sm border border-pink-100 hover:border-pink-300 hover:shadow-md hover:shadow-pink-200/40 transition-all duration-300"
+          >
+            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}>
+              <item.icon className="w-5 h-5 text-white" />
+            </div>
+            <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h4>
+            <p className="text-xs text-gray-600 leading-snug">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Frase final destacada */}
+      <div className="relative rounded-xl p-4 bg-gradient-to-r from-pink-500 via-rose-500 to-orange-500 shadow-lg shadow-pink-500/20">
+        <p className="text-center text-white font-semibold text-sm sm:text-base">
+          Tu lanzamiento no termina al publicarlo: dale el empujón que necesita para llegar a más oyentes.
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export const WhyChooseSection = () => {
   const { t } = useTranslation();
 
@@ -235,10 +287,8 @@ export const WhyChooseSection = () => {
       title: t("why.features.promo.title"), // "Promoción en RRSS"
       description: t("why.features.promo.desc"),
       color: "from-cyan-500 to-pink-500",
-      featured: false,
-      popupContent: (
-        <span style={{ whiteSpace: 'pre-line' }}>{t("why.features.promo.popup")}</span>
-      ),
+      featured: true,
+      popupContent: <SocialPromoPopup />,
     },
   ];
 
