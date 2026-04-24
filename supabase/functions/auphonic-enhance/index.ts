@@ -206,7 +206,7 @@ serve(async (req) => {
 
       if (done && outputUrl) {
         const persistedUrl = await persistRemoteAudio({
-          supabaseAdmin,
+          supabaseAdmin: supabaseAdmin as any,
           userId: user.id,
           productionUuid,
           sourceUrl: outputUrl,

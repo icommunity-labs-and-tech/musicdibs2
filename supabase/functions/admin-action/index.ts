@@ -1377,7 +1377,7 @@ serve(async (req) => {
           cash_balance: parseFloat(cash_balance || "0"),
           monthly_burn: parseFloat(monthly_burn || "0"),
           notes: notes || null,
-          updated_by: userEmail,
+          updated_by: callerEmail,
           updated_at: new Date().toISOString(),
         }, { onConflict: "year,month" });
       if (error) return json({ error: error.message }, 500);

@@ -118,7 +118,7 @@ serve(async (req) => {
       limit: 10,
     });
 
-    const subscription = subscriptions.data.find((sub) => ACTIVE_SUB_STATUSES.has(sub.status));
+    const subscription = subscriptions.data.find((sub: any) => ACTIVE_SUB_STATUSES.has(sub.status));
 
     if (!subscription) {
       logStep("No active Stripe subscription — checking local subscriptions table");
