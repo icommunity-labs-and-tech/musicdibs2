@@ -1,7 +1,9 @@
-import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film, Fingerprint, Link2, FileCheck, Scale } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const AIMusicStudioPopup = () => {
   const items = [
@@ -51,6 +53,107 @@ const AIMusicStudioPopup = () => {
   );
 };
 
+const IPRegistryPopup = () => {
+  const items = [
+    { icon: Fingerprint, title: "Huella digital única", desc: "Generamos un hash criptográfico del archivo para identificar tu obra de forma única.", color: "from-purple-500 to-violet-600" },
+    { icon: Link2, title: "Registro blockchain", desc: "La evidencia queda sellada con fecha y hora en una red blockchain, sin poder alterarse.", color: "from-violet-500 to-blue-600" },
+    { icon: FileCheck, title: "Certificado verificable", desc: "Recibes un comprobante digital con los datos de la obra, hash y enlace de verificación.", color: "from-blue-500 to-cyan-500" },
+    { icon: Scale, title: "Evidencia de autoría", desc: "El registro ayuda a demostrar la existencia e integridad de tu obra ante terceros.", color: "from-cyan-500 to-teal-500" },
+  ];
+
+  return (
+    <div className="-m-6 p-6 sm:p-8 bg-gradient-to-br from-white via-blue-50/40 to-purple-50/60 rounded-lg">
+      {/* Header */}
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="relative mb-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-blue-600 blur-xl opacity-40 rounded-full" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 via-violet-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 via-violet-600 to-blue-700 bg-clip-text text-transparent mb-2">
+          Registro de Propiedad Intelectual
+        </h3>
+        <p className="text-sm sm:text-base text-gray-600 max-w-md">
+          Protege tu música en segundos con una evidencia digital verificable registrada en blockchain.
+        </p>
+      </div>
+
+      {/* Grid de capacidades */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+        {items.map((item, i) => (
+          <div
+            key={i}
+            className="group relative rounded-xl p-4 bg-white/80 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-md hover:shadow-blue-200/40 transition-all duration-300"
+          >
+            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}>
+              <item.icon className="w-5 h-5 text-white" />
+            </div>
+            <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h4>
+            <p className="text-xs text-gray-600 leading-snug">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Bloque legal */}
+      <div className="rounded-xl p-4 bg-slate-50/80 border border-slate-200 mb-5">
+        <h5 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+          Marco internacional de derechos de autor
+        </h5>
+        <p className="text-xs text-gray-600 leading-relaxed">
+          La protección de obras musicales se apoya en marcos internacionales como el{" "}
+          <a
+            href="https://www.wipo.int/treaties/es/ip/berne/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-600 underline hover:text-purple-700 font-medium"
+          >
+            Convenio de Berna
+          </a>
+          , el{" "}
+          <a
+            href="https://www.wipo.int/treaties/es/ip/wct/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-600 underline hover:text-purple-700 font-medium"
+          >
+            Tratado de la OMPI
+          </a>{" "}
+          y la{" "}
+          <a
+            href="https://digital-strategy.ec.europa.eu/es/policies/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-purple-600 underline hover:text-purple-700 font-medium"
+          >
+            Directiva sobre Derechos de Autor en la Era Digital
+          </a>
+          . MusicDibs añade una capa tecnológica de evidencia digital verificable mediante blockchain.
+        </p>
+      </div>
+
+      {/* Frase final + CTA */}
+      <div className="text-center">
+        <p className="text-sm text-gray-700 font-medium mb-4">
+          Registra tu obra en segundos. Conserva una prueba digital verificable para siempre.
+        </p>
+        <DialogClose asChild>
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-purple-600 via-violet-600 to-blue-600 hover:from-purple-700 hover:via-violet-700 hover:to-blue-700 text-white shadow-lg shadow-purple-500/30 border-0"
+          >
+            <Link to="/dashboard/register">
+              <Shield className="w-4 h-4 mr-2" />
+              Registrar mi obra
+            </Link>
+          </Button>
+        </DialogClose>
+      </div>
+    </div>
+  );
+};
+
 export const WhyChooseSection = () => {
   const { t } = useTranslation();
 
@@ -70,40 +173,8 @@ export const WhyChooseSection = () => {
       title: t("why.features.instant.title"), // "Registro de PI"
       description: t("why.features.instant.desc"),
       color: "from-purple-500 to-blue-600",
-      featured: false,
-      popupContent: (
-        <Trans
-          i18nKey="why.features.instant.popup"
-          components={{
-            strong1: <span className="font-bold text-primary" />,
-            strong2: <span className="font-bold text-primary" />,
-            a1: (
-              <a
-                href="https://www.wipo.int/treaties/es/ip/berne/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline hover:text-primary/80"
-              />
-            ),
-            a2: (
-              <a
-                href="https://www.wipo.int/treaties/es/ip/wct/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline hover:text-primary/80"
-              />
-            ),
-            a3: (
-              <a
-                href="https://digital-strategy.ec.europa.eu/es/policies/copyright"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary underline hover:text-primary/80"
-              />
-            ),
-          }}
-        />
-      ),
+      featured: true,
+      popupContent: <IPRegistryPopup />,
     },
     {
       icon: Globe,
