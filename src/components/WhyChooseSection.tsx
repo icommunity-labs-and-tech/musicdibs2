@@ -196,12 +196,6 @@ const GlobalDistributionPopup = () => {
         ))}
       </div>
 
-      {/* Frase final destacada */}
-      <div className="relative rounded-xl p-4 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg shadow-blue-500/20">
-        <p className="text-center text-white font-semibold text-sm sm:text-base">
-          De tu canción terminada a las principales plataformas de streaming, sin complicarte con procesos técnicos.
-        </p>
-      </div>
     </div>
   );
 };
