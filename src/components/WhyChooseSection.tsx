@@ -187,15 +187,24 @@ export const WhyChooseSection = () => {
                       </p>
                     </div>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle className="text-xl font-semibold mb-4">
-                        {feature.title}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="text-foreground leading-relaxed text-base">
-                      {feature.popupContent}
-                    </div>
+                  <DialogContent className={isFeatured ? "max-w-3xl p-6 border-0" : "max-w-2xl"}>
+                    {isFeatured ? (
+                      <>
+                        <DialogTitle className="sr-only">{feature.title}</DialogTitle>
+                        {feature.popupContent}
+                      </>
+                    ) : (
+                      <>
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-semibold mb-4">
+                            {feature.title}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="text-foreground leading-relaxed text-base">
+                          {feature.popupContent}
+                        </div>
+                      </>
+                    )}
                   </DialogContent>
                 </Dialog>
               );
