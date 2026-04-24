@@ -206,10 +206,11 @@ export const PromoVisualsShowcase = () => {
               Material promocional con IA
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-              Crea también la imagen de{" "}
+              Crea todo el material visual de{" "}
               <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
                 tu lanzamiento
               </span>
+              , en minutos.
             </h2>
             <p className="text-base sm:text-lg text-white/70 leading-relaxed">
               Genera portadas, posts, flyers y vídeos cortos para promocionar tu
