@@ -182,25 +182,36 @@ export const PromoVisualsShowcase = () => {
   };
 
   return (
-    <section className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-background via-background to-background/95">
-      {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/4 w-[500px] h-[500px] rounded-full bg-fuchsia-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+    <section
+      className="relative py-20 sm:py-28 overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, #251541 0%, #2c1a4d 22%, #36205c 50%, #2e1a4f 78%, #2a1747 100%)",
+      }}
+    >
+      {/* Soft top fade to blend seamlessly with previous section */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/8 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/6 to-transparent" />
+
+      {/* Decorative ambient glow orbs (premium violet palette) */}
+      <div className="pointer-events-none absolute -top-32 -left-32 w-[32rem] h-[32rem] rounded-full bg-fuchsia-600/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-32 w-[32rem] h-[32rem] rounded-full bg-violet-600/25 blur-3xl" />
+      <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[44rem] h-[44rem] rounded-full bg-purple-500/15 blur-3xl" />
 
       <div className="container mx-auto px-4 relative">
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-fuchsia-500/15 to-purple-500/15 border border-fuchsia-500/20 text-fuchsia-300 text-xs font-medium mb-5">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm text-white/90 text-xs font-medium mb-5 shadow-sm">
               <Megaphone className="w-3.5 h-3.5" />
               Material promocional con IA
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
               Crea también la imagen de{" "}
-              <span className="bg-gradient-to-r from-fuchsia-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
                 tu lanzamiento
               </span>
             </h2>
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+            <p className="text-base sm:text-lg text-white/70 leading-relaxed">
               Genera portadas, posts, flyers y vídeos cortos para promocionar tu
               música en redes. Todo desde MusicDibs.
             </p>
