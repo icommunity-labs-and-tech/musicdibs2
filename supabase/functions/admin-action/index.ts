@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { premiumPromoApprovedEmail, premiumPromoPublishedEmail, premiumPromoRejectedEmail, kycRejectedEmail, kycVerifiedEmail } from "../_shared/transactional-email.ts";
 
@@ -124,7 +124,7 @@ serve(async (req) => {
           .select("user_id")
           .ilike("display_name", `%${search}%`);
         const nameIds = (nameMatches || []).map((p: any) => p.user_id);
-        const mergedSet = new Set([...matchingUserIds, ...nameIds]);
+        const mergedSet = new Set([...(matchingUserIds || []), ...nameIds]);
         matchingUserIds = Array.from(mergedSet);
 
         if (matchingUserIds.length === 0) {
@@ -1377,7 +1377,7 @@ serve(async (req) => {
           cash_balance: parseFloat(cash_balance || "0"),
           monthly_burn: parseFloat(monthly_burn || "0"),
           notes: notes || null,
-          updated_by: userEmail,
+          updated_by: callerEmail,
           updated_at: new Date().toISOString(),
         }, { onConflict: "year,month" });
       if (error) return json({ error: error.message }, 500);

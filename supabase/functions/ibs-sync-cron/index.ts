@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 
 const IBS_API_URL = "https://api.icommunitylabs.com/v2";
 
@@ -93,17 +93,17 @@ serve(async (req) => {
             console.log(`[IBS-SYNC] Resolved work ${item.work_id} via cron`);
           } else {
             // Not yet certified — retry or exhaust
-            await handleRetryOrExhaust(supabaseAdmin, item, summary, "Not yet certified");
+            await handleRetryOrExhaust(supabaseAdmin as any, item, summary, "Not yet certified");
           }
         } else {
           // iBS error — retry or exhaust
           const errText = await ibsRes.text().catch(() => "unknown");
-          await handleRetryOrExhaust(supabaseAdmin, item, summary, `iBS ${ibsRes.status}: ${errText}`);
+          await handleRetryOrExhaust(supabaseAdmin as any, item, summary, `iBS ${ibsRes.status}: ${errText}`);
         }
       } catch (fetchErr) {
         // Network error — retry or exhaust
         const msg = fetchErr instanceof Error ? fetchErr.message : "network error";
-        await handleRetryOrExhaust(supabaseAdmin, item, summary, msg);
+        await handleRetryOrExhaust(supabaseAdmin as any, item, summary, msg);
       }
     }
 

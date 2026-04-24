@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,7 +123,7 @@ serve(async (req) => {
       });
     }
 
-    if (profile.available_credits < amount) {
+    if (profile.available_credits < (amount ?? 0)) {
       return new Response(
         JSON.stringify({
           error: "Créditos insuficientes",

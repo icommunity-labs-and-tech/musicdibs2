@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,7 +61,7 @@ serve(async (req) => {
       const customers = await stripe.customers.list({ email: user.email, limit: 1 });
       if (!customers.data.length) throw new Error("No Stripe customer found");
       const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "all", limit: 10 });
-      const activeSub = subs.data.find(s => ["active","trialing","past_due","unpaid"].includes(s.status));
+      const activeSub = subs.data.find((s: any) => ["active","trialing","past_due","unpaid"].includes(s.status));
       if (!activeSub) throw new Error("No active subscription");
       if (activeSub.cancel_at_period_end) return new Response(JSON.stringify({ message: "La renovación ya está cancelada." }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       await stripe.subscriptions.update(activeSub.id, { cancel_at_period_end: true });
@@ -77,7 +77,7 @@ serve(async (req) => {
       const customers2 = await stripe.customers.list({ email: user.email, limit: 1 });
       if (customers2.data.length) {
         const subs = await stripe.subscriptions.list({ customer: customers2.data[0].id, status: "all", limit: 10 });
-        const activeSub = subs.data.find(s => ["active","trialing","past_due","unpaid"].includes(s.status) && !s.cancel_at_period_end);
+        const activeSub = subs.data.find((s: any) => ["active","trialing","past_due","unpaid"].includes(s.status) && !s.cancel_at_period_end);
         if (!activeSub) throw new Error("Top-ups require an active subscription. Please subscribe first.");
       } else {
         throw new Error("Top-ups require an active subscription. Please subscribe first.");
@@ -95,7 +95,7 @@ serve(async (req) => {
     // For subscriptions: check if already has one and handle upgrade/downgrade
     if (plan.mode === "subscription") {
       const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
-      const activeSub = subs.data.find(s => ["active","trialing","past_due","unpaid"].includes(s.status));
+      const activeSub = subs.data.find((s: any) => ["active","trialing","past_due","unpaid"].includes(s.status));
 
       if (activeSub) {
         const currentPriceId = activeSub.items.data[0]?.price?.id;

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -118,7 +118,7 @@ serve(async (req) => {
       limit: 10,
     });
 
-    const subscription = subscriptions.data.find((sub) => ACTIVE_SUB_STATUSES.has(sub.status));
+    const subscription = subscriptions.data.find((sub: any) => ACTIVE_SUB_STATUSES.has(sub.status));
 
     if (!subscription) {
       logStep("No active Stripe subscription — checking local subscriptions table");

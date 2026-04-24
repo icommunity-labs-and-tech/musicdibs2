@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "../_shared/supabase-client.ts";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const IBS_API_URL = "https://api.icommunitylabs.com/v2";
@@ -250,7 +250,7 @@ async function processIbsRegistration(
     };
 
     // Encode primary file
-    const fileBase64 = base64Encode(new Uint8Array(fileBuffer));
+    const fileBase64 = base64Encode(new Uint8Array(fileBuffer) as any);
     const ibsFiles = [{ name: fileName, file: fileBase64 }];
 
     // Download and encode additional files
@@ -263,7 +263,7 @@ async function processIbsRegistration(
         continue;
       }
       const extraBuffer = await extraData.arrayBuffer();
-      const extraBase64 = base64Encode(new Uint8Array(extraBuffer));
+      const extraBase64 = base64Encode(new Uint8Array(extraBuffer) as any);
       const extraName = extraPath.split("/").pop()?.replace(/^\d+_/, "") || "file";
       ibsFiles.push({ name: extraName, file: extraBase64 });
     }
