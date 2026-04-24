@@ -192,8 +192,9 @@ export default function IdentityVerificationPage() {
 
       setKycUrl(url);
 
-      // kyc_status is set to 'pending' by the edge function (service_role)
-      setKycStatus('pending');
+      // Do NOT set kyc_status to 'pending' locally. It remains 'unverified' until
+      // iBS confirms document reception via the 'signature.created' webhook,
+      // which updates the profile and is reflected here through Realtime/polling.
       setStep(2);
       setPolling(true);
       toast.success('Datos enviados. Completa la verificación biométrica.');
