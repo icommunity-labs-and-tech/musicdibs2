@@ -124,7 +124,7 @@ serve(async (req) => {
           .select("user_id")
           .ilike("display_name", `%${search}%`);
         const nameIds = (nameMatches || []).map((p: any) => p.user_id);
-        const mergedSet = new Set([...matchingUserIds, ...nameIds]);
+        const mergedSet = new Set([...(matchingUserIds || []), ...nameIds]);
         matchingUserIds = Array.from(mergedSet);
 
         if (matchingUserIds.length === 0) {
