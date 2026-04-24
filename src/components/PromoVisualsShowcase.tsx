@@ -189,8 +189,7 @@ export const PromoVisualsShowcase = () => {
           "linear-gradient(180deg, #251541 0%, #2c1a4d 22%, #36205c 50%, #2e1a4f 78%, #2a1747 100%)",
       }}
     >
-      {/* Soft top fade to blend seamlessly with previous section */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/8 to-transparent" />
+      {/* Bottom fade to blend into the next section. Top intentionally left open to flow from the bridge statement. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/6 to-transparent" />
 
       {/* Decorative ambient glow orbs (premium violet palette) */}

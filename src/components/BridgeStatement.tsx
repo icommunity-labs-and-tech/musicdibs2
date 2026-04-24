@@ -3,17 +3,19 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 export const BridgeStatement = () => {
   return (
     <section
-      className="relative py-12 sm:py-16 overflow-hidden"
+      className="relative overflow-hidden py-14 sm:py-20 -mt-px -mb-px"
       style={{
+        // Continuo: arranca donde acaba AIStudioShowcase (#251541)
+        // y termina donde arranca PromoVisualsShowcase (#251541)
         background:
-          "linear-gradient(180deg, #1f1138 0%, #251541 50%, #251541 100%)",
+          "linear-gradient(180deg, #251541 0%, #2a1747 50%, #251541 100%)",
       }}
       aria-label="Posicionamiento MusicDibs"
     >
-      {/* Subtle ambient glow */}
-      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-40 rounded-full bg-fuchsia-600/10 blur-3xl" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+      {/* Subtle ambient glow — sin líneas duras */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[42rem] h-48 rounded-full bg-fuchsia-600/12 blur-3xl" />
+      <div className="pointer-events-none absolute -left-24 top-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-purple-600/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 top-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-violet-600/10 blur-3xl" />
 
       <div className="container mx-auto px-4 relative">
         <ScrollReveal>
