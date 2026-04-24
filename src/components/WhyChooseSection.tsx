@@ -233,16 +233,8 @@ export const WhyChooseSection = () => {
       title: t("why.features.distribution.title"), // "Distribución Global"
       description: t("why.features.distribution.desc"),
       color: "from-blue-500 to-cyan-500",
-      featured: false,
-      popupContent: (
-        <Trans
-          i18nKey="why.features.distribution.popup"
-          components={{
-            strong1: <span className="font-bold text-primary" />,
-            strong2: <span className="font-bold text-primary" />,
-          }}
-        />
-      ),
+      featured: true,
+      popupContent: <GlobalDistributionPopup />,
     },
     {
       icon: Megaphone,
