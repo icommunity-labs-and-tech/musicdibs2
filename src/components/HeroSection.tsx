@@ -87,8 +87,7 @@ export const HeroSection = () => {
               size="xl"
               className="font-semibold"
               onClick={() => {
-                const tutorialSection = document.querySelector("section:nth-of-type(7)");
-                tutorialSection?.scrollIntoView({ behavior: "smooth" });
+                document.getElementById("all-in-one-section")?.scrollIntoView({ behavior: "smooth" });
               }}
             >
               {t("hero.cta_how")}
