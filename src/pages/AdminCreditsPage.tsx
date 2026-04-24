@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { adminApi } from '@/services/adminApi';
 import { toast } from 'sonner';
-import { CreditCard, Search, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
+import { CreditCard, Search, ChevronLeft, ChevronRight, Download, X, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 const typeBadge: Record<string, string> = {
   purchase: 'bg-green-500/20 text-green-400',
