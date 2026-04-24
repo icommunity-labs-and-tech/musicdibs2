@@ -27,7 +27,7 @@ const AIMusicStudioPopup = () => {
           AI Music Studio
         </h3>
         <p className="text-sm sm:text-base text-gray-600 max-w-md">
-          Crea, mejora y promociona tu música con IA desde un solo lugar.
+          Tu estudio creativo con IA para crear canciones, mejorar tu sonido y preparar todo tu lanzamiento.
         </p>
       </div>
 
