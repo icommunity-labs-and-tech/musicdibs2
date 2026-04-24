@@ -209,19 +209,39 @@ export default function AdminCreditsPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead>Usuario</TableHead>
-              <TableHead>Cantidad</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead>Fecha</TableHead>
+              <TableHead>
+                <button onClick={() => toggleSort('email')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                  Usuario <SortIcon col="email" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button onClick={() => toggleSort('amount')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                  Cantidad <SortIcon col="amount" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button onClick={() => toggleSort('type')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                  Tipo <SortIcon col="type" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button onClick={() => toggleSort('description')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                  Descripción <SortIcon col="description" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button onClick={() => toggleSort('created_at')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                  Fecha <SortIcon col="created_at" />
+                </button>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>
-            ) : transactions.length === 0 ? (
+            ) : sortedTransactions.length === 0 ? (
               <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Sin resultados para los filtros seleccionados</TableCell></TableRow>
-            ) : transactions.map(t => (
+            ) : sortedTransactions.map(t => (
               <TableRow key={t.id}>
                 <TableCell className="text-sm">
                   <div className="flex flex-col">
