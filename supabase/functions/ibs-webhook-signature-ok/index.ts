@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { kycInProcessEmail, kycVerifiedEmail } from "../_shared/transactional-email.ts";
+import { kycVerifiedEmail, kycFailedEmail } from "../_shared/transactional-email.ts";
+import { validateIbsWebhookAuth } from "../_shared/ibs-webhook-auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +38,7 @@ async function enqueueKycEmail(
       queued_at: new Date().toISOString(),
     },
   });
-  console.log(`[IBS-WEBHOOK-SIG-OK] Enqueued ${label} email to ${email}, messageId: ${messageId}`);
+  console.log(`[IBS-WEBHOOK-SIG] Enqueued ${label} to ${email}, messageId: ${messageId}`);
 }
 
 serve(async (req) => {
@@ -46,35 +47,24 @@ serve(async (req) => {
   }
 
   try {
-    const webhookSecret = Deno.env.get("IBS_WEBHOOK_SECRET");
-    const url = new URL(req.url);
-    const secretParam = url.searchParams.get("secret");
-    if (webhookSecret) {
-      const expectedPrefix = webhookSecret.substring(0, 4);
-      const receivedPrefix = secretParam ? secretParam.substring(0, 4) : "(none)";
-      console.log(`[IBS-WEBHOOK-SIG-OK] Secret check — expected starts: "${expectedPrefix}…", received starts: "${receivedPrefix}…", match: ${secretParam === webhookSecret}`);
-      if (secretParam !== webhookSecret) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    } else {
-      console.warn("[IBS-WEBHOOK-SIG-OK] IBS_WEBHOOK_SECRET not configured, skipping validation");
+    if (!validateIbsWebhookAuth(req, "IBS-WEBHOOK-SIG")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const body = await req.json();
     const event = body.event;
     const data = body.data;
 
-    console.log(`[IBS-WEBHOOK-SIG-OK] Received event: ${event}`, JSON.stringify(data));
+    console.log(`[IBS-WEBHOOK-SIG] Received event: ${event}`, JSON.stringify(data));
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Helper to get user info from signature
     async function getUserFromSignature(signatureId: string) {
       const { data: sig } = await supabaseAdmin
         .from("ibs_signatures")
@@ -98,56 +88,79 @@ serve(async (req) => {
       };
     }
 
+    // signature.created: iBS confirma que la firma fue creada.
+    // El usuario AÚN NO ha subido documentos. NO cambiar kyc_status. NO enviar email.
+    // El email "en proceso" se envía desde el frontend al redirigir a kyc_url.
     if (event === "signature.created") {
       const signatureId = data.signature_id;
       await supabaseAdmin
         .from("ibs_signatures")
         .update({ status: "created", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
-      console.log(`[IBS-WEBHOOK-SIG-OK] Signature ${signatureId} created`);
 
-      // Mark kyc_status as pending
       const userInfo = await getUserFromSignature(signatureId);
       if (userInfo) {
         await supabaseAdmin
           .from("profiles")
-          .update({ kyc_status: "pending", ibs_signature_id: signatureId, updated_at: new Date().toISOString() })
+          .update({ ibs_signature_id: signatureId, updated_at: new Date().toISOString() })
           .eq("user_id", userInfo.userId);
-        console.log(`[IBS-WEBHOOK-SIG-OK] KYC set to pending for user ${userInfo.userId}`);
-
-        // Send "in process" email
-        if (userInfo.email) {
-          const emailData = kycInProcessEmail({ name: userInfo.name });
-          await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_in_process");
-        }
+        console.log(`[IBS-WEBHOOK-SIG] Signature created for user ${userInfo.userId}. kyc_status unchanged.`);
       }
 
+    // signature.verification.success / identity.verification.success: KYC aprobado.
     } else if (event === "identity.verification.success" || event === "signature.verification.success") {
       const signatureId = data.signature_id;
       await supabaseAdmin
         .from("ibs_signatures")
         .update({ status: "success", updated_at: new Date().toISOString() })
         .eq("ibs_signature_id", signatureId);
-      console.log(`[IBS-WEBHOOK-SIG-OK] Verification success (${event}) for ${signatureId}`);
 
-      // Update kyc_status to verified
       const userInfo = await getUserFromSignature(signatureId);
       if (userInfo) {
         await supabaseAdmin
           .from("profiles")
           .update({ kyc_status: "verified", ibs_signature_id: signatureId, updated_at: new Date().toISOString() })
           .eq("user_id", userInfo.userId);
-        console.log(`[IBS-WEBHOOK-SIG-OK] KYC verified for user ${userInfo.userId}`);
+        console.log(`[IBS-WEBHOOK-SIG] KYC verified for user ${userInfo.userId}`);
 
-        // Send verified email
         if (userInfo.email) {
           const emailData = kycVerifiedEmail({ name: userInfo.name, lang: userInfo.lang });
           await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_verified");
         }
       }
 
+    // signature.verification.failed: KYC rechazado.
+    // El usuario puede reintentar via PUT /v2/signatures/{id} (solo desde estado failed).
+    } else if (event === "signature.verification.failed") {
+      const signatureId = data.signature_id;
+      const description = data.description || {};
+      const errorType = description.type || "";
+      const errorComment = description.comment || "";
+      const reason = errorComment
+        ? `${errorType}: ${errorComment}`.trim()
+        : errorType || "Verificación no superada";
+
+      await supabaseAdmin
+        .from("ibs_signatures")
+        .update({ status: "failed", updated_at: new Date().toISOString() })
+        .eq("ibs_signature_id", signatureId);
+
+      const userInfo = await getUserFromSignature(signatureId);
+      if (userInfo) {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ kyc_status: "failed", updated_at: new Date().toISOString() })
+          .eq("user_id", userInfo.userId);
+        console.log(`[IBS-WEBHOOK-SIG] KYC failed for user ${userInfo.userId}. Reason: ${reason}`);
+
+        if (userInfo.email) {
+          const emailData = kycFailedEmail({ name: userInfo.name, reason, lang: userInfo.lang });
+          await enqueueKycEmail(supabaseAdmin, userInfo.email, emailData, "kyc_failed");
+        }
+      }
+
     } else {
-      console.log(`[IBS-WEBHOOK-SIG-OK] Ignoring event: ${event}`);
+      console.log(`[IBS-WEBHOOK-SIG] Ignoring unhandled event: ${event}`);
     }
 
     return new Response(JSON.stringify({ received: true }), {
@@ -155,10 +168,10 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("[IBS-WEBHOOK-SIG-OK] Error:", e);
+    console.error("[IBS-WEBHOOK-SIG] Error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Internal error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
