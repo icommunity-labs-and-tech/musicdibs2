@@ -108,74 +108,31 @@ export const WhyChooseSection = () => {
                 <Dialog key={index}>
                   <DialogTrigger asChild>
                     <div
-                      className={`group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer h-full flex flex-col overflow-hidden ${
-                        isFeatured
-                          ? "bg-gradient-to-br from-white/15 to-white/5 border-white/30 hover:border-white/50 shadow-[0_10px_40px_-10px_rgba(217,70,239,0.5)] hover:shadow-[0_15px_50px_-10px_rgba(217,70,239,0.7)] hover:-translate-y-1"
-                          : "bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 hover:scale-[1.03]"
-                      }`}
+                      className="group relative rounded-2xl p-6 border transition-all duration-300 cursor-pointer h-full flex flex-col overflow-hidden bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 hover:scale-[1.03]"
                     >
-                      {/* Featured ambient glow */}
-                      {isFeatured && (
-                        <>
-                          <div className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full bg-fuchsia-500/30 blur-3xl" />
-                          <div className="pointer-events-none absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-purple-500/30 blur-3xl" />
-                          <div className="absolute top-3 right-3 z-10">
-                            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow-lg">
-                              <Sparkles className="w-3 h-3" /> Core
-                            </span>
-                          </div>
-                        </>
-                      )}
-
                       {/* Step indicator */}
                       <div className="relative z-10 mb-3 flex items-center justify-center">
-                        <span
-                          className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                            isFeatured ? "text-pink-200" : "text-white/50"
-                          }`}
-                        >
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50">
                           Paso {index + 1}
                         </span>
                       </div>
 
                       {/* Icon */}
                       <div
-                        className={`relative z-10 mx-auto mb-4 flex items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} ${
-                          isFeatured ? "w-20 h-20 shadow-xl" : "w-16 h-16"
-                        }`}
+                        className={`relative z-10 mx-auto mb-4 flex items-center justify-center rounded-2xl bg-gradient-to-br ${feature.color} w-16 h-16`}
                       >
-                        <feature.icon
-                          className={`text-white ${isFeatured ? "w-10 h-10" : "w-8 h-8"}`}
-                        />
+                        <feature.icon className="text-white w-8 h-8" />
                       </div>
 
                       {/* Title */}
-                      <h3
-                        className={`relative z-10 font-bold text-white mb-3 text-center ${
-                          isFeatured ? "text-2xl" : "text-xl"
-                        }`}
-                      >
+                      <h3 className="relative z-10 font-bold text-white mb-3 text-center text-xl">
                         {feature.title}
                       </h3>
 
                       {/* Description */}
-                      <p
-                        className={`relative z-10 text-center leading-relaxed flex-1 ${
-                          isFeatured ? "text-white/85 text-base" : "text-white/70 text-sm"
-                        }`}
-                      >
+                      <p className="relative z-10 text-center leading-relaxed flex-1 text-white/70 text-sm">
                         {feature.description}
                       </p>
-
-                      {/* Subtle CTA on featured */}
-                      {isFeatured && (
-                        <div className="relative z-10 mt-4 text-center">
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-pink-200 group-hover:text-pink-100 transition-colors">
-                            Descubre más
-                            <span className="transition-transform group-hover:translate-x-0.5">→</span>
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
