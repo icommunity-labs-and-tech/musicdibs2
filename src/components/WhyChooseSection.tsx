@@ -1,4 +1,4 @@
-import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film, Fingerprint, Link2, FileCheck, Scale } from "lucide-react";
+import { Shield, Globe, Sparkles, Megaphone, Music, Sliders, PenLine, Image as ImageIcon, Smartphone, Film, Fingerprint, Link2, FileCheck, Scale, Radio, Headphones, DollarSign, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation, Trans } from "react-i18next";
@@ -154,6 +154,58 @@ const IPRegistryPopup = () => {
   );
 };
 
+const GlobalDistributionPopup = () => {
+  const items = [
+    { icon: Radio, title: "200+ plataformas", desc: "Publica tu música en Spotify, Apple Music, YouTube, Amazon Music, TikTok y muchas más.", color: "from-blue-500 to-cyan-500" },
+    { icon: Headphones, title: "Llega a nuevos oyentes", desc: "Haz que tus canciones estén disponibles para fans, playlists y audiencias de todo el mundo.", color: "from-cyan-500 to-teal-500" },
+    { icon: DollarSign, title: "Gana royalties", desc: "Monetiza tus reproducciones y conserva el control de tus lanzamientos.", color: "from-teal-500 to-emerald-500" },
+    { icon: Layers, title: "Desde MusicDibs", desc: "Crea, registra y distribuye tus canciones desde una misma plataforma, sin cambiar de herramienta.", color: "from-indigo-500 to-blue-600" },
+  ];
+
+  return (
+    <div className="-m-6 p-6 sm:p-8 bg-gradient-to-br from-white via-blue-50/40 to-cyan-50/60 rounded-lg">
+      {/* Header */}
+      <div className="flex flex-col items-center text-center mb-6">
+        <div className="relative mb-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 blur-xl opacity-40 rounded-full" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+            <Globe className="w-8 h-8 text-white" />
+          </div>
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent mb-2">
+          Distribución Global
+        </h3>
+        <p className="text-sm sm:text-base text-gray-600 max-w-md">
+          Lanza tu música en Spotify, Apple Music, YouTube y más de 200 plataformas digitales desde un solo lugar.
+        </p>
+      </div>
+
+      {/* Grid de capacidades */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+        {items.map((item, i) => (
+          <div
+            key={i}
+            className="group relative rounded-xl p-4 bg-white/80 backdrop-blur-sm border border-blue-100 hover:border-blue-300 hover:shadow-md hover:shadow-blue-200/40 transition-all duration-300"
+          >
+            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform`}>
+              <item.icon className="w-5 h-5 text-white" />
+            </div>
+            <h4 className="font-semibold text-gray-900 text-sm mb-1">{item.title}</h4>
+            <p className="text-xs text-gray-600 leading-snug">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Frase final destacada */}
+      <div className="relative rounded-xl p-4 bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 shadow-lg shadow-blue-500/20">
+        <p className="text-center text-white font-semibold text-sm sm:text-base">
+          De tu canción terminada a las principales plataformas de streaming, sin complicarte con procesos técnicos.
+        </p>
+      </div>
+    </div>
+  );
+};
+
 export const WhyChooseSection = () => {
   const { t } = useTranslation();
 
@@ -181,16 +233,8 @@ export const WhyChooseSection = () => {
       title: t("why.features.distribution.title"), // "Distribución Global"
       description: t("why.features.distribution.desc"),
       color: "from-blue-500 to-cyan-500",
-      featured: false,
-      popupContent: (
-        <Trans
-          i18nKey="why.features.distribution.popup"
-          components={{
-            strong1: <span className="font-bold text-primary" />,
-            strong2: <span className="font-bold text-primary" />,
-          }}
-        />
-      ),
+      featured: true,
+      popupContent: <GlobalDistributionPopup />,
     },
     {
       icon: Megaphone,
