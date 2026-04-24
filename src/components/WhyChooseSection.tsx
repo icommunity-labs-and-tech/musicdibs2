@@ -49,6 +49,21 @@ const AIMusicStudioPopup = () => {
         ))}
       </div>
 
+      {/* CTA contextual */}
+      <div className="flex justify-center">
+        <DialogClose asChild>
+          <Button
+            asChild
+            size="lg"
+            className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 hover:from-pink-600 hover:via-fuchsia-600 hover:to-purple-700 text-white shadow-lg shadow-purple-500/30 border-0"
+          >
+            <a href="/#pricing-section">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Quiero crear mi canción
+            </a>
+          </Button>
+        </DialogClose>
+      </div>
     </div>
   );
 };
