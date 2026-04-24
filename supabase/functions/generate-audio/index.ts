@@ -199,7 +199,17 @@ serve(async (req) => {
       });
     }
 
-    const CREDITS_COST = mode === 'song' ? 3 : 2;
+    // Read cost from operation_pricing (canonical source). Fallback to 3 to match policy
+    // (instrumental and song must always cost the same).
+    const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
+    const { data: pricingRow } = await supabaseAdmin
+      .from('operation_pricing')
+      .select('credits_cost')
+      .eq('operation_key', operationKey)
+      .eq('is_active', true)
+      .maybeSingle();
+    const CREDITS_COST = pricingRow?.credits_cost ?? 3;
+    console.log(`[GENERATE-AUDIO] Pricing lookup: ${operationKey} = ${CREDITS_COST} credits`);
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('available_credits')
