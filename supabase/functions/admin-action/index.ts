@@ -608,7 +608,12 @@ serve(async (req) => {
       if (error) return json({ error: error.message }, 500);
 
       const emailsMap = await getAllEmailsMap();
-      const enriched = (txs || []).map((t: any) => ({ ...t, email: emailsMap[t.user_id] || "" }));
+      const namesMap = await getDisplayNamesMap((txs || []).map((t: any) => t.user_id));
+      const enriched = (txs || []).map((t: any) => ({
+        ...t,
+        email: emailsMap[t.user_id] || "",
+        display_name: namesMap[t.user_id] || "",
+      }));
       return json({ transactions: enriched });
     }
 
