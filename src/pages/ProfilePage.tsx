@@ -131,8 +131,17 @@ export default function ProfilePage() {
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwMsg(null);
-    if (newPw.length < 6) {
+    if (!currentPw) {
+      setPwMsg({ type: 'error', text: t('dashboard.profile.pwCurrentRequired') });
+      return;
+    }
+    if (newPw.length < 8) {
       setPwMsg({ type: 'error', text: t('dashboard.profile.pwMinLength') });
+      return;
+    }
+    const policy = /[A-Z]/.test(newPw) && /[a-z]/.test(newPw) && /\d/.test(newPw) && /[^A-Za-z0-9]/.test(newPw);
+    if (!policy) {
+      setPwMsg({ type: 'error', text: t('dashboard.profile.pwPolicy') });
       return;
     }
     if (newPw !== confirmPw) {
@@ -140,12 +149,23 @@ export default function ProfilePage() {
       return;
     }
     setPwLoading(true);
+    // Verify current password by re-authenticating
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user!.email!,
+      password: currentPw,
+    });
+    if (signInError) {
+      setPwLoading(false);
+      setPwMsg({ type: 'error', text: t('dashboard.profile.pwCurrentInvalid') });
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password: newPw });
     setPwLoading(false);
     if (error) {
       setPwMsg({ type: 'error', text: error.message });
     } else {
       setPwMsg({ type: 'success', text: t('dashboard.profile.pwUpdated') });
+      setCurrentPw('');
       setNewPw('');
       setConfirmPw('');
       setShowPwForm(false);
