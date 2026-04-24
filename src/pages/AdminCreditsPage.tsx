@@ -27,6 +27,31 @@ export default function AdminCreditsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sortKey, setSortKey] = useState<'email' | 'amount' | 'type' | 'description' | 'created_at'>('created_at');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) {
+      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'created_at' || key === 'amount' ? 'desc' : 'asc');
+    }
+  };
+
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    const av = a[sortKey];
+    const bv = b[sortKey];
+    if (sortKey === 'amount') return ((av ?? 0) - (bv ?? 0)) * dir;
+    if (sortKey === 'created_at') return (new Date(av).getTime() - new Date(bv).getTime()) * dir;
+    return String(av ?? '').localeCompare(String(bv ?? ''), undefined, { sensitivity: 'base' }) * dir;
+  });
+
+  const SortIcon = ({ col }: { col: typeof sortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown className="h-3 w-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />;
+  };
 
   // Quick adjust
   const [searchEmail, setSearchEmail] = useState('');
