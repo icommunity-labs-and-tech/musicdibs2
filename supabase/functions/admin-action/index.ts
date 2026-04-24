@@ -73,11 +73,31 @@ serve(async (req) => {
       }
     }
 
-    // ── Helper: get all auth emails in one call ──────────────
+    // ── Helper: get all auth emails (paginated) ──────────────
     async function getAllEmailsMap(): Promise<Record<string, string>> {
-      const { data: { users: authUsers } } = await admin.auth.admin.listUsers({ perPage: 1000 });
       const map: Record<string, string> = {};
-      (authUsers || []).forEach((u: any) => { if (u.email) map[u.id] = u.email; });
+      const perPage = 1000;
+      let page = 1;
+      // Paginate through all auth users (Supabase admin.listUsers caps perPage)
+      while (true) {
+        const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+        if (error) break;
+        const users = data?.users || [];
+        users.forEach((u: any) => { if (u.email) map[u.id] = u.email; });
+        if (users.length < perPage) break;
+        page++;
+        if (page > 50) break; // safety cap (50k users)
+      }
+      return map;
+    }
+
+    // ── Helper: get display_name map for given user_ids ──────
+    async function getDisplayNamesMap(userIds: string[]): Promise<Record<string, string>> {
+      const map: Record<string, string> = {};
+      if (!userIds.length) return map;
+      const unique = Array.from(new Set(userIds));
+      const { data } = await admin.from("profiles").select("user_id, display_name").in("user_id", unique);
+      (data || []).forEach((p: any) => { if (p.display_name) map[p.user_id] = p.display_name; });
       return map;
     }
 
