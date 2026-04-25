@@ -57,8 +57,6 @@ const PROMO_CARDS: PromoCard[] = [
   { title: "The Broken Lines", badge: "Reel", description: "Black River · Rock", video: reelTheBrokenLines, isVideo: true, Icon: Film },
   { title: "Late Night Frequency", badge: "TikTok", description: "DJ NK · Electrónica", video: tiktokLateNightFrequency, isVideo: true, Icon: Music2 },
   { title: "Before Forgetting You", badge: "Vídeo loop Spotify", description: "Nora Bloom · Pop", video: spotifyLoopBeforeForgettingYou, isVideo: true, Icon: Layers },
-  { title: "Fuego Viral", badge: "TikTok Promo", description: "Milo Reyes · Promo urbana", image: tiktokFuego, isVideo: true, Icon: Music2 },
-  { title: "Liquid Dreams", badge: "Canvas", description: "Noah Grey · Loop visual", image: canvasLiquid, isVideo: true, Icon: Layers },
   { title: "Indie Motion", badge: "Story", description: "Luna Ártica · Story promo", image: storyIndie, Icon: Instagram },
   { title: "Urban Flyer", badge: "Flyer", description: "Kairo Beats · Flyer de lanzamiento", image: flyerUrban, Icon: FileImage },
   { title: "Pop Release", badge: "Post", description: "Sira Vale · Post Instagram", image: postPop, Icon: Instagram },
