@@ -37,7 +37,7 @@ export const DistributionSection = () => {
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <StaggerGrid baseDelay={100} staggerDelay={150} scale>
             {/* Distribución Mundial */}
-            <Link to="/distribution" className="block">
+            <a href="#pricing-section" className="block">
               <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mr-4">
