@@ -356,7 +356,7 @@ serve(async (req) => {
         savedAudioUrl = urlData?.signedUrl || null;
         const { data: gen } = await supabaseAdmin.from('ai_generations').insert({
           user_id: userId,
-          prompt: prompt.slice(0, 500),
+          prompt: prompt.slice(0, 2500),
           audio_url: savedAudioUrl,
           duration: actualDurationSecs,
           genre: genre || null,
