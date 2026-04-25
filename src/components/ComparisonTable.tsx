@@ -1,68 +1,69 @@
 import { useTranslation } from "react-i18next";
-import { Check, X, Sparkles } from "lucide-react";
+import { Check, X, Sparkles, Minus } from "lucide-react";
 
-const competitors = ["musicdibs", "distrokid", "cdbaby", "tunecore"] as const;
-
-const featureRows = [
-  { key: "royalties", values: ["95%", "80%", "85%", "80%"] },
-  { key: "annual_fee", values: ["highlight", "yes", "no", "yes"] },
-  { key: "per_release_fee", values: ["highlight", "no", "yes", "yes"] },
-  { key: "blockchain_cert", values: ["yes", "no", "no", "no"] },
-  { key: "social_promo", values: ["yes", "no", "no", "no"] },
-  { key: "cover_design", values: ["yes", "no", "no", "no"] },
-  { key: "unlimited_releases", values: ["yes", "yes", "no", "no"] },
-  { key: "copyright_protection", values: ["yes", "no", "no", "no"] },
-  { key: "platforms", values: ["220+", "150+", "150+", "150+"] },
+const competitors = [
+  "musicdibs",
+  "suno",
+  "ozone",
+  "distrokid",
+  "traditional",
 ] as const;
+
+type Cell = "yes" | "no" | "partial";
+
+const featureRows: { key: string; values: [Cell, Cell, Cell, Cell, Cell] }[] = [
+  { key: "create_ai",        values: ["yes", "yes",     "no", "no", "no"] },
+  { key: "mastering",        values: ["yes", "partial", "yes", "no", "no"] },
+  { key: "lyrics",           values: ["yes", "partial", "no", "no", "no"] },
+  { key: "covers",           values: ["yes", "no",      "no", "no", "no"] },
+  { key: "videos",           values: ["yes", "no",      "no", "no", "no"] },
+  { key: "ip_register",      values: ["yes", "no",      "no", "no", "yes"] },
+  { key: "blockchain_cert",  values: ["yes", "no",      "no", "no", "no"] },
+  { key: "distribution",     values: ["yes", "no",      "no", "yes", "no"] },
+  { key: "social_promo",     values: ["yes", "no",      "no", "no", "no"] },
+  { key: "all_in_one",       values: ["yes", "no",      "no", "no", "no"] },
+];
 
 function CellValue({
   value,
   t,
   isHero,
 }: {
-  value: string;
-  t: (key: string) => string;
+  value: Cell;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
   isHero: boolean;
 }) {
-  if (value === "yes")
+  if (value === "yes") {
     return (
       <Check
         className={`mx-auto ${
-          isHero ? "w-7 h-7 text-emerald-600" : "w-6 h-6 text-emerald-500"
+          isHero ? "w-7 h-7 text-emerald-300" : "w-6 h-6 text-emerald-400"
         }`}
         strokeWidth={3}
       />
     );
-  if (value === "no")
+  }
+  if (value === "no") {
     return (
       <X
-        className={`mx-auto ${
-          isHero ? "w-7 h-7 text-rose-600" : "w-6 h-6 text-rose-500"
-        }`}
+        className="mx-auto w-6 h-6 text-rose-400/80"
         strokeWidth={3}
       />
     );
-  if (value === "paid")
-    return (
-      <span className="text-amber-600 text-sm font-semibold">
-        {t("compare.paid")}
-      </span>
-    );
-  if (value === "highlight")
-    return (
-      <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 font-bold text-[11px] sm:text-xs uppercase tracking-wide">
-        {t("compare.included")}
-      </span>
-    );
+  }
+  // partial
   return (
     <span
-      className={`font-bold ${
-        isHero
-          ? "text-slate-900 text-base sm:text-lg"
-          : "text-slate-700 text-sm sm:text-base"
-      }`}
+      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide"
+      style={{
+        background: "rgba(251,191,36,0.15)",
+        border: "1px solid rgba(251,191,36,0.45)",
+        color: "#fcd34d",
+      }}
     >
-      {value}
+      <Minus className="w-3 h-3" strokeWidth={3} />
+      {t("compare.partial", "Parcial")}
     </span>
   );
 }
@@ -72,31 +73,38 @@ export const ComparisonTable = () => {
 
   return (
     <section className="py-16 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-10">
           <h3 className="text-3xl md:text-4xl font-bold text-white mb-3">
             {t("compare.title")}
           </h3>
-          <p className="text-white/80 text-base md:text-lg max-w-2xl mx-auto">
+          <p className="text-white/75 text-base md:text-lg max-w-2xl mx-auto">
             {t("compare.subtitle")}
           </p>
         </div>
 
-        {/* Light card on dark section */}
+        {/* Glass dark premium card */}
         <div
-          className="relative rounded-2xl overflow-hidden"
+          className="relative rounded-2xl overflow-hidden backdrop-blur-xl"
           style={{
-            background: "#ffffff",
+            background:
+              "linear-gradient(160deg, rgba(30,16,55,0.85) 0%, rgba(20,12,45,0.9) 50%, rgba(35,20,65,0.85) 100%)",
+            border: "1px solid rgba(168,85,247,0.25)",
             boxShadow:
-              "0 25px 60px -15px rgba(0,0,0,0.45), 0 0 0 1px rgba(168,85,247,0.15)",
+              "0 25px 70px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(236,72,153,0.08), inset 0 1px 0 rgba(255,255,255,0.06)",
           }}
         >
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[680px]">
+            <table className="w-full border-collapse min-w-[860px]">
               <thead>
-                <tr style={{ background: "#f8f7fc" }}>
-                  <th className="text-left px-5 py-5 text-slate-500 font-semibold text-xs uppercase tracking-wider min-w-[200px]">
+                <tr
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 100%)",
+                  }}
+                >
+                  <th className="text-left px-5 pt-7 pb-5 text-white/60 font-semibold text-xs uppercase tracking-widest min-w-[210px]">
                     {t("compare.feature")}
                   </th>
                   {competitors.map((c) => {
@@ -104,14 +112,18 @@ export const ComparisonTable = () => {
                     return (
                       <th
                         key={c}
-                        className="px-3 py-5 text-center min-w-[120px] relative"
+                        className="px-3 pt-7 pb-5 text-center min-w-[140px] relative align-bottom"
                         style={
                           isHero
                             ? {
                                 background:
-                                  "linear-gradient(180deg, #fdf2fa 0%, #f5ecfd 100%)",
-                                borderLeft: "2px solid #ec4899",
-                                borderRight: "2px solid #ec4899",
+                                  "linear-gradient(180deg, rgba(236,72,153,0.18) 0%, rgba(168,85,247,0.18) 100%)",
+                                borderLeft:
+                                  "1px solid rgba(236,72,153,0.55)",
+                                borderRight:
+                                  "1px solid rgba(236,72,153,0.55)",
+                                boxShadow:
+                                  "inset 0 1px 0 rgba(236,72,153,0.45)",
                               }
                             : undefined
                         }
@@ -124,19 +136,19 @@ export const ComparisonTable = () => {
                                 background:
                                   "linear-gradient(90deg, #ec4899, #a855f7)",
                                 boxShadow:
-                                  "0 4px 14px rgba(236,72,153,0.45)",
+                                  "0 6px 18px rgba(236,72,153,0.55)",
                               }}
                             >
                               <Sparkles className="w-3 h-3" />
-                              {t("compare.recommended", "Recomendado")}
+                              {t("compare.recommended", "Todo en uno")}
                             </span>
                           </div>
                         )}
                         <span
-                          className={`font-bold ${
+                          className={`block font-bold ${
                             isHero
-                              ? "text-base md:text-lg bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"
-                              : "text-sm md:text-base text-slate-600"
+                              ? "text-base md:text-lg bg-gradient-to-r from-pink-300 to-purple-300 bg-clip-text text-transparent"
+                              : "text-sm md:text-[15px] text-white/70"
                           }`}
                         >
                           {t(`compare.competitors.${c}`)}
@@ -153,11 +165,13 @@ export const ComparisonTable = () => {
                     <tr
                       key={row.key}
                       style={{
-                        background: isAlt ? "#faf9fc" : "#ffffff",
-                        borderTop: "1px solid #ececf3",
+                        background: isAlt
+                          ? "rgba(255,255,255,0.03)"
+                          : "transparent",
+                        borderTop: "1px solid rgba(255,255,255,0.06)",
                       }}
                     >
-                      <td className="px-5 py-4 text-slate-800 font-semibold text-sm md:text-base text-left">
+                      <td className="px-5 py-4 text-white/90 font-medium text-sm md:text-[15px] text-left">
                         {t(`compare.features.${row.key}`)}
                       </td>
                       {row.values.map((val, j) => {
@@ -169,11 +183,12 @@ export const ComparisonTable = () => {
                             style={
                               isHero
                                 ? {
-                                    background: isAlt
-                                      ? "linear-gradient(180deg, #fdf2fa 0%, #f5ecfd 100%)"
-                                      : "linear-gradient(180deg, #fef5fb 0%, #f8f0fe 100%)",
-                                    borderLeft: "2px solid #ec4899",
-                                    borderRight: "2px solid #ec4899",
+                                    background:
+                                      "linear-gradient(180deg, rgba(236,72,153,0.10) 0%, rgba(168,85,247,0.10) 100%)",
+                                    borderLeft:
+                                      "1px solid rgba(236,72,153,0.55)",
+                                    borderRight:
+                                      "1px solid rgba(236,72,153,0.55)",
                                   }
                                 : undefined
                             }
@@ -187,9 +202,24 @@ export const ComparisonTable = () => {
                 })}
                 {/* Bottom border for hero column */}
                 <tr>
-                  <td colSpan={5} style={{ height: 0, padding: 0 }}>
-                    <div className="h-0" />
-                  </td>
+                  <td className="p-0" />
+                  {competitors.map((c, idx) => (
+                    <td
+                      key={c}
+                      className="p-0"
+                      style={
+                        idx === 0
+                          ? {
+                              borderLeft: "1px solid rgba(236,72,153,0.55)",
+                              borderRight: "1px solid rgba(236,72,153,0.55)",
+                              borderBottom:
+                                "1px solid rgba(236,72,153,0.55)",
+                              height: 0,
+                            }
+                          : undefined
+                      }
+                    />
+                  ))}
                 </tr>
               </tbody>
             </table>
@@ -197,7 +227,7 @@ export const ComparisonTable = () => {
         </div>
 
         {/* Disclaimer */}
-        <p className="text-white/60 text-xs md:text-sm text-center mt-6 max-w-2xl mx-auto">
+        <p className="text-white/55 text-xs md:text-sm text-center mt-6 max-w-2xl mx-auto">
           {t("compare.disclaimer")}
         </p>
       </div>
