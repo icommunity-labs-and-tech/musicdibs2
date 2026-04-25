@@ -651,7 +651,7 @@ const resources = {
   en: {
     translation: {
       nav: {
-        pricing: 'Pricing', faq: 'FAQ', support: 'Support', news: 'News', services: 'Services', distribution: 'Works Distribution', access: 'Access', info: 'Info', market: 'Works Marketplace', dibs: 'DIBS Token', verifier: 'Works Verifier', login: 'Access your account', contact: 'Contact', howItWorks: 'How it works?', accessServices: 'Access Services', marketing: 'Marketing & Promos', partners: 'Become a Partner', legalValidity: 'Legal Validity',
+        pricing: 'Pricing', faq: 'FAQ', support: 'Support', news: 'News', services: 'Services', distribution: 'Works Distribution', access: 'Access', info: 'Info', market: 'Works Marketplace', dibs: 'DIBS Token', verifier: 'Works Verifier', login: 'Access your account', contact: 'Contact', howItWorks: 'How it works?', accessServices: 'Access Services', marketing: 'Marketing & Promos', distributionPromo: 'Distribution & Promotion', partners: 'Become a Partner', legalValidity: 'Legal Validity',
       },
       footer: {
         corporate: 'Corporate',
