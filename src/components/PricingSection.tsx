@@ -9,7 +9,7 @@ import { useABTest, trackABClick } from "@/hooks/useABTest";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Briefcase, ArrowRight } from "lucide-react";
 
 // Base prices in EUR
 const BASE_PRICES = {
@@ -197,18 +197,55 @@ export const PricingSection = () => {
             {t("pricing.indivButton")}
           </Button>
           
-          {/* Legal Text */}
-          <div className="mt-12 max-w-4xl mx-auto text-white/80 text-sm space-y-4">
-            <p className="font-medium text-lg text-white">
-              <Trans i18nKey="pricing.legalPros" components={{ contact: <Link to="/contact" className="text-teal-400 hover:text-teal-300 underline" /> }} />
-            </p>
-            
-            <div className="space-y-2">
-            
-            <p className="leading-relaxed text-xs">
+          {/* Professional / Company / Academy CTA band */}
+          <div className="mt-12 max-w-4xl mx-auto">
+            <div
+              className="relative rounded-2xl p-6 md:p-7 backdrop-blur-xl flex flex-col md:flex-row items-center gap-5 md:gap-6 text-center md:text-left"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(236,72,153,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(20,184,166,0.10) 100%)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                boxShadow:
+                  "0 18px 50px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+              }}
+            >
+              <div
+                className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+                style={{
+                  background:
+                    "linear-gradient(135deg, rgba(236,72,153,0.25), rgba(168,85,247,0.25))",
+                  border: "1px solid rgba(236,72,153,0.35)",
+                }}
+              >
+                <Briefcase className="w-6 h-6 text-pink-200" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-white font-bold text-lg md:text-xl mb-1">
+                  {t("pricing.prosTitle")}
+                </h4>
+                <p className="text-white/75 text-sm md:text-[15px] leading-relaxed">
+                  {t("pricing.prosSubtitle")}
+                </p>
+              </div>
+              <Link to="/contact" className="shrink-0">
+                <Button
+                  className="rounded-full px-6 py-3 font-semibold text-white whitespace-nowrap"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #ec4899, #a855f7)",
+                    boxShadow: "0 10px 30px rgba(236,72,153,0.35)",
+                  }}
+                >
+                  {t("pricing.prosCta")}
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Fiscal / legal note */}
+            <p className="mt-6 text-center text-white/55 text-xs leading-relaxed max-w-3xl mx-auto">
               {t("pricing.conditionsText")}
             </p>
-            </div>
           </div>
         </div>
 
