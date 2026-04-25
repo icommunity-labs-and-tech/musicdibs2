@@ -30,7 +30,8 @@ function CellValue({
   isHero,
 }: {
   value: Cell;
-  t: (key: string, defaultValue?: string) => string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
   isHero: boolean;
 }) {
   if (value === "yes") {
