@@ -2,7 +2,7 @@ import { Music, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+
 
 export const DistributionSection = () => {
   const { t } = useTranslation();
