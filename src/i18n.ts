@@ -200,8 +200,8 @@ const resources = {
       distro: {
         heading: 'Lanza tu música y haz que llegue más lejos',
         subheading: 'Distribuye tus canciones en las principales plataformas y promociónalas en nuestras redes para ganar visibilidad desde el primer día.',
-        world: { title: 'Distribución', desc: 'Publica tus canciones en más de 220 plataformas digitales y conserva hasta el 95% de tus royalties.', cta: 'Saber más' },
-        social: { title: 'Promoción en RRSS', desc: 'Da visibilidad a tu lanzamiento en nuestros canales de TikTok e Instagram, con +200.000 seguidores.', cta: 'Saber más' },
+        world: { title: 'Distribución', desc: 'Publica tus canciones en más de 220 plataformas digitales y conserva hasta el 95% de tus royalties.', cta: 'Quiero distribuir mi música' },
+        social: { title: 'Promoción en RRSS', desc: 'Da visibilidad a tu lanzamiento en nuestros canales de TikTok e Instagram, con +200.000 seguidores.', cta: 'Quiero promocionar mi lanzamiento' },
         market: { title: 'Marketplace', desc: 'Vende tus creaciones en nuestro marketplace y GANA dinero', cta: 'Accede a nuestro Market' },
         nfts: { title: 'Material promocional', desc: 'Crea impresionantes portadas y vídeos para tus lanzamientos y campañas de marketing', cta: 'Saber más' },
       },
