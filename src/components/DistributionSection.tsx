@@ -102,7 +102,7 @@ export const DistributionSection = () => {
                   </Button>
                 </div>
               </div>
-            </Link>
+            </a>
 
           </StaggerGrid>
         </div>
