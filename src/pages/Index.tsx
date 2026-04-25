@@ -85,8 +85,8 @@ const Index = () => {
         <BridgeStatement />
         <PromoVisualsShowcase />
         <DistributionSection />
-        <TestimonialsSection />
         <RoyaltiesCalculator />
+        <TestimonialsSection />
         <PricingSection />
         <ManagerBannerSection />
         <Footer />
