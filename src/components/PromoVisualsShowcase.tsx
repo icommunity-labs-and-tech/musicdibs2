@@ -20,6 +20,7 @@ import videoclipBeforeForgettingYou from "@/assets/promo/videoclip-before-forget
 import reelTheBrokenLines from "@/assets/promo/reel-the-broken-lines.mp4";
 import videoclipGoldenRoad from "@/assets/promo/videoclip-golden-road.mp4";
 import tiktokLateNightFrequency from "@/assets/promo/tiktok-late-night-frequency.mp4";
+import spotifyLoopBeforeForgettingYou from "@/assets/promo/spotify-loop-before-forgetting-you.mp4";
 
 type CoverCard = {
   title: string;
@@ -55,6 +56,7 @@ const PROMO_CARDS: PromoCard[] = [
   { title: "Neon Pulse", badge: "Reel", description: "Vera Nova · Teaser electrónico", video: reelNeonPulse, isVideo: true, Icon: Film },
   { title: "The Broken Lines", badge: "Reel", description: "Black River · Rock", video: reelTheBrokenLines, isVideo: true, Icon: Film },
   { title: "Late Night Frequency", badge: "TikTok", description: "DJ NK · Electrónica", video: tiktokLateNightFrequency, isVideo: true, Icon: Music2 },
+  { title: "Before Forgetting You", badge: "Vídeo loop Spotify", description: "Nora Bloom · Pop", video: spotifyLoopBeforeForgettingYou, isVideo: true, Icon: Layers },
   { title: "Fuego Viral", badge: "TikTok Promo", description: "Milo Reyes · Promo urbana", image: tiktokFuego, isVideo: true, Icon: Music2 },
   { title: "Liquid Dreams", badge: "Canvas", description: "Noah Grey · Loop visual", image: canvasLiquid, isVideo: true, Icon: Layers },
   { title: "Indie Motion", badge: "Story", description: "Luna Ártica · Story promo", image: storyIndie, Icon: Instagram },
