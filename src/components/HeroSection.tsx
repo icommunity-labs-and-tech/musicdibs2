@@ -7,6 +7,7 @@ import { useParallax } from "@/hooks/useParallax";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const { offset } = useParallax({ speed: 0.4 });
   const { offset: bgOffset } = useParallax({ speed: 0.15 });
