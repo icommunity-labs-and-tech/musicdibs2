@@ -129,7 +129,7 @@ export const Navbar = () => {
 
           {/* Desktop navigation links */}
           <div className="hidden lg:flex items-center space-x-8">
-            <button onClick={() => scrollToSection('services-section')} className={`${navText} transition-colors`}>
+            <button onClick={() => scrollToSection('all-in-one-section')} className={`${navText} transition-colors`}>
               {t('nav.services')}
             </button>
             <button onClick={() => scrollToSection('pricing-section')} className={`${navText} transition-colors`}>
@@ -138,7 +138,9 @@ export const Navbar = () => {
             <button onClick={() => scrollToSection('tutorial-section')} className={`${navText} transition-colors`}>
               {t('nav.howItWorks')}
             </button>
-            <Link to="/marketing" className={`${navText} transition-colors`}>{t('nav.marketing', 'Marketing y Promos')}</Link>
+            <button onClick={() => scrollToSection('services-section')} className={`${navText} transition-colors`}>
+              {t('nav.distributionPromo', 'Distribución y Promoción')}
+            </button>
             <Link to="/faq" className={`${navText} transition-colors`}>{t('nav.faq')}</Link>
             
             <Link to="/news" className={`${navText} transition-colors`}>{t('nav.news')}</Link>
