@@ -78,9 +78,7 @@ export const HeroSection = () => {
               variant="hero"
               size="xl"
               className="font-semibold"
-              onClick={() => {
-                document.getElementById("pricing-section")?.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => navigate("/login?tab=register")}
             >
               {t("hero.cta_start")}
             </Button>
