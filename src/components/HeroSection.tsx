@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { useParallax } from "@/hooks/useParallax";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const { offset } = useParallax({ speed: 0.4 });
   const { offset: bgOffset } = useParallax({ speed: 0.15 });
@@ -76,9 +78,7 @@ export const HeroSection = () => {
               variant="hero"
               size="xl"
               className="font-semibold"
-              onClick={() => {
-                document.getElementById("pricing-section")?.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => navigate("/login?tab=register")}
             >
               {t("hero.cta_start")}
             </Button>
