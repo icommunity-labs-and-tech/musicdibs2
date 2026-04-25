@@ -1,4 +1,4 @@
-import { Sparkles, Image as ImageIcon, Megaphone, Play, Film, Layers, FileImage, Instagram, Music2 } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Megaphone, Play, Film, Layers, FileImage, Instagram, Music2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import neonPulse from "@/assets/covers/neon-pulse.png";
@@ -13,6 +13,8 @@ import canvasLiquid from "@/assets/promo/canvas-liquid-dreams.jpg";
 import storyIndie from "@/assets/promo/story-indie-motion.jpg";
 import flyerUrban from "@/assets/promo/flyer-urban.jpg";
 import postPop from "@/assets/promo/post-pop-release.jpg";
+import videoclipNocheDeFuego from "@/assets/promo/videoclip-noche-de-fuego.mp4";
+import videoclipUltimaLuz from "@/assets/promo/videoclip-ultima-luz.mp4";
 
 type CoverCard = {
   title: string;
@@ -25,7 +27,8 @@ type PromoCard = {
   title: string;
   badge: string;
   description: string;
-  image: string;
+  image?: string;
+  video?: string;
   isVideo?: boolean;
   Icon: React.ComponentType<{ className?: string }>;
 };
@@ -40,6 +43,8 @@ const COVER_CARDS: CoverCard[] = [
 ];
 
 const PROMO_CARDS: PromoCard[] = [
+  { title: "Noche de Fuego", badge: "Videoclip", description: "Milo Reyes · Clip urbano", video: videoclipNocheDeFuego, isVideo: true, Icon: Video },
+  { title: "Última Luz", badge: "Videoclip", description: "Sira Vale · Clip pop", video: videoclipUltimaLuz, isVideo: true, Icon: Video },
   { title: "Midnight Drop", badge: "Reel", description: "Vera Nova · Teaser vertical", image: reelMidnight, isVideo: true, Icon: Film },
   { title: "Fuego Viral", badge: "TikTok Promo", description: "Milo Reyes · Promo urbana", image: tiktokFuego, isVideo: true, Icon: Music2 },
   { title: "Liquid Dreams", badge: "Canvas", description: "Noah Grey · Loop visual", image: canvasLiquid, isVideo: true, Icon: Layers },
@@ -74,14 +79,27 @@ const CoverCardItem = ({ card }: { card: CoverCard }) => (
 
 const PromoCardItem = ({ card }: { card: PromoCard }) => {
   const Icon = card.Icon;
+  const hasVideoSource = Boolean(card.video);
   return (
     <div className="group relative shrink-0 w-52 sm:w-60 aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 shadow-xl shadow-purple-500/20 transition-transform duration-300 hover:scale-[1.03] hover:shadow-purple-500/40">
-      <img
-        src={card.image}
-        alt={`${card.badge} ${card.title}`}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
-      />
+      {hasVideoSource ? (
+        <video
+          src={card.video}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+        />
+      ) : (
+        <img
+          src={card.image}
+          alt={`${card.badge} ${card.title}`}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+        />
+      )}
       <div className="absolute inset-0 bg-black/0 group-hover:bg-white/5 transition-colors duration-300" />
 
       {/* Top badge */}
@@ -90,8 +108,8 @@ const PromoCardItem = ({ card }: { card: PromoCard }) => {
         <span>{card.badge}</span>
       </div>
 
-      {/* Play icon for video */}
-      {card.isVideo && (
+      {/* Play icon for video placeholders (not real video sources) */}
+      {card.isVideo && !hasVideoSource && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-12 h-12 rounded-full bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg group-hover:bg-white/25 group-hover:scale-110 transition-all duration-300">
             <Play className="w-5 h-5 text-white ml-0.5" fill="white" />
