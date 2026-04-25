@@ -212,16 +212,18 @@ export const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className={`lg:hidden mx-6 mb-4 rounded-xl ${isLightBg ? 'bg-background/95 border-border' : 'bg-black/70 border-white/10'} backdrop-blur-lg border p-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200`}>
-          <button onClick={() => scrollToSection('services-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
+          <button onClick={() => { scrollToSection('all-in-one-section'); setMobileOpen(false); }} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.services')}
           </button>
-          <button onClick={() => scrollToSection('pricing-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
+          <button onClick={() => { scrollToSection('pricing-section'); setMobileOpen(false); }} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.pricing')}
           </button>
-          <button onClick={() => scrollToSection('tutorial-section')} className={`block w-full text-left ${navText} py-2 transition-colors`}>
+          <button onClick={() => { scrollToSection('tutorial-section'); setMobileOpen(false); }} className={`block w-full text-left ${navText} py-2 transition-colors`}>
             {t('nav.howItWorks')}
           </button>
-          <Link to="/marketing" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.marketing', 'Marketing y Promos')}</Link>
+          <button onClick={() => { scrollToSection('services-section'); setMobileOpen(false); }} className={`block w-full text-left ${navText} py-2 transition-colors`}>
+            {t('nav.distributionPromo', 'Distribución y Promoción')}
+          </button>
           <Link to="/faq" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.faq')}</Link>
           
           <Link to="/news" onClick={() => setMobileOpen(false)} className={`block ${navText} py-2 transition-colors`}>{t('nav.news')}</Link>
