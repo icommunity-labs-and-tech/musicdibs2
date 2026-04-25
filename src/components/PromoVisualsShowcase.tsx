@@ -1,171 +1,55 @@
-import { Play, Sparkles, Image as ImageIcon, Film, Camera, Megaphone } from "lucide-react";
+import { Sparkles, Image as ImageIcon, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import neonPulse from "@/assets/covers/neon-pulse.png";
+import fuegoLento from "@/assets/covers/fuego-lento.png";
+import caminoDeAbril from "@/assets/covers/camino-de-abril.png";
+import distrito9 from "@/assets/covers/distrito-9.png";
+import loQueQuedaDeTi from "@/assets/covers/lo-que-queda-de-ti.png";
+import cityLights from "@/assets/covers/city-lights.png";
 
-type PromoCard = {
+type CoverCard = {
   title: string;
-  label: string;
-  type: "cover" | "social" | "video";
-  colors: [string, string]; // tailwind from / to
-  accent: string; // tailwind shadow color class
-  ratio: "square" | "portrait" | "landscape";
+  artist: string;
+  genre: string;
+  image: string;
 };
 
-const PROMO_CARDS: PromoCard[] = [
-  // Portadas
-  {
-    title: "Neon Cover",
-    label: "Portada",
-    type: "cover",
-    colors: ["from-fuchsia-500", "to-purple-700"],
-    accent: "shadow-fuchsia-500/40",
-    ratio: "square",
-  },
-  {
-    title: "Urban Drop",
-    label: "Portada",
-    type: "cover",
-    colors: ["from-orange-500", "to-rose-600"],
-    accent: "shadow-orange-500/40",
-    ratio: "square",
-  },
-  {
-    title: "Indie Poster",
-    label: "Flyer",
-    type: "social",
-    colors: ["from-amber-300", "to-pink-500"],
-    accent: "shadow-amber-400/40",
-    ratio: "portrait",
-  },
-  {
-    title: "Reel Teaser",
-    label: "Reel",
-    type: "video",
-    colors: ["from-cyan-400", "to-blue-600"],
-    accent: "shadow-cyan-500/40",
-    ratio: "portrait",
-  },
-  {
-    title: "Canvas Loop",
-    label: "Canvas",
-    type: "video",
-    colors: ["from-violet-500", "to-indigo-700"],
-    accent: "shadow-violet-500/40",
-    ratio: "portrait",
-  },
-  {
-    title: "Story Drop",
-    label: "Story",
-    type: "social",
-    colors: ["from-pink-500", "to-purple-600"],
-    accent: "shadow-pink-500/40",
-    ratio: "portrait",
-  },
-  {
-    title: "EDM Cover",
-    label: "Portada",
-    type: "cover",
-    colors: ["from-emerald-400", "to-cyan-600"],
-    accent: "shadow-emerald-500/40",
-    ratio: "square",
-  },
-  {
-    title: "TikTok Promo",
-    label: "Reel",
-    type: "video",
-    colors: ["from-rose-400", "to-fuchsia-600"],
-    accent: "shadow-rose-500/40",
-    ratio: "portrait",
-  },
-  {
-    title: "Album Art",
-    label: "Portada",
-    type: "cover",
-    colors: ["from-blue-500", "to-violet-700"],
-    accent: "shadow-blue-500/40",
-    ratio: "square",
-  },
-  {
-    title: "Insta Post",
-    label: "Post",
-    type: "social",
-    colors: ["from-yellow-400", "to-orange-600"],
-    accent: "shadow-yellow-500/40",
-    ratio: "square",
-  },
-  {
-    title: "Launch Teaser",
-    label: "Promo",
-    type: "video",
-    colors: ["from-purple-600", "to-pink-600"],
-    accent: "shadow-purple-500/40",
-    ratio: "portrait",
-  },
-  {
-    title: "Indie Cover",
-    label: "Portada",
-    type: "cover",
-    colors: ["from-teal-400", "to-emerald-600"],
-    accent: "shadow-teal-500/40",
-    ratio: "square",
-  },
+const COVER_CARDS: CoverCard[] = [
+  { title: "Neon Pulse", artist: "Vera Nova", genre: "EDM / Electrónica", image: neonPulse },
+  { title: "Fuego Lento", artist: "Milo Reyes", genre: "Reggaeton / Urbano", image: fuegoLento },
+  { title: "Camino de Abril", artist: "Luna Ártica", genre: "Indie / Folk", image: caminoDeAbril },
+  { title: "Distrito 9", artist: "Kairo Beats", genre: "Hip Hop / Trap", image: distrito9 },
+  { title: "Lo Que Queda de Ti", artist: "Sira Vale", genre: "Pop / Balada", image: loQueQuedaDeTi },
+  { title: "City Lights", artist: "Noah Grey", genre: "R&B / Soul", image: cityLights },
 ];
 
-const labelIcon = (type: PromoCard["type"]) => {
-  switch (type) {
-    case "cover":
-      return <ImageIcon className="w-3.5 h-3.5" />;
-    case "social":
-      return <Camera className="w-3.5 h-3.5" />;
-    case "video":
-      return <Film className="w-3.5 h-3.5" />;
-  }
-};
-
-const ratioClass = (ratio: PromoCard["ratio"]) => {
-  switch (ratio) {
-    case "square":
-      return "aspect-square";
-    case "portrait":
-      return "aspect-[9/14]";
-    case "landscape":
-      return "aspect-video";
-  }
-};
-
-const PromoCardItem = ({ card }: { card: PromoCard }) => (
-  <div
-    className={`group relative shrink-0 w-48 sm:w-56 ${ratioClass(
-      card.ratio
-    )} rounded-2xl overflow-hidden border border-white/10 shadow-xl ${card.accent} transition-transform duration-300 hover:scale-[1.03]`}
-  >
-    {/* Background gradient */}
-    <div
-      className={`absolute inset-0 bg-gradient-to-br ${card.colors[0]} ${card.colors[1]}`}
+const CoverCardItem = ({ card }: { card: CoverCard }) => (
+  <div className="group relative shrink-0 w-52 sm:w-60 aspect-[4/5] rounded-2xl overflow-hidden border border-white/10 shadow-xl shadow-fuchsia-500/20 transition-transform duration-300 hover:scale-[1.03] hover:shadow-fuchsia-500/40">
+    {/* Cover image */}
+    <img
+      src={card.image}
+      alt={`Portada ${card.title} de ${card.artist}`}
+      loading="lazy"
+      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
     />
-    {/* Decorative texture / noise */}
-    <div className="absolute inset-0 opacity-30 mix-blend-overlay bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.5),transparent_50%)]" />
-    <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.6),transparent_60%)]" />
 
-    {/* Top label */}
-    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white text-[11px] font-medium">
-      {labelIcon(card.type)}
-      <span>{card.label}</span>
+    {/* Hover brightness */}
+    <div className="absolute inset-0 bg-black/0 group-hover:bg-white/5 transition-colors duration-300" />
+
+    {/* Top badge */}
+    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white text-[11px] font-medium">
+      <ImageIcon className="w-3.5 h-3.5" />
+      <span>Portada</span>
     </div>
 
-    {/* Play icon for video */}
-    {card.type === "video" && (
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-          <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-        </div>
-      </div>
-    )}
-
-    {/* Bottom title */}
-    <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-      <p className="text-white font-semibold text-sm tracking-tight drop-shadow">
+    {/* Bottom overlay + meta */}
+    <div className="absolute inset-x-0 bottom-0 p-3.5 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
+      <p className="text-white font-semibold text-sm sm:text-base tracking-tight drop-shadow leading-tight">
         {card.title}
+      </p>
+      <p className="text-white/80 text-[11px] sm:text-xs mt-0.5 drop-shadow">
+        {card.artist} · <span className="text-white/60">{card.genre}</span>
       </p>
     </div>
   </div>
@@ -173,7 +57,7 @@ const PromoCardItem = ({ card }: { card: PromoCard }) => (
 
 export const PromoVisualsShowcase = () => {
   // Duplicate cards for seamless infinite scroll
-  const looped = [...PROMO_CARDS, ...PROMO_CARDS];
+  const looped = [...COVER_CARDS, ...COVER_CARDS];
 
   const scrollToPricing = () => {
     document
@@ -189,10 +73,10 @@ export const PromoVisualsShowcase = () => {
           "linear-gradient(180deg, #251541 0%, #2c1a4d 22%, #36205c 50%, #2e1a4f 78%, #2a1747 100%)",
       }}
     >
-      {/* Bottom fade to blend into the next section. Top intentionally left open to flow from the bridge statement. */}
+      {/* Bottom fade to blend into the next section. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/6 to-transparent" />
 
-      {/* Decorative ambient glow orbs (premium violet palette) */}
+      {/* Decorative ambient glow orbs */}
       <div className="pointer-events-none absolute -top-32 -left-32 w-[32rem] h-[32rem] rounded-full bg-fuchsia-600/25 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-32 w-[32rem] h-[32rem] rounded-full bg-violet-600/25 blur-3xl" />
       <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-[44rem] h-[44rem] rounded-full bg-purple-500/15 blur-3xl" />
@@ -231,7 +115,7 @@ export const PromoVisualsShowcase = () => {
       >
         <div className="promo-marquee flex gap-5 py-6 w-max">
           {looped.map((card, i) => (
-            <PromoCardItem key={`${card.title}-${i}`} card={card} />
+            <CoverCardItem key={`${card.title}-${i}`} card={card} />
           ))}
         </div>
       </div>
@@ -261,7 +145,7 @@ export const PromoVisualsShowcase = () => {
           100% { transform: translateX(-50%); }
         }
         .promo-marquee {
-          animation: promo-marquee 60s linear infinite;
+          animation: promo-marquee 50s linear infinite;
           will-change: transform;
         }
         .group\\/marquee:hover .promo-marquee {
