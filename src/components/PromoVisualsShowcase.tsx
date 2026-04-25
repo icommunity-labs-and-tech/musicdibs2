@@ -16,6 +16,7 @@ import postPop from "@/assets/promo/post-pop-release.jpg";
 import videoclipNocheDeFuego from "@/assets/promo/videoclip-noche-de-fuego.mp4";
 import videoclipUltimaLuz from "@/assets/promo/videoclip-ultima-luz.mp4";
 import reelNeonPulse from "@/assets/promo/reel-neon-pulse.mp4";
+import videoclipBeforeForgettingYou from "@/assets/promo/videoclip-before-forgetting-you.mp4";
 
 type CoverCard = {
   title: string;
@@ -46,6 +47,7 @@ const COVER_CARDS: CoverCard[] = [
 const PROMO_CARDS: PromoCard[] = [
   { title: "Noche de Fuego", badge: "Videoclip", description: "Milo Reyes · Clip urbano", video: videoclipNocheDeFuego, isVideo: true, Icon: Video },
   { title: "Última Luz", badge: "Videoclip", description: "Sira Vale · Clip pop", video: videoclipUltimaLuz, isVideo: true, Icon: Video },
+  { title: "Before Forgetting You", badge: "Videoclip", description: "Hikari · Balada Pop", video: videoclipBeforeForgettingYou, isVideo: true, Icon: Video },
   { title: "Neon Pulse", badge: "Reel", description: "Vera Nova · Teaser electrónico", video: reelNeonPulse, isVideo: true, Icon: Film },
   { title: "Fuego Viral", badge: "TikTok Promo", description: "Milo Reyes · Promo urbana", image: tiktokFuego, isVideo: true, Icon: Music2 },
   { title: "Liquid Dreams", badge: "Canvas", description: "Noah Grey · Loop visual", image: canvasLiquid, isVideo: true, Icon: Layers },
