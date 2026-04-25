@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { useParallax } from "@/hooks/useParallax";
