@@ -135,9 +135,6 @@ export const Navbar = () => {
             <button onClick={() => scrollToSection('pricing-section')} className={`${navText} transition-colors`}>
               {t('nav.pricing')}
             </button>
-            <button onClick={() => scrollToSection('tutorial-section')} className={`${navText} transition-colors`}>
-              {t('nav.howItWorks')}
-            </button>
             <button onClick={() => scrollToSection('services-section')} className={`${navText} transition-colors`}>
               {t('nav.distributionPromo', 'Distribución y Promoción')}
             </button>
