@@ -10,6 +10,7 @@ const WhyChooseSection = lazyWithRetry(() => import("@/components/WhyChooseSecti
 const AIStudioShowcase = lazyWithRetry(() => import("@/components/AIStudioShowcase").then(m => ({ default: m.AIStudioShowcase })));
 const BridgeStatement = lazyWithRetry(() => import("@/components/BridgeStatement").then(m => ({ default: m.BridgeStatement })));
 const PromoVisualsShowcase = lazyWithRetry(() => import("@/components/PromoVisualsShowcase").then(m => ({ default: m.PromoVisualsShowcase })));
+const MasteringHighlight = lazyWithRetry(() => import("@/components/MasteringHighlight").then(m => ({ default: m.MasteringHighlight })));
 const DistributionSection = lazyWithRetry(() => import("@/components/DistributionSection").then(m => ({ default: m.DistributionSection })));
 const TestimonialsSection = lazyWithRetry(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const PricingSection = lazyWithRetry(() => import("@/components/PricingSection").then(m => ({ default: m.PricingSection })));
@@ -84,6 +85,7 @@ const Index = () => {
         <AIStudioShowcase />
         <BridgeStatement />
         <PromoVisualsShowcase />
+        <MasteringHighlight />
         <DistributionSection />
         <RoyaltiesCalculator />
         <TestimonialsSection />
