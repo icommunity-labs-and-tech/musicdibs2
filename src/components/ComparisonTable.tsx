@@ -112,7 +112,7 @@ export const ComparisonTable = () => {
                     return (
                       <th
                         key={c}
-                        className="px-3 pt-7 pb-5 text-center min-w-[140px] relative align-bottom"
+                        className={`px-3 ${isHero ? "pt-5" : "pt-9"} pb-5 text-center min-w-[140px] align-bottom`}
                         style={
                           isHero
                             ? {
@@ -129,7 +129,7 @@ export const ComparisonTable = () => {
                         }
                       >
                         {isHero && (
-                          <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                          <div className="flex justify-center mb-2">
                             <span
                               className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white whitespace-nowrap"
                               style={{
