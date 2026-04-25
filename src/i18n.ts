@@ -97,8 +97,8 @@ const resources = {
         subtitle_prefix: 'La plataforma todo-en-uno para artistas: genera o mejora tu música con IA, regístrala con validez legal y',
         subtitle_strong: 'lánzala al mundo en minutos.',
         legal_more: '+info',
-        cta_start: '🚀 Crea tu primer ÉXITO',
-        cta_how: 'Ver Cómo Funciona',
+        cta_start: '🚀 Crear cuenta gratis',
+        cta_how: '▶ Mira cómo funciona en 20s',
       },
       why: {
         heading: 'La plataforma todo-en-uno para artistas independientes',
