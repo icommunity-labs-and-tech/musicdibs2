@@ -17,6 +17,7 @@ import videoclipNocheDeFuego from "@/assets/promo/videoclip-noche-de-fuego.mp4";
 import videoclipUltimaLuz from "@/assets/promo/videoclip-ultima-luz.mp4";
 import reelNeonPulse from "@/assets/promo/reel-neon-pulse.mp4";
 import videoclipBeforeForgettingYou from "@/assets/promo/videoclip-before-forgetting-you.mp4";
+import reelTheBrokenLines from "@/assets/promo/reel-the-broken-lines.mp4";
 
 type CoverCard = {
   title: string;
