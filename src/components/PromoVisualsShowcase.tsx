@@ -31,7 +31,7 @@ const CoverCardItem = ({ card }: { card: CoverCard }) => (
       src={card.image}
       alt={`Portada ${card.title} de ${card.artist}`}
       loading="lazy"
-      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+      className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.06]"
     />
 
     {/* Hover brightness */}
