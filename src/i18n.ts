@@ -153,6 +153,9 @@ const resources = {
         indivSubtitle_dynamic: 'También puedes registrar una obra por {{price}}',
         indivButton: 'Comprar',
         legalPros: '¿Eres un profesional, empresa o academia? <contact>Contáctanos</contact> y solicita detalles para paquetes personalizados o licenciamientos (marca blanca).',
+        prosTitle: '¿Eres profesional, empresa o academia?',
+        prosSubtitle: 'Creamos paquetes personalizados, licencias para equipos y soluciones de marca blanca adaptadas a tu proyecto.',
+        prosCta: 'Solicitar paquete personalizado',
         conditionsTitle: '* Condiciones de la oferta',
         conditionsText: '* Impuestos NO incluidos (se aplicará el 21% de IVA para países UE). Las suscripciones mensuales y anuales se renuevan automáticamente al finalizar el periodo de suscripción. Más información en FAQ y en términos de uso y compra.',
         features: {
