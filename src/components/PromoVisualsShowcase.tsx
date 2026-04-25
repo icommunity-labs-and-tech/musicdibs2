@@ -21,6 +21,7 @@ import reelTheBrokenLines from "@/assets/promo/reel-the-broken-lines.mp4";
 import videoclipGoldenRoad from "@/assets/promo/videoclip-golden-road.mp4";
 import tiktokLateNightFrequency from "@/assets/promo/tiktok-late-night-frequency.mp4";
 import spotifyLoopBeforeForgettingYou from "@/assets/promo/spotify-loop-before-forgetting-you.mp4";
+import spotifyLoopVioletFrequency from "@/assets/promo/spotify-loop-violet-frequency.mp4";
 
 type CoverCard = {
   title: string;
@@ -57,6 +58,7 @@ const PROMO_CARDS: PromoCard[] = [
   { title: "The Broken Lines", badge: "Reel", description: "Black River · Rock", video: reelTheBrokenLines, isVideo: true, Icon: Film },
   { title: "Late Night Frequency", badge: "TikTok", description: "DJ NK · Electrónica", video: tiktokLateNightFrequency, isVideo: true, Icon: Music2 },
   { title: "Before Forgetting You", badge: "Vídeo loop Spotify", description: "Nora Bloom · Pop", video: spotifyLoopBeforeForgettingYou, isVideo: true, Icon: Layers },
+  { title: "Violet Frequency", badge: "Vídeo loop Spotify", description: "Kira Flux · Electrónica", video: spotifyLoopVioletFrequency, isVideo: true, Icon: Layers },
   
   { title: "Urban Flyer", badge: "Flyer", description: "Kairo Beats · Flyer de lanzamiento", image: flyerUrban, Icon: FileImage },
   { title: "Pop Release", badge: "Post", description: "Sira Vale · Post Instagram", image: postPop, Icon: Instagram },
