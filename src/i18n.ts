@@ -717,7 +717,7 @@ const resources = {
         competitors: { musicdibs: 'MusicDibs', distrokid: 'DistroKid', cdbaby: 'CD Baby', tunecore: 'TuneCore' },
       },
       compare: {
-        title: 'MusicDibs vs single-purpose tools',
+        title: 'MusicDibs, the most complete solution',
         subtitle: 'Other tools solve only part of the process. MusicDibs brings it all together in one platform.',
         feature: 'Capability',
         paid: 'Paid',
