@@ -79,6 +79,7 @@ const resources = {
         howItWorks: '¿Cómo funciona?',
         accessServices: 'Acceso a servicios',
         marketing: 'Marketing y Promos',
+        distributionPromo: 'Distribución y Promoción',
         partners: 'Hazte Partner',
         legalValidity: 'Validez legal',
       },
