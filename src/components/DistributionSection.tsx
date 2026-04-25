@@ -71,10 +71,10 @@ export const DistributionSection = () => {
                   </Button>
                 </div>
               </div>
-            </Link>
+            </a>
 
             {/* Promoción en Redes Sociales */}
-            <Link to="/marketing" className="block">
+            <a href="#pricing-section" className="block">
               <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer hover:scale-105">
                 <div className="flex items-center mb-6">
                   <div className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center mr-4">
