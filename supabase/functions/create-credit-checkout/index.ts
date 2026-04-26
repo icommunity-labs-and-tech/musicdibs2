@@ -52,7 +52,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
 
     const body = await req.json();
-    const { planId, action, attribution } = body;
+    const { planId, action, attribution, expectedPriceId } = body;
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -70,6 +70,19 @@ serve(async (req) => {
 
     const plan = PLANS[planId];
     if (!plan) throw new Error(`Invalid plan: ${planId}`);
+
+    // Defensive validation: when the client sends an `expectedPriceId`
+    // (annual public pricing UI), make sure it matches the server-side
+    // mapping. Refuses checkout on mismatch instead of silently charging
+    // the wrong amount, and logs the drift for ops review.
+    if (expectedPriceId && expectedPriceId !== plan.priceId) {
+      console.error(
+        `[CHECKOUT] price drift for ${planId}: client expected ${expectedPriceId}, server resolved ${plan.priceId}`
+      );
+      throw new Error(
+        "El precio mostrado no coincide con el del catálogo. Recarga la página e inténtalo de nuevo."
+      );
+    }
 
     // Block top-ups for users without an active subscription
     const TOPUP_PLANS = ["topup_10", "topup_25", "topup_50", "topup_100", "topup_200"];
