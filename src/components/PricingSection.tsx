@@ -46,7 +46,7 @@ const ANNUAL_OPTIONS: AnnualOption[] = [
 const BASE_PRICES = {
   annual: 59.90,
   monthly: 6.90,
-  individual: 11.90,
+  individual: 7.00,
   signupFee: 6.90,
 };
 
