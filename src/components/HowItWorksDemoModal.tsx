@@ -470,7 +470,7 @@ function getCopy(lang: string) {
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
-        title: "1. Crea tu canción",
+        title: "1. Crea tu canción. Si tienes ya, pasa al siguiente paso.",
         text: "Describe tu idea, elige una voz IA o sube una canción propia si ya la tienes.",
         fieldLabel: "Describe tu canción",
         promptExample: "Canción pop latina sobre empezar de nuevo…",
