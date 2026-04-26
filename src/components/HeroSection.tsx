@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { useParallax } from "@/hooks/useParallax";
+import { HowItWorksDemoModal } from "@/components/HowItWorksDemoModal";
 
 export const HeroSection = () => {
   const { t, i18n } = useTranslation();
@@ -11,6 +13,7 @@ export const HeroSection = () => {
   const footerLinks = getFooterLinks(i18n.resolvedLanguage || i18n.language);
   const { offset } = useParallax({ speed: 0.4 });
   const { offset: bgOffset } = useParallax({ speed: 0.15 });
+  const [demoOpen, setDemoOpen] = useState(false);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
