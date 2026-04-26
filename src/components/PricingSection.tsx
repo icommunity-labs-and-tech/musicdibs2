@@ -87,8 +87,12 @@ export const PricingSection = () => {
     }
     setLoadingPlan(planId);
     try {
+      // For annual plans we also send the expected Stripe price ID so the
+      // backend can validate UI ↔ Stripe alignment and refuse the session if
+      // they drift. For other plans (monthly / individual) we omit it.
+      const expectedPriceId = ANNUAL_OPTIONS.find(o => o.planId === planId)?.priceId;
       const { data, error } = await supabase.functions.invoke('create-credit-checkout', {
-        body: { planId },
+        body: expectedPriceId ? { planId, expectedPriceId } : { planId },
       });
       if (error) throw error;
       if (data?.already_subscribed) {
