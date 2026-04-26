@@ -12,23 +12,33 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Briefcase, ArrowRight, Check, X, Sparkles } from "lucide-react";
 
-// Annual capacity packs — must mirror the planIds supported by the
-// `create-credit-checkout` edge function (also used in dashboard CreditStore).
-// To connect new price IDs, update them in the Stripe product catalog —
-// this file only references planIds, not Stripe price IDs.
+// Annual capacity packs — connected to real Stripe prices via the
+// `create-credit-checkout` edge function. The frontend sends `planId` AND
+// `expectedPriceId`; the edge function resolves `planId → priceId` and validates
+// that the expected price matches, preventing silent UI/Stripe mismatches.
+//
+// All five prices belong to the same Stripe product `prod_U7jGiCV4Uj76rt`
+// (annual subscription), which lets users switch capacity as a plan change.
+//
+// To rotate a price ID:
+//   1) Update the priceId here.
+//   2) Update the same priceId in `supabase/functions/create-credit-checkout/index.ts`
+//      (PLANS map). Both must stay in sync.
 type AnnualOption = {
   planId: 'annual_100' | 'annual_200' | 'annual_300' | 'annual_500' | 'annual_1000';
   credits: number;
   priceEur: number;
   pricePerCreditEur: number;
+  /** Stripe Price ID — kept in sync with create-credit-checkout edge function */
+  priceId: string;
 };
 
 const ANNUAL_OPTIONS: AnnualOption[] = [
-  { planId: 'annual_100',  credits: 100,  priceEur: 59.90,  pricePerCreditEur: 0.60 },
-  { planId: 'annual_200',  credits: 200,  priceEur: 109.90, pricePerCreditEur: 0.55 },
-  { planId: 'annual_300',  credits: 300,  priceEur: 149.90, pricePerCreditEur: 0.50 },
-  { planId: 'annual_500',  credits: 500,  priceEur: 229.90, pricePerCreditEur: 0.46 },
-  { planId: 'annual_1000', credits: 1000, priceEur: 399.90, pricePerCreditEur: 0.40 },
+  { planId: 'annual_100',  credits: 100,  priceEur: 59.90,  pricePerCreditEur: 0.60, priceId: 'price_1THT7cF9ZCIiqrz6sWS67Q4V' },
+  { planId: 'annual_200',  credits: 200,  priceEur: 109.90, pricePerCreditEur: 0.55, priceId: 'price_1THT7gF9ZCIiqrz6Acb2CkDC' },
+  { planId: 'annual_300',  credits: 300,  priceEur: 149.90, pricePerCreditEur: 0.50, priceId: 'price_1THT7jF9ZCIiqrz6i02J4bj4' },
+  { planId: 'annual_500',  credits: 500,  priceEur: 229.90, pricePerCreditEur: 0.46, priceId: 'price_1THT7nF9ZCIiqrz6r1ZcqH8L' },
+  { planId: 'annual_1000', credits: 1000, priceEur: 399.90, pricePerCreditEur: 0.40, priceId: 'price_1THT7rF9ZCIiqrz6UmJDkBNZ' },
 ];
 
 
