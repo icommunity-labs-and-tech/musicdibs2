@@ -281,22 +281,27 @@ export const PricingSection = () => {
                 );
               })()}
 
-              <Button
-                className={`w-full font-semibold rounded-full ${
-                  isAnnual
-                    ? 'bg-white hover:bg-white/95 text-pink-600 py-4 text-base md:text-lg shadow-xl'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 text-sm'
-                } ${ctaBuy.className}`}
-                disabled={loadingPlan !== null}
-                onClick={() => {
-                  trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
-                  handleCheckout(isAnnual ? 'annual' : 'monthly');
-                }}
-              >
-                {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-                {isAnnual ? t("pricing.ctaAnnual") : t("pricing.ctaMonthly")}
-                {isAnnual && <ArrowRight className="ml-2 w-5 h-5" />}
-              </Button>
+              {(() => {
+                const targetPlanId = isAnnual ? selectedAnnualPlanId : 'monthly';
+                return (
+                  <Button
+                    className={`w-full font-semibold rounded-full ${
+                      isAnnual
+                        ? 'bg-white hover:bg-white/95 text-pink-600 py-4 text-base md:text-lg shadow-xl'
+                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 text-sm'
+                    } ${ctaBuy.className}`}
+                    disabled={loadingPlan !== null}
+                    onClick={() => {
+                      trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
+                      handleCheckout(targetPlanId);
+                    }}
+                  >
+                    {loadingPlan === targetPlanId ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                    {isAnnual ? t("pricing.ctaAnnual") : t("pricing.ctaMonthly")}
+                    {isAnnual && <ArrowRight className="ml-2 w-5 h-5" />}
+                  </Button>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
