@@ -8,6 +8,7 @@ import distrito9 from "@/assets/covers/distrito-9.png";
 import loQueQuedaDeTi from "@/assets/covers/lo-que-queda-de-ti.png";
 import cityLights from "@/assets/covers/city-lights.png";
 import midnightPulse from "@/assets/covers/midnight-pulse.png";
+import brokenThunder from "@/assets/covers/broken-thunder.png";
 import reelMidnight from "@/assets/promo/reel-midnight-drop.jpg";
 import tiktokFuego from "@/assets/promo/tiktok-fuego-viral.jpg";
 import canvasLiquid from "@/assets/promo/canvas-liquid-dreams.jpg";
@@ -50,6 +51,7 @@ const COVER_CARDS: CoverCard[] = [
   { title: "Lo Que Queda de Ti", artist: "Sira Vale", genre: "Pop / Balada", image: loQueQuedaDeTi },
   { title: "City Lights", artist: "Noah Grey", genre: "R&B / Soul", image: cityLights },
   { title: "Midnight Pulse", artist: "DJ Aria Flux", genre: "Electrónica", image: midnightPulse },
+  { title: "Broken Thunder", artist: "Stonefield Rebels", genre: "Rock alternativo", image: brokenThunder },
 ];
 
 const PROMO_CARDS: PromoCard[] = [
