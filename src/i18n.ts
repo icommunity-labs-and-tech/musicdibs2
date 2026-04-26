@@ -102,7 +102,7 @@ const resources = {
       },
       why: {
         heading: 'La plataforma todo-en-uno para artistas independientes',
-        subheading: 'Crea con IA, registra tu propiedad intelectual, distribuye tu música en 220+ plataformas y promociónala ante una comunidad de más de 200k seguidores.\nTodo desde un solo lugar.',
+        subheading: 'Crea con IA o sube tu canción: MusicDibs te ayuda a registrarla, distribuirla y lanzarla al mundo.',
         features: {
           legal: {
             title: 'AI Music Studio',
