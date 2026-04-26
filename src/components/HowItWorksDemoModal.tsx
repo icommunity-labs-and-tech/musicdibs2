@@ -25,7 +25,7 @@ interface HowItWorksDemoModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const STEP_DURATION_MS = 8333; // ~8.3s por paso → ~25s total
+const STEP_DURATION_MS = 11333; // ~11.3s por paso → ~34s total
 const FINAL_INDEX = 3;
 
 export const HowItWorksDemoModal = ({ open, onOpenChange }: HowItWorksDemoModalProps) => {
