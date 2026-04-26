@@ -12,6 +12,7 @@ import tiktokFuego from "@/assets/promo/tiktok-fuego-viral.jpg";
 import canvasLiquid from "@/assets/promo/canvas-liquid-dreams.jpg";
 import storyIndie from "@/assets/promo/story-indie-motion.jpg";
 import flyerUrban from "@/assets/promo/flyer-urban.jpg";
+import flyerMidnightPulse from "@/assets/promo/flyer-midnight-pulse.png";
 import postPop from "@/assets/promo/post-pop-release.jpg";
 import videoclipNocheDeFuego from "@/assets/promo/videoclip-noche-de-fuego.mp4";
 import videoclipUltimaLuz from "@/assets/promo/videoclip-ultima-luz.mp4";
@@ -61,6 +62,7 @@ const PROMO_CARDS: PromoCard[] = [
   { title: "Violet Frequency", badge: "Vídeo loop Spotify", description: "Kira Flux · Electrónica", video: spotifyLoopVioletFrequency, isVideo: true, Icon: Layers },
   
   { title: "Urban Flyer", badge: "Flyer", description: "Kairo Beats · Flyer de lanzamiento", image: flyerUrban, Icon: FileImage },
+  { title: "Midnight Pulse", badge: "Flyer", description: "DJ Nova K · Flyer electrónico", image: flyerMidnightPulse, Icon: FileImage },
   { title: "Last Pink Sky", badge: "Post", description: "Maya Rivers · Post Instagram", image: postPop, Icon: Instagram },
 ];
 
