@@ -25,7 +25,7 @@ interface HowItWorksDemoModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const STEP_DURATION_MS = 6000; // ~6s por paso → ~18-20s total
+const STEP_DURATION_MS = 8333; // ~8.3s por paso → ~25s total
 const FINAL_INDEX = 3;
 
 export const HowItWorksDemoModal = ({ open, onOpenChange }: HowItWorksDemoModalProps) => {
@@ -193,13 +193,13 @@ const StepCreate = ({ copy }: { copy: any }) => {
       setTyped(fullText.slice(0, i));
       if (i >= fullText.length) {
         clearInterval(interval);
-        setTimeout(() => setGenerating(true), 300);
+        setTimeout(() => setGenerating(true), 500);
         setTimeout(() => {
           setGenerating(false);
           setDone(true);
-        }, 2200);
+        }, 3200);
       }
-    }, 35);
+    }, 50);
     return () => clearInterval(interval);
   }, [fullText]);
 
@@ -285,13 +285,13 @@ const StepRegister = ({ copy }: { copy: any }) => {
       const random = Array.from({ length: 24 }, () => chars[Math.floor(Math.random() * 16)]).join("");
       setHash(random);
       i++;
-      if (i > 30) {
+      if (i > 45) {
         clearInterval(interval);
         setHash("a3f9c1d8e2b4f7a09c5b1e8d");
         setHashing(false);
-        setTimeout(() => setCertified(true), 600);
+        setTimeout(() => setCertified(true), 900);
       }
-    }, 80);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
@@ -361,7 +361,7 @@ const StepDistribute = ({ copy }: { copy: any }) => {
 
   useEffect(() => {
     setReady(false);
-    const t = setTimeout(() => setReady(true), 2200);
+    const t = setTimeout(() => setReady(true), 3000);
     return () => clearTimeout(t);
   }, []);
 
