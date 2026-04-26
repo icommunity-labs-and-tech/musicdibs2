@@ -483,7 +483,7 @@ function getCopy(lang: string) {
         alreadyHave: "¿Ya tienes tu canción? Súbela y salta este paso.",
       },
       step2: {
-        title: "2. Registra tu canción",
+        title: "2. Registra tu canción legalmente con tecnología blockchain. Anti plagio.",
         text: "",
         fTitle: "Título",
         fAuthor: "Autor",
@@ -496,7 +496,7 @@ function getCopy(lang: string) {
         disclaimer: "Certificación blockchain como evidencia verificable de autoría.",
       },
       step3: {
-        title: "3. Distribuye y promociona",
+        title: "3. Distribuye y promociona: +220 plataformas streaming & +200k comunidad Musicdibs.",
         text: "",
         platformsLabel: "plataformas digitales",
         communityLabel: "fans en comunidad",
@@ -531,7 +531,7 @@ function getCopy(lang: string) {
         alreadyHave: "Already have your song? Upload it and skip this step.",
       },
       step2: {
-        title: "2. Register your song",
+        title: "2. Register your song legally with blockchain technology. Anti-plagiarism.",
         text: "",
         fTitle: "Title",
         fAuthor: "Author",
@@ -544,7 +544,7 @@ function getCopy(lang: string) {
         disclaimer: "Blockchain certification as verifiable evidence of authorship.",
       },
       step3: {
-        title: "3. Distribute & promote",
+        title: "3. Distribute & promote: +220 streaming platforms & +200k MusicDibs community.",
         text: "",
         platformsLabel: "digital platforms",
         communityLabel: "fans in community",
@@ -579,7 +579,7 @@ function getCopy(lang: string) {
         alreadyHave: "Já tem sua canção? Envie e pule este passo.",
       },
       step2: {
-        title: "2. Registre sua canção",
+        title: "2. Registre sua canção legalmente com tecnologia blockchain. Antiplágio.",
         text: "",
         fTitle: "Título",
         fAuthor: "Autor",
@@ -592,7 +592,7 @@ function getCopy(lang: string) {
         disclaimer: "Certificação blockchain como evidência verificável de autoria.",
       },
       step3: {
-        title: "3. Distribua e promova",
+        title: "3. Distribua e promova: +220 plataformas de streaming & +200k comunidade MusicDibs.",
         text: "",
         platformsLabel: "plataformas digitais",
         communityLabel: "fãs na comunidade",
