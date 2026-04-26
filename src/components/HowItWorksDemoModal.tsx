@@ -471,7 +471,7 @@ function getCopy(lang: string) {
       next: "Siguiente",
       step1: {
         title: "1. Crea tu canción. Si tienes ya, pasa al siguiente paso.",
-        text: "Describe tu idea, elige una voz IA o sube una canción propia si ya la tienes.",
+        text: "",
         fieldLabel: "Describe tu canción",
         promptExample: "Canción pop latina sobre empezar de nuevo…",
         voicePop: "Voz Pop Latina",
@@ -484,7 +484,7 @@ function getCopy(lang: string) {
       },
       step2: {
         title: "2. Registra tu canción",
-        text: "Genera una evidencia digital con hash, fecha y certificación blockchain para proteger tu autoría.",
+        text: "",
         fTitle: "Título",
         fAuthor: "Autor",
         fFile: "Archivo",
@@ -497,7 +497,7 @@ function getCopy(lang: string) {
       },
       step3: {
         title: "3. Distribuye y promociona",
-        text: "Lanza tu música en +220 plataformas y promociónala ante la comunidad MusicDibs.",
+        text: "",
         platformsLabel: "plataformas digitales",
         communityLabel: "fans en comunidad",
         promoTitle: "Promoción RRSS",
