@@ -177,7 +177,7 @@ const resources = {
         features: {
           annual: [
             '100 créditos para crear, registrar y promocionar',
-            'Registro blockchain de obras',
+            'Registro legal de canciones con tecnología blockchain',
             'Distribución global +220 DSPs (Spotify, Apple Music, Amazon Music, Youtube Music…)',
             'AI Music Studio completo',
             'Canciones, portadas, vídeos y creatividades IA',
@@ -189,6 +189,7 @@ const resources = {
           ],
           monthly: [
             '8 créditos mensuales',
+            'Registro legal de canciones con tecnología blockchain',
             'Acceso limitado a AI Music Studio',
             'Soporte estándar',
           ],
@@ -738,7 +739,7 @@ const resources = {
         features: {
           annual: [
             '100 credits to create, register and promote',
-            'Blockchain registration of works',
+            'Legal song registration with blockchain technology',
             'Global distribution +220 DSPs (Spotify, Apple Music, Amazon Music, YouTube Music…)',
             'Full AI Music Studio',
             'AI songs, covers, videos and creatives',
@@ -750,6 +751,7 @@ const resources = {
           ],
           monthly: [
             '8 monthly credits',
+            'Legal song registration with blockchain technology',
             'Limited access to AI Music Studio',
             'Standard support',
           ],
@@ -1253,7 +1255,7 @@ const resources = {
         features: {
           annual: [
             '100 créditos para criar, registrar e promover',
-            'Registro blockchain das obras',
+            'Registro legal de músicas com tecnologia blockchain',
             'Distribuição global +220 DSPs (Spotify, Apple Music, Amazon Music, YouTube Music…)',
             'AI Music Studio completo',
             'Músicas, capas, vídeos e criativos com IA',
@@ -1265,6 +1267,7 @@ const resources = {
           ],
           monthly: [
             '8 créditos mensais',
+            'Registro legal de músicas com tecnologia blockchain',
             'Acesso limitado ao AI Music Studio',
             'Suporte padrão',
           ],
