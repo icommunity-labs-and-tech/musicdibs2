@@ -219,24 +219,25 @@ export const PricingSection = () => {
           </Card>
         </div>
 
-        {/* Individual Registration Option */}
-        <div className="text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">
+        {/* Individual Registration Option — secondary, must not compete with annual plan */}
+        <div className="text-center max-w-xl mx-auto rounded-2xl px-6 py-6 bg-white/5 backdrop-blur-sm border border-white/10">
+          <h3 className="text-base md:text-lg font-semibold text-white/90 mb-1">
             {t("pricing.indivTitle")}
           </h3>
-          <p className="text-lg text-white/90 mb-6">
+          <p className="text-sm text-white/70 mb-4">
             {t("pricing.indivSubtitle_dynamic", { price: prices.individual, defaultValue: t("pricing.indivSubtitle") })}
           </p>
-          <Button 
-            variant="outline" 
-            className="bg-transparent border-2 border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white px-8 py-3 rounded-full font-semibold"
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-transparent border border-white/40 text-white/90 hover:bg-white/10 hover:text-white px-6 py-2 rounded-full font-medium text-sm"
             disabled={loadingPlan !== null}
             onClick={() => handleCheckout('individual')}
           >
             {loadingPlan === 'individual' ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {t("pricing.indivButton")}
           </Button>
-          
+
           {/* Professional / Company / Academy CTA band */}
           <div className="mt-12 max-w-4xl mx-auto">
             <div
