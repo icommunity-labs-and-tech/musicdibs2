@@ -483,7 +483,7 @@ function getCopy(lang: string) {
         alreadyHave: "¿Ya tienes tu canción? Súbela y salta este paso.",
       },
       step2: {
-        title: "2. Registra tu canción legalmente con tecnología blockchain. Anti plagio.",
+        title: "2. Registro legal con blockchain. Antiplagio.",
         text: "",
         fTitle: "Título",
         fAuthor: "Autor",
@@ -531,7 +531,7 @@ function getCopy(lang: string) {
         alreadyHave: "Already have your song? Upload it and skip this step.",
       },
       step2: {
-        title: "2. Register your song legally with blockchain technology. Anti-plagiarism.",
+        title: "2. Legal registration with blockchain. Anti-plagiarism.",
         text: "",
         fTitle: "Title",
         fAuthor: "Author",
@@ -579,7 +579,7 @@ function getCopy(lang: string) {
         alreadyHave: "Já tem sua canção? Envie e pule este passo.",
       },
       step2: {
-        title: "2. Registre sua canção legalmente com tecnologia blockchain. Antiplágio.",
+        title: "2. Registro legal com blockchain. Antiplágio.",
         text: "",
         fTitle: "Título",
         fAuthor: "Autor",
