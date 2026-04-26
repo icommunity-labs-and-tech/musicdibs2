@@ -9,7 +9,7 @@ import { useABTest, trackABClick } from "@/hooks/useABTest";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Briefcase, ArrowRight } from "lucide-react";
+import { Loader2, Briefcase, ArrowRight, Check, X, Sparkles } from "lucide-react";
 
 // Base prices in EUR
 const BASE_PRICES = {
