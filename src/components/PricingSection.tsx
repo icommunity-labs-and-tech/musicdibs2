@@ -9,7 +9,7 @@ import { useABTest, trackABClick } from "@/hooks/useABTest";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Briefcase, ArrowRight } from "lucide-react";
+import { Loader2, Briefcase, ArrowRight, Check, X, Sparkles } from "lucide-react";
 
 // Base prices in EUR
 const BASE_PRICES = {
@@ -121,50 +121,89 @@ export const PricingSection = () => {
 
         {/* Pricing Card */}
         <div className="flex justify-center mb-16">
-          <Card className={`w-full max-w-md border-0 text-white ${
-            isAnnual 
-              ? "bg-gradient-to-b from-pink-500 to-pink-600" 
-              : "bg-gradient-to-b from-teal-500 to-teal-600"
-          }`}>
-            <CardContent className="p-8">
+          <Card
+            className={`w-full border-0 text-white transition-all duration-500 ${
+              isAnnual
+                ? "max-w-lg bg-gradient-to-br from-pink-500 via-pink-600 to-purple-700 shadow-[0_25px_80px_-15px_rgba(236,72,153,0.6)] ring-2 ring-yellow-400/60 scale-100"
+                : "max-w-md bg-gradient-to-b from-slate-700/90 to-slate-800/90 shadow-lg ring-1 ring-white/10 opacity-95"
+            }`}
+          >
+            <CardContent className={isAnnual ? "p-10" : "p-7"}>
               <div className="text-center mb-6">
                 {isAnnual && (
-                  <div className="bg-yellow-400 text-pink-600 font-bold text-sm px-4 py-2 rounded-full mb-3 inline-block">
+                  <div className="inline-flex items-center gap-1.5 bg-yellow-400 text-pink-700 font-bold text-xs md:text-sm px-4 py-2 rounded-full mb-4 shadow-md">
+                    <Sparkles className="w-4 h-4" />
                     {t("pricing.badgeAnnual")}
                   </div>
                 )}
-                <div className="text-4xl font-bold mb-2">
+
+                <h3 className={`font-bold mb-1 ${isAnnual ? 'text-2xl md:text-3xl' : 'text-lg text-white/90'}`}>
+                  {isAnnual ? t("pricing.nameAnnual") : t("pricing.nameMonthly")}
+                </h3>
+
+                <p className={`mb-4 ${isAnnual ? 'text-white/85 text-sm md:text-base' : 'text-white/65 text-xs'}`}>
+                  {isAnnual ? t("pricing.briefAnnual") : t("pricing.briefMonthly")}
+                </p>
+
+                <div className={`font-bold mb-2 ${isAnnual ? 'text-5xl md:text-6xl' : 'text-3xl'}`}>
                   {isAnnual ? prices.annual : prices.monthly}
-                  <span className="text-xl font-normal">
+                  <span className={`font-normal ${isAnnual ? 'text-xl' : 'text-base'}`}>
                     {isAnnual ? t("pricing.priceAnnualSuffix") : t("pricing.priceMonthlySuffix")}
                   </span>
                 </div>
-                {!isAnnual && (
-                  <p className="text-sm text-white/90">
-                    {t("pricing.signupFeeNote_dynamic", { price: prices.signupFee, defaultValue: `${t("pricing.signupFeeNote")}` })}
-                  </p>
-                )}
+
+                <div
+                  className={`inline-block rounded-full font-semibold ${
+                    isAnnual
+                      ? 'bg-white/20 text-white px-4 py-1.5 text-sm md:text-base backdrop-blur-sm border border-white/30'
+                      : 'bg-white/10 text-white/85 px-3 py-1 text-xs'
+                  }`}
+                >
+                  {isAnnual ? t("pricing.creditsAnnual") : t("pricing.creditsMonthly")}
+                </div>
               </div>
 
-              <div className="space-y-3 mb-8 text-left">
+              <div className={`space-y-2.5 mb-6 text-left ${isAnnual ? '' : 'mt-6'}`}>
                 {(() => {
                   const featureList = t(`pricing.features.${isAnnual ? 'annual' : 'monthly'}`, { returnObjects: true }) as string[];
                   return featureList.map((feature, index) => (
                     <div key={index} className="flex items-start space-x-3">
                       <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <svg className={`w-3 h-3 ${isAnnual ? 'text-pink-500' : 'text-teal-500'}`} fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
+                        <Check className={`w-3 h-3 ${isAnnual ? 'text-pink-600' : 'text-slate-700'}`} strokeWidth={3} />
                       </div>
-                      <span className="text-sm leading-relaxed">{feature}</span>
+                      <span className={`leading-relaxed ${isAnnual ? 'text-sm md:text-[15px]' : 'text-sm text-white/90'}`}>{feature}</span>
                     </div>
                   ));
                 })()}
               </div>
 
-              <Button 
-                className={`w-full bg-white hover:bg-white/90 font-semibold py-3 rounded-full ${
-                  isAnnual ? 'text-pink-600' : 'text-teal-600'
+              {!isAnnual && (() => {
+                const excluded = t('pricing.features.monthlyExcluded', { returnObjects: true }) as string[];
+                if (!Array.isArray(excluded) || excluded.length === 0) return null;
+                return (
+                  <div className="mb-6 pt-4 border-t border-white/15">
+                    <p className="text-xs uppercase tracking-wider text-white/55 font-semibold mb-2">
+                      {t('pricing.excludedTitle')}
+                    </p>
+                    <div className="space-y-2">
+                      {excluded.map((feature, index) => (
+                        <div key={index} className="flex items-start space-x-3">
+                          <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center mt-0.5 flex-shrink-0">
+                            <X className="w-3 h-3 text-white/60" strokeWidth={3} />
+                          </div>
+                          <span className="text-sm leading-relaxed text-white/55 line-through">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              <Button
+                className={`w-full font-semibold rounded-full ${
+                  isAnnual
+                    ? 'bg-white hover:bg-white/95 text-pink-600 py-4 text-base md:text-lg shadow-xl'
+                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 text-sm'
                 } ${ctaBuy.className}`}
                 disabled={loadingPlan !== null}
                 onClick={() => {
@@ -173,80 +212,82 @@ export const PricingSection = () => {
                 }}
               >
                 {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-                {ctaBuy.text}
+                {isAnnual ? t("pricing.ctaAnnual") : t("pricing.ctaMonthly")}
+                {isAnnual && <ArrowRight className="ml-2 w-5 h-5" />}
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        {/* Individual Registration Option */}
-        <div className="text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">
+        {/* Individual Registration Option — secondary, must not compete with annual plan */}
+        <div className="text-center max-w-xl mx-auto rounded-2xl px-6 py-6 bg-white/5 backdrop-blur-sm border border-white/10">
+          <h3 className="text-base md:text-lg font-semibold text-white/90 mb-1">
             {t("pricing.indivTitle")}
           </h3>
-          <p className="text-lg text-white/90 mb-6">
+          <p className="text-sm text-white/70 mb-4">
             {t("pricing.indivSubtitle_dynamic", { price: prices.individual, defaultValue: t("pricing.indivSubtitle") })}
           </p>
-          <Button 
-            variant="outline" 
-            className="bg-transparent border-2 border-teal-400 text-teal-400 hover:bg-teal-400 hover:text-white px-8 py-3 rounded-full font-semibold"
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-transparent border border-white/40 text-white/90 hover:bg-white/10 hover:text-white px-6 py-2 rounded-full font-medium text-sm"
             disabled={loadingPlan !== null}
             onClick={() => handleCheckout('individual')}
           >
             {loadingPlan === 'individual' ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {t("pricing.indivButton")}
           </Button>
-          
-          {/* Professional / Company / Academy CTA band */}
-          <div className="mt-12 max-w-4xl mx-auto">
+        </div>
+
+        {/* Professional / Company / Academy CTA band */}
+        <div className="mt-12 max-w-4xl mx-auto">
+          <div
+            className="relative rounded-2xl p-6 md:p-7 backdrop-blur-xl flex flex-col md:flex-row items-center gap-5 md:gap-6 text-center md:text-left"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(236,72,153,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(20,184,166,0.10) 100%)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              boxShadow:
+                "0 18px 50px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+            }}
+          >
             <div
-              className="relative rounded-2xl p-6 md:p-7 backdrop-blur-xl flex flex-col md:flex-row items-center gap-5 md:gap-6 text-center md:text-left"
+              className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(236,72,153,0.10) 0%, rgba(168,85,247,0.10) 50%, rgba(20,184,166,0.10) 100%)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                boxShadow:
-                  "0 18px 50px -20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)",
+                  "linear-gradient(135deg, rgba(236,72,153,0.25), rgba(168,85,247,0.25))",
+                border: "1px solid rgba(236,72,153,0.35)",
               }}
             >
-              <div
-                className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center"
+              <Briefcase className="w-6 h-6 text-pink-200" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-white font-bold text-lg md:text-xl mb-1">
+                {t("pricing.prosTitle")}
+              </h4>
+              <p className="text-white/75 text-sm md:text-[15px] leading-relaxed">
+                {t("pricing.prosSubtitle")}
+              </p>
+            </div>
+            <Link to="/contact" className="shrink-0">
+              <Button
+                className="rounded-full px-6 py-3 font-semibold text-white whitespace-nowrap"
                 style={{
                   background:
-                    "linear-gradient(135deg, rgba(236,72,153,0.25), rgba(168,85,247,0.25))",
-                  border: "1px solid rgba(236,72,153,0.35)",
+                    "linear-gradient(90deg, #ec4899, #a855f7)",
+                  boxShadow: "0 10px 30px rgba(236,72,153,0.35)",
                 }}
               >
-                <Briefcase className="w-6 h-6 text-pink-200" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-white font-bold text-lg md:text-xl mb-1">
-                  {t("pricing.prosTitle")}
-                </h4>
-                <p className="text-white/75 text-sm md:text-[15px] leading-relaxed">
-                  {t("pricing.prosSubtitle")}
-                </p>
-              </div>
-              <Link to="/contact" className="shrink-0">
-                <Button
-                  className="rounded-full px-6 py-3 font-semibold text-white whitespace-nowrap"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, #ec4899, #a855f7)",
-                    boxShadow: "0 10px 30px rgba(236,72,153,0.35)",
-                  }}
-                >
-                  {t("pricing.prosCta")}
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Button>
-              </Link>
-            </div>
-
-            {/* Fiscal / legal note */}
-            <p className="mt-6 text-center text-white/55 text-xs leading-relaxed max-w-3xl mx-auto">
-              {t("pricing.conditionsText")}
-            </p>
+                {t("pricing.prosCta")}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
           </div>
+
+          {/* Fiscal / legal note */}
+          <p className="mt-6 text-center text-white/55 text-xs leading-relaxed max-w-3xl mx-auto">
+            {t("pricing.conditionsText")}
+          </p>
         </div>
 
         {/* Comparison Table */}
