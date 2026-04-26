@@ -340,6 +340,9 @@ export const WhyChooseSection = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               {t("why.heading")}
             </h2>
+            <p className="text-lg md:text-xl text-white/85 max-w-3xl mx-auto leading-relaxed">
+              {t("why.subheading")}
+            </p>
           </div>
         </ScrollReveal>
 
