@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,8 @@ export default function UserLogin() {
   const { t, i18n } = useTranslation();
   const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -119,7 +121,7 @@ export default function UserLogin() {
           <CardDescription>{t('userLogin.desc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={initialTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">{t('userLogin.tabLogin')}</TabsTrigger>
               <TabsTrigger value="register">{t('userLogin.tabRegister')}</TabsTrigger>
