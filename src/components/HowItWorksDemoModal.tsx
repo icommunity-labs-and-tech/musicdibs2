@@ -361,7 +361,7 @@ const StepDistribute = ({ copy }: { copy: any }) => {
 
   useEffect(() => {
     setReady(false);
-    const t = setTimeout(() => setReady(true), 2200);
+    const t = setTimeout(() => setReady(true), 3000);
     return () => clearTimeout(t);
   }, []);
 
