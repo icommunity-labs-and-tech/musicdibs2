@@ -518,7 +518,7 @@ function getCopy(lang: string) {
       skip: "Skip to end",
       next: "Next",
       step1: {
-        title: "1. Create your song",
+        title: "1. Create your song. If you already have one, skip to the next step.",
         text: "Describe your idea, choose an AI voice or upload your own song if you already have one.",
         fieldLabel: "Describe your song",
         promptExample: "Latin pop song about starting over…",
@@ -566,7 +566,7 @@ function getCopy(lang: string) {
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
-        title: "1. Crie sua canção",
+        title: "1. Crie sua canção. Se já tiver uma, passe ao próximo passo.",
         text: "Descreva sua ideia, escolha uma voz IA ou envie uma canção própria se já tiver.",
         fieldLabel: "Descreva sua canção",
         promptExample: "Canção pop latina sobre recomeçar…",
