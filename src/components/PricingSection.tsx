@@ -63,13 +63,14 @@ function formatPrice(amount: number, lang: string): string {
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [selectedAnnualPlanId, setSelectedAnnualPlanId] = useState<AnnualOption['planId']>('annual_100');
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const lang = i18n.resolvedLanguage || i18n.language;
   const links = getFooterLinks(lang);
 
-  const handleCheckout = useCallback(async (planId: 'annual' | 'monthly' | 'individual') => {
+  const handleCheckout = useCallback(async (planId: string) => {
     if (!user) {
       navigate('/login', { state: { returnTo: '/#pricing-section' } });
       return;
@@ -103,12 +104,28 @@ export const PricingSection = () => {
     ],
   });
 
+  const selectedAnnual = useMemo(
+    () => ANNUAL_OPTIONS.find(o => o.planId === selectedAnnualPlanId) ?? ANNUAL_OPTIONS[0],
+    [selectedAnnualPlanId]
+  );
+
   const prices = useMemo(() => ({
-    annual: formatPrice(BASE_PRICES.annual, lang),
+    annual: formatPrice(selectedAnnual.priceEur, lang),
+    annualPerCredit: formatPrice(selectedAnnual.pricePerCreditEur, lang),
     monthly: formatPrice(BASE_PRICES.monthly, lang),
     individual: formatPrice(BASE_PRICES.individual, lang),
     signupFee: formatPrice(BASE_PRICES.signupFee, lang),
-  }), [lang]);
+  }), [lang, selectedAnnual]);
+
+  // Format the option label per language using the converted currency
+  const annualOptionLabel = useCallback((opt: AnnualOption) => {
+    const price = formatPrice(opt.priceEur, lang);
+    const perCredit = formatPrice(opt.pricePerCreditEur, lang);
+    const yearSuffix = t('pricing.priceAnnualSuffix').trim() || '/ year';
+    const creditsWord = t('pricing.creditsWord', { defaultValue: 'créditos' });
+    const perCreditWord = t('pricing.perCreditShort', { defaultValue: '/cr.' });
+    return `${opt.credits} ${creditsWord} — ${price} ${yearSuffix} (${perCredit} ${perCreditWord})`;
+  }, [lang, t]);
 
   return (
     <section id="pricing-section" className="py-20 px-4 bg-gradient-to-b from-primary/60 via-primary to-purple-600">
