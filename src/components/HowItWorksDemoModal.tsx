@@ -519,7 +519,7 @@ function getCopy(lang: string) {
       next: "Next",
       step1: {
         title: "1. Create your song. If you already have one, skip to the next step.",
-        text: "Describe your idea, choose an AI voice or upload your own song if you already have one.",
+        text: "",
         fieldLabel: "Describe your song",
         promptExample: "Latin pop song about starting over…",
         voicePop: "Latin Pop Voice",
@@ -532,7 +532,7 @@ function getCopy(lang: string) {
       },
       step2: {
         title: "2. Register your song",
-        text: "Generate digital evidence with hash, date and blockchain certification to protect your authorship.",
+        text: "",
         fTitle: "Title",
         fAuthor: "Author",
         fFile: "File",
@@ -545,7 +545,7 @@ function getCopy(lang: string) {
       },
       step3: {
         title: "3. Distribute & promote",
-        text: "Release your music on +220 platforms and promote it to the MusicDibs community.",
+        text: "",
         platformsLabel: "digital platforms",
         communityLabel: "fans in community",
         promoTitle: "Social promotion",
@@ -567,7 +567,7 @@ function getCopy(lang: string) {
       next: "Seguinte",
       step1: {
         title: "1. Crie sua canção. Se já tiver uma, passe ao próximo passo.",
-        text: "Descreva sua ideia, escolha uma voz IA ou envie uma canção própria se já tiver.",
+        text: "",
         fieldLabel: "Descreva sua canção",
         promptExample: "Canção pop latina sobre recomeçar…",
         voicePop: "Voz Pop Latina",
@@ -580,7 +580,7 @@ function getCopy(lang: string) {
       },
       step2: {
         title: "2. Registre sua canção",
-        text: "Gere evidência digital com hash, data e certificação blockchain para proteger sua autoria.",
+        text: "",
         fTitle: "Título",
         fAuthor: "Autor",
         fFile: "Arquivo",
@@ -593,7 +593,7 @@ function getCopy(lang: string) {
       },
       step3: {
         title: "3. Distribua e promova",
-        text: "Lance sua música em +220 plataformas e promova-a na comunidade MusicDibs.",
+        text: "",
         platformsLabel: "plataformas digitais",
         communityLabel: "fãs na comunidade",
         promoTitle: "Promoção em redes",
