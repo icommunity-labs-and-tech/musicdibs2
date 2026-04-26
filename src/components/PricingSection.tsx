@@ -264,8 +264,14 @@ export const PricingSection = () => {
                   const featureList = t(`pricing.features.${isAnnual ? 'annual' : 'monthly'}`, { returnObjects: true }) as string[];
                   return featureList.map((feature, index) => (
                     <div key={index} className="flex items-start space-x-3">
-                      <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center mt-0.5 flex-shrink-0">
-                        <Check className={`w-3 h-3 ${isAnnual ? 'text-pink-600' : 'text-slate-700'}`} strokeWidth={3} />
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                          isAnnual
+                            ? 'bg-green-400 ring-2 ring-green-300/40 shadow-[0_0_10px_rgba(74,222,128,0.45)]'
+                            : 'bg-white'
+                        }`}
+                      >
+                        <Check className={`w-3 h-3 ${isAnnual ? 'text-green-900' : 'text-slate-700'}`} strokeWidth={3} />
                       </div>
                       <span className={`leading-relaxed ${isAnnual ? 'text-sm md:text-[15px]' : 'text-sm text-white/90'}`}>{feature}</span>
                     </div>
