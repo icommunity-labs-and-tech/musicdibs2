@@ -183,6 +183,36 @@ export const PricingSection = () => {
                   {isAnnual ? t("pricing.briefAnnual") : t("pricing.briefMonthly")}
                 </p>
 
+                {/* Annual capacity selector — only on the annual plan */}
+                {isAnnual && (
+                  <div className="mb-5 text-left">
+                    <p className="text-xs md:text-sm text-white/85 mb-2 text-center">
+                      {t('pricing.annualSelectorHelp')}
+                    </p>
+                    <Select
+                      value={selectedAnnualPlanId}
+                      onValueChange={(v) => setSelectedAnnualPlanId(v as AnnualOption['planId'])}
+                    >
+                      <SelectTrigger
+                        aria-label={t('pricing.annualSelectorAria', { defaultValue: 'Selecciona pack anual' })}
+                        className="w-full bg-white/15 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm font-semibold h-12 text-sm md:text-base"
+                      >
+                        <SelectValue>{annualOptionLabel(selectedAnnual)}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="z-50">
+                        {ANNUAL_OPTIONS.map(opt => (
+                          <SelectItem key={opt.planId} value={opt.planId}>
+                            {annualOptionLabel(opt)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-2 text-[11px] md:text-xs text-white/70 text-center">
+                      {t('pricing.annualSelectorNote')}
+                    </p>
+                  </div>
+                )}
+
                 <div className={`font-bold mb-2 ${isAnnual ? 'text-5xl md:text-6xl' : 'text-3xl'}`}>
                   {isAnnual ? prices.annual : prices.monthly}
                   <span className={`font-normal ${isAnnual ? 'text-xl' : 'text-base'}`}>
@@ -197,8 +227,22 @@ export const PricingSection = () => {
                       : 'bg-white/10 text-white/85 px-3 py-1 text-xs'
                   }`}
                 >
-                  {isAnnual ? t("pricing.creditsAnnual") : t("pricing.creditsMonthly")}
+                  {isAnnual
+                    ? t('pricing.creditsAnnualDynamic', {
+                        count: selectedAnnual.credits,
+                        defaultValue: `${selectedAnnual.credits} créditos incluidos`,
+                      })
+                    : t('pricing.creditsMonthly')}
                 </div>
+
+                {isAnnual && (
+                  <p className="mt-2 text-xs md:text-sm text-white/80">
+                    {t('pricing.annualPerCredit', {
+                      price: prices.annualPerCredit,
+                      defaultValue: `${prices.annualPerCredit} / crédito`,
+                    })}
+                  </p>
+                )}
               </div>
 
               <div className={`space-y-2.5 mb-6 text-left ${isAnnual ? '' : 'mt-6'}`}>
