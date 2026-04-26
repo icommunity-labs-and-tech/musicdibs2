@@ -154,9 +154,9 @@ export const AIStudioShowcase = () => {
         {/* Header */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm mb-6 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
-              <span className="text-xs font-semibold text-white/90 tracking-wide">
+            <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-white/15 bg-white/10 backdrop-blur-sm mb-6 shadow-sm">
+              <Sparkles className="w-5 h-5 text-fuchsia-300" />
+              <span className="text-base md:text-lg font-semibold text-white/90 tracking-wide">
                 AI Music Studio
               </span>
             </div>
