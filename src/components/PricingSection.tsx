@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,6 +11,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Briefcase, ArrowRight, Check, X, Sparkles } from "lucide-react";
+
+// Annual capacity packs — must mirror the planIds supported by the
+// `create-credit-checkout` edge function (also used in dashboard CreditStore).
+// To connect new price IDs, update them in the Stripe product catalog —
+// this file only references planIds, not Stripe price IDs.
+type AnnualOption = {
+  planId: 'annual_100' | 'annual_200' | 'annual_300' | 'annual_500' | 'annual_1000';
+  credits: number;
+  priceEur: number;
+  pricePerCreditEur: number;
+};
+
+const ANNUAL_OPTIONS: AnnualOption[] = [
+  { planId: 'annual_100',  credits: 100,  priceEur: 59.90,  pricePerCreditEur: 0.60 },
+  { planId: 'annual_200',  credits: 200,  priceEur: 109.90, pricePerCreditEur: 0.55 },
+  { planId: 'annual_300',  credits: 300,  priceEur: 149.90, pricePerCreditEur: 0.50 },
+  { planId: 'annual_500',  credits: 500,  priceEur: 229.90, pricePerCreditEur: 0.46 },
+  { planId: 'annual_1000', credits: 1000, priceEur: 399.90, pricePerCreditEur: 0.40 },
+];
+
 
 // Base prices in EUR
 const BASE_PRICES = {
@@ -42,13 +63,14 @@ function formatPrice(amount: number, lang: string): string {
 export const PricingSection = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [selectedAnnualPlanId, setSelectedAnnualPlanId] = useState<AnnualOption['planId']>('annual_100');
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const lang = i18n.resolvedLanguage || i18n.language;
   const links = getFooterLinks(lang);
 
-  const handleCheckout = useCallback(async (planId: 'annual' | 'monthly' | 'individual') => {
+  const handleCheckout = useCallback(async (planId: string) => {
     if (!user) {
       navigate('/login', { state: { returnTo: '/#pricing-section' } });
       return;
@@ -82,12 +104,28 @@ export const PricingSection = () => {
     ],
   });
 
+  const selectedAnnual = useMemo(
+    () => ANNUAL_OPTIONS.find(o => o.planId === selectedAnnualPlanId) ?? ANNUAL_OPTIONS[0],
+    [selectedAnnualPlanId]
+  );
+
   const prices = useMemo(() => ({
-    annual: formatPrice(BASE_PRICES.annual, lang),
+    annual: formatPrice(selectedAnnual.priceEur, lang),
+    annualPerCredit: formatPrice(selectedAnnual.pricePerCreditEur, lang),
     monthly: formatPrice(BASE_PRICES.monthly, lang),
     individual: formatPrice(BASE_PRICES.individual, lang),
     signupFee: formatPrice(BASE_PRICES.signupFee, lang),
-  }), [lang]);
+  }), [lang, selectedAnnual]);
+
+  // Format the option label per language using the converted currency
+  const annualOptionLabel = useCallback((opt: AnnualOption) => {
+    const price = formatPrice(opt.priceEur, lang);
+    const perCredit = formatPrice(opt.pricePerCreditEur, lang);
+    const yearSuffix = t('pricing.priceAnnualSuffix').trim() || '/ year';
+    const creditsWord = t('pricing.creditsWord', { defaultValue: 'créditos' });
+    const perCreditWord = t('pricing.perCreditShort', { defaultValue: '/cr.' });
+    return `${opt.credits} ${creditsWord} — ${price} ${yearSuffix} (${perCredit} ${perCreditWord})`;
+  }, [lang, t]);
 
   return (
     <section id="pricing-section" className="py-20 px-4 bg-gradient-to-b from-primary/60 via-primary to-purple-600">
@@ -145,6 +183,36 @@ export const PricingSection = () => {
                   {isAnnual ? t("pricing.briefAnnual") : t("pricing.briefMonthly")}
                 </p>
 
+                {/* Annual capacity selector — only on the annual plan */}
+                {isAnnual && (
+                  <div className="mb-5 text-left">
+                    <p className="text-xs md:text-sm text-white/85 mb-2 text-center">
+                      {t('pricing.annualSelectorHelp')}
+                    </p>
+                    <Select
+                      value={selectedAnnualPlanId}
+                      onValueChange={(v) => setSelectedAnnualPlanId(v as AnnualOption['planId'])}
+                    >
+                      <SelectTrigger
+                        aria-label={t('pricing.annualSelectorAria', { defaultValue: 'Selecciona pack anual' })}
+                        className="w-full bg-white/15 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm font-semibold h-12 text-sm md:text-base"
+                      >
+                        <SelectValue>{annualOptionLabel(selectedAnnual)}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="z-50">
+                        {ANNUAL_OPTIONS.map(opt => (
+                          <SelectItem key={opt.planId} value={opt.planId}>
+                            {annualOptionLabel(opt)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-2 text-[11px] md:text-xs text-white/70 text-center">
+                      {t('pricing.annualSelectorNote')}
+                    </p>
+                  </div>
+                )}
+
                 <div className={`font-bold mb-2 ${isAnnual ? 'text-5xl md:text-6xl' : 'text-3xl'}`}>
                   {isAnnual ? prices.annual : prices.monthly}
                   <span className={`font-normal ${isAnnual ? 'text-xl' : 'text-base'}`}>
@@ -159,8 +227,22 @@ export const PricingSection = () => {
                       : 'bg-white/10 text-white/85 px-3 py-1 text-xs'
                   }`}
                 >
-                  {isAnnual ? t("pricing.creditsAnnual") : t("pricing.creditsMonthly")}
+                  {isAnnual
+                    ? t('pricing.creditsAnnualDynamic', {
+                        count: selectedAnnual.credits,
+                        defaultValue: `${selectedAnnual.credits} créditos incluidos`,
+                      })
+                    : t('pricing.creditsMonthly')}
                 </div>
+
+                {isAnnual && (
+                  <p className="mt-2 text-xs md:text-sm text-white/80">
+                    {t('pricing.annualPerCredit', {
+                      price: prices.annualPerCredit,
+                      defaultValue: `${prices.annualPerCredit} / crédito`,
+                    })}
+                  </p>
+                )}
               </div>
 
               <div className={`space-y-2.5 mb-6 text-left ${isAnnual ? '' : 'mt-6'}`}>
@@ -199,22 +281,27 @@ export const PricingSection = () => {
                 );
               })()}
 
-              <Button
-                className={`w-full font-semibold rounded-full ${
-                  isAnnual
-                    ? 'bg-white hover:bg-white/95 text-pink-600 py-4 text-base md:text-lg shadow-xl'
-                    : 'bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 text-sm'
-                } ${ctaBuy.className}`}
-                disabled={loadingPlan !== null}
-                onClick={() => {
-                  trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
-                  handleCheckout(isAnnual ? 'annual' : 'monthly');
-                }}
-              >
-                {loadingPlan === (isAnnual ? 'annual' : 'monthly') ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-                {isAnnual ? t("pricing.ctaAnnual") : t("pricing.ctaMonthly")}
-                {isAnnual && <ArrowRight className="ml-2 w-5 h-5" />}
-              </Button>
+              {(() => {
+                const targetPlanId = isAnnual ? selectedAnnualPlanId : 'monthly';
+                return (
+                  <Button
+                    className={`w-full font-semibold rounded-full ${
+                      isAnnual
+                        ? 'bg-white hover:bg-white/95 text-pink-600 py-4 text-base md:text-lg shadow-xl'
+                        : 'bg-white/10 hover:bg-white/20 text-white border border-white/30 py-3 text-sm'
+                    } ${ctaBuy.className}`}
+                    disabled={loadingPlan !== null}
+                    onClick={() => {
+                      trackABClick('pricing_cta_buy', ctaBuy.variantIndex, ctaBuy.text);
+                      handleCheckout(targetPlanId);
+                    }}
+                  >
+                    {loadingPlan === targetPlanId ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                    {isAnnual ? t("pricing.ctaAnnual") : t("pricing.ctaMonthly")}
+                    {isAnnual && <ArrowRight className="ml-2 w-5 h-5" />}
+                  </Button>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
