@@ -193,13 +193,13 @@ const StepCreate = ({ copy }: { copy: any }) => {
       setTyped(fullText.slice(0, i));
       if (i >= fullText.length) {
         clearInterval(interval);
-        setTimeout(() => setGenerating(true), 300);
+        setTimeout(() => setGenerating(true), 500);
         setTimeout(() => {
           setGenerating(false);
           setDone(true);
-        }, 2200);
+        }, 3200);
       }
-    }, 35);
+    }, 50);
     return () => clearInterval(interval);
   }, [fullText]);
 
