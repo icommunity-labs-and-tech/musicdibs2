@@ -727,7 +727,7 @@ const resources = {
         briefMonthly: 'To try MusicDibs and start creating.',
         excludedTitle: 'Not included in the monthly plan',
         indivTitle: 'Just want to register one work?',
-        indivSubtitle: 'You can also register a single work for €11.90.',
+        indivSubtitle: 'You can also register a single work for €7.',
         indivSubtitle_dynamic: 'You can also register a single work for {{price}}.',
         indivButton: 'Register a single work',
         legalPros: 'Are you a professional, company or academy? <contact>Contact us</contact> and request details for custom packages or white-label licensing.',
