@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation, Trans } from "react-i18next";
 import { getFooterLinks } from "@/i18nLinks";
 import { Link, useNavigate } from "react-router-dom";
@@ -10,6 +11,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Briefcase, ArrowRight, Check, X, Sparkles } from "lucide-react";
+
+// Annual capacity packs — must mirror the planIds supported by the
+// `create-credit-checkout` edge function (also used in dashboard CreditStore).
+// To connect new price IDs, update them in the Stripe product catalog —
+// this file only references planIds, not Stripe price IDs.
+type AnnualOption = {
+  planId: 'annual_100' | 'annual_200' | 'annual_300' | 'annual_500' | 'annual_1000';
+  credits: number;
+  priceEur: number;
+  pricePerCreditEur: number;
+};
+
+const ANNUAL_OPTIONS: AnnualOption[] = [
+  { planId: 'annual_100',  credits: 100,  priceEur: 59.90,  pricePerCreditEur: 0.60 },
+  { planId: 'annual_200',  credits: 200,  priceEur: 109.90, pricePerCreditEur: 0.55 },
+  { planId: 'annual_300',  credits: 300,  priceEur: 149.90, pricePerCreditEur: 0.50 },
+  { planId: 'annual_500',  credits: 500,  priceEur: 229.90, pricePerCreditEur: 0.46 },
+  { planId: 'annual_1000', credits: 1000, priceEur: 399.90, pricePerCreditEur: 0.40 },
+];
+
 
 // Base prices in EUR
 const BASE_PRICES = {
