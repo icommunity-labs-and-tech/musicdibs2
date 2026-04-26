@@ -89,15 +89,15 @@ export const HeroSection = () => {
               variant="blue"
               size="xl"
               className="font-semibold"
-              onClick={() => {
-                document.getElementById("all-in-one-section")?.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => setDemoOpen(true)}
             >
               {t("hero.cta_how")}
             </Button>
           </div>
         </ScrollReveal>
       </div>
+
+      <HowItWorksDemoModal open={demoOpen} onOpenChange={setDemoOpen} />
     </section>
   );
 };
