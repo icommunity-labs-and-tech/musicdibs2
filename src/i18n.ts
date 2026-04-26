@@ -1243,7 +1243,7 @@ const resources = {
         briefMonthly: 'Para experimentar o MusicDibs e começar a criar.',
         excludedTitle: 'Não incluído no plano mensal',
         indivTitle: 'Só quer registrar uma obra?',
-        indivSubtitle: 'Você também pode registrar uma obra individual por €11,90.',
+        indivSubtitle: 'Você também pode registrar uma obra individual por €7,00.',
         indivSubtitle_dynamic: 'Você também pode registrar uma obra individual por {{price}}.',
         indivButton: 'Registrar obra individual',
         legalPros: 'É profissional, empresa ou academia? <contact>Fale conosco</contact> e peça detalhes sobre pacotes personalizados ou licenciamento white-label.',
