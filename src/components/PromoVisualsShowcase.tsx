@@ -9,6 +9,7 @@ import loQueQuedaDeTi from "@/assets/covers/lo-que-queda-de-ti.png";
 import cityLights from "@/assets/covers/city-lights.png";
 import midnightPulse from "@/assets/covers/midnight-pulse.png";
 import brokenThunder from "@/assets/covers/broken-thunder.png";
+import brillaSinMiedo from "@/assets/covers/brilla-sin-miedo.png";
 import reelMidnight from "@/assets/promo/reel-midnight-drop.jpg";
 import tiktokFuego from "@/assets/promo/tiktok-fuego-viral.jpg";
 import canvasLiquid from "@/assets/promo/canvas-liquid-dreams.jpg";
@@ -52,6 +53,7 @@ const COVER_CARDS: CoverCard[] = [
   { title: "City Lights", artist: "Noah Grey", genre: "R&B / Soul", image: cityLights },
   { title: "Midnight Pulse", artist: "DJ Aria Flux", genre: "Electrónica", image: midnightPulse },
   { title: "Broken Thunder", artist: "Stonefield Rebels", genre: "Rock alternativo", image: brokenThunder },
+  { title: "Brilla Sin Miedo", artist: "Valeria Cruz", genre: "Pop latino", image: brillaSinMiedo },
 ];
 
 const PROMO_CARDS: PromoCard[] = [
