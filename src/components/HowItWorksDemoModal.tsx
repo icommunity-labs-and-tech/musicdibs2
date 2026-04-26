@@ -496,7 +496,7 @@ function getCopy(lang: string) {
         disclaimer: "Certificación blockchain como evidencia verificable de autoría.",
       },
       step3: {
-        title: "3. Distribuye y promociona: +220 plataformas streaming & +200k comunidad Musicdibs.",
+        title: "3. Distribuye y promociona",
         text: "",
         platformsLabel: "plataformas digitales",
         communityLabel: "fans en comunidad",
@@ -544,7 +544,7 @@ function getCopy(lang: string) {
         disclaimer: "Blockchain certification as verifiable evidence of authorship.",
       },
       step3: {
-        title: "3. Distribute & promote: +220 streaming platforms & +200k MusicDibs community.",
+        title: "3. Distribute & promote",
         text: "",
         platformsLabel: "digital platforms",
         communityLabel: "fans in community",
@@ -592,7 +592,7 @@ function getCopy(lang: string) {
         disclaimer: "Certificação blockchain como evidência verificável de autoria.",
       },
       step3: {
-        title: "3. Distribua e promova: +220 plataformas de streaming & +200k comunidade MusicDibs.",
+        title: "3. Distribua e promova",
         text: "",
         platformsLabel: "plataformas digitais",
         communityLabel: "fãs na comunidade",
