@@ -80,7 +80,7 @@ export const HowItWorksDemoModal = ({ open, onOpenChange }: HowItWorksDemoModalP
   const goPlans = () => {
     onOpenChange(false);
     setTimeout(() => {
-      document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+      document.getElementById("pricing-section")?.scrollIntoView({ behavior: "smooth" });
     }, 200);
   };
 
