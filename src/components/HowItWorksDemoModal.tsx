@@ -285,13 +285,13 @@ const StepRegister = ({ copy }: { copy: any }) => {
       const random = Array.from({ length: 24 }, () => chars[Math.floor(Math.random() * 16)]).join("");
       setHash(random);
       i++;
-      if (i > 30) {
+      if (i > 45) {
         clearInterval(interval);
         setHash("a3f9c1d8e2b4f7a09c5b1e8d");
         setHashing(false);
-        setTimeout(() => setCertified(true), 600);
+        setTimeout(() => setCertified(true), 900);
       }
-    }, 80);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
