@@ -323,7 +323,6 @@ export const AIStudioShowcase = () => {
               </span>
             </h3>
             <p className="text-base md:text-lg text-white/70 leading-relaxed">
-              Crea, mejora, protege y distribuye tu música desde un único estudio inteligente.
             </p>
           </div>
         </ScrollReveal>
