@@ -9,6 +9,7 @@ interface DemoSong {
   subtitle: string;
   colors: [string, string]; // tailwind from / to
   glow: string; // tailwind shadow color class
+  audioUrl?: string;
 }
 
 const DEMO_SONGS: DemoSong[] = [
@@ -18,6 +19,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Lo-fi hip hop · nostálgico y soñador",
     colors: ["from-purple-500", "to-fuchsia-500"],
     glow: "shadow-purple-500/30",
+    audioUrl: "/audio/midnight-drive.mp3",
   },
   {
     title: "Fuego Latino",
