@@ -10,7 +10,7 @@ export const BridgeStatement = () => {
         background:
           "linear-gradient(180deg, #251541 0%, #2a1747 50%, #251541 100%)",
       }}
-      aria-label="Posicionamiento MusicDibs"
+      aria-label="Posicionamiento Musicdibs"
     >
       {/* Subtle ambient glow — sin líneas duras */}
       <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[42rem] h-48 rounded-full bg-fuchsia-600/12 blur-3xl" />

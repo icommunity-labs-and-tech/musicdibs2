@@ -23,14 +23,14 @@ const Index = () => {
   return (
     <div className="min-h-screen page-bg">
       <SEO
-        title="MusicDibs - Registro y Distribución Musical"
+        title="Musicdibs - Registro y Distribución Musical"
         description="Distribuye tu música en Spotify, Apple Music, YouTube Music y más de 150 plataformas digitales. Protege tus derechos con certificación blockchain."
         path="/"
         jsonLd={[
           {
             "@context": "https://schema.org",
             "@type": "Organization",
-            name: "MusicDibs",
+            name: "Musicdibs",
             url: "https://musicdibs.com",
             logo: "https://musicdibs.com/lovable-uploads/b347ac8a-e7a2-4c60-a54e-6bc186ef2ce3.png",
             description: "Plataforma de registro y distribución musical digital con certificación blockchain.",
@@ -48,9 +48,9 @@ const Index = () => {
           {
             "@context": "https://schema.org",
             "@type": "Product",
-            name: "MusicDibs",
+            name: "Musicdibs",
             description: "Registro de obras con certificación blockchain y distribución en más de 150 plataformas digitales.",
-            brand: { "@type": "Brand", name: "MusicDibs" },
+            brand: { "@type": "Brand", name: "Musicdibs" },
             offers: [
               {
                 "@type": "Offer",

@@ -465,7 +465,7 @@ const StepFinal = ({
 function getCopy(lang: string) {
   const dict: Record<string, any> = {
     es: {
-      title: "Así funciona MusicDibs",
+      title: "Así funciona Musicdibs",
       subtitle: "De una idea a una canción lista para registrar, distribuir y promocionar.",
       skip: "Saltar al final",
       next: "Siguiente",
@@ -513,7 +513,7 @@ function getCopy(lang: string) {
       },
     },
     en: {
-      title: "This is how MusicDibs works",
+      title: "This is how Musicdibs works",
       subtitle: "From an idea to a song ready to register, distribute and promote.",
       skip: "Skip to end",
       next: "Next",
@@ -561,7 +561,7 @@ function getCopy(lang: string) {
       },
     },
     pt: {
-      title: "Assim funciona o MusicDibs",
+      title: "Assim funciona o Musicdibs",
       subtitle: "De uma ideia a uma canção pronta para registrar, distribuir e promover.",
       skip: "Pular para o final",
       next: "Seguinte",

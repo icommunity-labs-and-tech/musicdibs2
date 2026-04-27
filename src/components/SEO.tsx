@@ -34,7 +34,7 @@ export const SEO = ({
   jsonLd,
 }: SEOProps) => {
   const url = `${BASE_URL}${path}`;
-  const fullTitle = path === "/" ? title : `${title} | MusicDibs`;
+  const fullTitle = path === "/" ? title : `${title} | Musicdibs`;
   const imageUrl = image
     ? (image.startsWith("http") ? image : `${BASE_URL}${image}`)
     : `${BASE_URL}${DEFAULT_OG_IMAGE}`;
@@ -58,7 +58,7 @@ export const SEO = ({
       <meta property="og:image" content={imageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="MusicDibs" />
+      <meta property="og:site_name" content="Musicdibs" />
       <meta property="og:locale" content={ogLocale} />
       {alternateLocales.map((alt) => (
         <meta key={alt} property="og:locale:alternate" content={alt} />
