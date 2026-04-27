@@ -56,30 +56,44 @@ const DEMO_SONGS: DemoSong[] = [
   },
 ];
 
-const STEPS = [
+type Step = {
+  n: string;
+  title: string;
+  desc: string;
+  time: string;
+  icon: LucideIcon;
+  pulse?: boolean;
+};
+
+const STEPS: Step[] = [
   {
     n: "01",
-    title: "Describe tu idea",
-    desc: "género, mood, tempo, vibra… en palabras simples",
+    title: "Crea o sube tu canción",
+    desc: "Empieza desde una idea, una letra, una demo o un archivo propio.",
     time: "~1 MIN",
+    icon: Upload,
   },
   {
     n: "02",
-    title: "La IA genera tu canción",
-    desc: "track completo con melodía, letra y producción",
+    title: "La IA crea o mejora tu canción",
+    desc: "Genera música nueva, mejora tu sonido, masteriza o crea versiones listas para publicar.",
     time: "~2 MIN",
+    icon: Wand2,
+    pulse: true,
   },
   {
     n: "03",
-    title: "Registra tus derechos",
-    desc: "certificado blockchain con validez legal",
+    title: "Registra y protege tus derechos",
+    desc: "Obtén una evidencia blockchain con fecha, autoría y certificado verificable.",
     time: "~1 MIN",
+    icon: ShieldCheck,
   },
   {
     n: "04",
-    title: "Distribuye al mundo",
-    desc: "Spotify, Apple Music, YouTube y 200+ plataformas",
+    title: "Distribuye y lanza al mundo",
+    desc: "Publica en Spotify, Apple Music, YouTube, TikTok y más de 200 plataformas.",
     time: "~1 MIN",
+    icon: Rocket,
   },
 ];
 
