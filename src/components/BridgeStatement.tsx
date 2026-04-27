@@ -26,9 +26,9 @@ export const BridgeStatement = () => {
             </span>{" "}
             para{" "}
             <span className="bg-gradient-to-r from-fuchsia-300 to-purple-300 bg-clip-text text-transparent">
-              registrar y distribuir
+              crear y lanzar
             </span>{" "}
-            música con IA de forma legal.
+            música con validez legal.
           </p>
         </ScrollReveal>
       </div>
