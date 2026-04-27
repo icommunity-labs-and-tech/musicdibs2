@@ -288,10 +288,16 @@ export const AIStudioShowcase = () => {
                   </div>
                   <button
                     type="button"
-                    aria-label={`Reproducir demo ${song.title}`}
-                    className={`shrink-0 w-11 h-11 rounded-full bg-gradient-to-br ${song.colors[0]} ${song.colors[1]} flex items-center justify-center text-white shadow-lg ${song.glow} hover:scale-110 active:scale-95 transition-transform`}
+                    onClick={() => handlePlay(song)}
+                    aria-label={`${playingTitle === song.title ? "Pausar" : "Reproducir"} demo ${song.title}`}
+                    disabled={!song.audioUrl}
+                    className={`shrink-0 w-11 h-11 rounded-full bg-gradient-to-br ${song.colors[0]} ${song.colors[1]} flex items-center justify-center text-white shadow-lg ${song.glow} hover:scale-110 active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
                   >
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                    {playingTitle === song.title ? (
+                      <Pause className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                    )}
                   </button>
                 </div>
               </div>
