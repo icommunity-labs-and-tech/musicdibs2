@@ -155,6 +155,32 @@ export const AIStudioShowcase = () => {
           pointer-events: none;
           opacity: 0.6;
         }
+        @keyframes flowProgress {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        @keyframes stepPulse {
+          0%, 100% { box-shadow: 0 0 22px rgba(217,70,239,0.45), 0 0 40px rgba(168,85,247,0.25); }
+          50% { box-shadow: 0 0 34px rgba(217,70,239,0.75), 0 0 60px rgba(168,85,247,0.45); }
+        }
+        @keyframes ringSpin {
+          to { transform: rotate(360deg); }
+        }
+        .step-progress-line {
+          background: linear-gradient(90deg,
+            rgba(244,114,182,0) 0%,
+            rgba(244,114,182,0.55) 18%,
+            rgba(217,70,239,0.85) 38%,
+            rgba(34,211,238,0.6) 55%,
+            rgba(168,85,247,0.85) 75%,
+            rgba(168,85,247,0) 100%);
+          background-size: 200% 100%;
+          animation: flowProgress 6s linear infinite;
+        }
+        .step-card:hover .step-icon-wrap {
+          transform: translateY(-2px) scale(1.05);
+          box-shadow: 0 0 32px rgba(217,70,239,0.55), 0 0 60px rgba(168,85,247,0.35);
+        }
       `}</style>
 
       {/* Soft top fade to blend with the previous (light) section. Bottom intentionally left open to flow into the bridge + promo visuals block. */}
