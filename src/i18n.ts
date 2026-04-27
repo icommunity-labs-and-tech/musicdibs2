@@ -132,7 +132,7 @@ const resources = {
         subtext: 'Impulsando el futuro de la música urbana',
         join_now: 'ÚNETE AHORA',
         view_testimonials: 'VER TESTIMONIOS',
-        stats: { artists: 'Artistas registrados', works: 'Obras protegidas', countries: 'Países' },
+        stats: { artists: 'Artistas registrados', works: 'Obras registradas y distribuidas', countries: 'Países' },
       },
       testimonials: {
         heading: 'Artistas que ya confían en Musicdibs',
