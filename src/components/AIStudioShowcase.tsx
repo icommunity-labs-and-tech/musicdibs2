@@ -1,4 +1,5 @@
-import { Play, Sparkles, Music } from "lucide-react";
+import { Play, Sparkles, Music, Upload, Wand2, ShieldCheck, Rocket } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
 
@@ -55,30 +56,44 @@ const DEMO_SONGS: DemoSong[] = [
   },
 ];
 
-const STEPS = [
+type Step = {
+  n: string;
+  title: string;
+  desc: string;
+  time: string;
+  icon: LucideIcon;
+  pulse?: boolean;
+};
+
+const STEPS: Step[] = [
   {
     n: "01",
-    title: "Describe tu idea",
-    desc: "género, mood, tempo, vibra… en palabras simples",
+    title: "Crea o sube tu canción",
+    desc: "Empieza desde una idea, una letra, una demo o un archivo propio.",
     time: "~1 MIN",
+    icon: Upload,
   },
   {
     n: "02",
-    title: "La IA genera tu canción",
-    desc: "track completo con melodía, letra y producción",
+    title: "La IA crea o mejora tu canción",
+    desc: "Genera música nueva, mejora tu sonido, masteriza o crea versiones listas para publicar.",
     time: "~2 MIN",
+    icon: Wand2,
+    pulse: true,
   },
   {
     n: "03",
-    title: "Registra tus derechos",
-    desc: "certificado blockchain con validez legal",
+    title: "Registra y protege tus derechos",
+    desc: "Obtén una evidencia blockchain con fecha, autoría y certificado verificable.",
     time: "~1 MIN",
+    icon: ShieldCheck,
   },
   {
     n: "04",
-    title: "Distribuye al mundo",
-    desc: "Spotify, Apple Music, YouTube y 200+ plataformas",
+    title: "Distribuye y lanza al mundo",
+    desc: "Publica en Spotify, Apple Music, YouTube, TikTok y más de 200 plataformas.",
     time: "~1 MIN",
+    icon: Rocket,
   },
 ];
 
@@ -139,6 +154,32 @@ export const AIStudioShowcase = () => {
                   mask-composite: exclude;
           pointer-events: none;
           opacity: 0.6;
+        }
+        @keyframes flowProgress {
+          0% { background-position: 0% 50%; }
+          100% { background-position: 200% 50%; }
+        }
+        @keyframes stepPulse {
+          0%, 100% { box-shadow: 0 0 22px rgba(217,70,239,0.45), 0 0 40px rgba(168,85,247,0.25); }
+          50% { box-shadow: 0 0 34px rgba(217,70,239,0.75), 0 0 60px rgba(168,85,247,0.45); }
+        }
+        @keyframes ringSpin {
+          to { transform: rotate(360deg); }
+        }
+        .step-progress-line {
+          background: linear-gradient(90deg,
+            rgba(244,114,182,0) 0%,
+            rgba(244,114,182,0.55) 18%,
+            rgba(217,70,239,0.85) 38%,
+            rgba(34,211,238,0.6) 55%,
+            rgba(168,85,247,0.85) 75%,
+            rgba(168,85,247,0) 100%);
+          background-size: 200% 100%;
+          animation: flowProgress 6s linear infinite;
+        }
+        .step-card:hover .step-icon-wrap {
+          transform: translateY(-2px) scale(1.05);
+          box-shadow: 0 0 32px rgba(217,70,239,0.55), 0 0 60px rgba(168,85,247,0.35);
         }
       `}</style>
 
@@ -232,62 +273,97 @@ export const AIStudioShowcase = () => {
 
         {/* Steps block */}
         <ScrollReveal>
-          <div className="text-center mb-10">
-            <h3 className="text-2xl md:text-3xl font-bold text-white">
-              En menos de 10 minutos.{" "}
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 backdrop-blur-sm mb-5 shadow-[0_0_24px_rgba(217,70,239,0.18)]">
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
+              <span className="text-[11px] md:text-xs font-semibold tracking-[0.18em] uppercase text-white/85">
+                AI Music Studio · Create → Protect → Distribute → Promote
+              </span>
+            </div>
+            <h3 className="text-3xl md:text-5xl font-bold text-white leading-[1.1] mb-4">
+              De una idea a una canción{" "}
               <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
-                Tu canción al mundo
+                publicada en minutos
               </span>
             </h3>
+            <p className="text-base md:text-lg text-white/70 leading-relaxed">
+              Crea, mejora, protege y distribuye tu música desde un único estudio inteligente.
+            </p>
           </div>
         </ScrollReveal>
 
         <div className="relative">
-          {/* Horizontal connecting line — desktop only */}
+          {/* Animated horizontal progress line — desktop only */}
           <div
             aria-hidden
-            className="hidden lg:block absolute top-6 left-0 right-0 h-px"
+            className="hidden lg:block absolute top-9 left-[8%] right-[8%] h-[2px] rounded-full step-progress-line opacity-90"
+          />
+          {/* Soft halo behind the line */}
+          <div
+            aria-hidden
+            className="hidden lg:block absolute top-7 left-[8%] right-[8%] h-[6px] rounded-full blur-md opacity-40"
             style={{
               background:
-                "linear-gradient(90deg, transparent 0%, rgba(244,114,182,0.35) 12%, rgba(217,70,239,0.45) 50%, rgba(168,85,247,0.35) 88%, transparent 100%)",
+                "linear-gradient(90deg, transparent, rgba(244,114,182,0.5), rgba(168,85,247,0.6), transparent)",
+            }}
+          />
+          {/* Vertical timeline rail — mobile/tablet */}
+          <div
+            aria-hidden
+            className="lg:hidden absolute top-4 bottom-4 left-[27px] sm:left-[35px] w-[2px] rounded-full opacity-70"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(244,114,182,0.05), rgba(217,70,239,0.6) 20%, rgba(168,85,247,0.6) 80%, rgba(168,85,247,0.05))",
             }}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-10 lg:gap-x-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-y-7 lg:gap-y-0 lg:gap-x-5">
             <StaggerGrid baseDelay={100} staggerDelay={120}>
-              {STEPS.map((step) => (
-                <div
-                  key={step.n}
-                  className="relative flex flex-col items-center text-center px-3"
-                >
-                  {/* Numbered badge */}
-                  <div className="relative z-10 mb-5">
-                    <span
-                      className="absolute inset-0 rounded-full blur-xl opacity-70"
-                      style={{
-                        background:
-                          "radial-gradient(circle, rgba(217,70,239,0.55) 0%, rgba(168,85,247,0.25) 60%, transparent 80%)",
-                      }}
-                      aria-hidden
-                    />
-                    <div className="relative w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-[#1d0f33] to-[#2a1747] border border-white/20 shadow-[0_0_20px_rgba(217,70,239,0.35)]">
-                      <span className="text-sm font-semibold tracking-wide bg-gradient-to-br from-pink-300 to-fuchsia-300 bg-clip-text text-transparent">
-                        {step.n}
+              {STEPS.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div
+                    key={step.n}
+                    className="step-card group relative flex lg:flex-col items-start lg:items-center text-left lg:text-center gap-4 lg:gap-0 lg:px-3 pl-2 lg:pl-3 transition-transform duration-300"
+                  >
+                    {/* Numbered badge with icon */}
+                    <div className="relative z-10 shrink-0 lg:mb-5">
+                      <span
+                        className="absolute inset-0 rounded-full blur-xl opacity-70"
+                        style={{
+                          background:
+                            "radial-gradient(circle, rgba(217,70,239,0.6) 0%, rgba(168,85,247,0.28) 60%, transparent 80%)",
+                        }}
+                        aria-hidden
+                      />
+                      <div
+                        className="step-icon-wrap relative w-[60px] h-[60px] lg:w-[68px] lg:h-[68px] rounded-full flex items-center justify-center bg-gradient-to-br from-[#1a0d2e] via-[#241241] to-[#2c1850] border border-white/20 shadow-[0_0_24px_rgba(217,70,239,0.4)] transition-all duration-300"
+                        style={step.pulse ? { animation: "stepPulse 2.6s ease-in-out infinite" } : undefined}
+                      >
+                        <Icon className="w-6 h-6 lg:w-7 lg:h-7 text-fuchsia-200 drop-shadow-[0_0_6px_rgba(217,70,239,0.7)]" />
+                        {/* Number chip */}
+                        <span className="absolute -top-1.5 -right-1.5 min-w-[26px] h-[22px] px-1.5 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 border border-white/30 flex items-center justify-center text-[10px] font-bold text-white shadow-md">
+                          {step.n}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 lg:flex lg:flex-col lg:items-center min-w-0">
+                      <h4 className="text-white font-semibold text-[15px] md:text-[17px] mb-1.5 leading-tight lg:max-w-[230px]">
+                        {step.title}
+                      </h4>
+                      <p className="text-white/65 text-sm leading-snug mb-2.5 lg:max-w-[240px]">
+                        {step.desc}
+                      </p>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] text-fuchsia-300/90">
+                        <span className="w-1 h-1 rounded-full bg-fuchsia-400 shadow-[0_0_6px_rgba(217,70,239,0.9)]" />
+                        {step.time}
                       </span>
                     </div>
                   </div>
-
-                  <h4 className="text-white font-semibold text-base md:text-[17px] mb-1.5 leading-tight max-w-[220px]">
-                    {step.title}
-                  </h4>
-                  <p className="text-white/65 text-sm leading-snug max-w-[230px] mb-3">
-                    {step.desc}
-                  </p>
-                  <span className="text-[10px] font-semibold tracking-[0.2em] text-fuchsia-300/90">
-                    {step.time}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </StaggerGrid>
           </div>
         </div>
