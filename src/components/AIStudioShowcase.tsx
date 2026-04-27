@@ -310,12 +310,6 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-fuchsia-400/25 bg-fuchsia-500/10 backdrop-blur-sm mb-5 shadow-[0_0_24px_rgba(217,70,239,0.18)]">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
-              <span className="text-[11px] md:text-xs font-semibold tracking-[0.18em] uppercase text-white/85">
-                AI Music Studio · Create → Protect → Distribute → Promote
-              </span>
-            </div>
             <h3 className="text-3xl md:text-5xl font-bold text-white leading-[1.1] mb-4">
               En menos de 10 minutos.{" "}
               <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
