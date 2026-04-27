@@ -60,6 +60,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Hip hop trap · duro y cinematográfico",
     colors: ["from-blue-500", "to-purple-700"],
     glow: "shadow-blue-500/30",
+    audioUrl: "/audio/trap-god.mp3",
   },
 ];
 
