@@ -18,6 +18,7 @@ import {
   Users,
   ChevronRight,
   SkipForward,
+  SlidersHorizontal,
 } from "lucide-react";
 
 interface HowItWorksDemoModalProps {
@@ -216,11 +217,16 @@ const StepCreate = ({ copy }: { copy: any }) => {
       </div>
 
       <div className="bg-white text-slate-900 rounded-xl p-4 shadow-2xl">
-        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
-          {copy.fieldLabel}
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            {copy.fieldLabel}
+          </div>
+          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-purple-700 text-[10px] font-semibold uppercase tracking-wide border border-purple-200/60 inline-flex items-center gap-1">
+            <Sparkles className="w-3 h-3" /> {copy.studioPill}
+          </span>
         </div>
         <div className="min-h-[60px] rounded-md border border-slate-200 bg-slate-50 p-3 text-sm">
-          {typed}
+          {typed ? typed : <span className="text-slate-400">{copy.placeholder}</span>}
           <span className="inline-block w-1 h-4 align-middle bg-slate-700 ml-0.5 animate-pulse" />
         </div>
 
@@ -237,11 +243,23 @@ const StepCreate = ({ copy }: { copy: any }) => {
         </div>
 
         <button
+          type="button"
+          className="mt-3 w-full group flex items-center gap-2 rounded-lg border border-dashed border-purple-200 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300 transition-all px-3 py-2 text-left"
+        >
+          <span className="w-7 h-7 rounded-md bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+          </span>
+          <span className="text-xs font-medium text-slate-700 group-hover:text-slate-900">
+            {copy.masteringOption}
+          </span>
+        </button>
+
+        <button
           className={`mt-4 w-full py-2.5 rounded-lg text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all ${
             generating
               ? "bg-purple-500"
               : done
-              ? "bg-green-500"
+              ? "bg-gradient-to-r from-green-500 to-emerald-500"
               : "bg-gradient-to-r from-pink-500 to-purple-600"
           }`}
         >
@@ -251,7 +269,7 @@ const StepCreate = ({ copy }: { copy: any }) => {
             </>
           ) : done ? (
             <>
-              <Check className="w-4 h-4" strokeWidth={3} /> {copy.generated}
+              <Sparkles className="w-4 h-4" /> {copy.generateBtn}
             </>
           ) : (
             <>
@@ -470,17 +488,20 @@ function getCopy(lang: string) {
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
-        title: "1. Crea tu canción. Si tienes ya, pasa al siguiente paso.",
-        text: "",
+        title: "1. Crea o sube tu canción",
+        text: "Empieza desde cero con IA o mejora tu canción con mastering automático.",
+        studioPill: "AI Music Studio",
         fieldLabel: "Describe tu canción",
-        promptExample: "Canción pop latina sobre empezar de nuevo…",
+        placeholder: "Describe tu idea… o sube tu canción para mejorarla",
+        promptExample: "Describe tu idea… o sube tu canción para mejorarla",
         voicePop: "Voz Pop Latina",
         voiceUrban: "Urbano",
         voiceIndie: "Indie",
-        generateBtn: "Generar con IA",
-        generating: "Generando…",
-        generated: "Canción generada",
-        alreadyHave: "¿Ya tienes tu canción? Súbela y salta este paso.",
+        masteringOption: "¿Ya tienes tu canción? Mejórala con mastering automático",
+        generateBtn: "Generar o mejorar canción",
+        generating: "Procesando…",
+        generated: "Listo",
+        alreadyHave: "¿Ya tienes tu canción? Súbela y mejórala con IA en segundos",
       },
       step2: {
         title: "2. Registro legal con blockchain. Antiplagio.",
@@ -518,17 +539,20 @@ function getCopy(lang: string) {
       skip: "Skip to end",
       next: "Next",
       step1: {
-        title: "1. Create your song. If you already have one, skip to the next step.",
-        text: "",
+        title: "1. Create or upload your song",
+        text: "Start from scratch with AI or enhance your song with automatic mastering.",
+        studioPill: "AI Music Studio",
         fieldLabel: "Describe your song",
-        promptExample: "Latin pop song about starting over…",
+        placeholder: "Describe your idea… or upload your song to enhance it",
+        promptExample: "Describe your idea… or upload your song to enhance it",
         voicePop: "Latin Pop Voice",
         voiceUrban: "Urban",
         voiceIndie: "Indie",
-        generateBtn: "Generate with AI",
-        generating: "Generating…",
-        generated: "Song generated",
-        alreadyHave: "Already have your song? Upload it and skip this step.",
+        masteringOption: "Already have your song? Enhance it with automatic mastering",
+        generateBtn: "Generate or enhance song",
+        generating: "Processing…",
+        generated: "Done",
+        alreadyHave: "Already have your song? Upload it and enhance it with AI in seconds",
       },
       step2: {
         title: "2. Legal registration with blockchain. Anti-plagiarism.",
@@ -566,17 +590,20 @@ function getCopy(lang: string) {
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
-        title: "1. Crie sua canção. Se já tiver uma, passe ao próximo passo.",
-        text: "",
+        title: "1. Crie ou envie sua canção",
+        text: "Comece do zero com IA ou melhore sua canção com masterização automática.",
+        studioPill: "AI Music Studio",
         fieldLabel: "Descreva sua canção",
-        promptExample: "Canção pop latina sobre recomeçar…",
+        placeholder: "Descreva sua ideia… ou envie sua canção para melhorá-la",
+        promptExample: "Descreva sua ideia… ou envie sua canção para melhorá-la",
         voicePop: "Voz Pop Latina",
         voiceUrban: "Urbano",
         voiceIndie: "Indie",
-        generateBtn: "Gerar com IA",
-        generating: "Gerando…",
-        generated: "Canção gerada",
-        alreadyHave: "Já tem sua canção? Envie e pule este passo.",
+        masteringOption: "Já tem sua canção? Melhore com masterização automática",
+        generateBtn: "Gerar ou melhorar canção",
+        generating: "Processando…",
+        generated: "Pronto",
+        alreadyHave: "Já tem sua canção? Envie e melhore com IA em segundos",
       },
       step2: {
         title: "2. Registro legal com blockchain. Antiplágio.",
