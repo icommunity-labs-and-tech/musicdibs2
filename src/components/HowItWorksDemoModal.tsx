@@ -212,7 +212,7 @@ const StepCreate = ({ copy }: { copy: any }) => {
         </div>
         <div>
           <h3 className="text-lg font-bold">{copy.title}</h3>
-          <p className="text-xs text-white/60">{copy.text}</p>
+          <p className="text-sm md:text-base text-white/70">{copy.text}</p>
         </div>
       </div>
 
