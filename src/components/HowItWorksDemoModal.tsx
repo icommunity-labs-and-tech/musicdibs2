@@ -18,6 +18,7 @@ import {
   Users,
   ChevronRight,
   SkipForward,
+  SlidersHorizontal,
 } from "lucide-react";
 
 interface HowItWorksDemoModalProps {
