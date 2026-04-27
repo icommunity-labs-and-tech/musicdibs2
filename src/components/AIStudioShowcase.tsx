@@ -131,6 +131,31 @@ const Waveform = ({ from, to }: { from: string; to: string }) => {
 };
 
 export const AIStudioShowcase = () => {
+  const [playingTitle, setPlayingTitle] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
+
+  const handlePlay = (song: DemoSong) => {
+    if (!song.audioUrl) return;
+    if (playingTitle === song.title) {
+      audioRef.current?.pause();
+      setPlayingTitle(null);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(song.audioUrl);
+    audio.onended = () => setPlayingTitle(null);
+    audio.play().catch(() => setPlayingTitle(null));
+    audioRef.current = audio;
+    setPlayingTitle(song.title);
+  };
+
   return (
     <section
       className="relative overflow-hidden py-24"
