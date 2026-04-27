@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
 import { ArtistsBanner } from "@/components/ArtistsBanner";
@@ -18,6 +18,57 @@ const RoyaltiesCalculator = lazyWithRetry(() => import("@/components/RoyaltiesCa
 
 const ManagerBannerSection = lazyWithRetry(() => import("@/components/ManagerBannerSection").then(m => ({ default: m.ManagerBannerSection })));
 const Footer = lazyWithRetry(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
+
+const DeferredHomeSections = () => {
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) return;
+
+    let idleId: number | undefined;
+    let timeoutId: number | undefined;
+    const render = () => setShouldRender(true);
+    const scheduleRender = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(render, { timeout: 1800 });
+      } else {
+        timeoutId = window.setTimeout(render, 800);
+      }
+    };
+
+    window.addEventListener("scroll", render, { once: true, passive: true });
+    window.addEventListener("pointerdown", render, { once: true, passive: true });
+    window.addEventListener("keydown", render, { once: true });
+    scheduleRender();
+
+    return () => {
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      window.removeEventListener("scroll", render);
+      window.removeEventListener("pointerdown", render);
+      window.removeEventListener("keydown", render);
+    };
+  }, [shouldRender]);
+
+  if (!shouldRender) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <ArtistsBanner />
+      <WhyChooseSection />
+      <AIStudioShowcase />
+      <BridgeStatement />
+      <PromoVisualsShowcase />
+      <MasteringHighlight />
+      <DistributionSection />
+      <RoyaltiesCalculator />
+      <TestimonialsSection />
+      <PricingSection />
+      <ManagerBannerSection />
+      <Footer />
+    </Suspense>
+  );
+};
 
 const Index = () => {
   return (
@@ -79,20 +130,7 @@ const Index = () => {
       />
       <Navbar />
       <HeroSection />
-      <ArtistsBanner />
-      <Suspense fallback={null}>
-        <WhyChooseSection />
-        <AIStudioShowcase />
-        <MasteringHighlight />
-        <BridgeStatement />
-        <PromoVisualsShowcase />
-        <DistributionSection />
-        <RoyaltiesCalculator />
-        <TestimonialsSection />
-        <PricingSection />
-        <ManagerBannerSection />
-        <Footer />
-      </Suspense>
+      <DeferredHomeSections />
     </div>
   );
 };
