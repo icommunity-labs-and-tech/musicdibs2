@@ -310,7 +310,7 @@ export const AIStudioShowcase = () => {
         {/* Steps block */}
         <ScrollReveal>
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h3 className="text-3xl md:text-5xl font-bold text-white leading-[1.1] mb-4">
+            <h3 className="text-2xl md:text-3xl font-bold text-white leading-[1.1] mb-4">
               En menos de 10 minutos.{" "}
               <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-300 bg-clip-text text-transparent">
                 Tu canción al mundo.
