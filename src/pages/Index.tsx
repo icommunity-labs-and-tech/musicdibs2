@@ -58,8 +58,8 @@ const DeferredHomeSections = () => {
       <WhyChooseSection />
       <AIStudioShowcase />
       <BridgeStatement />
-      <PromoVisualsShowcase />
       <MasteringHighlight />
+      <PromoVisualsShowcase />
       <DistributionSection />
       <RoyaltiesCalculator />
       <TestimonialsSection />
