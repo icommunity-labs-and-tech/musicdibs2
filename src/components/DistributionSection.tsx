@@ -85,48 +85,26 @@ export const DistributionSection = () => {
                 <p className="text-white/80 mb-6 text-lg">{t("distro.social.desc")}</p>
                 
                 <div className="flex justify-center space-x-6">
-                  <div className="flex flex-col items-center gap-2">
-                    <a
-                      href="https://www.instagram.com/musicdibs/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-32 h-40 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300 block"
-                      aria-label="Instagram @musicdibs"
-                    >
-                      <img src="/lovable-uploads/ff17291e-4f59-4201-8e1b-8964a98b22f6.png" alt="Instagram Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
-                    </a>
-                    <a
-                      href="https://www.instagram.com/musicdibs/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-white/90 text-sm font-medium hover:text-white transition-colors"
-                    >
-                      @musicdibs
-                    </a>
-                  </div>
-                  <div className="flex flex-col items-center gap-2">
-                    <a
-                      href="https://www.tiktok.com/@musicdibs_"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="w-32 h-40 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300 block"
-                      aria-label="TikTok @musicdibs_"
-                    >
-                      <img src="/lovable-uploads/6a1dd10b-22a7-4382-990a-94d322fcae13.png" alt="TikTok Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
-                    </a>
-                    <a
-                      href="https://www.tiktok.com/@musicdibs_"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-white/90 text-sm font-medium hover:text-white transition-colors"
-                    >
-                      @musicdibs_
-                    </a>
-                  </div>
+                  <a
+                    href="https://www.instagram.com/musicdibs/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-32 h-40 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300 block"
+                    aria-label="Instagram @musicdibs"
+                  >
+                    <img src="/lovable-uploads/ff17291e-4f59-4201-8e1b-8964a98b22f6.png" alt="Instagram Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
+                  </a>
+                  <a
+                    href="https://www.tiktok.com/@musicdibs_"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-32 h-40 rounded-xl overflow-hidden hover:scale-105 transition-transform duration-300 block"
+                    aria-label="TikTok @musicdibs_"
+                  >
+                    <img src="/lovable-uploads/6a1dd10b-22a7-4382-990a-94d322fcae13.png" alt="TikTok Promotion" className="w-full h-full object-cover" width={122} height={152} loading="lazy" />
+                  </a>
                 </div>
 
                 <div className="flex justify-center mt-6">
