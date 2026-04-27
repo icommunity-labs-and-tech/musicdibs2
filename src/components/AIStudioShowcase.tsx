@@ -44,6 +44,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Indie folk · acústico y emotivo",
     colors: ["from-amber-300", "to-rose-400"],
     glow: "shadow-amber-400/30",
+    audioUrl: "/audio/alma-libre.mp3",
   },
   {
     title: "No Sleep Tonight",
