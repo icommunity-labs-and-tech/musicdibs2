@@ -1,4 +1,5 @@
-import { Play, Sparkles, Music, Upload, Wand2, ShieldCheck, Rocket } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Pause, Play, Sparkles, Music, Upload, Wand2, ShieldCheck, Rocket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
