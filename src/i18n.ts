@@ -234,7 +234,7 @@ const resources = {
       calculator: {
         badge: 'Calculadora de Royalties',
         title: '¿Cuánto ganarías con tus streams?',
-        subtitle: 'Introduce el número de reproducciones estimadas y compara cuánto ganarías con Musicdibs frente a otros distribuidores.',
+        subtitle: 'MusicDibs ofrece uno de los sistemas de distribución más rentables, recibe hasta el 95% de tus royalties.',
         streams_label: 'Reproducciones mensuales estimadas',
         results_title: 'Tus ganancias estimadas',
         recommended: 'Recomendado',
