@@ -52,6 +52,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "R&B pop · suave y sensual",
     colors: ["from-fuchsia-500", "to-violet-600"],
     glow: "shadow-fuchsia-500/30",
+    audioUrl: "/audio/no-sleep-tonight.mp3",
   },
   {
     title: "Trap God",
