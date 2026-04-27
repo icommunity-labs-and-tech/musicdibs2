@@ -28,6 +28,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Reggaeton urbano · energético & bailable",
     colors: ["from-orange-400", "to-pink-500"],
     glow: "shadow-pink-500/30",
+    audioUrl: "/audio/fuego-latino.mp3",
   },
   {
     title: "Turn It Up",
