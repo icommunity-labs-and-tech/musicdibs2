@@ -23,14 +23,14 @@ const DEMO_SONGS: DemoSong[] = [
     audioUrl: "/audio/midnight-drive.mp3",
   },
   {
-    title: "Fuego Latino",
+    title: "El Bendecido",
     tag: "Reggaeton",
     subtitle: "Reggaeton urbano · energético & bailable",
     colors: ["from-orange-400", "to-pink-500"],
     glow: "shadow-pink-500/30",
   },
   {
-    title: "Neon Pulse",
+    title: "Turn It Up",
     tag: "EDM",
     subtitle: "Dance electrónico · oscuro e hipnótico",
     colors: ["from-cyan-400", "to-blue-500"],
@@ -44,7 +44,7 @@ const DEMO_SONGS: DemoSong[] = [
     glow: "shadow-amber-400/30",
   },
   {
-    title: "City Lights",
+    title: "No Sleep Tonight",
     tag: "R&B",
     subtitle: "R&B pop · suave y sensual",
     colors: ["from-fuchsia-500", "to-violet-600"],
