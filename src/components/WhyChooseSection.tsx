@@ -143,7 +143,7 @@ const IPRegistryPopup = () => {
           >
             Directiva sobre Derechos de Autor en la Era Digital
           </a>
-          . MusicDibs añade una capa tecnológica de evidencia digital verificable mediante blockchain.
+          . Musicdibs añade una capa tecnológica de evidencia digital verificable mediante blockchain.
         </p>
       </div>
 
@@ -174,7 +174,7 @@ const GlobalDistributionPopup = () => {
     { icon: Radio, title: "200+ plataformas", desc: "Publica tu música en Spotify, Apple Music, YouTube, Amazon Music, TikTok y muchas más.", color: "from-blue-500 to-cyan-500" },
     { icon: Headphones, title: "Llega a nuevos oyentes", desc: "Haz que tus canciones estén disponibles para fans, playlists y audiencias de todo el mundo.", color: "from-cyan-500 to-teal-500" },
     { icon: DollarSign, title: "Gana royalties", desc: "Monetiza tus reproducciones y conserva el control de tus lanzamientos.", color: "from-teal-500 to-emerald-500" },
-    { icon: Layers, title: "Desde MusicDibs", desc: "Crea, registra y distribuye tus canciones desde una misma plataforma, sin cambiar de herramienta.", color: "from-indigo-500 to-blue-600" },
+    { icon: Layers, title: "Desde Musicdibs", desc: "Crea, registra y distribuye tus canciones desde una misma plataforma, sin cambiar de herramienta.", color: "from-indigo-500 to-blue-600" },
   ];
 
   return (
@@ -252,7 +252,7 @@ const SocialPromoPopup = () => {
           Promoción en RRSS
         </h3>
         <p className="text-sm sm:text-base text-gray-600 max-w-md">
-          Impulsa tus lanzamientos en TikTok e Instagram con visibilidad en la comunidad de MusicDibs.
+          Impulsa tus lanzamientos en TikTok e Instagram con visibilidad en la comunidad de Musicdibs.
         </p>
       </div>
 
