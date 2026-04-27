@@ -189,7 +189,7 @@ export const PromoVisualsShowcase = () => {
             </h2>
             <p className="text-base sm:text-lg text-white/70 leading-relaxed">
               Genera portadas, posts, flyers y vídeos cortos para promocionar tu
-              música en redes. Todo desde MusicDibs.
+              música en redes. Todo desde Musicdibs.
             </p>
           </div>
         </ScrollReveal>
