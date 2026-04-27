@@ -36,6 +36,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Dance electrónico · oscuro e hipnótico",
     colors: ["from-cyan-400", "to-blue-500"],
     glow: "shadow-cyan-500/30",
+    audioUrl: "/audio/turn-it-up.mp3",
   },
   {
     title: "Alma Libre",
