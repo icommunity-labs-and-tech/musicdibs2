@@ -23,7 +23,7 @@ const DEMO_SONGS: DemoSong[] = [
     audioUrl: "/audio/midnight-drive.mp3",
   },
   {
-    title: "El Bendecido",
+    title: "Fuego Latino",
     tag: "Reggaeton",
     subtitle: "Reggaeton urbano · energético & bailable",
     colors: ["from-orange-400", "to-pink-500"],
