@@ -697,7 +697,7 @@ const resources = {
         },
       },
       artists: {
-        heading1: '100,000+ ARTISTS ALREADY', heading2: 'USE MUSICDIBS!', subtext: 'Powering the future of urban music', join_now: 'JOIN NOW', view_testimonials: 'VIEW TESTIMONIALS', stats: { artists: 'Registered artists', works: 'Protected works', countries: 'Countries' },
+        heading1: '100,000+ ARTISTS ALREADY', heading2: 'USE MUSICDIBS!', subtext: 'Powering the future of urban music', join_now: 'JOIN NOW', view_testimonials: 'VIEW TESTIMONIALS', stats: { artists: 'Registered artists', works: 'Registered & distributed works', countries: 'Countries' },
       },
       testimonials: { heading: 'Artists who already trust Musicdibs', videoTitle: 'Testimonial from {{name}}' },
       pricing: {
