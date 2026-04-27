@@ -1,4 +1,5 @@
-import { Play, Sparkles, Music, Upload, Wand2, ShieldCheck, Rocket } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Pause, Play, Sparkles, Music, Upload, Wand2, ShieldCheck, Rocket } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollReveal, StaggerGrid } from "@/components/ScrollReveal";
@@ -9,6 +10,7 @@ interface DemoSong {
   subtitle: string;
   colors: [string, string]; // tailwind from / to
   glow: string; // tailwind shadow color class
+  audioUrl?: string;
 }
 
 const DEMO_SONGS: DemoSong[] = [
@@ -18,6 +20,7 @@ const DEMO_SONGS: DemoSong[] = [
     subtitle: "Lo-fi hip hop · nostálgico y soñador",
     colors: ["from-purple-500", "to-fuchsia-500"],
     glow: "shadow-purple-500/30",
+    audioUrl: "/audio/midnight-drive.mp3",
   },
   {
     title: "Fuego Latino",
@@ -128,6 +131,31 @@ const Waveform = ({ from, to }: { from: string; to: string }) => {
 };
 
 export const AIStudioShowcase = () => {
+  const [playingTitle, setPlayingTitle] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
+
+  const handlePlay = (song: DemoSong) => {
+    if (!song.audioUrl) return;
+    if (playingTitle === song.title) {
+      audioRef.current?.pause();
+      setPlayingTitle(null);
+      return;
+    }
+    audioRef.current?.pause();
+    const audio = new Audio(song.audioUrl);
+    audio.onended = () => setPlayingTitle(null);
+    audio.play().catch(() => setPlayingTitle(null));
+    audioRef.current = audio;
+    setPlayingTitle(song.title);
+  };
+
   return (
     <section
       className="relative overflow-hidden py-24"
@@ -260,10 +288,16 @@ export const AIStudioShowcase = () => {
                   </div>
                   <button
                     type="button"
-                    aria-label={`Reproducir demo ${song.title}`}
-                    className={`shrink-0 w-11 h-11 rounded-full bg-gradient-to-br ${song.colors[0]} ${song.colors[1]} flex items-center justify-center text-white shadow-lg ${song.glow} hover:scale-110 active:scale-95 transition-transform`}
+                    onClick={() => handlePlay(song)}
+                    aria-label={`${playingTitle === song.title ? "Pausar" : "Reproducir"} demo ${song.title}`}
+                    disabled={!song.audioUrl}
+                    className={`shrink-0 w-11 h-11 rounded-full bg-gradient-to-br ${song.colors[0]} ${song.colors[1]} flex items-center justify-center text-white shadow-lg ${song.glow} hover:scale-110 active:scale-95 transition-transform disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
                   >
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                    {playingTitle === song.title ? (
+                      <Pause className="w-4 h-4 fill-current" />
+                    ) : (
+                      <Play className="w-4 h-4 fill-current ml-0.5" />
+                    )}
                   </button>
                 </div>
               </div>
