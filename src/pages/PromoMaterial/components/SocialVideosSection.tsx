@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Download, Info, AlertCircle, Film, Clock, Instagram } from 'lucide-react';
+import { Loader2, Download, Info, AlertCircle, Film, Clock, Instagram, Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const VIDEO_COST = FEATURE_COSTS.social_video;
