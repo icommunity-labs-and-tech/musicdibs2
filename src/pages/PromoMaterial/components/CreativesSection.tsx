@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
-import { Loader2, Download, Sparkles, RefreshCw, ImageIcon } from 'lucide-react';
+import { Loader2, Download, Sparkles, RefreshCw, ImageIcon, Wand2 } from 'lucide-react';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 type Format = 'feed' | 'story' | 'youtube';
@@ -55,12 +55,42 @@ export const CreativesSection = () => {
   const [basePhotoPreview, setBasePhotoPreview] = useState<string | null>(null);
 
   const [generating, setGenerating] = useState(false);
+  const [improving, setImproving] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [resultFormat, setResultFormat] = useState<Format>('feed');
 
   const currentFormat: Format = platform === 'youtube' ? 'youtube' : instagramFormat;
   const creditCost = FEATURE_COSTS.generate_cover ?? 1;
   const canGenerate = description.trim().length > 0 && hasEnough(creditCost);
+
+  const handleImproveDescription = async () => {
+    if (!description.trim()) {
+      toast.error('Escribe una descripción antes de mejorarla');
+      return;
+    }
+    const modeMap: Record<Format, string> = {
+      feed: 'creative_feed',
+      story: 'creative_story',
+      youtube: 'creative_youtube',
+    };
+    setImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: { prompt: description, mode: modeMap[currentFormat] },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setDescription(data.improved.slice(0, 1000));
+        toast.success('Descripción mejorada con IA');
+      } else {
+        throw new Error(data?.error || 'No se pudo mejorar la descripción');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error al mejorar la descripción');
+    } finally {
+      setImproving(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!description.trim()) {
@@ -132,16 +162,33 @@ export const CreativesSection = () => {
         {/* Description */}
         <div className="space-y-1.5">
           <Label className="text-sm">Describe la imagen que quieres <span className="text-destructive">*</span></Label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
-            placeholder="Ej: Artista cantando en un escenario con luces de neón azul y rosa, ambiente nocturno urbano"
-            rows={4}
-            maxLength={1000}
-            className="resize-none text-sm"
-          />
+          <div className="relative">
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+              placeholder="Ej: Artista cantando en un escenario con luces de neón azul y rosa, ambiente nocturno urbano"
+              rows={4}
+              maxLength={1000}
+              className="resize-none text-sm pr-2 pb-10"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleImproveDescription}
+              disabled={improving || generating}
+              className="absolute bottom-2 right-2 h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+            >
+              {improving ? (
+                <><Loader2 className="h-3 w-3 animate-spin" />Mejorando...</>
+              ) : (
+                <><Wand2 className="h-3 w-3" />✨ Mejorar con IA</>
+              )}
+            </Button>
+          </div>
           <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
         </div>
+
 
         {/* Photo */}
         <div className="space-y-1.5">
