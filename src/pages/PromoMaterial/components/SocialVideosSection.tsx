@@ -81,6 +81,28 @@ export const SocialVideosSection = () => {
     return tr('progress.phase3');
   };
 
+  const handleDownload = async (url: string, filename = `musicdibs-video-${Date.now()}.mp4`) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
   const handleImproveDescription = async () => {
     if (!description.trim()) return;
     setImprovingDesc(true);
