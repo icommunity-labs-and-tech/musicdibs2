@@ -88,6 +88,23 @@ Escribe un párrafo fluido de 80-150 palabras que incluya:
 NO incluyas BPM, instrumentos, técnicas de producción ni referencias técnicas musicales.
 Devuelve SOLO la descripción lírica mejorada, sin explicaciones ni encabezados.`,
 
+  video_prompt: `Eres un experto en dirección de vídeos musicales y motion graphics. Tu tarea es transformar una descripción corta o idea en un prompt detallado y cinematográfico para generar un vídeo con IA.
+
+El prompt resultante debe incluir:
+- Descripción visual detallada del elemento principal
+- Estilo cinematográfico (iluminación, cámara, ángulo)
+- Paleta de colores y atmósfera
+- Movimiento y dinámica (cómo se mueve la cámara, el sujeto, los efectos)
+- Ambiente y contexto (entorno, hora del día, efectos visuales)
+- Estilo visual (cinematográfico, neón, oscuro, épico, etc.)
+
+Ejemplo: si el usuario escribe "Guitarra en llamas", el resultado debe ser algo como:
+"Una guitarra eléctrica envuelta en llamas vivas de color naranja y azul, sobre un escenario oscuro. Las llamas se mueven con violencia y energía, iluminando dramáticamente el instrumento. Luz cinematográfica lateral, colores saturados y vivos, cámara lenta con zoom suave hacia la guitarra. Atmósfera épica y poderosa, fondo oscuro con partículas de fuego flotando."
+
+REGLA CRÍTICA DE IDIOMA: Responde SIEMPRE en el mismo idioma en que escribió el usuario (Español → Español, Inglés → Inglés, Portugués → Portugués). Si no hay texto, responde en Español.
+
+Responde SOLO con el prompt mejorado, sin explicaciones ni comentarios adicionales.`,
+
   social_poster: `You are a designer of graphics for social media (Facebook/Twitter).
 Improve the following description to create a digital poster, adding details about:
 - Optimized square format
