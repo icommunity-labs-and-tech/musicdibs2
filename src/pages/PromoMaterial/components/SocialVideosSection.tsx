@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, Download, Info, AlertCircle, Film, Clock, Instagram } from 'lucide-react';
+import { Loader2, Download, Info, AlertCircle, Film, Clock, Instagram, Sparkles } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 const VIDEO_COST = FEATURE_COSTS.social_video;
@@ -40,6 +40,7 @@ export const SocialVideosSection = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [generating, setGenerating] = useState(false);
+  const [improvingDesc, setImprovingDesc] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
@@ -78,6 +79,25 @@ export const SocialVideosSection = () => {
     if (count < 6) return tr('progress.phase1');
     if (count < 12) return tr('progress.phase2');
     return tr('progress.phase3');
+  };
+
+  const handleImproveDescription = async () => {
+    if (!description.trim()) return;
+    setImprovingDesc(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: { prompt: description, mode: 'video_prompt' },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      if (data?.improved) {
+        setDescription(data.improved.slice(0, 2000));
+        toast({ title: t('aiCovers.descImproved', '✨ Descripción mejorada') as string });
+      }
+    } catch {
+      toast({ title: t('aiShared.error', 'Error') as string, variant: 'destructive' });
+    } finally {
+      setImprovingDesc(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -204,7 +224,22 @@ export const SocialVideosSection = () => {
       <CardContent className="p-6 space-y-5">
         {/* Description */}
         <div className="space-y-2">
-          <Label>{tr('descriptionLabel')} <span className="text-destructive">*</span></Label>
+          <div className="flex items-center justify-between">
+            <Label>{tr('descriptionLabel')} <span className="text-destructive">*</span></Label>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleImproveDescription}
+              disabled={improvingDesc || generating || !description.trim()}
+              className="gap-1.5 h-7 text-xs"
+            >
+              {improvingDesc ? (
+                <><Loader2 className="h-3 w-3 animate-spin" />{t('aiCovers.improving', 'Mejorando...')}</>
+              ) : (
+                <><Sparkles className="h-3 w-3" />{t('aiCovers.improveWithAI', '✨ Mejorar con IA')}</>
+              )}
+            </Button>
+          </div>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 2000))}
