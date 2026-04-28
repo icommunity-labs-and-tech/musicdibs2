@@ -576,7 +576,7 @@ function getCopy(lang: string) {
     },
     pt: {
       title: "Assim funciona o Musicdibs",
-      subtitle: "De uma ideia a uma canção pronta para registrar, distribuir e promover.",
+      subtitle: "",
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
