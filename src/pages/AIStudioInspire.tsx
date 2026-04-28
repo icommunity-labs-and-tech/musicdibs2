@@ -112,6 +112,7 @@ const AIStudioInspire = () => {
   const [result, setResult] = useState<InspireResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastPrompt, setLastPrompt] = useState<string>("");
+  const [selectedChip, setSelectedChip] = useState<string | null>(null);
 
   useEffect(() => {
     track("ai_studio_entered", { feature: "inspire" });
