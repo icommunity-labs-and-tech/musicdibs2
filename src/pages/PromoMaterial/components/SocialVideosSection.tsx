@@ -224,7 +224,22 @@ export const SocialVideosSection = () => {
       <CardContent className="p-6 space-y-5">
         {/* Description */}
         <div className="space-y-2">
-          <Label>{tr('descriptionLabel')} <span className="text-destructive">*</span></Label>
+          <div className="flex items-center justify-between">
+            <Label>{tr('descriptionLabel')} <span className="text-destructive">*</span></Label>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleImproveDescription}
+              disabled={improvingDesc || generating || !description.trim()}
+              className="gap-1.5 h-7 text-xs"
+            >
+              {improvingDesc ? (
+                <><Loader2 className="h-3 w-3 animate-spin" />{t('aiCovers.improving', 'Mejorando...')}</>
+              ) : (
+                <><Sparkles className="h-3 w-3" />{t('aiCovers.improveWithAI', '✨ Mejorar con IA')}</>
+              )}
+            </Button>
+          </div>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 2000))}
