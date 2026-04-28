@@ -525,7 +525,7 @@ function getCopy(lang: string) {
     },
     en: {
       title: "This is how Musicdibs works",
-      subtitle: "From an idea to a song ready to register, distribute and promote.",
+      subtitle: "",
       skip: "Skip to end",
       next: "Next",
       step1: {
