@@ -466,7 +466,7 @@ function getCopy(lang: string) {
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
-        title: "Crea una canción nueva con IA, o mejora tus canciones con mastering automático.",
+        title: "Genera canciones con IA, o mejora las tuyas con mastering automático.",
         text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe tu canción",
@@ -517,7 +517,7 @@ function getCopy(lang: string) {
       skip: "Skip to end",
       next: "Next",
       step1: {
-        title: "Create a new song with AI, or enhance your songs with automatic mastering.",
+        title: "Generate songs with AI, or enhance yours with automatic mastering.",
         text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe your song",
@@ -568,7 +568,7 @@ function getCopy(lang: string) {
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
-        title: "Crie uma canção nova com IA, ou melhore suas canções com masterização automática.",
+        title: "Gere canções com IA, ou melhore as suas com masterização automática.",
         text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Descreva sua canção",
