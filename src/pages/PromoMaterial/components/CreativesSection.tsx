@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { useCredits } from '@/hooks/useCredits';
 import { NoCreditsAlert } from '@/components/dashboard/NoCreditsAlert';
 import { FEATURE_COSTS } from '@/lib/featureCosts';
-import { Loader2, Download, Sparkles, RefreshCw, ImageIcon } from 'lucide-react';
+import { Loader2, Download, Sparkles, RefreshCw, ImageIcon, Wand2 } from 'lucide-react';
 import { PricingLink } from '@/components/dashboard/PricingPopup';
 
 type Format = 'feed' | 'story' | 'youtube';
