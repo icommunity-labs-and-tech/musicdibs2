@@ -233,18 +233,6 @@ const StepCreate = ({ copy }: { copy: any }) => {
         </div>
 
         <button
-          type="button"
-          className="mt-3 w-full group flex items-center gap-2 rounded-lg border border-dashed border-purple-200 bg-purple-50/50 hover:bg-purple-50 hover:border-purple-300 transition-all px-3 py-2 text-left"
-        >
-          <span className="w-7 h-7 rounded-md bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center flex-shrink-0">
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-          </span>
-          <span className="text-xs font-medium text-slate-700 group-hover:text-slate-900">
-            {copy.masteringOption}
-          </span>
-        </button>
-
-        <button
           className={`mt-4 w-full py-2.5 rounded-lg text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all ${
             generating
               ? "bg-purple-500"
