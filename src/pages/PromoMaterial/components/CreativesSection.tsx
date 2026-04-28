@@ -55,6 +55,7 @@ export const CreativesSection = () => {
   const [basePhotoPreview, setBasePhotoPreview] = useState<string | null>(null);
 
   const [generating, setGenerating] = useState(false);
+  const [improving, setImproving] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [resultFormat, setResultFormat] = useState<Format>('feed');
 
