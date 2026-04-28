@@ -1205,7 +1205,7 @@ const AIStudioCreate = () => {
                               <button
                                 key={v.id}
                                 type="button"
-                                onClick={() => { setSelectedVoice(v.id); setSelectedArtistId(''); }}
+                                onClick={() => { setSelectedVoice(prev => prev === v.id ? '' : v.id); setSelectedArtistId(''); }}
                                 className={cn(
                                   "flex flex-col items-start p-2 px-3 rounded-lg border text-left w-full transition-all",
                                   selectedVoice === v.id && !selectedArtistId
