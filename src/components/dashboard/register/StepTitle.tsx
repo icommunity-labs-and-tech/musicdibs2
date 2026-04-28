@@ -91,20 +91,7 @@ export function StepTitle({ data, onUpdate, onNext, onBack }: StepTitleProps) {
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">{t('wizard.stepTitle.descLabel')} <span className="text-muted-foreground">({t('wizard.optional')})</span></Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs gap-1.5 text-primary"
-              disabled={generatingDesc || !data.title.trim()}
-              onClick={handleGenerateDescription}
-            >
-              {generatingDesc ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-              {generatingDesc ? t('wizard.stepTitle.generating') : t('wizard.stepTitle.generateAI')}
-            </Button>
-          </div>
+          <Label className="text-sm">{t('wizard.stepTitle.descLabel')} <span className="text-muted-foreground">({t('wizard.optional')})</span></Label>
           <Textarea
             value={data.description}
             onChange={(e) => {
