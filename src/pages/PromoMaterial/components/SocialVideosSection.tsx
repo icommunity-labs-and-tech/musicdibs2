@@ -40,6 +40,7 @@ export const SocialVideosSection = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [generating, setGenerating] = useState(false);
+  const [improvingDesc, setImprovingDesc] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [progressStatus, setProgressStatus] = useState<'queued' | 'processing' | null>(null);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
