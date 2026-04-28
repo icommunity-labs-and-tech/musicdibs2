@@ -162,16 +162,33 @@ export const CreativesSection = () => {
         {/* Description */}
         <div className="space-y-1.5">
           <Label className="text-sm">Describe la imagen que quieres <span className="text-destructive">*</span></Label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
-            placeholder="Ej: Artista cantando en un escenario con luces de neón azul y rosa, ambiente nocturno urbano"
-            rows={4}
-            maxLength={1000}
-            className="resize-none text-sm"
-          />
+          <div className="relative">
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 1000))}
+              placeholder="Ej: Artista cantando en un escenario con luces de neón azul y rosa, ambiente nocturno urbano"
+              rows={4}
+              maxLength={1000}
+              className="resize-none text-sm pr-2 pb-10"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={handleImproveDescription}
+              disabled={improving || generating}
+              className="absolute bottom-2 right-2 h-7 px-2 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+            >
+              {improving ? (
+                <><Loader2 className="h-3 w-3 animate-spin" />Mejorando...</>
+              ) : (
+                <><Wand2 className="h-3 w-3" />✨ Mejorar con IA</>
+              )}
+            </Button>
+          </div>
           <p className="text-[11px] text-muted-foreground text-right">{description.length}/1000</p>
         </div>
+
 
         {/* Photo */}
         <div className="space-y-1.5">
