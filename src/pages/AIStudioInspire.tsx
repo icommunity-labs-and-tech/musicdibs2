@@ -185,7 +185,16 @@ const AIStudioInspire = () => {
   };
 
   const handleSurprise = () => {
-    generateInline(buildSurprisePrompt());
+    if (selectedChip) {
+      const preset = PRESET_IDEAS.find((idea) => idea.label === selectedChip);
+      generateInline(preset ? preset.prompt : buildSurprisePrompt());
+    } else {
+      generateInline(buildSurprisePrompt());
+    }
+  };
+
+  const handleChipClick = (label: string) => {
+    setSelectedChip((prev) => (prev === label ? null : label));
   };
 
   const handleDownload = async () => {
