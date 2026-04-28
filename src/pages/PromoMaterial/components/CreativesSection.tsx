@@ -63,6 +63,35 @@ export const CreativesSection = () => {
   const creditCost = FEATURE_COSTS.generate_cover ?? 1;
   const canGenerate = description.trim().length > 0 && hasEnough(creditCost);
 
+  const handleImproveDescription = async () => {
+    if (!description.trim()) {
+      toast.error('Escribe una descripción antes de mejorarla');
+      return;
+    }
+    const modeMap: Record<Format, string> = {
+      feed: 'creative_feed',
+      story: 'creative_story',
+      youtube: 'creative_youtube',
+    };
+    setImproving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: { prompt: description, mode: modeMap[currentFormat] },
+      });
+      if (error) throw error;
+      if (data?.improved) {
+        setDescription(data.improved.slice(0, 1000));
+        toast.success('Descripción mejorada con IA');
+      } else {
+        throw new Error(data?.error || 'No se pudo mejorar la descripción');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Error al mejorar la descripción');
+    } finally {
+      setImproving(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!description.trim()) {
       toast.error('Añade una descripción de la imagen');
