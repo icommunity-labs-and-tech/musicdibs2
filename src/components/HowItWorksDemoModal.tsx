@@ -101,7 +101,9 @@ export const HowItWorksDemoModal = ({ open, onOpenChange }: HowItWorksDemoModalP
             <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-purple-200">
               {copy.title}
             </h2>
-            <p className="text-sm md:text-base text-white/70 mt-1">{copy.subtitle}</p>
+            {copy.subtitle && (
+              <p className="text-sm md:text-base text-white/70 mt-1">{copy.subtitle}</p>
+            )}
           </div>
 
           {/* Stepper */}
