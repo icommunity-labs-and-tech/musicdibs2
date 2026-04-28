@@ -517,7 +517,7 @@ function getCopy(lang: string) {
       skip: "Skip to end",
       next: "Next",
       step1: {
-        title: "Create a new song with AI, or enhance your songs with automatic mastering.",
+        title: "Generate songs with AI, or enhance yours with automatic mastering.",
         text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe your song",
