@@ -474,7 +474,7 @@ function getCopy(lang: string) {
   const dict: Record<string, any> = {
     es: {
       title: "Así funciona Musicdibs",
-      subtitle: "De una idea a una canción lista para registrar, distribuir y promocionar.",
+      subtitle: "",
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
