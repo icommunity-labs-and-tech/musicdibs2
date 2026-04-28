@@ -353,11 +353,9 @@ export const SocialVideosSection = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button asChild variant="default" className="flex-1">
-                <a href={videoUrl} download target="_blank" rel="noopener noreferrer">
-                  <Download className="w-4 h-4 mr-2" />
-                  {tr('downloadVideo')}
-                </a>
+              <Button variant="default" className="flex-1" onClick={() => handleDownload(videoUrl)}>
+                <Download className="w-4 h-4 mr-2" />
+                {tr('downloadVideo')}
               </Button>
               <Button
                 variant="ghost"
