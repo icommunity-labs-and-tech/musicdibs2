@@ -466,7 +466,7 @@ function getCopy(lang: string) {
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
-        title: "Crea una canción nueva con IA, o mejora tus canciones con mastering automático.",
+        title: "Genera canciones con IA, o mejora las tuyas con mastering automático.",
         text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe tu canción",
