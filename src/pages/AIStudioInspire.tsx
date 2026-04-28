@@ -112,6 +112,7 @@ const AIStudioInspire = () => {
   const [result, setResult] = useState<InspireResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastPrompt, setLastPrompt] = useState<string>("");
+  const [selectedChip, setSelectedChip] = useState<string | null>(null);
 
   useEffect(() => {
     track("ai_studio_entered", { feature: "inspire" });
@@ -184,7 +185,16 @@ const AIStudioInspire = () => {
   };
 
   const handleSurprise = () => {
-    generateInline(buildSurprisePrompt());
+    if (selectedChip) {
+      const preset = PRESET_IDEAS.find((idea) => idea.label === selectedChip);
+      generateInline(preset ? preset.prompt : buildSurprisePrompt());
+    } else {
+      generateInline(buildSurprisePrompt());
+    }
+  };
+
+  const handleChipClick = (label: string) => {
+    setSelectedChip((prev) => (prev === label ? null : label));
   };
 
   const handleDownload = async () => {
@@ -254,7 +264,7 @@ const AIStudioInspire = () => {
             ) : (
               <>
                 <Dice5 className="w-5 h-5 mr-2" />
-                🎲 Sorpréndeme
+                {selectedChip ? `🎲 Generar ${selectedChip}` : "🎲 Sorpréndeme"}
               </>
             )}
           </Button>
@@ -338,17 +348,25 @@ const AIStudioInspire = () => {
           <div className="mt-12">
             <p className="text-sm text-muted-foreground mb-4">O prueba con estas ideas:</p>
             <div className="flex flex-wrap justify-center gap-2">
-              {PRESET_IDEAS.map((idea) => (
-                <button
-                  key={idea.label}
-                  onClick={() => generateInline(idea.prompt)}
-                  disabled={isGenerating}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-card hover:bg-accent hover:border-primary/40 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-card disabled:hover:border-border"
-                >
-                  <span aria-hidden>{idea.emoji}</span>
-                  {idea.label}
-                </button>
-              ))}
+              {PRESET_IDEAS.map((idea) => {
+                const isSelected = selectedChip === idea.label;
+                return (
+                  <button
+                    key={idea.label}
+                    onClick={() => handleChipClick(idea.label)}
+                    disabled={isGenerating}
+                    aria-pressed={isSelected}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isSelected
+                        ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
+                        : "border-border bg-card hover:bg-accent hover:border-primary/40"
+                    }`}
+                  >
+                    <span aria-hidden>{idea.emoji}</span>
+                    {idea.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
