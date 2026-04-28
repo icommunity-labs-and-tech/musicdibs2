@@ -81,6 +81,25 @@ export const SocialVideosSection = () => {
     return tr('progress.phase3');
   };
 
+  const handleImproveDescription = async () => {
+    if (!description.trim()) return;
+    setImprovingDesc(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('improve-prompt', {
+        body: { prompt: description, mode: 'video_prompt' },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      if (data?.improved) {
+        setDescription(data.improved.slice(0, 2000));
+        toast({ title: t('aiCovers.descImproved', '✨ Descripción mejorada') as string });
+      }
+    } catch {
+      toast({ title: t('aiShared.error', 'Error') as string, variant: 'destructive' });
+    } finally {
+      setImprovingDesc(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!description.trim() || !user) return;
 
