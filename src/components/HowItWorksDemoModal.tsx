@@ -101,7 +101,9 @@ export const HowItWorksDemoModal = ({ open, onOpenChange }: HowItWorksDemoModalP
             <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-purple-200">
               {copy.title}
             </h2>
-            <p className="text-sm md:text-base text-white/70 mt-1">{copy.subtitle}</p>
+            {copy.subtitle && (
+              <p className="text-sm md:text-base text-white/70 mt-1">{copy.subtitle}</p>
+            )}
           </div>
 
           {/* Stepper */}
@@ -472,7 +474,7 @@ function getCopy(lang: string) {
   const dict: Record<string, any> = {
     es: {
       title: "Así funciona Musicdibs",
-      subtitle: "De una idea a una canción lista para registrar, distribuir y promocionar.",
+      subtitle: "",
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
@@ -523,7 +525,7 @@ function getCopy(lang: string) {
     },
     en: {
       title: "This is how Musicdibs works",
-      subtitle: "From an idea to a song ready to register, distribute and promote.",
+      subtitle: "",
       skip: "Skip to end",
       next: "Next",
       step1: {
@@ -574,7 +576,7 @@ function getCopy(lang: string) {
     },
     pt: {
       title: "Assim funciona o Musicdibs",
-      subtitle: "De uma ideia a uma canção pronta para registrar, distribuir e promover.",
+      subtitle: "",
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
