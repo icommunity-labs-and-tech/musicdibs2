@@ -488,8 +488,8 @@ function getCopy(lang: string) {
       skip: "Saltar al final",
       next: "Siguiente",
       step1: {
-        title: "1. Crea o sube tu canción",
-        text: "Empieza desde cero con IA o mejora tu canción con mastering automático.",
+        title: "Crea una canción nueva con IA, o mejora tus canciones con mastering automático.",
+        text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe tu canción",
         placeholder: "Canción pop latina de amor…",
@@ -539,8 +539,8 @@ function getCopy(lang: string) {
       skip: "Skip to end",
       next: "Next",
       step1: {
-        title: "1. Create or upload your song",
-        text: "Start from scratch with AI or enhance your song with automatic mastering.",
+        title: "Create a new song with AI, or enhance your songs with automatic mastering.",
+        text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Describe your song",
         placeholder: "Latin pop love song…",
@@ -590,8 +590,8 @@ function getCopy(lang: string) {
       skip: "Pular para o final",
       next: "Seguinte",
       step1: {
-        title: "1. Crie ou envie sua canção",
-        text: "Comece do zero com IA ou melhore sua canção com masterização automática.",
+        title: "Crie uma canção nova com IA, ou melhore suas canções com masterização automática.",
+        text: "",
         studioPill: "AI Music Studio",
         fieldLabel: "Descreva sua canção",
         placeholder: "Canção pop latina de amor…",
