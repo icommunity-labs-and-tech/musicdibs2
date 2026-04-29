@@ -1009,7 +1009,7 @@ const en: typeof es = {
       cost: 'Cost: {{cost}} credits',
       submit: 'Submit request',
       fillRequired: 'Please fill in all required fields.',
-      insufficientCredits: 'Not enough credits (30 needed).',
+      insufficientCredits: 'Not enough credits ({{cost}} needed).',
       submitError: 'Error submitting request.',
       requestSent: 'Request submitted successfully!',
       successTitle: 'Request submitted!',
