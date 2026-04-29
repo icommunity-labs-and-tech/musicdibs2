@@ -380,7 +380,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Required fields',
           missingFieldsDesc: 'Complete artist name, track title and image description',
           insufficientCredits: 'Insufficient credits',
-          insufficientCreditsDesc: 'You need 1 credit to generate a creative',
+          insufficientCreditsDesc: 'You need {{cost}} credit(s) to generate a creative',
           generationError: 'Generation error',
           generationErrorDesc: 'Could not generate creative. Try again.',
           formTitle: 'Configure your creative',
