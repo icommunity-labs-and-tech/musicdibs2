@@ -71,7 +71,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Campos requeridos',
           missingFieldsDesc: 'Completa nombre del artista, título de la canción y descripción de la imagen',
           insufficientCredits: 'Créditos insuficientes',
-          insufficientCreditsDesc: 'Necesitas 1 crédito para generar una creatividad',
+          insufficientCreditsDesc: 'Necesitas {{cost}} crédito(s) para generar una creatividad',
           generationError: 'Error al generar',
           generationErrorDesc: 'No se pudo generar la creatividad. Inténtalo de nuevo.',
           formTitle: 'Configura tu creatividad',
