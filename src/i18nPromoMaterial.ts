@@ -419,7 +419,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Required fields',
           missingFieldsDesc: 'Complete video title and thumbnail description',
           insufficientCredits: 'Insufficient credits',
-          insufficientCreditsDesc: 'You need 1 credit to generate a thumbnail',
+          insufficientCreditsDesc: 'You need {{cost}} credit(s) to generate a thumbnail',
           generationError: 'Generation error',
           generationErrorDesc: 'Could not generate thumbnail. Try again.',
           imageTooBig: 'Image too large',
