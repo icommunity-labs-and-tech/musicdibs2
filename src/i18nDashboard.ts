@@ -1670,7 +1670,7 @@ const pt: typeof es = {
       cost: 'Custo: {{cost}} créditos',
       submit: 'Enviar solicitação',
       fillRequired: 'Preencha todos os campos obrigatórios.',
-      insufficientCredits: 'Créditos insuficientes (30 necessários).',
+      insufficientCredits: 'Créditos insuficientes ({{cost}} necessários).',
       submitError: 'Erro ao enviar solicitação.',
       requestSent: 'Solicitação enviada com sucesso!',
       successTitle: 'Solicitação enviada!',
