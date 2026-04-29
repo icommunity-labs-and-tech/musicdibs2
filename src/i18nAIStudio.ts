@@ -1041,7 +1041,7 @@ export const aiStudioTranslations: Record<string, Record<string, any>> = {
       errorSelectVoice: 'Select a cloned voice',
       errorSelectVoiceDesc: 'Go to the "Clone" tab to create your first voice.',
       insufficientCredits: 'Insufficient credits',
-      insufficientCreditsDesc: 'You need 1 credit to generate a vocal track.',
+      insufficientCreditsDesc: 'You need {{cost}} credit(s) to generate a vocal track.',
       audioTooShort: '⚠️ Audio too short ({{dur}}s) — minimum 30 seconds',
       audioOk: '⚠️ Works but better with more than 1 minute ({{dur}}s)',
       audioOptimal: '✓ Optimal duration ({{dur}}s)',
