@@ -507,7 +507,7 @@ export function FirstHitFlow({ onSkip }: { onSkip?: () => void }) {
       })
       if (spendError) throw new Error(spendError.message)
       if (spendData?.error === 'insufficient_credits') {
-        toast.error(t('dashboard.premium.insufficientCredits'))
+        toast.error(t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium }))
         setPromoting(false)
         return
       }
