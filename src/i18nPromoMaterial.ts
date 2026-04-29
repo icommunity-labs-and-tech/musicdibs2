@@ -258,7 +258,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Campos requeridos',
           missingFieldsDesc: 'Completa nombre, título, fecha y lugar',
           insufficientCredits: 'Créditos insuficientes',
-          insufficientCreditsDesc: 'Necesitas 1 crédito',
+          insufficientCreditsDesc: 'Necesitas {{cost}} crédito(s)',
           generationError: 'Error al generar',
           generationErrorDesc: 'No se pudo generar. Inténtalo de nuevo.',
           fileTooBig: 'Archivo muy grande',
