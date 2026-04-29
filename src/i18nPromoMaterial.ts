@@ -110,7 +110,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Campos requeridos',
           missingFieldsDesc: 'Completa el título del video y la descripción de la miniatura',
           insufficientCredits: 'Créditos insuficientes',
-          insufficientCreditsDesc: 'Necesitas 1 crédito para generar una miniatura',
+          insufficientCreditsDesc: 'Necesitas {{cost}} crédito(s) para generar una miniatura',
           generationError: 'Error al generar',
           generationErrorDesc: 'No se pudo generar la miniatura. Inténtalo de nuevo.',
           imageTooBig: 'Imagen muy grande',
