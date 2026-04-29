@@ -827,7 +827,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
         error: 'Erro ao gerar vídeo',
         errorDesc: 'Não foi possível gerar o vídeo. Tente novamente.',
         insufficientCredits: 'Créditos insuficientes',
-        insufficientCreditsDesc: 'Você precisa de 10 créditos para gerar um vídeo. Você tem {{current}}.',
+        insufficientCreditsDesc: 'Você precisa de {{cost}} crédito(s) para gerar um vídeo. Você tem {{current}}.',
         important: 'Importante:',
         notMusicVideo: 'Este gerador cria clipes visuais curtos, não videoclipes musicais completos.',
         progress: {
