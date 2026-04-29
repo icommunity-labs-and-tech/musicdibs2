@@ -72,17 +72,17 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
 
-    // Use getClaims for fast local JWT validation (no network call)
-    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    // Validate JWT via getUser (compatible with supabase-js 2.49.x)
+    const { data: userData, error: userError } = await supabaseAuth.auth.getUser(token);
+    if (userError || !userData?.user?.id) {
       logStep("JWT validation failed, returning graceful response");
       return new Response(JSON.stringify({ subscribed: false, plan: "Free", cancel_at_period_end: false, subscription_end: null, auth_error: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub as string;
-    const userEmail = claimsData.claims.email as string;
+    const userId = userData.user.id;
+    const userEmail = userData.user.email as string;
     if (!userEmail) throw new Error("User email not available in token");
     logStep("User authenticated", { userId, email: userEmail });
 
