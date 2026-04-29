@@ -186,6 +186,10 @@ const AIStudio = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 {t('aiStudio.pageSubtitle')}
               </p>
+              <p className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm font-medium border border-amber-500/20">
+                <Lightbulb className="w-4 h-4" />
+                {t('aiStudio.pageTip')}
+              </p>
             </div>
 
             {/* Row 1 */}
