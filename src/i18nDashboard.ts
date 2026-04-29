@@ -250,7 +250,7 @@ const es = {
       availableCredits: 'Créditos disponibles:',
       promoGenerated: '¡Promoción generada! Revisa tus assets y tu email.',
       unknownError: 'Fallo desconocido',
-      insufficientCredits: 'No tienes créditos suficientes (15 necesarios).',
+      insufficientCredits: 'No tienes créditos suficientes ({{cost}} necesarios).',
       generatingInfo: 'Generando promoción... esto tardará ~30 segundos.',
       launchError: 'Error al lanzar la promoción',
       regenError: 'Error al regenerar',
