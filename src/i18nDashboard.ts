@@ -911,7 +911,7 @@ const en: typeof es = {
       availableCredits: 'Available credits:',
       promoGenerated: 'Promotion generated! Check your assets and email.',
       unknownError: 'Unknown error',
-      insufficientCredits: 'Not enough credits (15 needed).',
+      insufficientCredits: 'Not enough credits ({{cost}} needed).',
       generatingInfo: 'Generating promotion... ~30 seconds.',
       launchError: 'Error launching promotion',
       regenError: 'Error regenerating',
