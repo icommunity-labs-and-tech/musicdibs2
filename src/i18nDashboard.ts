@@ -1572,7 +1572,7 @@ const pt: typeof es = {
       availableCredits: 'Créditos disponíveis:',
       promoGenerated: 'Promoção gerada! Confira seus assets e email.',
       unknownError: 'Erro desconhecido',
-      insufficientCredits: 'Créditos insuficientes (15 necessários).',
+      insufficientCredits: 'Créditos insuficientes ({{cost}} necessários).',
       generatingInfo: 'Gerando promoção... ~30 segundos.',
       launchError: 'Erro ao lançar promoção',
       regenError: 'Erro ao regenerar',
