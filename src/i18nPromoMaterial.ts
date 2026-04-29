@@ -689,7 +689,7 @@ export const promoMaterialTranslations: Record<string, Record<string, any>> = {
           missingFields: 'Campos obrigatórios',
           missingFieldsDesc: 'Complete nome do artista, título da música e descrição da imagem',
           insufficientCredits: 'Créditos insuficientes',
-          insufficientCreditsDesc: 'Você precisa de 1 crédito para gerar um criativo',
+          insufficientCreditsDesc: 'Você precisa de {{cost}} crédito(s) para gerar um criativo',
           generationError: 'Erro ao gerar',
           generationErrorDesc: 'Não foi possível gerar o criativo. Tente novamente.',
           formTitle: 'Configure seu criativo',
