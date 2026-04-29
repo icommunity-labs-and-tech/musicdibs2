@@ -241,7 +241,7 @@ export function PromoteWorks() {
       if (error) throw new Error(error.message);
       if (data?.error) {
         if (data.error === 'insufficient_credits') {
-          toast.error(t('dashboard.promote.insufficientCredits'));
+          toast.error(t('dashboard.promote.insufficientCredits', { cost: FEATURE_COSTS.promote_work }));
         } else {
           throw new Error(data.error);
         }
@@ -333,7 +333,7 @@ export function PromoteWorks() {
       <CardContent className="px-0 pb-0">
         {noCredits && (
           <div className="px-6 pb-3">
-            <NoCreditsAlert message={t('dashboard.promote.insufficientCredits')} />
+            <NoCreditsAlert message={t('dashboard.promote.insufficientCredits', { cost: FEATURE_COSTS.promote_work })} />
           </div>
         )}
 

@@ -173,7 +173,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
       if (spendError) {
         const status = (spendError as any)?.context?.status;
         if (status === 402) {
-          toast.error(t('dashboard.premium.insufficientCredits'));
+          toast.error(t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium }));
         } else if (status === 401) {
           toast.error(t('dashboard.premium.sessionExpired', 'Tu sesión ha expirado. Vuelve a iniciar sesión.'));
         } else {
@@ -184,7 +184,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         return;
       }
       if (spendData?.error === 'insufficient_credits' || spendData?.error === 'Créditos insuficientes') {
-        toast.error(t('dashboard.premium.insufficientCredits'));
+        toast.error(t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium }));
         failAndReset();
         return;
       }
@@ -347,7 +347,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             </p>
           </div>
 
-          {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits')} />}
+          {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium })} />}
 
           {/* Form fields */}
           <div className="space-y-4">
