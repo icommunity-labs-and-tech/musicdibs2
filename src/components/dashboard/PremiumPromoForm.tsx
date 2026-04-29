@@ -347,7 +347,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
             </p>
           </div>
 
-          {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits')} />}
+          {noCredits && <NoCreditsAlert message={t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium })} />}
 
           {/* Form fields */}
           <div className="space-y-4">
