@@ -184,7 +184,7 @@ export function PremiumPromoForm({ works, onBack }: PremiumPromoFormProps) {
         return;
       }
       if (spendData?.error === 'insufficient_credits' || spendData?.error === 'Créditos insuficientes') {
-        toast.error(t('dashboard.premium.insufficientCredits'));
+        toast.error(t('dashboard.premium.insufficientCredits', { cost: FEATURE_COSTS.promote_premium }));
         failAndReset();
         return;
       }
