@@ -98,7 +98,7 @@ export const CreativesSection = () => {
       return;
     }
     if (!hasEnough(creditCost)) {
-      toast.error('No tienes créditos suficientes');
+      toast.error(`No tienes créditos suficientes (${creditCost} necesarios)`);
       return;
     }
 
