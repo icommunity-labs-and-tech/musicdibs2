@@ -25,7 +25,6 @@ const OPERATION_TO_FEATURE_KEY: Record<string, string> = {
   random_generator: 'generate_audio',
   professional_mastering: 'enhance_audio',
   video_fullhd: 'generate_video',
-  social_media_promo: 'instagram_creative',
   composer_lyrics: 'generate_lyrics',
   promote_premium: 'promote_work',
   voice_translation_per_min: 'generate_vocal_track',
