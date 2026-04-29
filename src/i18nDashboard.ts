@@ -348,7 +348,7 @@ const es = {
       cost: 'Coste: {{cost}} créditos',
       submit: 'Enviar solicitud',
       fillRequired: 'Completa todos los campos obligatorios.',
-      insufficientCredits: 'No tienes créditos suficientes (30 necesarios).',
+      insufficientCredits: 'No tienes créditos suficientes ({{cost}} necesarios).',
       submitError: 'Error al enviar la solicitud.',
       requestSent: '¡Solicitud enviada correctamente!',
       successTitle: '¡Solicitud enviada!',
