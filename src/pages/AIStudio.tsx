@@ -189,10 +189,20 @@ const AIStudio = () => {
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 {t('aiStudio.pageSubtitle')}
               </p>
-              <p className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm font-medium border border-amber-500/20">
-                <Lightbulb className="w-4 h-4" />
-                {t('aiStudio.pageTip')}
-              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <p className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 text-sm font-medium border border-amber-500/20">
+                  <Lightbulb className="w-4 h-4" />
+                  {t('aiStudio.pageTip')}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium hover:bg-primary/10 transition-colors"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  👉 {t('aiStudio.aiGuide.trigger')}
+                </button>
+              </div>
             </div>
 
             {/* Row 1 */}
