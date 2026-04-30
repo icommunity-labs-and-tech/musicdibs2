@@ -1652,6 +1652,16 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       pageTitle: 'AI Music Studio',
       pageSubtitle: 'Crie música, vozes, capas e videoclipes em um só lugar.',
       pageTip: 'Cada geração pode variar. Ajuste seu prompt para melhorar o resultado.',
+      aiGuide: {
+        title: '🎧 Como aproveitar ao máximo a IA',
+        items: {
+          notExact: { title: 'A IA não é exata', desc: 'Cada geração pode variar ligeiramente na letra, estilo ou voz.' },
+          iterate: { title: 'Itere para melhorar', desc: 'Teste várias versões e ajuste seu prompt para chegar ao resultado.' },
+          clearer: { title: 'Quanto mais claro, melhor', desc: 'Descreva gênero, mood, tempo ou referências.' },
+          adjust: { title: 'Ajuste, não comece do zero', desc: 'Pequenas mudanças → melhores resultados.' },
+        },
+        important: { title: 'Importante', desc: 'As variações no resultado NÃO são erros, fazem parte do funcionamento da IA.' },
+      },
       noCredits: 'Sem créditos',
       comingSoon: 'Em breve',
       creditPerUse: 'crédito por uso',
