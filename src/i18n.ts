@@ -1609,6 +1609,16 @@ const aiStudioRootTranslations: Record<string, { aiStudio: Record<string, any> }
       pageTitle: 'AI Music Studio',
       pageSubtitle: 'Create music, voices, covers and videoclips from one place.',
       pageTip: 'Each generation may vary. Tweak your prompt to improve the result.',
+      aiGuide: {
+        title: '🎧 How to get the most out of AI',
+        items: {
+          notExact: { title: 'AI is not exact', desc: 'Each generation may vary slightly in lyrics, style or voice.' },
+          iterate: { title: 'Iterate to improve', desc: 'Try several versions and tweak your prompt to get closer to the result.' },
+          clearer: { title: 'The clearer, the better', desc: 'Describe genre, mood, tempo or references.' },
+          adjust: { title: 'Adjust, don\'t start from scratch', desc: 'Small changes → better results.' },
+        },
+        important: { title: 'Important', desc: 'Variations in the result are NOT errors, they are part of how AI works.' },
+      },
       noCredits: 'No credits',
       comingSoon: 'Coming soon',
       creditPerUse: 'credit per use',
