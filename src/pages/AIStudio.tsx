@@ -192,48 +192,6 @@ const AIStudio = () => {
               </p>
             </div>
 
-            {/* AI Usage Guide */}
-            <Card className="max-w-5xl mx-auto mb-10 bg-muted/30 border-border/60 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl md:text-2xl">
-                  {t('aiStudio.aiGuide.title')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {[
-                    { key: 'notExact', icon: '🎯' },
-                    { key: 'iterate', icon: '🔁' },
-                    { key: 'clearer', icon: '✍️' },
-                    { key: 'adjust', icon: '🎛️' },
-                  ].map((item) => (
-                    <div key={item.key} className="flex items-start gap-3 p-3 rounded-lg bg-background/60 border border-border/40">
-                      <span className="text-xl leading-none mt-0.5" aria-hidden>{item.icon}</span>
-                      <div className="min-w-0">
-                        <h4 className="font-semibold text-sm mb-1">
-                          {t(`aiStudio.aiGuide.items.${item.key}.title`)}
-                        </h4>
-                        <p className="text-sm text-muted-foreground leading-snug">
-                          {t(`aiStudio.aiGuide.items.${item.key}.desc`)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400 mb-1">
-                      {t('aiStudio.aiGuide.important.title')}
-                    </h4>
-                    <p className="text-sm text-muted-foreground leading-snug">
-                      {t('aiStudio.aiGuide.important.desc')}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Row 1 */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {topRowModules.map((m) => renderModuleCard(m))}
