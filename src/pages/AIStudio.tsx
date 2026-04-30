@@ -250,6 +250,8 @@ const AIStudio = () => {
           <ArtistProfilesPage />
         ) : null}
       </main>
+      <AIKnowledgeGuideModal open={guideOpen} onOpenChange={setGuideOpen} showDontShowAgain />
+
 
       
     </div>
