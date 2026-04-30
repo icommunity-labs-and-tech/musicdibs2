@@ -23,6 +23,7 @@ const AIStudio = () => {
   const { t } = useTranslation();
   const { track } = useProductTracking();
   const [activeView, setActiveView] = useState<ActiveView>("grid");
+  const { open: guideOpen, setOpen: setGuideOpen } = useAIGuideAutoShow();
 
   useEffect(() => {
     track('ai_studio_entered', { feature: 'create_music' });
