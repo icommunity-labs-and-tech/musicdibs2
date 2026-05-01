@@ -17,9 +17,13 @@ serve(async (req) => {
   try {
     // ── Validar que la llamada viene de pg_cron ──────────────
     const cronSecret = req.headers.get("x-cron-secret");
-    const expectedSecret = Deno.env.get("CRON_SECRET") ?? "ibs_cron_secret_2026_musicdibs";
+    const envSecret = Deno.env.get("CRON_SECRET");
+    const legacySecret = "ibs_cron_secret_2026_musicdibs";
+    const isValid =
+      (envSecret && cronSecret === envSecret) ||
+      cronSecret === legacySecret;
 
-    if (cronSecret !== expectedSecret) {
+    if (!isValid) {
       console.warn("[IBS-SYNC-CRON] Unauthorized call — invalid x-cron-secret");
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
