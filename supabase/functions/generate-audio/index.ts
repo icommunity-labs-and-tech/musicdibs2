@@ -7,6 +7,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+// ─── Routing logic ───────────────────────────────────────────────────────────
+//
+//  LYRIA 3 PRO  →  default for instrumental and song-without-lyrics ≤ 180s
+//  ELEVENLABS   →  when user provides lyrics (exact letter respect)
+//                  OR when duration > 180s (Lyria max is ~3 min)
+//
+// ─────────────────────────────────────────────────────────────────────────────
+
+const LYRIA_MAX_DURATION_SECS = 180;
+
+function shouldUseLyria(opts: {
+  hasLyrics: boolean;
+  explicitDuration: number | null;
+}): boolean {
+  if (opts.hasLyrics) return false;             // Lyrics → ElevenLabs always
+  if (opts.explicitDuration && opts.explicitDuration > LYRIA_MAX_DURATION_SECS) return false; // >3min → ElevenLabs
+  return true;
+}
+
+// ─── ElevenLabs helpers (unchanged from original) ────────────────────────────
+
 async function buildCompositionPlan(
   stylePrompt: string,
   lyrics: string,
@@ -22,7 +43,6 @@ async function buildCompositionPlan(
   if (!cleanedLyrics) return buildManualPlan(stylePrompt, lyrics);
 
   try {
-    // No music_length_ms — let ElevenLabs decide duration from the plan
     const planResp = await fetch('https://api.elevenlabs.io/v1/music/composition-plan', {
       method: 'POST',
       headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
@@ -89,49 +109,146 @@ function buildManualPlan(stylePrompt: string, lyrics: string): any {
   const verse1Lines = verse1Lyrics.split('\n').filter(l => l.trim());
   const verse2Lines = verse2Lyrics.split('\n').filter(l => l.trim());
 
-  // Durations in ms — let the model breathe naturally
   return {
     positive_global_styles: [stylePrompt],
     negative_global_styles: [],
     sections: [
-      {
-        section_name: 'Intro',
-        duration_ms: 10000,
-        lines: [],
-        positive_local_styles: ['instrumental intro'],
-        negative_local_styles: [],
-      },
-      {
-        section_name: 'Verse 1',
-        duration_ms: 30000,
-        lines: verse1Lines,
-        positive_local_styles: ['verse with lead vocals'],
-        negative_local_styles: [],
-      },
-      {
-        section_name: 'Chorus',
-        duration_ms: 25000,
-        lines: verse2Lines,
-        positive_local_styles: ['energetic chorus with vocals'],
-        negative_local_styles: [],
-      },
-      {
-        section_name: 'Verse 2',
-        duration_ms: 30000,
-        lines: verse2Lines,
-        positive_local_styles: ['verse with lead vocals'],
-        negative_local_styles: [],
-      },
-      {
-        section_name: 'Outro',
-        duration_ms: 10000,
-        lines: [],
-        positive_local_styles: ['outro instrumental fade'],
-        negative_local_styles: [],
-      },
+      { section_name: 'Intro', duration_ms: 10000, lines: [], positive_local_styles: ['instrumental intro'], negative_local_styles: [] },
+      { section_name: 'Verse 1', duration_ms: 30000, lines: verse1Lines, positive_local_styles: ['verse with lead vocals'], negative_local_styles: [] },
+      { section_name: 'Chorus', duration_ms: 25000, lines: verse2Lines, positive_local_styles: ['energetic chorus with vocals'], negative_local_styles: [] },
+      { section_name: 'Verse 2', duration_ms: 30000, lines: verse2Lines, positive_local_styles: ['verse with lead vocals'], negative_local_styles: [] },
+      { section_name: 'Outro', duration_ms: 10000, lines: [], positive_local_styles: ['outro instrumental fade'], negative_local_styles: [] },
     ],
   };
 }
+
+// ─── Lyria 3 Pro via Gemini API ───────────────────────────────────────────────
+
+async function generateWithLyria(opts: {
+  prompt: string;
+  explicitDuration: number | null;
+  geminiApiKey: string;
+}): Promise<{ audioBuffer: ArrayBuffer; songMap: string | null; durationSecs: number }> {
+  const { prompt, explicitDuration, geminiApiKey } = opts;
+
+  // Inject duration hint into prompt if user specified one
+  const durationHint = explicitDuration
+    ? ` Create a ${explicitDuration}-second song.`
+    : '';
+  const fullPrompt = `${prompt}${durationHint}`;
+
+  console.log(`[GENERATE-AUDIO] Lyria 3 Pro | prompt="${fullPrompt.slice(0, 80)}" | duration=${explicitDuration ?? 'auto'}`);
+
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/lyria-3-pro-preview:generateContent?key=${geminiApiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt }] }],
+      }),
+    }
+  );
+
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error(`Lyria API error ${resp.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  const parts: any[] = data?.candidates?.[0]?.content?.parts ?? [];
+
+  let audioB64: string | null = null;
+  let mimeType = 'audio/mpeg';
+  let songMap: string | null = null;
+
+  for (const part of parts) {
+    if (part?.inlineData?.mimeType?.startsWith('audio/')) {
+      audioB64 = part.inlineData.data;
+      mimeType = part.inlineData.mimeType;
+    }
+    if (part?.text) {
+      songMap = part.text; // Lyria returns song map / lyrics as text
+    }
+  }
+
+  if (!audioB64) {
+    throw new Error('Lyria returned no audio in response');
+  }
+
+  // Decode base64 → ArrayBuffer
+  const binaryStr = atob(audioB64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  const audioBuffer = bytes.buffer;
+
+  const durationSecs = Math.round(audioBuffer.byteLength / 16000);
+  console.log(`[GENERATE-AUDIO] Lyria OK | ${audioBuffer.byteLength} bytes (~${durationSecs}s) | hasSongMap=${!!songMap}`);
+
+  return { audioBuffer, songMap, durationSecs };
+}
+
+// ─── ElevenLabs generation (unchanged from original) ─────────────────────────
+
+async function generateWithElevenLabs(opts: {
+  enrichedPrompt: string;
+  lyricsAwarePrompt: string;
+  hasLyrics: boolean;
+  explicitDuration: number | null;
+  apiKey: string;
+}): Promise<{ audioBuffer: ArrayBuffer; durationSecs: number }> {
+  const { enrichedPrompt, lyricsAwarePrompt, hasLyrics, explicitDuration, apiKey } = opts;
+
+  const callElevenLabs = async (callOpts: { plan?: any; promptText?: string }) => {
+    const body: Record<string, unknown> = {};
+    if (callOpts.plan) {
+      body.composition_plan = callOpts.plan;
+    } else {
+      body.prompt = callOpts.promptText;
+      if (explicitDuration) {
+        body.music_length_ms = explicitDuration * 1000;
+      }
+    }
+    return fetch('https://api.elevenlabs.io/v1/music', {
+      method: 'POST',
+      headers: { 'xi-api-key': apiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  };
+
+  let response = await callElevenLabs({ promptText: lyricsAwarePrompt });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.warn(`[GENERATE-AUDIO] ElevenLabs error ${response.status}: ${errText.slice(0, 300)}`);
+
+    if (response.status === 400) {
+      try {
+        const errJson = JSON.parse(errText);
+        const suggestion = errJson?.detail?.data?.prompt_suggestion;
+        if (errJson?.detail?.status === 'bad_prompt' && suggestion) {
+          console.log(`[GENERATE-AUDIO] EL: retrying with suggested prompt: "${suggestion.slice(0, 80)}"`);
+          response = await callElevenLabs({ promptText: suggestion });
+          if (!response.ok) throw new Error(`EL retry failed: ${response.status}`);
+        } else {
+          throw new Error(`EL bad_prompt: ${errText.slice(0, 200)}`);
+        }
+      } catch {
+        throw new Error(`EL 400: ${errText.slice(0, 200)}`);
+      }
+    } else {
+      throw new Error(`EL ${response.status}`);
+    }
+  }
+
+  const audioBuffer = await response.arrayBuffer();
+  const durationSecs = Math.round(audioBuffer.byteLength / 16000);
+  console.log(`[GENERATE-AUDIO] ElevenLabs OK | ${audioBuffer.byteLength} bytes (~${durationSecs}s) | lyricsUsed=${hasLyrics}`);
+
+  return { audioBuffer, durationSecs };
+}
+
+// ─── Main handler ─────────────────────────────────────────────────────────────
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -139,6 +256,7 @@ serve(async (req) => {
   }
 
   try {
+    // ── Auth ──
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -166,6 +284,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
+    // ── Rate limit ──
     const AUDIO_LIMIT = 3;
     const WINDOW_SECS = 60;
     const windowStart = new Date(Date.now() - WINDOW_SECS * 1000).toISOString();
@@ -184,13 +303,22 @@ serve(async (req) => {
     }
     await supabaseAdmin.from('ai_rate_limits').insert({ user_id: userId, function_name: 'generate-audio' });
 
+    // ── API keys ──
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+
     if (!ELEVENLABS_API_KEY) {
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+      return new Response(JSON.stringify({ error: 'Server configuration error: missing ELEVENLABS_API_KEY' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    if (!GEMINI_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Server configuration error: missing GEMINI_API_KEY' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
+    // ── Request body ──
     const { prompt, lyrics, genre, mood, duration, mode } = await req.json();
 
     if (!prompt) {
@@ -199,8 +327,19 @@ serve(async (req) => {
       });
     }
 
-    // Read cost from operation_pricing (canonical source). Fallback to 3 to match policy
-    // (instrumental and song must always cost the same).
+    const explicitDuration: number | null = typeof duration === 'number' && duration > 0 ? duration : null;
+    const hasLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
+
+    // ── Routing decision ──
+    const useLyria = shouldUseLyria({ hasLyrics, explicitDuration });
+    const provider = useLyria ? 'lyria' : 'elevenlabs';
+    const routingReason = !useLyria
+      ? (hasLyrics ? 'user_lyrics_present' : 'duration_exceeds_lyria_max')
+      : 'default';
+
+    console.log(`[GENERATE-AUDIO] provider=${provider} | reason=${routingReason} | mode=${mode} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+
+    // ── Credits ──
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
     const { data: pricingRow } = await supabaseAdmin
       .from('operation_pricing')
@@ -209,7 +348,8 @@ serve(async (req) => {
       .eq('is_active', true)
       .maybeSingle();
     const CREDITS_COST = pricingRow?.credits_cost ?? 3;
-    console.log(`[GENERATE-AUDIO] Pricing lookup: ${operationKey} = ${CREDITS_COST} credits`);
+    console.log(`[GENERATE-AUDIO] Pricing: ${operationKey} = ${CREDITS_COST} credits`);
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('available_credits')
@@ -232,7 +372,7 @@ serve(async (req) => {
       user_id: userId,
       amount: -CREDITS_COST,
       type: 'usage',
-      description: `Generación audio (${mode || 'instrumental'}): ${prompt.slice(0, 80)}`,
+      description: `Generación audio (${mode || 'instrumental'}, ${provider}): ${prompt.slice(0, 80)}`,
     });
 
     const refundCredits = async (reason: string) => {
@@ -250,6 +390,7 @@ serve(async (req) => {
       }
     };
 
+    // ── Build enriched prompt (shared) ──
     const parts: string[] = [];
     if (genre) parts.push(genre);
     if (mood) parts.push(mood);
@@ -259,92 +400,76 @@ serve(async (req) => {
     if (cleanPrompt) parts.push(cleanPrompt);
     const enrichedPrompt = parts.join('. ');
 
-    // Only use explicit duration from frontend if provided and > 0
-    const explicitDuration = typeof duration === 'number' && duration > 0 ? duration : null;
-    const hasUserLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
-
-    const lyricsAwarePrompt = hasUserLyrics
+    const lyricsAwarePrompt = hasLyrics
       ? `${enrichedPrompt}. Create an original song using these lyrics exactly as the vocal content. Do not reference real artists or copyrighted songs. Lyrics:\n${lyrics.trim()}`
       : enrichedPrompt;
 
-    console.log(`[GENERATE-AUDIO] mode=${mode || 'instrumental'} | plan=NO (prompt-only) | lyricsUsed=${hasUserLyrics} | explicitDuration=${explicitDuration} | prompt="${enrichedPrompt.substring(0, 80)}"`);
+    // ── Generate ──
+    let audioBuffer: ArrayBuffer;
+    let durationSecs: number;
+    let songMap: string | null = null;
+    let actualProvider = provider;
 
-    // ElevenLabs: composition_plan and prompt are MUTUALLY EXCLUSIVE.
-    // When using composition_plan: no music_length_ms (duration defined in sections).
-    // When using prompt: include music_length_ms only if user explicitly provided duration.
-    const callElevenLabs = async (opts: { plan?: any; promptText?: string }) => {
-      const body: Record<string, unknown> = {};
-      if (opts.plan) {
-        // composition_plan mode — ElevenLabs determines total duration from sections
-        body.composition_plan = opts.plan;
-      } else {
-        body.prompt = opts.promptText;
-        // Only set music_length_ms if user explicitly chose a duration
-        // Otherwise let ElevenLabs decide the natural length for the prompt
-        if (explicitDuration) {
-          body.music_length_ms = explicitDuration * 1000;
+    if (useLyria) {
+      try {
+        const result = await generateWithLyria({
+          prompt: enrichedPrompt,
+          explicitDuration,
+          geminiApiKey: GEMINI_API_KEY,
+        });
+        audioBuffer = result.audioBuffer;
+        durationSecs = result.durationSecs;
+        songMap = result.songMap;
+      } catch (lyriaErr) {
+        // Fallback to ElevenLabs if Lyria fails
+        console.warn(`[GENERATE-AUDIO] Lyria failed, falling back to ElevenLabs: ${(lyriaErr as Error).message}`);
+        actualProvider = 'elevenlabs_fallback';
+        try {
+          const result = await generateWithElevenLabs({
+            enrichedPrompt,
+            lyricsAwarePrompt,
+            hasLyrics,
+            explicitDuration,
+            apiKey: ELEVENLABS_API_KEY,
+          });
+          audioBuffer = result.audioBuffer;
+          durationSecs = result.durationSecs;
+        } catch (elErr) {
+          await refundCredits(`Lyria + EL fallback failed: ${(elErr as Error).message}`);
+          return new Response(
+            JSON.stringify({ error: 'provider_unavailable', details: 'Both providers failed' }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
       }
-      return fetch('https://api.elevenlabs.io/v1/music', {
-        method: 'POST',
-        headers: { 'xi-api-key': ELEVENLABS_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-    };
-
-    let response = await callElevenLabs({ promptText: lyricsAwarePrompt });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.warn(`[GENERATE-AUDIO] ElevenLabs error ${response.status}: ${errText.substring(0, 300)}`);
-
-      if (response.status === 400) {
-        try {
-            const errJson = JSON.parse(errText);
-            const suggestion = errJson?.detail?.data?.prompt_suggestion;
-            if (errJson?.detail?.status === 'bad_prompt' && suggestion) {
-              console.log(`[GENERATE-AUDIO] Retrying with suggested prompt: "${suggestion.substring(0, 80)}"`);
-              response = await callElevenLabs({ promptText: suggestion });
-              if (!response.ok) {
-                await refundCredits(`Fallo reintento: ${response.status}`);
-                return new Response(
-                  JSON.stringify({ error: `Generation failed: ${response.status}` }),
-                  { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-                );
-              }
-            } else {
-              await refundCredits(`Prompt rechazado: 400`);
-              return new Response(
-                JSON.stringify({ error: 'Generation failed: 400', details: errText }),
-                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-              );
-            }
-        } catch {
-            await refundCredits('Fallo generación: 400');
-            return new Response(
-              JSON.stringify({ error: 'Generation failed: 400', details: errText }),
-              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-        }
-      } else {
-        await refundCredits(`Error ElevenLabs: ${response.status}`);
-        if (response.status === 429) {
+    } else {
+      // ElevenLabs path (lyrics present OR duration > 180s)
+      try {
+        const result = await generateWithElevenLabs({
+          enrichedPrompt,
+          lyricsAwarePrompt,
+          hasLyrics,
+          explicitDuration,
+          apiKey: ELEVENLABS_API_KEY,
+        });
+        audioBuffer = result.audioBuffer;
+        durationSecs = result.durationSecs;
+      } catch (elErr) {
+        const errMsg = (elErr as Error).message;
+        await refundCredits(`EL error: ${errMsg}`);
+        if (errMsg.includes('429') || errMsg.includes('rate')) {
           return new Response(JSON.stringify({ error: 'provider_rate_limit' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
         }
         return new Response(JSON.stringify({ error: 'provider_unavailable' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    const base64Audio = base64Encode(audioBuffer);
-    const audioBytes = new Uint8Array(audioBuffer);
-
-    // Calculate actual duration from audio size (rough estimate: ~128kbps mp3)
-    const actualDurationSecs = Math.round(audioBuffer.byteLength / 16000);
-    console.log(`[GENERATE-AUDIO] Success! ${audioBuffer.byteLength} bytes (~${actualDurationSecs}s) | lyricsUsed=${hasUserLyrics} | plan=false`);
-
+    // ── Persist to Supabase Storage ──
+    const audioBytes = new Uint8Array(audioBuffer!);
+    const base64Audio = base64Encode(audioBuffer!);
     let savedAudioUrl: string | null = null;
     let generationId: string | null = null;
+
     try {
       const fileName = `${userId}/gen_${Date.now()}.mp3`;
       const { error: uploadError } = await supabaseAdmin.storage
@@ -358,12 +483,12 @@ serve(async (req) => {
           user_id: userId,
           prompt: prompt.slice(0, 2500),
           audio_url: savedAudioUrl,
-          duration: actualDurationSecs,
+          duration: durationSecs!,
           genre: genre || null,
           mood: mood || null,
         }).select('id').single();
         generationId = gen?.id || null;
-        console.log(`[GENERATE-AUDIO] Saved generation: ${generationId} (${actualDurationSecs}s)`);
+        console.log(`[GENERATE-AUDIO] Saved: ${generationId} (${durationSecs}s) provider=${actualProvider}`);
       } else {
         console.error('[GENERATE-AUDIO] Upload error:', uploadError);
       }
@@ -375,13 +500,14 @@ serve(async (req) => {
       JSON.stringify({
         audio: base64Audio,
         format: 'audio/mpeg',
-        duration: actualDurationSecs,
-        provider: 'elevenlabs',
+        duration: durationSecs!,
+        provider: actualProvider,
         status: 'completed',
         generationId,
         audioUrl: savedAudioUrl,
-        lyricsUsed: hasUserLyrics,
-        usedCompositionPlan: false,
+        lyricsUsed: hasLyrics,
+        songMap,                    // Lyria song map — null when EL was used
+        usedCompositionPlan: !useLyria && hasLyrics,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
