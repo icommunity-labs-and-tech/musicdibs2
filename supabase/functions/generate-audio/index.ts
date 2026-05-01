@@ -486,6 +486,8 @@ serve(async (req) => {
           duration: durationSecs!,
           genre: genre || null,
           mood: mood || null,
+          song_map: songMap || null,
+          provider: actualProvider,
         }).select('id').single();
         generationId = gen?.id || null;
         console.log(`[GENERATE-AUDIO] Saved: ${generationId} (${durationSecs}s) provider=${actualProvider}`);

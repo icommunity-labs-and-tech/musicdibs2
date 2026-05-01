@@ -36,6 +36,7 @@ export interface WorkRegistration {
   ownershipDeclaration: boolean;
   signatureId: string;
   creators?: import('@/components/dashboard/register/types').Creator[];
+  aiGenerationId?: string;  // ID of the AI generation that originated this work
 }
 
 export interface IbsSignature {
