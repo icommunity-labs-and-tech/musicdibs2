@@ -17,6 +17,42 @@ const corsHeaders = {
 
 const LYRIA_MAX_DURATION_SECS = 180;
 
+// ─── Translate prompt to English for Lyria (performs better with English) ────
+
+async function translateToEnglish(text: string, geminiApiKey: string): Promise<string> {
+  // If already mostly ASCII/English, skip translation
+  const nonAsciiRatio = (text.match(/[^\x00-\x7F]/g) || []).length / text.length;
+  if (nonAsciiRatio < 0.05) return text;
+
+  try {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `Translate the following music generation prompt to English. Return ONLY the translated text, no explanations, no quotes.\n\n${text}`
+            }]
+          }],
+          generationConfig: { maxOutputTokens: 500, temperature: 0.1 },
+        }),
+      }
+    );
+    if (!resp.ok) return text;
+    const data = await resp.json();
+    const translated = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (translated && translated.length > 0) {
+      console.log(`[GENERATE-AUDIO] Prompt translated to English for Lyria`);
+      return translated;
+    }
+  } catch {
+    // Non-fatal: use original prompt
+  }
+  return text;
+}
+
 function shouldUseLyria(opts: {
   hasLyrics: boolean;
   explicitDuration: number | null;
@@ -131,13 +167,16 @@ async function generateWithLyria(opts: {
 }): Promise<{ audioBuffer: ArrayBuffer; songMap: string | null; durationSecs: number }> {
   const { prompt, explicitDuration, geminiApiKey } = opts;
 
+  // Translate to English — Lyria 3 Pro performs significantly better with English prompts
+  const englishPrompt = await translateToEnglish(prompt, geminiApiKey);
+
   // Inject duration hint into prompt if user specified one
   const durationHint = explicitDuration
     ? ` Create a ${explicitDuration}-second song.`
     : '';
-  const fullPrompt = `${prompt}${durationHint}`;
+  const fullPrompt = `${englishPrompt}${durationHint}`;
 
-  console.log(`[GENERATE-AUDIO] Lyria 3 Pro | prompt="${fullPrompt.slice(0, 80)}" | duration=${explicitDuration ?? 'auto'}`);
+  console.log(`[GENERATE-AUDIO] Lyria 3 Pro | prompt="${fullPrompt.slice(0, 80)}" | original="${prompt.slice(0, 40)}" | duration=${explicitDuration ?? 'auto'}`);
 
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/lyria-3-pro-preview:generateContent?key=${geminiApiKey}`,
@@ -486,8 +525,6 @@ serve(async (req) => {
           duration: durationSecs!,
           genre: genre || null,
           mood: mood || null,
-          song_map: songMap || null,
-          provider: actualProvider,
         }).select('id').single();
         generationId = gen?.id || null;
         console.log(`[GENERATE-AUDIO] Saved: ${generationId} (${durationSecs}s) provider=${actualProvider}`);
