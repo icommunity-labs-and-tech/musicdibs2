@@ -290,9 +290,11 @@ const AIStudioCreate = () => {
 
   const loadHistory = async () => {
     try {
+      if (!user) { setIsLoading(false); return; }
       const { data, error } = await supabase
         .from('ai_generations')
-        .select('*')
+        .select('id, audio_url, prompt, duration, genre, mood, created_at, is_favorite, voice_id, voice_name')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
