@@ -33,6 +33,9 @@ export interface WizardData {
 
   // Signature
   signatureId: string;
+
+  // AI generation link (optional — set when registering from AI Studio)
+  aiGenerationId?: string;
 }
 
 export const CREATOR_ROLES = [
@@ -79,4 +82,5 @@ export const initialWizardData: WizardData = {
   versionTitle: '',
   creators: [{ id: crypto.randomUUID(), name: '', email: '', roles: [], percentage: null }],
   signatureId: '',
+  aiGenerationId: undefined,
 };
