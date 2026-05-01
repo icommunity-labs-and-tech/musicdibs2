@@ -34,7 +34,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { track } = useProductTracking();
-  const prefill = (location.state as { prefill?: { title?: string; type?: string; description?: string; audioUrl?: string } })?.prefill;
+  const prefill = (location.state as { prefill?: { title?: string; type?: string; description?: string; audioUrl?: string; generationId?: string; aiGenerationId?: string } })?.prefill;
 
   const STEPS_NEW = [
     { label: t('wizard.steps.file') },
@@ -60,6 +60,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
       if (prefill.type) init.workType = prefill.type;
       if (prefill.description) init.description = prefill.description;
       if (prefill.audioUrl) init.aiAudioUrl = prefill.audioUrl;
+      if (prefill.aiGenerationId) init.aiGenerationId = prefill.aiGenerationId;
     }
     return init;
   });
@@ -124,6 +125,7 @@ export function RegistrationWizard({ summary }: RegistrationWizardProps) {
         files: uploadFiles.length > 0 ? uploadFiles : undefined,
         ownershipDeclaration: true,
         signatureId: data.signatureId,
+        aiGenerationId: data.aiGenerationId,
       });
 
       if (res.ibsError || res.status === 'failed') {
