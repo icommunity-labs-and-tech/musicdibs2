@@ -86,7 +86,7 @@ serve(async (req) => {
     // Verify the work belongs to the user and is in 'processing' state
     const { data: work, error: workError } = await supabaseAdmin
       .from("works")
-      .select("id, user_id, title, description, status, file_path, file_hash")
+      .select("id, user_id, title, description, status, file_path, file_hash, ai_generation_id")
       .eq("id", workId)
       .single();
 
@@ -199,7 +199,7 @@ serve(async (req) => {
 async function processIbsRegistration(
   supabaseAdmin: ReturnType<typeof createClient>,
   IBS_API_KEY: string,
-  work: { id: string; user_id: string; title: string; description: string | null; file_path: string; file_hash: string | null },
+  work: { id: string; user_id: string; title: string; description: string | null; file_path: string; file_hash: string | null; ai_generation_id: string | null },
   userId: string,
   signatureId: string,
   extraPaths: string[],
@@ -275,12 +275,30 @@ async function processIbsRegistration(
       // ── Inline upload (≤20MB) ──────────────────────────────
       console.log(`[IBS] Inline upload for work ${workId} (${fileSizeMB.toFixed(1)}MB), ${ibsFiles.length} file(s)`);
 
+      // If this work originated from an AI generation, fetch and attach the song map
+      let songMapText: string | null = null;
+      if (work.ai_generation_id) {
+        const { data: gen } = await supabaseAdmin
+          .from("ai_generations")
+          .select("song_map, provider, duration, prompt")
+          .eq("id", work.ai_generation_id)
+          .single();
+        if (gen?.song_map) songMapText = gen.song_map;
+      }
+
+      // Build description: user description + AI song map (if available)
+      let fullDescription = work.description || "";
+      if (songMapText) {
+        const separator = fullDescription ? "\n\n" : "";
+        fullDescription += `${separator}[AI Song Map — Lyria 3 Pro]\n${songMapText}`;
+      }
+
       const ibsPayload: Record<string, unknown> = {
         title: work.title,
         files: ibsFiles,
       };
-      if (work.description) {
-        ibsPayload.description = work.description;
+      if (fullDescription) {
+        ibsPayload.description = fullDescription;
       }
 
       const ibsBody = {
@@ -308,8 +326,16 @@ async function processIbsRegistration(
       // ── Large file upload (>20MB) ──────────────────────────
       console.log(`[IBS] Large file upload for work ${workId} (${fileSizeMB.toFixed(1)}MB)`);
 
+      // Build description with song map for large file path too
+      let fullDescriptionLarge = work.description || "";
+      if (songMapText) {
+        const sep = fullDescriptionLarge ? "\n\n" : "";
+        fullDescriptionLarge += `${sep}[AI Song Map — Lyria 3 Pro]\n${songMapText}`;
+      }
+
       const uploadBody = {
         title: work.title,
+        ...(fullDescriptionLarge ? { description: fullDescriptionLarge } : {}),
         signatures: [{ id: signatureId }],
         files: [{ name: fileName, content_type: fileData.type || "application/octet-stream", size: fileBuffer.byteLength }],
       };

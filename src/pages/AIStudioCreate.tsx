@@ -290,17 +290,15 @@ const AIStudioCreate = () => {
 
   const loadHistory = async () => {
     try {
-      if (!user) { setIsLoading(false); return; }
       const { data, error } = await supabase
         .from('ai_generations')
-        .select('id, prompt, duration, genre, mood, created_at, is_favorite, voice_id, voice_name')
-        .eq('user_id', user.id)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
       if (error) throw error;
       setResults((data || []).map(item => ({
         id: item.id,
-        audioUrl: '',
+        audioUrl: item.audio_url,
         prompt: item.prompt,
         duration: item.duration,
         genre: item.genre || undefined,
@@ -467,24 +465,6 @@ const AIStudioCreate = () => {
   };
 
   // ── Playback ──
-  const getAudioUrl = async (result: GenerationResult): Promise<string> => {
-    if (result.audioUrl) return result.audioUrl;
-    if (!user) throw new Error(t('aiCreate.errorLogin'));
-
-    const { data, error } = await supabase
-      .from('ai_generations')
-      .select('audio_url')
-      .eq('id', result.id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (error || !data?.audio_url) throw new Error(error?.message || t('aiShared.error'));
-
-    setResults(prev => prev.map(item => item.id === result.id ? { ...item, audioUrl: data.audio_url } : item));
-    if (lastResult?.id === result.id) setLastResult({ ...lastResult, audioUrl: data.audio_url });
-    return data.audio_url;
-  };
-
   const startProgressTracking = (id: string, audio: HTMLAudioElement) => {
     if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
     const tick = () => {
@@ -517,7 +497,7 @@ const AIStudioCreate = () => {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const togglePlay = async (result: GenerationResult) => {
+  const togglePlay = (result: GenerationResult) => {
     const existingAudio = audioElements.get(result.id);
     if (playingId === result.id && existingAudio) {
       existingAudio.pause();
@@ -528,12 +508,11 @@ const AIStudioCreate = () => {
       if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current);
       let audio = existingAudio;
       if (!audio) {
-        const audioUrl = await getAudioUrl(result);
-        audio = new Audio(audioUrl);
+        audio = new Audio(result.audioUrl);
         audio.onended = () => { setPlayingId(null); if (progressIntervalRef.current) cancelAnimationFrame(progressIntervalRef.current); };
         setAudioElements(prev => new Map(prev).set(result.id, audio!));
       }
-      await audio.play();
+      audio.play();
       setPlayingId(result.id);
       startProgressTracking(result.id, audio);
     }
@@ -561,9 +540,8 @@ const AIStudioCreate = () => {
   const downloadAudio = async (result: GenerationResult) => {
     const filename = `musicdibs-${mode}-${result.id.slice(0, 8)}.mp3`;
     try {
-      const audioUrl = await getAudioUrl(result);
       // Fetch as blob to force download (avoids browser opening cross-origin URL in new tab)
-      const response = await fetch(audioUrl);
+      const response = await fetch(result.audioUrl);
       if (!response.ok) throw new Error('fetch failed');
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -576,9 +554,8 @@ const AIStudioCreate = () => {
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     } catch {
       // Fallback: direct link with download attribute
-      const audioUrl = await getAudioUrl(result);
       const link = document.createElement('a');
-      link.href = audioUrl;
+      link.href = result.audioUrl;
       link.download = filename;
       link.rel = 'noopener';
       document.body.appendChild(link);
@@ -701,15 +678,23 @@ const AIStudioCreate = () => {
     else { toast({ title: `${ids.length} ${t('aiCreate.generations')}` }); }
   };
 
-  const registerAsWork = async (result: GenerationResult) => {
-    const audioUrl = await getAudioUrl(result);
+  const registerAsWork = (result: GenerationResult) => {
     const descParts: string[] = [];
     if (result.genre) descParts.push(`Género: ${result.genre}`);
     if (result.mood) descParts.push(`Mood: ${result.mood}`);
     descParts.push(`Duración: ${result.duration}s`);
     descParts.push(`Descripción: ${result.prompt}`);
     navigate('/dashboard/register', {
-      state: { prefill: { title: result.prompt.slice(0, 80), type: 'audio', description: descParts.join('\n'), audioUrl, generationId: result.id } }
+      state: {
+        prefill: {
+          title: result.prompt.slice(0, 80),
+          type: 'audio',
+          description: descParts.join('\n'),
+          audioUrl: result.audioUrl,
+          generationId: result.id,
+          aiGenerationId: result.id,  // Link to ai_generations for song_map on blockchain
+        }
+      }
     });
   };
 

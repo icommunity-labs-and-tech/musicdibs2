@@ -147,6 +147,7 @@ export async function registerWork(data: WorkRegistration): Promise<{
     file_path: filePaths[0],
     file_hash: fileHash,
     status: 'processing',
+    ...(data.aiGenerationId ? { ai_generation_id: data.aiGenerationId } : {}),
   }).select().single();
 
   if (error) throw error;
