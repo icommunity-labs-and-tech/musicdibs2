@@ -150,13 +150,6 @@ export const Navbar = () => {
 
           {/* Language + CTA + Mobile toggle */}
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full ${navIconColor} transition-all`}
-              aria-label="Toggle theme"
-            >
-              {theme === "dark" ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
-            </button>
             <LanguageSelector />
             <div
               className="relative hidden lg:block"
