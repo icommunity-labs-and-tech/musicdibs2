@@ -320,6 +320,7 @@ export const SocialVideosSection = () => {
             </>
           )}
         </Button>
+        <GenerationWarning />
 
         {/* Progress indicator */}
         {generating && progressStatus && (
