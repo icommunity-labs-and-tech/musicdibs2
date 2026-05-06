@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';

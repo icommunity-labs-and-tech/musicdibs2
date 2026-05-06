@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';

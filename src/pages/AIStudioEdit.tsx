@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect, useRef } from "react";
 import { FileDropzone } from '@/components/FileDropzone';
 import { Link } from "react-router-dom";
