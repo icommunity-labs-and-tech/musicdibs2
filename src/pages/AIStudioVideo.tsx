@@ -823,6 +823,7 @@ const AIStudioVideo = () => {
                   )}
                 </Button>
                 )}
+                <GenerationWarning />
                 <PricingLink className="block text-center mt-1" />
 
                 {error && (

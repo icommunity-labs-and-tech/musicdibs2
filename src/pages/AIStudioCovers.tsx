@@ -308,6 +308,7 @@ const AIStudioCovers = () => {
                   </Button>
                 )}
 
+                <GenerationWarning />
                 <PricingLink className="block text-center" />
               </CardContent>
             </Card>

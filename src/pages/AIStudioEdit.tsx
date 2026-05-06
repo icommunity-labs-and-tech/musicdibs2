@@ -608,6 +608,7 @@ const AIStudioEdit = () => {
                   </Button>
                 )}
               </div>
+              <GenerationWarning />
               {isPreviewing && (
                 <p className="text-xs text-center text-muted-foreground animate-pulse">
                   {tr('preview.hint')}

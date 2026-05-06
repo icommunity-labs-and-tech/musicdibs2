@@ -1398,6 +1398,7 @@ const AIStudioCreate = () => {
                           <Wand2 className="w-4 h-4 mr-2" />
                           {t('aiCreate.generateBtn')} {mode === 'song' ? 'canción' : 'instrumental'} con IA
                         </Button>
+                        <GenerationWarning />
                         <PricingLink className="mt-1 block text-center" />
                         </>
                       )}
