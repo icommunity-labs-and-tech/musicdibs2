@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
@@ -308,6 +309,7 @@ const AIStudioCovers = () => {
                   </Button>
                 )}
 
+                <GenerationWarning />
                 <PricingLink className="block text-center" />
               </CardContent>
             </Card>

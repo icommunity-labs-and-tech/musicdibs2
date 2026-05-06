@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState } from 'react';
 import { FileDropzone } from '@/components/FileDropzone';
 import { useTranslation } from 'react-i18next';
@@ -225,6 +226,7 @@ export const CreativesSection = () => {
             )}
           </Button>
         )}
+        <GenerationWarning />
         <PricingLink className="block text-center mt-1" />
       </CardContent>
     </Card>

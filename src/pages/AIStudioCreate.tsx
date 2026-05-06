@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -1398,6 +1399,7 @@ const AIStudioCreate = () => {
                           <Wand2 className="w-4 h-4 mr-2" />
                           {t('aiCreate.generateBtn')} {mode === 'song' ? 'canción' : 'instrumental'} con IA
                         </Button>
+                        <GenerationWarning />
                         <PricingLink className="mt-1 block text-center" />
                         </>
                       )}

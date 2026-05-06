@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -823,6 +824,7 @@ const AIStudioVideo = () => {
                   )}
                 </Button>
                 )}
+                <GenerationWarning />
                 <PricingLink className="block text-center mt-1" />
 
                 {error && (

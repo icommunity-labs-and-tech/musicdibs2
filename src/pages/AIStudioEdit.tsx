@@ -1,3 +1,4 @@
+import { GenerationWarning } from "@/components/ai-studio/GenerationWarning";
 import { useState, useEffect, useRef } from "react";
 import { FileDropzone } from '@/components/FileDropzone';
 import { Link } from "react-router-dom";
@@ -608,6 +609,7 @@ const AIStudioEdit = () => {
                   </Button>
                 )}
               </div>
+              <GenerationWarning />
               {isPreviewing && (
                 <p className="text-xs text-center text-muted-foreground animate-pulse">
                   {tr('preview.hint')}
