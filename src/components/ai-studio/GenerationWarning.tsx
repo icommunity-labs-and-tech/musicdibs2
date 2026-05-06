@@ -12,12 +12,14 @@ export function GenerationWarning({ className = "" }: { className?: string }) {
   const lang = (i18n.language || "es").slice(0, 2);
   const message = MESSAGES[lang] || MESSAGES.es;
   return (
-    <p
-      className={`flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400 mt-2 ${className}`}
+    <div
+      className={`flex items-start gap-2 rounded-md border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-500 px-3 py-2 mt-2 ${className}`}
       role="note"
     >
-      <AlertTriangle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-      <span>{message}</span>
-    </p>
+      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+      <span className="text-xs font-medium text-amber-800 dark:text-amber-200 leading-snug">
+        {message}
+      </span>
+    </div>
   );
 }
