@@ -71,6 +71,8 @@ export default function MediaLibraryPage() {
   });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const editInputRef = useRef<HTMLInputElement | null>(null);
+  const [variantsGroupId, setVariantsGroupId] = useState<string | null>(null);
+  const [variantsBaseTitle, setVariantsBaseTitle] = useState<string>("");
 
   // ── Cache key ──
   const cacheKey = user ? `media_library_cache_${MEDIA_LIBRARY_CACHE_VERSION}_${user.id}` : '';
