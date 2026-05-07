@@ -358,7 +358,7 @@ serve(async (req) => {
     }
 
     // ── Request body ──
-    const { prompt, lyrics, genre, mood, duration, mode } = await req.json();
+    const { prompt, lyrics, genre, mood, duration, mode, generation_priority, original_description, original_lyrics } = await req.json();
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt required' }), {
@@ -439,9 +439,24 @@ serve(async (req) => {
     if (cleanPrompt) parts.push(cleanPrompt);
     const enrichedPrompt = parts.join('. ');
 
-    const lyricsAwarePrompt = hasLyrics
-      ? `${enrichedPrompt}. Create an original song using these lyrics exactly as the vocal content. Do not reference real artists or copyrighted songs. Lyrics:\n${lyrics.trim()}`
-      : enrichedPrompt;
+    // ── Generation priority handling (lyrics_fidelity vs creative) ──
+    const priority: 'lyrics_fidelity' | 'creative' =
+      generation_priority === 'creative' ? 'creative' : 'lyrics_fidelity';
+    const promptMode: 'lyrics' | 'no_lyrics' = hasLyrics ? 'lyrics' : 'no_lyrics';
+
+    let lyricsAwarePrompt: string;
+    if (!hasLyrics) {
+      lyricsAwarePrompt = enrichedPrompt;
+    } else if (priority === 'lyrics_fidelity') {
+      const userDesc = (original_description || prompt || '').toString().trim();
+      const trimmedDesc = userDesc.length > 250 ? userDesc.slice(0, 250) : userDesc;
+      lyricsAwarePrompt = `STYLE:\n${trimmedDesc}\nclear Spanish pronunciation, neutral accent, intelligible vocals\n\nLYRICS:\n${lyrics.trim()}`;
+    } else {
+      const userDesc = (original_description || prompt || '').toString().trim();
+      lyricsAwarePrompt = `CREATIVE DIRECTION:\n${userDesc}\n\nLYRICS:\n${lyrics.trim()}`;
+    }
+
+    console.log(`[GENERATE-AUDIO] priority=${priority} | promptMode=${promptMode} | finalPromptLen=${lyricsAwarePrompt.length}`);
 
     // ── Generate ──
     let audioBuffer: ArrayBuffer;
@@ -533,6 +548,30 @@ serve(async (req) => {
       }
     } catch (persistErr) {
       console.error('[GENERATE-AUDIO] Persist error (non-fatal):', persistErr);
+    }
+
+    // ── Log generation (ai_generation_logs) ──
+    try {
+      await supabaseAdmin.from('ai_generation_logs').insert({
+        user_id: userId,
+        feature_key: mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental',
+        provider: actualProvider,
+        model: actualProvider.startsWith('lyria') ? 'lyria-3-pro-preview' : 'elevenlabs-music',
+        status: 'completed',
+        request_payload: {
+          original_description: original_description ?? prompt,
+          original_lyrics: original_lyrics ?? (hasLyrics ? lyrics : ''),
+          generation_priority: priority,
+          final_prompt_enviado: lyricsAwarePrompt,
+          mode: promptMode,
+          duration: explicitDuration,
+        },
+        response_payload: { duration: durationSecs, generationId },
+        output_url: savedAudioUrl,
+        user_credits_charged: CREDITS_COST,
+      });
+    } catch (logErr) {
+      console.error('[GENERATE-AUDIO] Log insert (non-fatal):', logErr);
     }
 
     return new Response(
