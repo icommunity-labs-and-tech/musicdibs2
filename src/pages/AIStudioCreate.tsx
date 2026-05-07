@@ -687,8 +687,8 @@ const AIStudioCreate = () => {
         .insert({
           user_id: user.id,
           name: saveArtistName.trim(),
-          voice_profile_id: isInstrumental ? null : voiceIdToPersist,
-          voice_type: isInstrumental ? null : 'preset',
+          voice_profile_id: (isInstrumental || !voiceIdToPersist) ? null : voiceIdToPersist,
+          voice_type: (isInstrumental || !voiceIdToPersist) ? null : 'preset',
           generation_type: mode === 'song' ? 'vocal' : 'instrumental',
           genre: null,
           mood: null,
