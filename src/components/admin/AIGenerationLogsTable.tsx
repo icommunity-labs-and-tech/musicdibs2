@@ -42,24 +42,38 @@ export function AIGenerationLogsTable() {
   const [selected, setSelected] = useState<LogRow | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const runQuery = async () => {
+    let q = supabase
+      .from("ai_generation_logs")
+      .select(
+        "id,user_id,feature_key,provider,model,provider_task_id,status,output_url,estimated_cost_usd,user_credits_charged,error_message,request_payload,response_payload,created_at,completed_at"
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (statusFilter !== "all") q = q.eq("status", statusFilter);
+    if (featureFilter !== "all") q = q.eq("feature_key", featureFilter);
+    return await q;
+  };
+
   const load = async () => {
     setLoading(true);
     setErrorMsg(null);
-    let q = supabase
-      .from("ai_generation_logs")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(200);
-    if (statusFilter !== "all") q = q.eq("status", statusFilter);
-    if (featureFilter !== "all") q = q.eq("feature_key", featureFilter);
-    const { data, error } = await q;
-    if (error) {
-      console.error("[AIGenerationLogsTable] load error", error);
-      setErrorMsg(error.message || "No se pudieron cargar los logs.");
-      setRows([]);
-    } else {
-      setRows((data as LogRow[]) || []);
+    let lastError: any = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await runQuery();
+      if (!error) {
+        setRows((data as LogRow[]) || []);
+        setLoading(false);
+        return;
+      }
+      lastError = error;
+      // Retry only on statement timeout / transient pooler errors
+      if (error.code !== "57014" && !/timeout/i.test(error.message || "")) break;
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
     }
+    console.error("[AIGenerationLogsTable] load error", lastError);
+    setErrorMsg(lastError?.message || "No se pudieron cargar los logs.");
+    setRows([]);
     setLoading(false);
   };
 
