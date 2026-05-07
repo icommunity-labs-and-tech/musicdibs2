@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useLibraryAccess, registerFreeDownload } from "@/hooks/useLibraryAccess";
 import LibraryAccessBanner from "@/components/library/LibraryAccessBanner";
 import JSZip from "jszip";
+import VariantsDialog from "@/components/library/VariantsDialog";
 
 // ── Types ──
 interface MediaAsset {
