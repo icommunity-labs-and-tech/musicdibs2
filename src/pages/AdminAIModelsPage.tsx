@@ -209,7 +209,8 @@ export default function AdminAIModelsPage() {
         </TabsContent>
 
         <TabsContent value="providers" className="space-y-6">
-        const rows = grouped[feat.key] || [];
+          {FEATURES.map((feat) => {
+            const rows = grouped[feat.key] || [];
         const activeRow = rows.find((r) => r.is_active);
         return (
           <Card key={feat.key}>
