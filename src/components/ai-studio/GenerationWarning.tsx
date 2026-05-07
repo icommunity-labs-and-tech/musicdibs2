@@ -13,11 +13,11 @@ export function GenerationWarning({ className = "" }: { className?: string }) {
   const message = MESSAGES[lang] || MESSAGES.es;
   return (
     <div
-      className={`flex items-start gap-2 rounded-md border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-500 px-3 py-2 mt-2 ${className}`}
-      role="note"
+      className={`flex items-center gap-3 rounded-lg border-2 border-amber-500 bg-amber-100 dark:bg-amber-900/50 dark:border-amber-400 px-4 py-3 mt-3 shadow-md ${className}`}
+      role="alert"
     >
-      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
-      <span className="text-xs font-medium text-amber-800 dark:text-amber-200 leading-snug">
+      <AlertTriangle className="h-6 w-6 flex-shrink-0 text-amber-600 dark:text-amber-300" />
+      <span className="text-sm md:text-base font-bold text-amber-900 dark:text-amber-100 leading-snug uppercase tracking-wide">
         {message}
       </span>
     </div>
