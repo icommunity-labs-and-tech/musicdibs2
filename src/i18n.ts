@@ -1176,7 +1176,7 @@ const resources = {
         },
         pageTitle: 'Create your music',
         pageSubtitle: 'Create original music with artificial intelligence. Generate, edit and explore new sounds for your creative projects.',
-        poweredBy: 'Powered by ElevenLabs AI',
+        poweredBy: 'Powered by AI',
         backToDashboard: 'Back to Dashboard',
         startBtn: 'Start',
         previewBtn: 'See Preview',
