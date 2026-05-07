@@ -26,6 +26,8 @@ interface LogRow {
   completed_at: string | null;
 }
 
+type LogListRow = Omit<LogRow, "request_payload" | "response_payload">;
+
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   pending: "secondary",
   processing: "secondary",
@@ -34,19 +36,20 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 export function AIGenerationLogsTable() {
-  const [rows, setRows] = useState<LogRow[]>([]);
+  const [rows, setRows] = useState<LogListRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [featureFilter, setFeatureFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<LogRow | null>(null);
+  const [selectedLoading, setSelectedLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const runQuery = async () => {
     let q = supabase
       .from("ai_generation_logs")
       .select(
-        "id,user_id,feature_key,provider,model,provider_task_id,status,output_url,estimated_cost_usd,user_credits_charged,error_message,request_payload,response_payload,created_at,completed_at"
+        "id,user_id,feature_key,provider,model,provider_task_id,status,output_url,estimated_cost_usd,user_credits_charged,error_message,created_at,completed_at"
       )
       .order("created_at", { ascending: false })
       .limit(100);
@@ -62,7 +65,7 @@ export function AIGenerationLogsTable() {
     for (let attempt = 0; attempt < 3; attempt++) {
       const { data, error } = await runQuery();
       if (!error) {
-        setRows((data as LogRow[]) || []);
+        setRows((data as LogListRow[]) || []);
         setLoading(false);
         return;
       }
@@ -75,6 +78,29 @@ export function AIGenerationLogsTable() {
     setErrorMsg(lastError?.message || "No se pudieron cargar los logs.");
     setRows([]);
     setLoading(false);
+  };
+
+  const openDetails = async (row: LogListRow) => {
+    setSelected({ ...row, request_payload: null, response_payload: null });
+    setSelectedLoading(true);
+
+    const { data, error } = await supabase
+      .from("ai_generation_logs")
+      .select("request_payload,response_payload")
+      .eq("id", row.id)
+      .maybeSingle();
+
+    if (error) {
+      setSelected((current) => current ? { ...current, error_message: error.message } : current);
+    } else {
+      setSelected((current) => current ? {
+        ...current,
+        request_payload: (data?.request_payload as Record<string, unknown> | null) || null,
+        response_payload: (data?.response_payload as Record<string, unknown> | null) || null,
+      } : current);
+    }
+
+    setSelectedLoading(false);
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [statusFilter, featureFilter]);
