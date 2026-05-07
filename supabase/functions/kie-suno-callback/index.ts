@@ -117,7 +117,10 @@ serve(async (req) => {
       variant_index: number;
     }> = [];
 
-    for (let i = 0; i < tracks.length; i++) {
+    // Only persist the primary variant — KIE Suno returns 2 by default
+    // and the user expects a single generation per request.
+    const maxVariants = Math.min(tracks.length, 1);
+    for (let i = 0; i < maxVariants; i++) {
       const t = tracks[i];
       const sourceUrl: string | undefined = t?.audio_url;
       if (!sourceUrl) continue;
