@@ -371,12 +371,21 @@ serve(async (req) => {
 
     // ── Provider router (ai_provider_settings) ──
     const featureKey = mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental';
-    const { data: activeSetting } = await supabaseAdmin
+    const { data: activeSettingRows, error: settingErr } = await supabaseAdmin
       .from('ai_provider_settings')
-      .select('provider, model, fallback_provider, fallback_model, is_enabled, cost_usd_estimate')
+      .select('id, provider, model, fallback_provider, fallback_model, is_enabled, is_active, cost_usd_estimate, priority')
       .eq('feature_key', featureKey)
       .eq('is_active', true)
-      .maybeSingle();
+      .order('priority', { ascending: true });
+
+    if (settingErr) {
+      console.error('[GENERATE-AUDIO][ROUTER] error reading ai_provider_settings:', settingErr.message);
+    }
+    if ((activeSettingRows?.length ?? 0) > 1) {
+      console.warn('[GENERATE-AUDIO][ROUTER] WARNING: multiple is_active rows for', featureKey, '→', activeSettingRows);
+    }
+    const activeSetting = activeSettingRows?.[0] ?? null;
+    console.log('[GENERATE-AUDIO][ROUTER] featureKey=', featureKey, '| activeSetting=', JSON.stringify(activeSetting));
 
     const configuredProvider = (activeSetting?.is_enabled ? activeSetting?.provider : null) ?? null;
     const fallbackProvider = activeSetting?.fallback_provider ?? null;
@@ -401,10 +410,11 @@ serve(async (req) => {
       ? `ai_provider_settings:${configuredProvider}${provider !== configuredProvider ? `→${provider}` : ''}`
       : (hasLyrics ? 'legacy_user_lyrics' : 'legacy_default');
 
-    console.log(`[GENERATE-AUDIO] feature=${featureKey} | provider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+    console.log(`[GENERATE-AUDIO][ROUTER] feature=${featureKey} | configuredProvider=${configuredProvider} | fallbackProvider=${fallbackProvider} | selectedProvider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration} | lyriaCompatible=${lyriaCompatible}`);
 
-
-    // ── Credits (skipped for KIE; kie-suno-generate debits atomically) ──
+    // Track if we end up using fallback for logging purposes
+    let usedFallback = false;
+    const primaryProviderAttempted: string | null = configuredProvider;
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
     const { data: pricingRow } = await supabaseAdmin
       .from('operation_pricing')
@@ -542,6 +552,8 @@ serve(async (req) => {
               description: `Generación audio (fallback ${fallbackProvider}): ${prompt.slice(0, 80)}`,
             });
             actualProvider = fallbackProvider;
+            usedFallback = true;
+            console.log(`[GENERATE-AUDIO][FALLBACK] used_fallback=true | primary_provider_attempted=kie_suno | fallback=${fallbackProvider}`);
             // Fall through to lyria/elevenlabs below by reassigning flags
             // Re-execute via direct calls
             try {
@@ -607,8 +619,9 @@ serve(async (req) => {
         songMap = result.songMap;
       } catch (lyriaErr) {
         // Fallback to ElevenLabs if Lyria fails
-        console.warn(`[GENERATE-AUDIO] Lyria failed, falling back to ElevenLabs: ${(lyriaErr as Error).message}`);
-        actualProvider = 'elevenlabs_fallback';
+        console.warn(`[GENERATE-AUDIO][FALLBACK] Lyria failed, falling back to ElevenLabs: ${(lyriaErr as Error).message}`);
+        actualProvider = 'elevenlabs';
+        usedFallback = true;
         try {
           const result = await generateWithElevenLabs({
             enrichedPrompt,
@@ -683,13 +696,18 @@ serve(async (req) => {
 
     // ── Log generation (ai_generation_logs) ──
     try {
+      const modelForLog = usedFallback
+        ? (activeSetting?.fallback_model || actualProvider)
+        : (activeSetting?.model || actualProvider);
       await supabaseAdmin.from('ai_generation_logs').insert({
         user_id: userId,
         feature_key: featureKey,
         provider: actualProvider,
-        model: actualProvider.startsWith('lyria') ? (activeSetting?.model || 'lyria-3-pro-preview') : (activeSetting?.model || 'eleven_music_v1'),
+        model: modelForLog,
         estimated_cost_usd: activeSetting?.cost_usd_estimate ?? null,
         status: 'completed',
+        used_fallback: usedFallback,
+        primary_provider_attempted: usedFallback ? primaryProviderAttempted : null,
         request_payload: {
           original_description: original_description ?? prompt,
           original_lyrics: original_lyrics ?? (hasLyrics ? lyrics : ''),
@@ -697,6 +715,15 @@ serve(async (req) => {
           final_prompt_enviado: lyricsAwarePrompt,
           mode: promptMode,
           duration: explicitDuration,
+          router: {
+            featureKey,
+            configuredProvider,
+            fallbackProvider,
+            selectedProvider: provider,
+            actualProvider,
+            routingReason,
+            usedFallback,
+          },
         },
         response_payload: { duration: durationSecs, generationId },
         output_url: savedAudioUrl,
