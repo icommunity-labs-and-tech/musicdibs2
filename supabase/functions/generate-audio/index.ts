@@ -507,12 +507,28 @@ serve(async (req) => {
     // ── KIE Suno branch (delegates to kie-suno-generate; async via callback) ──
     if (useKie) {
       try {
-        const kiePayload = {
-          prompt: lyricsAwarePrompt,
-          instrumental: mode !== 'song',
+        // KIE Suno (customMode=true) expects:
+        //   prompt = lyrics text (what the model will sing)
+        //   style  = musical style / technical description
+        // Mixing both into `prompt` causes Suno to literally sing the description.
+        const userDesc = (original_description || prompt || '').toString().trim();
+        const styleText = [genre, mood, userDesc].filter(Boolean).join(', ').slice(0, 1000);
+        const isInstrumental = mode !== 'song';
+        const kiePayload: Record<string, unknown> = {
+          instrumental: isInstrumental,
           customMode: true,
-          ...(genre || mood ? { style: [genre, mood].filter(Boolean).join(', ') } : {}),
+          ...(styleText ? { style: styleText } : {}),
         };
+        if (isInstrumental) {
+          kiePayload.prompt = userDesc || enrichedPrompt;
+        } else if (hasLyrics) {
+          // Vocal with user lyrics: send raw lyrics as prompt so Suno sings them literally
+          kiePayload.prompt = lyrics.trim();
+        } else {
+          // No lyrics provided: let Suno write them from the description
+          kiePayload.prompt = userDesc || enrichedPrompt;
+          kiePayload.customMode = false;
+        }
         const idemKey = crypto.randomUUID();
         const supaUrl = Deno.env.get('SUPABASE_URL')!;
         const dispatchRes = await fetch(`${supaUrl}/functions/v1/kie-suno-generate`, {
