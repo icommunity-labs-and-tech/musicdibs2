@@ -381,6 +381,16 @@ const AIStudioCreate = () => {
         throw { message: data.error, details: data.details };
       }
 
+      // Async provider (e.g. KIE Suno): generation runs via callback
+      if (data?.status === 'processing' && !data?.audio) {
+        toast({
+          title: 'Generación en curso',
+          description: data.message || 'Tu canción aparecerá en la biblioteca en unos minutos.',
+        });
+        track('generation_started', { feature: 'create_music', metadata: { mode, async: true, provider: data.provider } });
+        return;
+      }
+
       if (data?.audio) {
         // Prefer the persisted signed URL from the edge function; fall back to inline data URL
         const audioUrl = data.audioUrl || `data:${data.format};base64,${data.audio}`;
