@@ -2629,6 +2629,35 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_admin_ai_generation_log_payloads: {
+        Args: { p_log_id: string }
+        Returns: {
+          request_payload: Json
+          response_payload: Json
+        }[]
+      }
+      get_admin_ai_generation_logs: {
+        Args: {
+          p_feature_filter?: string
+          p_limit?: number
+          p_status_filter?: string
+        }
+        Returns: {
+          completed_at: string
+          created_at: string
+          error_message: string
+          estimated_cost_usd: number
+          feature_key: string
+          id: string
+          model: string
+          output_url: string
+          provider: string
+          provider_task_id: string
+          status: string
+          user_credits_charged: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
