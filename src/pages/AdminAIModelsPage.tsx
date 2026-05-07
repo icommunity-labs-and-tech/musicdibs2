@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Save, Plus, Trash2, FlaskConical, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Save, Plus, Trash2, FlaskConical, CheckCircle2, RefreshCw } from "lucide-react";
+import { AIGenerationLogsTable } from "@/components/admin/AIGenerationLogsTable";
 
 interface Setting {
   id: string;
@@ -93,7 +95,7 @@ export default function AdminAIModelsPage() {
         is_enabled: patch.is_enabled ?? s.is_enabled,
         priority: patch.priority ?? s.priority,
         cost_usd_estimate: patch.cost_usd_estimate ?? s.cost_usd_estimate,
-        user_credits_cost: patch.user_credits_cost ?? s.user_credits_cost,
+        // user_credits_cost is informational only — real charges come from operation_pricing.
         fallback_provider: patch.fallback_provider ?? s.fallback_provider,
         fallback_model: patch.fallback_model ?? s.fallback_model,
         notes: patch.notes ?? s.notes,
@@ -196,8 +198,19 @@ export default function AdminAIModelsPage() {
         </p>
       </div>
 
-      {FEATURES.map((feat) => {
-        const rows = grouped[feat.key] || [];
+      <Tabs defaultValue="providers" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="providers">Proveedores</TabsTrigger>
+          <TabsTrigger value="logs">Logs de generación</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logs">
+          <AIGenerationLogsTable />
+        </TabsContent>
+
+        <TabsContent value="providers" className="space-y-6">
+          {FEATURES.map((feat) => {
+            const rows = grouped[feat.key] || [];
         const activeRow = rows.find((r) => r.is_active);
         return (
           <Card key={feat.key}>
@@ -305,13 +318,9 @@ export default function AdminAIModelsPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            value={String(getValue(s, "user_credits_cost") ?? "")}
-                            onChange={(e) => setEdit(s.id, { user_credits_cost: e.target.value === "" ? null : parseInt(e.target.value) })}
-                            className="h-8 w-20"
-                            placeholder="—"
-                          />
+                          <span className="text-xs text-muted-foreground" title="Solo informativo. El cobro real viene de operation_pricing.">
+                            {s.user_credits_cost ?? "—"}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Input
@@ -373,8 +382,10 @@ export default function AdminAIModelsPage() {
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+            );
+          })}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
