@@ -696,13 +696,18 @@ serve(async (req) => {
 
     // ── Log generation (ai_generation_logs) ──
     try {
+      const modelForLog = usedFallback
+        ? (activeSetting?.fallback_model || actualProvider)
+        : (activeSetting?.model || actualProvider);
       await supabaseAdmin.from('ai_generation_logs').insert({
         user_id: userId,
         feature_key: featureKey,
         provider: actualProvider,
-        model: actualProvider.startsWith('lyria') ? (activeSetting?.model || 'lyria-3-pro-preview') : (activeSetting?.model || 'eleven_music_v1'),
+        model: modelForLog,
         estimated_cost_usd: activeSetting?.cost_usd_estimate ?? null,
         status: 'completed',
+        used_fallback: usedFallback,
+        primary_provider_attempted: usedFallback ? primaryProviderAttempted : null,
         request_payload: {
           original_description: original_description ?? prompt,
           original_lyrics: original_lyrics ?? (hasLyrics ? lyrics : ''),
@@ -710,6 +715,15 @@ serve(async (req) => {
           final_prompt_enviado: lyricsAwarePrompt,
           mode: promptMode,
           duration: explicitDuration,
+          router: {
+            featureKey,
+            configuredProvider,
+            fallbackProvider,
+            selectedProvider: provider,
+            actualProvider,
+            routingReason,
+            usedFallback,
+          },
         },
         response_payload: { duration: durationSecs, generationId },
         output_url: savedAudioUrl,
