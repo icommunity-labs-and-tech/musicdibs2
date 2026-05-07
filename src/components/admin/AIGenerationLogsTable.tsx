@@ -40,9 +40,11 @@ export function AIGenerationLogsTable() {
   const [featureFilter, setFeatureFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<LogRow | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setErrorMsg(null);
     let q = supabase
       .from("ai_generation_logs")
       .select("*")
@@ -51,7 +53,13 @@ export function AIGenerationLogsTable() {
     if (statusFilter !== "all") q = q.eq("status", statusFilter);
     if (featureFilter !== "all") q = q.eq("feature_key", featureFilter);
     const { data, error } = await q;
-    if (!error) setRows((data as LogRow[]) || []);
+    if (error) {
+      console.error("[AIGenerationLogsTable] load error", error);
+      setErrorMsg(error.message || "No se pudieron cargar los logs.");
+      setRows([]);
+    } else {
+      setRows((data as LogRow[]) || []);
+    }
     setLoading(false);
   };
 
