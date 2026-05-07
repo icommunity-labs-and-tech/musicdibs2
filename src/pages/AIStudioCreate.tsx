@@ -115,6 +115,7 @@ const AIStudioCreate = () => {
   const [mode, setMode] = useState<'song' | 'instrumental'>('song');
   const [prompt, setPrompt] = useState("");
   const [lyrics, setLyrics] = useState<string>('');
+  const [generationPriority, setGenerationPriority] = useState<'lyrics_fidelity' | 'creative'>('lyrics_fidelity');
   const [duration, setDuration] = useState<number | null>(DEFAULT_DURATION);
   const [lyricsText, setLyricsText] = useState("");
   const [lyricsExpanded, setLyricsExpanded] = useState(false);
