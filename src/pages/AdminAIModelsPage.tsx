@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, Save, Plus, Trash2, FlaskConical, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Save, Plus, Trash2, FlaskConical, CheckCircle2, RefreshCw } from "lucide-react";
+import { AIGenerationLogsTable } from "@/components/admin/AIGenerationLogsTable";
 
 interface Setting {
   id: string;
