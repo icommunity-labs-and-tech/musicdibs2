@@ -349,11 +349,15 @@ const AIStudioCreate = () => {
         enrichedPrompt = `${enrichedPrompt}${voiceTag}`;
       }
 
+      const hasLyricsForCall = mode === 'song' && lyrics.trim().length > 0;
       const { data, error } = await supabase.functions.invoke('generate-audio', {
         body: {
           prompt: enrichedPrompt,
           lyrics: mode === 'song' ? lyrics.trim() : '',
           mode,
+          generation_priority: hasLyricsForCall ? generationPriority : (mode === 'song' ? 'creative' : 'creative'),
+          original_description: prompt.trim(),
+          original_lyrics: mode === 'song' ? lyrics.trim() : '',
           ...(duration ? { duration } : {}),
         }
       });
