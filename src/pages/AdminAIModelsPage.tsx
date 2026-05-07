@@ -198,7 +198,17 @@ export default function AdminAIModelsPage() {
         </p>
       </div>
 
-      {FEATURES.map((feat) => {
+      <Tabs defaultValue="providers" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="providers">Proveedores</TabsTrigger>
+          <TabsTrigger value="logs">Logs de generación</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="logs">
+          <AIGenerationLogsTable />
+        </TabsContent>
+
+        <TabsContent value="providers" className="space-y-6">
         const rows = grouped[feat.key] || [];
         const activeRow = rows.find((r) => r.is_active);
         return (
