@@ -382,8 +382,10 @@ export default function AdminAIModelsPage() {
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+            );
+          })}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
