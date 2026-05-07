@@ -467,7 +467,7 @@ serve(async (req) => {
     if (useLyria) {
       try {
         const result = await generateWithLyria({
-          prompt: enrichedPrompt,
+          prompt: lyricsAwarePrompt,
           explicitDuration,
           geminiApiKey: GEMINI_API_KEY,
         });
