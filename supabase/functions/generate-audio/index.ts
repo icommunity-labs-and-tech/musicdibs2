@@ -371,12 +371,21 @@ serve(async (req) => {
 
     // ── Provider router (ai_provider_settings) ──
     const featureKey = mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental';
-    const { data: activeSetting } = await supabaseAdmin
+    const { data: activeSettingRows, error: settingErr } = await supabaseAdmin
       .from('ai_provider_settings')
-      .select('provider, model, fallback_provider, fallback_model, is_enabled, cost_usd_estimate')
+      .select('id, provider, model, fallback_provider, fallback_model, is_enabled, is_active, cost_usd_estimate, priority')
       .eq('feature_key', featureKey)
       .eq('is_active', true)
-      .maybeSingle();
+      .order('priority', { ascending: true });
+
+    if (settingErr) {
+      console.error('[GENERATE-AUDIO][ROUTER] error reading ai_provider_settings:', settingErr.message);
+    }
+    if ((activeSettingRows?.length ?? 0) > 1) {
+      console.warn('[GENERATE-AUDIO][ROUTER] WARNING: multiple is_active rows for', featureKey, '→', activeSettingRows);
+    }
+    const activeSetting = activeSettingRows?.[0] ?? null;
+    console.log('[GENERATE-AUDIO][ROUTER] featureKey=', featureKey, '| activeSetting=', JSON.stringify(activeSetting));
 
     const configuredProvider = (activeSetting?.is_enabled ? activeSetting?.provider : null) ?? null;
     const fallbackProvider = activeSetting?.fallback_provider ?? null;
