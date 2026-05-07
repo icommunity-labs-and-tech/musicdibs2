@@ -831,6 +831,13 @@ export default function MediaLibraryPage() {
           </TabsContent>
         ))}
       </Tabs>
+
+      <VariantsDialog
+        open={!!variantsGroupId}
+        onOpenChange={(o) => { if (!o) setVariantsGroupId(null); }}
+        generationGroupId={variantsGroupId}
+        baseTitle={variantsBaseTitle}
+      />
     </div>
   );
 }
