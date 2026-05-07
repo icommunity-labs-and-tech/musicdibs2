@@ -69,6 +69,7 @@ const AdminPremiumPromosPage = lazyWithRetry(() => import("./pages/AdminPremiumP
 const AdminFeatureCostsPage = lazyWithRetry(() => import("./pages/AdminFeatureCostsPage"));
 const AdminApiCostsPage = lazyWithRetry(() => import("./pages/AdminApiCostsPage"));
 const AdminProductMetrics = lazyWithRetry(() => import("./pages/AdminProductMetrics"));
+const AdminAIModelsPage = lazyWithRetry(() => import("./pages/AdminAIModelsPage"));
 const ManagerDashboard = lazyWithRetry(() => import("./pages/ManagerDashboard"));
 const ManagerArtists = lazyWithRetry(() => import("./pages/ManagerArtists"));
 const ManagerArtistNew = lazyWithRetry(() => import("./pages/ManagerArtistNew"));
@@ -160,6 +161,7 @@ const App = () => (
                 <Route path="admin/api-costs" element={<Suspense fallback={null}><AdminGuard><AdminApiCostsPage /></AdminGuard></Suspense>} />
                 <Route path="admin/product-metrics" element={<Suspense fallback={null}><AdminGuard><AdminProductMetrics /></AdminGuard></Suspense>} />
                 <Route path="admin/churn" element={<Suspense fallback={null}><AdminGuard><AdminChurnPage /></AdminGuard></Suspense>} />
+                <Route path="admin/ai-models" element={<Suspense fallback={null}><AdminGuard><AdminAIModelsPage /></AdminGuard></Suspense>} />
                 <Route path="manager" element={<Suspense fallback={null}><ManagerGuard><ManagerDashboard /></ManagerGuard></Suspense>} />
                 <Route path="manager/artists" element={<Suspense fallback={null}><ManagerGuard><ManagerArtists /></ManagerGuard></Suspense>} />
                 <Route path="manager/artists/new" element={<Suspense fallback={null}><ManagerGuard><ManagerArtistNew /></ManagerGuard></Suspense>} />

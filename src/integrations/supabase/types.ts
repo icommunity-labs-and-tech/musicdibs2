@@ -44,6 +44,69 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generation_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          estimated_cost_usd: number | null
+          feature_key: string
+          id: string
+          model: string
+          output_url: string | null
+          primary_provider_attempted: string | null
+          provider: string
+          provider_task_id: string | null
+          request_payload: Json | null
+          response_payload: Json | null
+          status: string
+          updated_at: string
+          used_fallback: boolean
+          user_credits_charged: number | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          feature_key: string
+          id?: string
+          model: string
+          output_url?: string | null
+          primary_provider_attempted?: string | null
+          provider: string
+          provider_task_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string
+          updated_at?: string
+          used_fallback?: boolean
+          user_credits_charged?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          feature_key?: string
+          id?: string
+          model?: string
+          output_url?: string | null
+          primary_provider_attempted?: string | null
+          provider?: string
+          provider_task_id?: string | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string
+          updated_at?: string
+          used_fallback?: boolean
+          user_credits_charged?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_generations: {
         Row: {
           audio_url: string
@@ -92,6 +155,60 @@ export type Database = {
           voice_id?: string | null
           voice_name?: string | null
           voice_profile_id?: string | null
+        }
+        Relationships: []
+      }
+      ai_provider_settings: {
+        Row: {
+          config_json: Json
+          cost_usd_estimate: number | null
+          created_at: string
+          fallback_model: string | null
+          fallback_provider: string | null
+          feature_key: string
+          id: string
+          is_active: boolean
+          is_enabled: boolean
+          model: string
+          notes: string | null
+          priority: number
+          provider: string
+          updated_at: string
+          user_credits_cost: number | null
+        }
+        Insert: {
+          config_json?: Json
+          cost_usd_estimate?: number | null
+          created_at?: string
+          fallback_model?: string | null
+          fallback_provider?: string | null
+          feature_key: string
+          id?: string
+          is_active?: boolean
+          is_enabled?: boolean
+          model: string
+          notes?: string | null
+          priority?: number
+          provider: string
+          updated_at?: string
+          user_credits_cost?: number | null
+        }
+        Update: {
+          config_json?: Json
+          cost_usd_estimate?: number | null
+          created_at?: string
+          fallback_model?: string | null
+          fallback_provider?: string | null
+          feature_key?: string
+          id?: string
+          is_active?: boolean
+          is_enabled?: boolean
+          model?: string
+          notes?: string | null
+          priority?: number
+          provider?: string
+          updated_at?: string
+          user_credits_cost?: number | null
         }
         Relationships: []
       }

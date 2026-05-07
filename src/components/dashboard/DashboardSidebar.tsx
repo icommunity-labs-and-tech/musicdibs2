@@ -75,6 +75,7 @@ export function DashboardSidebar() {
     { title: 'Rentabilidad APIs', url: '/dashboard/admin/api-costs', icon: BarChart3 },
     { title: '📊 Métricas Producto', url: '/dashboard/admin/product-metrics', icon: BarChart3 },
     { title: 'Bajas', url: '/dashboard/admin/churn', icon: UserX },
+    { title: '🤖 Proveedores IA', url: '/dashboard/admin/ai-models', icon: Sparkles },
   ], [i18n.resolvedLanguage, t]);
 
   // Determine which group is active based on current route

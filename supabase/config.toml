@@ -61,3 +61,9 @@ project_id = "kzbmthhtbeddcjrucuex"
     verify_jwt = false
   [functions.generate-promo-creative]
     verify_jwt = false
+  [functions.kie-suno-generate]
+    verify_jwt = false
+  [functions.kie-suno-callback]
+    verify_jwt = false
+  [functions.ai-provider-test]
+    verify_jwt = false
