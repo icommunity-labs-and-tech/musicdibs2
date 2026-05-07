@@ -672,7 +672,8 @@ const AIStudioCreate = () => {
     if (!saveArtistName.trim() || !user) return;
     const hasStyleFallback = saveArtistStyle.trim().length > 10;
     const isInstrumentalSave = mode === 'instrumental' || (!lastGeneratedVoiceId && hasStyleFallback);
-    const voiceIdToPersist = isInstrumentalSave ? '' : (lastGeneratedVoiceId || (hasStyleFallback ? '' : voiceProfiles[0]?.id) || '');
+    const rawVoiceId = isInstrumentalSave ? null : lastGeneratedVoiceId.trim();
+    const voiceIdToPersist = rawVoiceId && rawVoiceId !== '__none__' ? rawVoiceId : null;
     if (!isInstrumentalSave && !voiceIdToPersist && !hasStyleFallback) return;
     setIsSavingArtist(true);
     try {
@@ -681,15 +682,14 @@ const AIStudioCreate = () => {
         toast({ title: t('aiCreate.saveArtistLimit'), variant: 'destructive' });
         return;
       }
-      const isInstrumental = mode === 'instrumental';
       const { data: newArtist, error } = await supabase
         .from('user_artist_profiles')
         .insert({
           user_id: user.id,
           name: saveArtistName.trim(),
-          voice_profile_id: (isInstrumental || !voiceIdToPersist) ? null : voiceIdToPersist,
-          voice_type: (isInstrumental || !voiceIdToPersist) ? null : 'preset',
-          generation_type: mode === 'song' ? 'vocal' : 'instrumental',
+          voice_profile_id: voiceIdToPersist,
+          voice_type: voiceIdToPersist ? 'preset' : null,
+          generation_type: voiceIdToPersist ? 'vocal' : 'instrumental',
           genre: null,
           mood: null,
           default_duration: duration,
@@ -2087,7 +2087,7 @@ const AIStudioCreate = () => {
                       <span className="text-muted-foreground font-normal"> (opcional)</span>
                     )}
                   </Label>
-                  <Select value={lastGeneratedVoiceId || (saveArtistStyle.trim().length > 10 ? '' : voiceProfiles[0]?.id || '')} onValueChange={(value) => {
+                  <Select value={lastGeneratedVoiceId || '__none__'} onValueChange={(value) => {
                     if (value === '__none__') {
                       setLastGeneratedVoiceId('');
                       setLastGeneratedVoiceName('');
@@ -2101,9 +2101,7 @@ const AIStudioCreate = () => {
                       <SelectValue placeholder={t('aiCreate.saveArtistVoiceOptional')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {saveArtistStyle.trim().length > 10 && (
-                        <SelectItem value="__none__">— Sin voz específica —</SelectItem>
-                      )}
+                      <SelectItem value="__none__">— Sin voz específica —</SelectItem>
                       {voiceProfiles.map((voice) => (
                         <SelectItem key={voice.id} value={voice.id}>{voice.label}</SelectItem>
                       ))}
