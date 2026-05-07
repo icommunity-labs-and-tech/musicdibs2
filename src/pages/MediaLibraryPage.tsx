@@ -27,6 +27,11 @@ interface MediaAsset {
   url: string | null;
   createdAt: string;
   meta?: Record<string, string>;
+  // Multi-variant grouping (KIE Suno + future providers)
+  generationGroupId?: string | null;
+  variantIndex?: number;
+  isPrimary?: boolean;
+  variantCount?: number; // populated on the primary row after grouping
 }
 
 type TabType = "all" | "song" | "video" | "cover" | "vocal";
