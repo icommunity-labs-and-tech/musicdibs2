@@ -369,16 +369,42 @@ serve(async (req) => {
     const explicitDuration: number | null = typeof duration === 'number' && duration > 0 ? duration : null;
     const hasLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
 
-    // ── Routing decision ──
-    const useLyria = shouldUseLyria({ hasLyrics, explicitDuration });
-    const provider = useLyria ? 'lyria' : 'elevenlabs';
-    const routingReason = !useLyria
-      ? (hasLyrics ? 'user_lyrics_present' : 'duration_exceeds_lyria_max')
-      : 'default';
+    // ── Provider router (ai_provider_settings) ──
+    const featureKey = mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental';
+    const { data: activeSetting } = await supabaseAdmin
+      .from('ai_provider_settings')
+      .select('provider, model, fallback_provider, fallback_model, is_enabled, cost_usd_estimate')
+      .eq('feature_key', featureKey)
+      .eq('is_active', true)
+      .maybeSingle();
 
-    console.log(`[GENERATE-AUDIO] provider=${provider} | reason=${routingReason} | mode=${mode} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+    const configuredProvider = (activeSetting?.is_enabled ? activeSetting?.provider : null) ?? null;
+    const fallbackProvider = activeSetting?.fallback_provider ?? null;
 
-    // ── Credits ──
+    // Lyria can't handle lyrics or >180s — auto-fallback in those cases
+    const lyriaCompatible = !hasLyrics && (!explicitDuration || explicitDuration <= LYRIA_MAX_DURATION_SECS);
+
+    // Resolve provider: use configured one if compatible, else fallback, else legacy heuristic
+    let provider: 'kie_suno' | 'elevenlabs' | 'lyria' | 'gemini';
+    if (configuredProvider === 'lyria' || configuredProvider === 'gemini') {
+      provider = lyriaCompatible ? 'lyria' : (fallbackProvider as any) || 'elevenlabs';
+    } else if (configuredProvider === 'kie_suno' || configuredProvider === 'elevenlabs') {
+      provider = configuredProvider;
+    } else {
+      // No active config — legacy default
+      provider = lyriaCompatible ? 'lyria' : 'elevenlabs';
+    }
+
+    const useLyria = provider === 'lyria' || provider === 'gemini';
+    const useKie = provider === 'kie_suno';
+    const routingReason = configuredProvider
+      ? `ai_provider_settings:${configuredProvider}${provider !== configuredProvider ? `→${provider}` : ''}`
+      : (hasLyrics ? 'legacy_user_lyrics' : 'legacy_default');
+
+    console.log(`[GENERATE-AUDIO] feature=${featureKey} | provider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+
+
+    // ── Credits (skipped for KIE; kie-suno-generate debits atomically) ──
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
     const { data: pricingRow } = await supabaseAdmin
       .from('operation_pricing')
@@ -389,32 +415,35 @@ serve(async (req) => {
     const CREDITS_COST = pricingRow?.credits_cost ?? 3;
     console.log(`[GENERATE-AUDIO] Pricing: ${operationKey} = ${CREDITS_COST} credits`);
 
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('available_credits')
-      .eq('user_id', userId)
-      .single();
+    if (!useKie) {
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('available_credits')
+        .eq('user_id', userId)
+        .single();
 
-    if (!profile || profile.available_credits < CREDITS_COST) {
-      return new Response(
-        JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }),
-        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (!profile || profile.available_credits < CREDITS_COST) {
+        return new Response(
+          JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      await supabaseAdmin.from('profiles').update({
+        available_credits: profile.available_credits - CREDITS_COST,
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', userId).eq('available_credits', profile.available_credits);
+
+      await supabaseAdmin.from('credit_transactions').insert({
+        user_id: userId,
+        amount: -CREDITS_COST,
+        type: 'usage',
+        description: `Generación audio (${mode || 'instrumental'}, ${provider}): ${prompt.slice(0, 80)}`,
+      });
     }
 
-    await supabaseAdmin.from('profiles').update({
-      available_credits: profile.available_credits - CREDITS_COST,
-      updated_at: new Date().toISOString(),
-    }).eq('user_id', userId).eq('available_credits', profile.available_credits);
-
-    await supabaseAdmin.from('credit_transactions').insert({
-      user_id: userId,
-      amount: -CREDITS_COST,
-      type: 'usage',
-      description: `Generación audio (${mode || 'instrumental'}, ${provider}): ${prompt.slice(0, 80)}`,
-    });
-
     const refundCredits = async (reason: string) => {
+      if (useKie) return; // KIE handles its own refund inside kie-suno-generate / callback
       const { data: p } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
       if (p) {
         await supabaseAdmin.from('profiles').update({
@@ -428,6 +457,7 @@ serve(async (req) => {
         console.log(`[GENERATE-AUDIO] Refunded ${CREDITS_COST} credits: ${reason}`);
       }
     };
+
 
     // ── Build enriched prompt (shared) ──
     const parts: string[] = [];
@@ -459,12 +489,113 @@ serve(async (req) => {
     console.log(`[GENERATE-AUDIO] priority=${priority} | promptMode=${promptMode} | finalPromptLen=${lyricsAwarePrompt.length}`);
 
     // ── Generate ──
-    let audioBuffer: ArrayBuffer;
-    let durationSecs: number;
+    let audioBuffer: ArrayBuffer | null = null;
+    let durationSecs: number = 0;
     let songMap: string | null = null;
     let actualProvider = provider;
 
-    if (useLyria) {
+    // ── KIE Suno branch (delegates to kie-suno-generate; async via callback) ──
+    if (useKie) {
+      try {
+        const kiePayload = {
+          prompt: lyricsAwarePrompt,
+          instrumental: mode !== 'song',
+          customMode: true,
+          ...(genre || mood ? { style: [genre, mood].filter(Boolean).join(', ') } : {}),
+        };
+        const idemKey = crypto.randomUUID();
+        const supaUrl = Deno.env.get('SUPABASE_URL')!;
+        const dispatchRes = await fetch(`${supaUrl}/functions/v1/kie-suno-generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': authHeader!,
+            'Content-Type': 'application/json',
+            'x-idempotency-key': idemKey,
+          },
+          body: JSON.stringify(kiePayload),
+        });
+        const dispatchJson = await dispatchRes.json().catch(() => ({}));
+        if (!dispatchRes.ok || dispatchJson?.error) {
+          const msg = dispatchJson?.error || `kie_dispatch_${dispatchRes.status}`;
+          console.warn(`[GENERATE-AUDIO] KIE dispatch failed: ${msg}`);
+          if (msg === 'insufficient_credits') {
+            return new Response(JSON.stringify(dispatchJson), {
+              status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+          // Try fallback if configured
+          if (fallbackProvider === 'elevenlabs' || fallbackProvider === 'lyria') {
+            console.log(`[GENERATE-AUDIO] Falling back to ${fallbackProvider}`);
+            // KIE didn't debit (dispatch failed) — debit now for fallback
+            const { data: prof } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
+            if (!prof || prof.available_credits < CREDITS_COST) {
+              return new Response(JSON.stringify({ error: 'insufficient_credits', required: CREDITS_COST }), {
+                status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              });
+            }
+            await supabaseAdmin.from('profiles').update({
+              available_credits: prof.available_credits - CREDITS_COST,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', userId).eq('available_credits', prof.available_credits);
+            await supabaseAdmin.from('credit_transactions').insert({
+              user_id: userId, amount: -CREDITS_COST, type: 'usage',
+              description: `Generación audio (fallback ${fallbackProvider}): ${prompt.slice(0, 80)}`,
+            });
+            actualProvider = fallbackProvider;
+            // Fall through to lyria/elevenlabs below by reassigning flags
+            // Re-execute via direct calls
+            try {
+              if (fallbackProvider === 'lyria' && lyriaCompatible) {
+                const r = await generateWithLyria({ prompt: lyricsAwarePrompt, explicitDuration, geminiApiKey: GEMINI_API_KEY });
+                audioBuffer = r.audioBuffer; durationSecs = r.durationSecs; songMap = r.songMap;
+              } else {
+                const r = await generateWithElevenLabs({ enrichedPrompt, lyricsAwarePrompt, hasLyrics, explicitDuration, apiKey: ELEVENLABS_API_KEY });
+                audioBuffer = r.audioBuffer; durationSecs = r.durationSecs;
+                actualProvider = 'elevenlabs';
+              }
+            } catch (fbErr) {
+              const { data: p2 } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
+              if (p2) {
+                await supabaseAdmin.from('profiles').update({
+                  available_credits: p2.available_credits + CREDITS_COST,
+                  updated_at: new Date().toISOString(),
+                }).eq('user_id', userId);
+                await supabaseAdmin.from('credit_transactions').insert({
+                  user_id: userId, amount: CREDITS_COST, type: 'refund',
+                  description: `Reembolso: KIE+fallback failed ${(fbErr as Error).message}`.slice(0, 200),
+                });
+              }
+              return new Response(JSON.stringify({ error: 'provider_unavailable' }), {
+                status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              });
+            }
+          } else {
+            return new Response(JSON.stringify({ error: 'provider_unavailable', details: msg }), {
+              status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+          }
+        } else {
+          // KIE dispatch ok — async, return processing status to client
+          actualProvider = 'kie_suno';
+          console.log(`[GENERATE-AUDIO] KIE task dispatched: logId=${dispatchJson.logId} taskId=${dispatchJson.taskId}`);
+          return new Response(JSON.stringify({
+            status: 'processing',
+            provider: 'kie_suno',
+            logId: dispatchJson.logId,
+            taskId: dispatchJson.taskId,
+            idempotencyKey: idemKey,
+            message: 'Generación en curso. La canción aparecerá en tu biblioteca al completarse.',
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+        }
+      } catch (kieErr) {
+        console.error('[GENERATE-AUDIO] KIE branch fatal:', kieErr);
+        return new Response(JSON.stringify({ error: 'provider_unavailable', details: (kieErr as Error).message }), {
+          status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    if (!audioBuffer && useLyria) {
       try {
         const result = await generateWithLyria({
           prompt: lyricsAwarePrompt,
@@ -496,7 +627,7 @@ serve(async (req) => {
           );
         }
       }
-    } else {
+    } else if (!audioBuffer) {
       // ElevenLabs path (lyrics present OR duration > 180s)
       try {
         const result = await generateWithElevenLabs({
@@ -554,9 +685,10 @@ serve(async (req) => {
     try {
       await supabaseAdmin.from('ai_generation_logs').insert({
         user_id: userId,
-        feature_key: mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental',
+        feature_key: featureKey,
         provider: actualProvider,
-        model: actualProvider.startsWith('lyria') ? 'lyria-3-pro-preview' : 'elevenlabs-music',
+        model: actualProvider.startsWith('lyria') ? (activeSetting?.model || 'lyria-3-pro-preview') : (activeSetting?.model || 'eleven_music_v1'),
+        estimated_cost_usd: activeSetting?.cost_usd_estimate ?? null,
         status: 'completed',
         request_payload: {
           original_description: original_description ?? prompt,
