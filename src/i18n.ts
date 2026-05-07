@@ -1525,7 +1525,7 @@ const resources = {
         },
         pageTitle: 'Crie sua música',
         pageSubtitle: 'Crie música original com inteligência artificial. Gere, edite e explore novos sons para seus projetos criativos.',
-        poweredBy: 'Powered by ElevenLabs AI',
+        poweredBy: 'Impulsionado pela IA',
         backToDashboard: 'Voltar ao Dashboard',
         startBtn: 'Começar',
         previewBtn: 'Ver Preview',
