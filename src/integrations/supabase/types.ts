@@ -46,12 +46,14 @@ export type Database = {
       }
       ai_generation_logs: {
         Row: {
+          callback_token: string | null
           completed_at: string | null
           created_at: string
           error_message: string | null
           estimated_cost_usd: number | null
           feature_key: string
           id: string
+          idempotency_key: string | null
           model: string
           output_url: string | null
           primary_provider_attempted: string | null
@@ -66,12 +68,14 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          callback_token?: string | null
           completed_at?: string | null
           created_at?: string
           error_message?: string | null
           estimated_cost_usd?: number | null
           feature_key: string
           id?: string
+          idempotency_key?: string | null
           model: string
           output_url?: string | null
           primary_provider_attempted?: string | null
@@ -86,12 +90,14 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          callback_token?: string | null
           completed_at?: string | null
           created_at?: string
           error_message?: string | null
           estimated_cost_usd?: number | null
           feature_key?: string
           id?: string
+          idempotency_key?: string | null
           model?: string
           output_url?: string | null
           primary_provider_attempted?: string | null
