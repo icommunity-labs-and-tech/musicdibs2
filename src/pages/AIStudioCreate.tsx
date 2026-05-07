@@ -276,6 +276,52 @@ const AIStudioCreate = () => {
 
   }, [user]);
 
+  // ── Realtime: append new ai_generations rows as they are inserted ──
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`ai_generations_${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ai_generations', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const item: any = payload.new;
+          if (!item?.audio_url) return;
+          const newResult: GenerationResult = {
+            id: item.id,
+            audioUrl: item.audio_url,
+            prompt: item.prompt,
+            duration: item.duration,
+            genre: item.genre || undefined,
+            mood: item.mood || undefined,
+            createdAt: new Date(item.created_at),
+            isFavorite: item.is_favorite || false,
+            voiceId: item.voice_id || undefined,
+            voiceName: item.voice_name || undefined,
+          };
+          setResults(prev => prev.some(r => r.id === newResult.id) ? prev : [newResult, ...prev]);
+          setLastResult(prev => prev ?? newResult);
+          setIsGenerating(false);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'ai_generations', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const item: any = payload.new;
+          if (!item?.audio_url) return;
+          setResults(prev => prev.map(r => r.id === item.id ? {
+            ...r,
+            audioUrl: item.audio_url,
+            duration: item.duration ?? r.duration,
+            isFavorite: item.is_favorite ?? r.isFavorite,
+          } : r));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   // ── Preload prompt and mode from URL params (e.g. from /ai-studio/inspire) ──
   useEffect(() => {
     const urlPrompt = searchParams.get('prompt');
