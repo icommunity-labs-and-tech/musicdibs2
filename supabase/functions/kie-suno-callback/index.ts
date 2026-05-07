@@ -32,7 +32,16 @@ serve(async (req) => {
 
     const code = body?.code;
     const taskId = body?.data?.task_id || body?.data?.taskId;
+    const callbackType = body?.data?.callbackType || body?.data?.callback_type;
     const tracks: Array<any> = Array.isArray(body?.data?.data) ? body.data.data : [];
+
+    // KIE Suno emits 3 callbacks per task: "text", "first", "complete".
+    // Only "complete" carries final audio_url for all variants. Ignore the others
+    // so we don't prematurely mark the log as completed (which would block the real one via idempotency).
+    if (callbackType && callbackType !== "complete") {
+      console.log("[kie-suno-callback] ignoring intermediate callback", { taskId, callbackType });
+      return ok({ ignored: callbackType });
+    }
 
     // Locate log row
     let logRow: any = null;
