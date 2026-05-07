@@ -105,44 +105,56 @@ export default function VariantsDialog({
     };
   }, [open, generationGroupId, toast]);
 
-  // Stop audio when dialog closes
+  // Track open state in a ref so async callbacks can detect close mid-flight
+  const openRef = useRef(open);
+  useEffect(() => { openRef.current = open; }, [open]);
+
+  // Stop audio + reset transient state when dialog closes
   useEffect(() => {
     if (!open) {
       audioRef.current?.pause();
       audioRef.current = null;
       setPlayingId(null);
+      setDownloadingId(null);
     }
   }, [open]);
 
   const togglePlay = async (v: VariantRow) => {
     if (playingId === v.id) {
       audioRef.current?.pause();
+      audioRef.current = null;
       setPlayingId(null);
       return;
     }
     audioRef.current?.pause();
+    audioRef.current = null;
     const url = await resolveVariantUrl(v);
+    if (!openRef.current) return;
     if (!url) {
       toast({ title: "No se pudo reproducir esta variante", variant: "destructive" });
       return;
     }
     const audio = new Audio(url);
     audio.onended = () => setPlayingId(null);
-    audio.play().catch(() => {
-      toast({ title: "Error al reproducir", variant: "destructive" });
-      setPlayingId(null);
-    });
     audioRef.current = audio;
     setPlayingId(v.id);
+    audio.play().catch(() => {
+      if (audioRef.current === audio) audioRef.current = null;
+      setPlayingId(null);
+      toast({ title: "Error al reproducir", variant: "destructive" });
+    });
   };
 
   const handleDownload = async (v: VariantRow) => {
     setDownloadingId(v.id);
     try {
       const url = await resolveVariantUrl(v);
+      if (!openRef.current) return;
       if (!url) throw new Error("no_url");
       const res = await fetch(url);
+      if (!openRef.current) return;
       const blob = await res.blob();
+      if (!openRef.current) return;
       const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = objectUrl;
@@ -153,7 +165,7 @@ export default function VariantsDialog({
       a.remove();
       URL.revokeObjectURL(objectUrl);
     } catch {
-      toast({ title: "Error al descargar", variant: "destructive" });
+      if (openRef.current) toast({ title: "Error al descargar", variant: "destructive" });
     } finally {
       setDownloadingId(null);
     }
