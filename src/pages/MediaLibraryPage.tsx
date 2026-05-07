@@ -687,14 +687,23 @@ export default function MediaLibraryPage() {
                             >
                               {typeLabel(asset.type)}
                             </Badge>
-                            {asset.variantCount && asset.variantCount > 1 && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px] px-1.5 py-0"
-                                title="Esta generación tiene varias variantes guardadas"
+                            {asset.variantCount && asset.variantCount > 1 && asset.generationGroupId && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setVariantsGroupId(asset.generationGroupId!);
+                                  setVariantsBaseTitle(getDisplayName(asset));
+                                }}
+                                title="Ver todas las variantes"
                               >
-                                {asset.variantCount} variantes
-                              </Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] px-1.5 py-0 cursor-pointer hover:bg-secondary/80"
+                                >
+                                  {asset.variantCount} variantes · Ver
+                                </Badge>
+                              </button>
                             )}
                             <span className="text-[10px] text-muted-foreground">
                               {new Date(asset.createdAt).toLocaleDateString("es-ES", {
