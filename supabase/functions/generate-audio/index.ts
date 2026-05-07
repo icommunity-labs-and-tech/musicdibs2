@@ -369,14 +369,40 @@ serve(async (req) => {
     const explicitDuration: number | null = typeof duration === 'number' && duration > 0 ? duration : null;
     const hasLyrics = typeof lyrics === 'string' && lyrics.trim().length > 0 && mode === 'song';
 
-    // ── Routing decision ──
-    const useLyria = shouldUseLyria({ hasLyrics, explicitDuration });
-    const provider = useLyria ? 'lyria' : 'elevenlabs';
-    const routingReason = !useLyria
-      ? (hasLyrics ? 'user_lyrics_present' : 'duration_exceeds_lyria_max')
-      : 'default';
+    // ── Provider router (ai_provider_settings) ──
+    const featureKey = mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental';
+    const { data: activeSetting } = await supabaseAdmin
+      .from('ai_provider_settings')
+      .select('provider, model, fallback_provider, fallback_model, is_enabled, cost_usd_estimate')
+      .eq('feature_key', featureKey)
+      .eq('is_active', true)
+      .maybeSingle();
 
-    console.log(`[GENERATE-AUDIO] provider=${provider} | reason=${routingReason} | mode=${mode} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+    const configuredProvider = (activeSetting?.is_enabled ? activeSetting?.provider : null) ?? null;
+    const fallbackProvider = activeSetting?.fallback_provider ?? null;
+
+    // Lyria can't handle lyrics or >180s — auto-fallback in those cases
+    const lyriaCompatible = !hasLyrics && (!explicitDuration || explicitDuration <= LYRIA_MAX_DURATION_SECS);
+
+    // Resolve provider: use configured one if compatible, else fallback, else legacy heuristic
+    let provider: 'kie_suno' | 'elevenlabs' | 'lyria' | 'gemini';
+    if (configuredProvider === 'lyria' || configuredProvider === 'gemini') {
+      provider = lyriaCompatible ? 'lyria' : (fallbackProvider as any) || 'elevenlabs';
+    } else if (configuredProvider === 'kie_suno' || configuredProvider === 'elevenlabs') {
+      provider = configuredProvider;
+    } else {
+      // No active config — legacy default
+      provider = lyriaCompatible ? 'lyria' : 'elevenlabs';
+    }
+
+    const useLyria = provider === 'lyria' || provider === 'gemini';
+    const useKie = provider === 'kie_suno';
+    const routingReason = configuredProvider
+      ? `ai_provider_settings:${configuredProvider}${provider !== configuredProvider ? `→${provider}` : ''}`
+      : (hasLyrics ? 'legacy_user_lyrics' : 'legacy_default');
+
+    console.log(`[GENERATE-AUDIO] feature=${featureKey} | provider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+
 
     // ── Credits ──
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
