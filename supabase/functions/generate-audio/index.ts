@@ -595,7 +595,7 @@ serve(async (req) => {
       }
     }
 
-    if (useLyria) {
+    if (!audioBuffer && useLyria) {
       try {
         const result = await generateWithLyria({
           prompt: lyricsAwarePrompt,
