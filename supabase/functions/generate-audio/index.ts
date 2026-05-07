@@ -550,6 +550,30 @@ serve(async (req) => {
       console.error('[GENERATE-AUDIO] Persist error (non-fatal):', persistErr);
     }
 
+    // ── Log generation (ai_generation_logs) ──
+    try {
+      await supabaseAdmin.from('ai_generation_logs').insert({
+        user_id: userId,
+        feature_key: mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental',
+        provider: actualProvider,
+        model: actualProvider.startsWith('lyria') ? 'lyria-3-pro-preview' : 'elevenlabs-music',
+        status: 'completed',
+        request_payload: {
+          original_description: original_description ?? prompt,
+          original_lyrics: original_lyrics ?? (hasLyrics ? lyrics : ''),
+          generation_priority: priority,
+          final_prompt_enviado: lyricsAwarePrompt,
+          mode: promptMode,
+          duration: explicitDuration,
+        },
+        response_payload: { duration: durationSecs, generationId },
+        output_url: savedAudioUrl,
+        user_credits_charged: CREDITS_COST,
+      });
+    } catch (logErr) {
+      console.error('[GENERATE-AUDIO] Log insert (non-fatal):', logErr);
+    }
+
     return new Response(
       JSON.stringify({
         audio: base64Audio,
