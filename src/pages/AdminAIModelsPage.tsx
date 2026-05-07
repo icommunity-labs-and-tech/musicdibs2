@@ -93,7 +93,7 @@ export default function AdminAIModelsPage() {
         is_enabled: patch.is_enabled ?? s.is_enabled,
         priority: patch.priority ?? s.priority,
         cost_usd_estimate: patch.cost_usd_estimate ?? s.cost_usd_estimate,
-        user_credits_cost: patch.user_credits_cost ?? s.user_credits_cost,
+        // user_credits_cost is informational only — real charges come from operation_pricing.
         fallback_provider: patch.fallback_provider ?? s.fallback_provider,
         fallback_model: patch.fallback_model ?? s.fallback_model,
         notes: patch.notes ?? s.notes,
