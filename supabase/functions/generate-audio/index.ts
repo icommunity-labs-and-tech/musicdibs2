@@ -404,7 +404,7 @@ serve(async (req) => {
     console.log(`[GENERATE-AUDIO] feature=${featureKey} | provider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
 
 
-    // ── Credits ──
+    // ── Credits (skipped for KIE; kie-suno-generate debits atomically) ──
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
     const { data: pricingRow } = await supabaseAdmin
       .from('operation_pricing')
@@ -415,32 +415,35 @@ serve(async (req) => {
     const CREDITS_COST = pricingRow?.credits_cost ?? 3;
     console.log(`[GENERATE-AUDIO] Pricing: ${operationKey} = ${CREDITS_COST} credits`);
 
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('available_credits')
-      .eq('user_id', userId)
-      .single();
+    if (!useKie) {
+      const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('available_credits')
+        .eq('user_id', userId)
+        .single();
 
-    if (!profile || profile.available_credits < CREDITS_COST) {
-      return new Response(
-        JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }),
-        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      if (!profile || profile.available_credits < CREDITS_COST) {
+        return new Response(
+          JSON.stringify({ error: 'insufficient_credits', available: profile?.available_credits ?? 0, required: CREDITS_COST }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      await supabaseAdmin.from('profiles').update({
+        available_credits: profile.available_credits - CREDITS_COST,
+        updated_at: new Date().toISOString(),
+      }).eq('user_id', userId).eq('available_credits', profile.available_credits);
+
+      await supabaseAdmin.from('credit_transactions').insert({
+        user_id: userId,
+        amount: -CREDITS_COST,
+        type: 'usage',
+        description: `Generación audio (${mode || 'instrumental'}, ${provider}): ${prompt.slice(0, 80)}`,
+      });
     }
 
-    await supabaseAdmin.from('profiles').update({
-      available_credits: profile.available_credits - CREDITS_COST,
-      updated_at: new Date().toISOString(),
-    }).eq('user_id', userId).eq('available_credits', profile.available_credits);
-
-    await supabaseAdmin.from('credit_transactions').insert({
-      user_id: userId,
-      amount: -CREDITS_COST,
-      type: 'usage',
-      description: `Generación audio (${mode || 'instrumental'}, ${provider}): ${prompt.slice(0, 80)}`,
-    });
-
     const refundCredits = async (reason: string) => {
+      if (useKie) return; // KIE handles its own refund inside kie-suno-generate / callback
       const { data: p } = await supabaseAdmin.from('profiles').select('available_credits').eq('user_id', userId).single();
       if (p) {
         await supabaseAdmin.from('profiles').update({
@@ -454,6 +457,7 @@ serve(async (req) => {
         console.log(`[GENERATE-AUDIO] Refunded ${CREDITS_COST} credits: ${reason}`);
       }
     };
+
 
     // ── Build enriched prompt (shared) ──
     const parts: string[] = [];
