@@ -410,10 +410,11 @@ serve(async (req) => {
       ? `ai_provider_settings:${configuredProvider}${provider !== configuredProvider ? `→${provider}` : ''}`
       : (hasLyrics ? 'legacy_user_lyrics' : 'legacy_default');
 
-    console.log(`[GENERATE-AUDIO] feature=${featureKey} | provider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration}`);
+    console.log(`[GENERATE-AUDIO][ROUTER] feature=${featureKey} | configuredProvider=${configuredProvider} | fallbackProvider=${fallbackProvider} | selectedProvider=${provider} | reason=${routingReason} | hasLyrics=${hasLyrics} | duration=${explicitDuration} | lyriaCompatible=${lyriaCompatible}`);
 
-
-    // ── Credits (skipped for KIE; kie-suno-generate debits atomically) ──
+    // Track if we end up using fallback for logging purposes
+    let usedFallback = false;
+    const primaryProviderAttempted: string | null = configuredProvider;
     const operationKey = mode === 'song' ? 'song_ai_voice' : 'instrumental_base';
     const { data: pricingRow } = await supabaseAdmin
       .from('operation_pricing')
