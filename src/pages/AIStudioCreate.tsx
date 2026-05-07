@@ -1067,9 +1067,49 @@ const AIStudioCreate = () => {
                             maxLength={3000}
                           />
                           <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground">💡 Si incluyes letra, ElevenLabs la cantará palabra por palabra. Cuanto más detallada, mejor resultado.</p>
+                            <p className="text-xs text-muted-foreground">💡 Si incluyes letra, la IA la cantará palabra por palabra. Cuanto más detallada, mejor resultado.</p>
                             <p className="text-xs text-muted-foreground">{lyrics.length}/3000</p>
                           </div>
+
+                          {lyrics.trim().length > 0 && (
+                            <div className="space-y-1.5 pt-2">
+                              <Label className="text-sm">Prioridad de generación</Label>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setGenerationPriority('lyrics_fidelity')}
+                                  className={cn(
+                                    "flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-all",
+                                    generationPriority === 'lyrics_fidelity'
+                                      ? "border-primary bg-primary/10 text-primary"
+                                      : "border-border text-muted-foreground hover:border-primary/50"
+                                  )}
+                                >
+                                  Respetar letra
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setGenerationPriority('creative')}
+                                  className={cn(
+                                    "flex-1 px-3 py-2 rounded-lg text-sm font-medium border-2 transition-all",
+                                    generationPriority === 'creative'
+                                      ? "border-primary bg-primary/10 text-primary"
+                                      : "border-border text-muted-foreground hover:border-primary/50"
+                                  )}
+                                >
+                                  Más creativo
+                                </button>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Si eliges <strong>Respetar letra</strong>, la IA intentará cantar la letra de forma más fiel. Si eliges <strong>Más creativo</strong>, tendrá más libertad musical, pero puede modificar partes de la letra.
+                              </p>
+                              {generationPriority === 'lyrics_fidelity' && prompt.trim().length > 250 && (
+                                <p className="text-xs text-amber-600 dark:text-amber-400">
+                                  ⚠️ Para respetar mejor la letra, usa una descripción más corta y directa.
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       )}
 
