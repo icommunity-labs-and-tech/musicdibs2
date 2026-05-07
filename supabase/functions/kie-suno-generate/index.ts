@@ -71,9 +71,13 @@ serve(async (req) => {
     }
     const model = setting.model ?? "V4_5";
 
-    // Idempotency check
-    const idempotencyKey = (req.headers.get("x-idempotency-key") || body?.idempotencyKey || null);
-    if (idempotencyKey) {
+    // Idempotency — always required. Generate one if the client didn't provide it.
+    const idempotencyKey: string =
+      req.headers.get("x-idempotency-key") ||
+      (typeof body?.idempotencyKey === "string" && body.idempotencyKey) ||
+      crypto.randomUUID();
+
+    {
       const { data: existing } = await supabaseAdmin
         .from("ai_generation_logs")
         .select("id, status, provider_task_id, output_url")
@@ -84,6 +88,7 @@ serve(async (req) => {
         return json({
           ok: true,
           deduplicated: true,
+          idempotencyKey,
           logId: existing.id,
           taskId: existing.provider_task_id,
           status: existing.status,
@@ -102,58 +107,20 @@ serve(async (req) => {
       .maybeSingle();
     const creditsCost = pricingRow?.credits_cost ?? 3;
 
-    // Atomic credit debit — only succeeds if user has enough.
-    const { data: debitRows, error: debitErr } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        available_credits: -1, // placeholder, overwritten by SQL expression below via rpc fallback
-      })
-      .eq("user_id", user.id)
-      .select("user_id");
-    // Supabase JS doesn't support arithmetic UPDATE; do it via RPC-style query.
-    // Use an alternative: select then update with optimistic check. To make it atomic, retry.
-    // Simpler: use the existing decrement_credits RPC if appropriate, or do conditional update.
-    // Implement: read → conditional update with WHERE available_credits = oldValue AND >= cost.
-    // (Reset the placeholder write — we ignore debitRows here; we re-do it properly below.)
-    void debitRows; void debitErr;
-
-    // Proper atomic debit using compare-and-swap loop
-    let debited = false;
-    for (let attempt = 0; attempt < 3 && !debited; attempt++) {
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("available_credits")
-        .eq("user_id", user.id)
-        .single();
-      if (!profile) return json({ error: "profile_not_found" }, 404);
-      if (profile.available_credits < creditsCost) {
-        return json(
-          { error: "insufficient_credits", available: profile.available_credits, required: creditsCost },
-          402,
-        );
-      }
-      const { data: updated, error: updErr } = await supabaseAdmin
-        .from("profiles")
-        .update({
-          available_credits: profile.available_credits - creditsCost,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id)
-        .eq("available_credits", profile.available_credits)
-        .select("user_id");
-      if (updErr) return json({ error: "debit_failed", message: updErr.message }, 500);
-      if (updated && updated.length > 0) debited = true;
-    }
-    if (!debited) {
-      return json({ error: "debit_race_condition", message: "Could not lock credits, please retry." }, 409);
-    }
-
-    await supabaseAdmin.from("credit_transactions").insert({
-      user_id: user.id,
-      amount: -creditsCost,
-      type: "usage",
-      description: `Generación audio (KIE ${model}): ${prompt.slice(0, 80)}`,
+    // Atomic credit debit via RPC. Returns remaining credits or raises.
+    const { error: debitErr } = await supabaseAdmin.rpc("debit_user_credits", {
+      p_user_id: user.id,
+      p_amount: creditsCost,
+      p_description: `Generación audio (KIE ${model}): ${prompt.slice(0, 80)}`,
     });
+    if (debitErr) {
+      const msg = String(debitErr.message || "");
+      if (msg.includes("insufficient_credits")) {
+        return json({ error: "insufficient_credits", required: creditsCost }, 402);
+      }
+      return json({ error: "debit_failed", message: msg }, 500);
+    }
+
 
     // Generate callback token (random) and create log row
     const callbackToken = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");

@@ -27,6 +27,11 @@ interface MediaAsset {
   url: string | null;
   createdAt: string;
   meta?: Record<string, string>;
+  // Multi-variant grouping (KIE Suno + future providers)
+  generationGroupId?: string | null;
+  variantIndex?: number;
+  isPrimary?: boolean;
+  variantCount?: number; // populated on the primary row after grouping
 }
 
 type TabType = "all" | "song" | "video" | "cover" | "vocal";
@@ -99,7 +104,7 @@ export default function MediaLibraryPage() {
     const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
       supabase
         .from("ai_generations")
-        .select("id, prompt, genre, mood, created_at")
+        .select("id, prompt, genre, mood, created_at, generation_group_id, variant_index, is_primary, audio_url, storage_bucket, storage_path")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(MEDIA_LIBRARY_QUERY_LIMIT),
@@ -138,14 +143,28 @@ export default function MediaLibraryPage() {
 
     const allAssets: MediaAsset[] = [];
 
-    // Songs
+    // Songs — group by generation_group_id so multi-variant generations
+    // appear once in the list with a "Variantes" indicator.
     if (songsRes.data) {
-      for (const s of songsRes.data) {
+      const groupCounts = new Map<string, number>();
+      for (const s of songsRes.data as any[]) {
+        if (s.generation_group_id) {
+          groupCounts.set(s.generation_group_id, (groupCounts.get(s.generation_group_id) || 0) + 1);
+        }
+      }
+      for (const s of songsRes.data as any[]) {
+        // Skip non-primary variants from the main listing; they remain accessible via variant viewer.
+        if (s.generation_group_id && s.is_primary === false) continue;
+        const count = s.generation_group_id ? (groupCounts.get(s.generation_group_id) || 1) : 1;
         allAssets.push({
           id: s.id, type: "song",
           title: s.prompt?.substring(0, 80) || "Canción sin título",
-          url: null, createdAt: s.created_at,
+          url: s.audio_url || null, createdAt: s.created_at,
           meta: { genre: s.genre || "", mood: s.mood || "" },
+          generationGroupId: s.generation_group_id ?? null,
+          variantIndex: s.variant_index ?? 0,
+          isPrimary: !!s.is_primary,
+          variantCount: count,
         });
       }
     }
@@ -665,6 +684,15 @@ export default function MediaLibraryPage() {
                             >
                               {typeLabel(asset.type)}
                             </Badge>
+                            {asset.variantCount && asset.variantCount > 1 && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0"
+                                title="Esta generación tiene varias variantes guardadas"
+                              >
+                                {asset.variantCount} variantes
+                              </Badge>
+                            )}
                             <span className="text-[10px] text-muted-foreground">
                               {new Date(asset.createdAt).toLocaleDateString("es-ES", {
                                 day: "2-digit",

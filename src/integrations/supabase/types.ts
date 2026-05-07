@@ -62,6 +62,9 @@ export type Database = {
           request_payload: Json | null
           response_payload: Json | null
           status: string
+          storage_bucket: string | null
+          storage_path: string | null
+          structured_outputs: Json | null
           updated_at: string
           used_fallback: boolean
           user_credits_charged: number | null
@@ -84,6 +87,9 @@ export type Database = {
           request_payload?: Json | null
           response_payload?: Json | null
           status?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          structured_outputs?: Json | null
           updated_at?: string
           used_fallback?: boolean
           user_credits_charged?: number | null
@@ -106,6 +112,9 @@ export type Database = {
           request_payload?: Json | null
           response_payload?: Json | null
           status?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          structured_outputs?: Json | null
           updated_at?: string
           used_fallback?: boolean
           user_credits_charged?: number | null
@@ -118,14 +127,20 @@ export type Database = {
           audio_url: string
           created_at: string
           duration: number
+          generation_group_id: string | null
           genre: string | null
           id: string
           is_favorite: boolean | null
+          is_primary: boolean
           mood: string | null
           prompt: string
           provider: string | null
+          provider_task_id: string | null
           song_map: string | null
+          storage_bucket: string | null
+          storage_path: string | null
           user_id: string
+          variant_index: number
           voice_id: string | null
           voice_name: string | null
           voice_profile_id: string | null
@@ -134,14 +149,20 @@ export type Database = {
           audio_url: string
           created_at?: string
           duration: number
+          generation_group_id?: string | null
           genre?: string | null
           id?: string
           is_favorite?: boolean | null
+          is_primary?: boolean
           mood?: string | null
           prompt: string
           provider?: string | null
+          provider_task_id?: string | null
           song_map?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
           user_id: string
+          variant_index?: number
           voice_id?: string | null
           voice_name?: string | null
           voice_profile_id?: string | null
@@ -150,14 +171,20 @@ export type Database = {
           audio_url?: string
           created_at?: string
           duration?: number
+          generation_group_id?: string | null
           genre?: string | null
           id?: string
           is_favorite?: boolean | null
+          is_primary?: boolean
           mood?: string | null
           prompt?: string
           provider?: string | null
+          provider_task_id?: string | null
           song_map?: string | null
+          storage_bucket?: string | null
+          storage_path?: string | null
           user_id?: string
+          variant_index?: number
           voice_id?: string | null
           voice_name?: string | null
           voice_profile_id?: string | null
@@ -2586,6 +2613,10 @@ export type Database = {
       }
     }
     Functions: {
+      debit_user_credits: {
+        Args: { p_amount: number; p_description: string; p_user_id: string }
+        Returns: number
+      }
       decrement_credits: {
         Args: { _amount: number; _user_id: string }
         Returns: undefined
