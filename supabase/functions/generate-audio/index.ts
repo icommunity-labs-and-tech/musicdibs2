@@ -685,9 +685,10 @@ serve(async (req) => {
     try {
       await supabaseAdmin.from('ai_generation_logs').insert({
         user_id: userId,
-        feature_key: mode === 'song' ? 'music_generation_vocal' : 'music_generation_instrumental',
+        feature_key: featureKey,
         provider: actualProvider,
-        model: actualProvider.startsWith('lyria') ? 'lyria-3-pro-preview' : 'elevenlabs-music',
+        model: actualProvider.startsWith('lyria') ? (activeSetting?.model || 'lyria-3-pro-preview') : (activeSetting?.model || 'eleven_music_v1'),
+        estimated_cost_usd: activeSetting?.cost_usd_estimate ?? null,
         status: 'completed',
         request_payload: {
           original_description: original_description ?? prompt,
