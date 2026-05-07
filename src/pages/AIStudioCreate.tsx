@@ -989,6 +989,7 @@ const AIStudioCreate = () => {
                         <p className="text-sm text-muted-foreground">{t('aiCreate.waitMsg')}</p>
                       </div>
                       <Progress value={undefined} className="w-full animate-pulse" />
+                      <GenerationWarning />
                     </CardContent>
                   </Card>
                 ) : lastResult ? (
