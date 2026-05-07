@@ -166,7 +166,11 @@ export function AIGenerationLogsTable() {
             {!loading && filtered.length === 0 && (
               <TableRow>
                 <TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-6">
-                  Sin registros.
+                  {errorMsg
+                    ? `Error: ${errorMsg}`
+                    : rows.length === 0
+                      ? "Aún no hay generaciones registradas. Los logs aparecerán aquí en cuanto se ejecute la primera generación KIE Suno."
+                      : "Sin resultados con los filtros actuales."}
                 </TableCell>
               </TableRow>
             )}
