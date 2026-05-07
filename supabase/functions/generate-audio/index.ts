@@ -552,6 +552,8 @@ serve(async (req) => {
               description: `Generación audio (fallback ${fallbackProvider}): ${prompt.slice(0, 80)}`,
             });
             actualProvider = fallbackProvider;
+            usedFallback = true;
+            console.log(`[GENERATE-AUDIO][FALLBACK] used_fallback=true | primary_provider_attempted=kie_suno | fallback=${fallbackProvider}`);
             // Fall through to lyria/elevenlabs below by reassigning flags
             // Re-execute via direct calls
             try {
