@@ -46,16 +46,11 @@ export function AIGenerationLogsTable() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const runQuery = async () => {
-    let q = supabase
-      .from("ai_generation_logs")
-      .select(
-        "id,user_id,feature_key,provider,model,provider_task_id,status,output_url,estimated_cost_usd,user_credits_charged,error_message,created_at,completed_at"
-      )
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (statusFilter !== "all") q = q.eq("status", statusFilter);
-    if (featureFilter !== "all") q = q.eq("feature_key", featureFilter);
-    return await q;
+    return await supabase.rpc("get_admin_ai_generation_logs", {
+      p_feature_filter: featureFilter === "all" ? null : featureFilter,
+      p_limit: 100,
+      p_status_filter: statusFilter === "all" ? null : statusFilter,
+    });
   };
 
   const load = async () => {
@@ -84,11 +79,9 @@ export function AIGenerationLogsTable() {
     setSelected({ ...row, request_payload: null, response_payload: null });
     setSelectedLoading(true);
 
-    const { data, error } = await supabase
-      .from("ai_generation_logs")
-      .select("request_payload,response_payload")
-      .eq("id", row.id)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("get_admin_ai_generation_log_payloads", {
+      p_log_id: row.id,
+    }).maybeSingle();
 
     if (error) {
       setSelected((current) => current ? { ...current, error_message: error.message } : current);
