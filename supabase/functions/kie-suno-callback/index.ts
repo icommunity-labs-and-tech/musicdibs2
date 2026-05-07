@@ -107,27 +107,38 @@ serve(async (req) => {
       return ok({});
     }
 
-    // Process every returned track
-    const savedTracks: Array<{ url: string; duration: number }> = [];
+    // Process every returned track. All variants share a generation_group_id.
+    const BUCKET = "ai-generations";
+    const groupId = crypto.randomUUID();
+    const savedTracks: Array<{
+      url: string;
+      duration: number;
+      storage_path: string | null;
+      variant_index: number;
+    }> = [];
+
     for (let i = 0; i < tracks.length; i++) {
       const t = tracks[i];
       const sourceUrl: string | undefined = t?.audio_url;
       if (!sourceUrl) continue;
       const duration: number = Math.round(Number(t?.duration) || 0);
       let finalUrl = sourceUrl;
+      let storagePath: string | null = null;
       try {
         const audioRes = await fetch(sourceUrl);
         if (audioRes.ok) {
           const arr = new Uint8Array(await audioRes.arrayBuffer());
           const ownerId = logRow.user_id || "system";
-          const fileName = `${ownerId}/kie_${Date.now()}_${i}.mp3`;
+          const path = `${ownerId}/kie_${Date.now()}_${i}.mp3`;
           const { error: upErr } = await supabase.storage
-            .from("ai-generations")
-            .upload(fileName, arr, { contentType: "audio/mpeg", upsert: false });
+            .from(BUCKET)
+            .upload(path, arr, { contentType: "audio/mpeg", upsert: false });
           if (!upErr) {
+            storagePath = path;
+            // Compatibility: still emit a signed URL, but storage_path is the source of truth.
             const { data: signed } = await supabase.storage
-              .from("ai-generations")
-              .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+              .from(BUCKET)
+              .createSignedUrl(path, 60 * 60 * 24 * 365);
             if (signed?.signedUrl) finalUrl = signed.signedUrl;
           } else {
             console.error("[kie-suno-callback] storage upload error:", upErr);
@@ -136,10 +147,9 @@ serve(async (req) => {
       } catch (e) {
         console.error("[kie-suno-callback] copy-to-storage failed:", e);
       }
-      savedTracks.push({ url: finalUrl, duration });
+      savedTracks.push({ url: finalUrl, duration, storage_path: storagePath, variant_index: i });
 
-      // Insert into ai_generations only if all REQUIRED columns are satisfied:
-      // user_id (NOT NULL), prompt (NOT NULL), duration (NOT NULL), audio_url (NOT NULL).
+      // Insert into ai_generations — one row per variant.
       if (logRow.user_id) {
         await supabase.from("ai_generations").insert({
           user_id: logRow.user_id,
@@ -147,21 +157,31 @@ serve(async (req) => {
           audio_url: finalUrl,
           duration: duration || 0,
           provider: "kie_suno",
+          generation_group_id: groupId,
+          variant_index: i,
+          is_primary: i === 0,
+          provider_task_id: logRow.provider_task_id || taskId || null,
+          storage_bucket: storagePath ? BUCKET : null,
+          storage_path: storagePath,
         });
       }
     }
 
+    const primary = savedTracks[0];
     await supabase
       .from("ai_generation_logs")
       .update({
         status: "completed",
         response_payload: body,
-        output_url: savedTracks[0]?.url ?? null,
+        output_url: primary?.url ?? null,
+        storage_bucket: primary?.storage_path ? BUCKET : null,
+        storage_path: primary?.storage_path ?? null,
+        structured_outputs: { generation_group_id: groupId, variants: savedTracks },
         completed_at: new Date().toISOString(),
       })
       .eq("id", logRow.id);
 
-    return ok({ tracks: savedTracks.length });
+    return ok({ tracks: savedTracks.length, generation_group_id: groupId });
   } catch (err) {
     console.error("[kie-suno-callback] fatal", err);
     return new Response(JSON.stringify({ error: (err as Error).message }), {
