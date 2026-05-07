@@ -305,13 +305,9 @@ export default function AdminAIModelsPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            value={String(getValue(s, "user_credits_cost") ?? "")}
-                            onChange={(e) => setEdit(s.id, { user_credits_cost: e.target.value === "" ? null : parseInt(e.target.value) })}
-                            className="h-8 w-20"
-                            placeholder="—"
-                          />
+                          <span className="text-xs text-muted-foreground" title="Solo informativo. El cobro real viene de operation_pricing.">
+                            {s.user_credits_cost ?? "—"}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <Input
