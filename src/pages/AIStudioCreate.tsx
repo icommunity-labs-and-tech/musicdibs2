@@ -381,13 +381,53 @@ const AIStudioCreate = () => {
         throw { message: data.error, details: data.details };
       }
 
-      // Async provider (e.g. KIE Suno): generation runs via callback
+      // Async provider (e.g. KIE Suno): generation runs via callback.
+      // Keep the spinner/progress UI visible and poll ai_generations for the new row.
       if (data?.status === 'processing' && !data?.audio) {
         toast({
           title: 'Generación en curso',
-          description: data.message || 'Tu canción aparecerá en la biblioteca en unos minutos.',
+          description: data.message || 'Tu canción aparecerá en unos minutos. No cierres ni cambies de pestaña.',
         });
         track('generation_started', { feature: 'create_music', metadata: { mode, async: true, provider: data.provider } });
+
+        const startedAt = Date.now();
+        const maxWaitMs = 6 * 60 * 1000; // 6 min
+        const knownIds = new Set(results.map(r => r.id));
+        let found: any = null;
+        while (Date.now() - startedAt < maxWaitMs) {
+          await new Promise(r => setTimeout(r, 5000));
+          const { data: rows } = await supabase
+            .from('ai_generations')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          const fresh = (rows || []).find((row: any) => !knownIds.has(row.id) && row.audio_url);
+          if (fresh) { found = fresh; break; }
+        }
+
+        if (found) {
+          const newResult: GenerationResult = {
+            id: found.id,
+            audioUrl: found.audio_url,
+            prompt: found.prompt,
+            duration: found.duration,
+            createdAt: new Date(found.created_at),
+            isFavorite: found.is_favorite || false,
+            voiceId: (found as any).voice_id || undefined,
+            voiceName: (found as any).voice_name || undefined,
+          };
+          setResults(prev => [newResult, ...prev.filter(r => r.id !== newResult.id)]);
+          setLastResult(newResult);
+          toast({ title: t('aiCreate.musicGenerated'), description: t('aiCreate.songReady') });
+          track('generation_completed', { feature: 'create_music', metadata: { async: true } });
+          sessionStorage.setItem('md_last_generation', Date.now().toString());
+        } else {
+          toast({
+            title: 'Aún en proceso',
+            description: 'La generación está tardando más de lo habitual. Aparecerá en tu biblioteca en cuanto termine.',
+          });
+        }
         return;
       }
 
