@@ -143,14 +143,28 @@ export default function MediaLibraryPage() {
 
     const allAssets: MediaAsset[] = [];
 
-    // Songs
+    // Songs — group by generation_group_id so multi-variant generations
+    // appear once in the list with a "Variantes" indicator.
     if (songsRes.data) {
-      for (const s of songsRes.data) {
+      const groupCounts = new Map<string, number>();
+      for (const s of songsRes.data as any[]) {
+        if (s.generation_group_id) {
+          groupCounts.set(s.generation_group_id, (groupCounts.get(s.generation_group_id) || 0) + 1);
+        }
+      }
+      for (const s of songsRes.data as any[]) {
+        // Skip non-primary variants from the main listing; they remain accessible via variant viewer.
+        if (s.generation_group_id && s.is_primary === false) continue;
+        const count = s.generation_group_id ? (groupCounts.get(s.generation_group_id) || 1) : 1;
         allAssets.push({
           id: s.id, type: "song",
           title: s.prompt?.substring(0, 80) || "Canción sin título",
-          url: null, createdAt: s.created_at,
+          url: s.audio_url || null, createdAt: s.created_at,
           meta: { genre: s.genre || "", mood: s.mood || "" },
+          generationGroupId: s.generation_group_id ?? null,
+          variantIndex: s.variant_index ?? 0,
+          isPrimary: !!s.is_primary,
+          variantCount: count,
         });
       }
     }
