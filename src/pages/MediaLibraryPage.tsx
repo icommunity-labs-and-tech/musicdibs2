@@ -684,6 +684,15 @@ export default function MediaLibraryPage() {
                             >
                               {typeLabel(asset.type)}
                             </Badge>
+                            {asset.variantCount && asset.variantCount > 1 && (
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] px-1.5 py-0"
+                                title="Esta generación tiene varias variantes guardadas"
+                              >
+                                {asset.variantCount} variantes
+                              </Badge>
+                            )}
                             <span className="text-[10px] text-muted-foreground">
                               {new Date(asset.createdAt).toLocaleDateString("es-ES", {
                                 day: "2-digit",
