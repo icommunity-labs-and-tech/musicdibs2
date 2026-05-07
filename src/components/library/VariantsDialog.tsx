@@ -37,7 +37,7 @@ interface VariantsDialogProps {
  * Prefers existing audio_url for compatibility; falls back to a signed URL
  * generated from storage_bucket + storage_path when needed.
  */
-async function resolveVariantUrl(v: VariantRow): Promise<string | null> {
+async function resolveVariantUrlOnce(v: VariantRow): Promise<string | null> {
   if (v.audio_url) return v.audio_url;
   if (v.storage_bucket && v.storage_path) {
     const { data, error } = await supabase.storage
@@ -45,6 +45,19 @@ async function resolveVariantUrl(v: VariantRow): Promise<string | null> {
       .createSignedUrl(v.storage_path, 60 * 60);
     if (error) return null;
     return data?.signedUrl ?? null;
+  }
+  return null;
+}
+
+const RETRY_DELAYS_MS = [300, 800];
+
+async function resolveVariantUrl(v: VariantRow): Promise<string | null> {
+  let url = await resolveVariantUrlOnce(v);
+  if (url) return url;
+  for (const delay of RETRY_DELAYS_MS) {
+    await new Promise((r) => setTimeout(r, delay));
+    url = await resolveVariantUrlOnce(v);
+    if (url) return url;
   }
   return null;
 }
