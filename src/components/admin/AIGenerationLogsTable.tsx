@@ -199,7 +199,7 @@ export function AIGenerationLogsTable() {
                   {r.error_message || ""}
                 </TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="sm" onClick={() => setSelected(r)}>Ver</Button>
+                  <Button variant="ghost" size="sm" onClick={() => openDetails(r)}>Ver</Button>
                 </TableCell>
               </TableRow>
             ))}
