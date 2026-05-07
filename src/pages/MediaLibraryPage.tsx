@@ -99,7 +99,7 @@ export default function MediaLibraryPage() {
     const [songsRes, videosRes, promosRes, coverFilesRes, clonesRes] = await Promise.all([
       supabase
         .from("ai_generations")
-        .select("id, prompt, genre, mood, created_at")
+        .select("id, prompt, genre, mood, created_at, generation_group_id, variant_index, is_primary, audio_url, storage_bucket, storage_path")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(MEDIA_LIBRARY_QUERY_LIMIT),
