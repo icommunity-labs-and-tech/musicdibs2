@@ -619,8 +619,9 @@ serve(async (req) => {
         songMap = result.songMap;
       } catch (lyriaErr) {
         // Fallback to ElevenLabs if Lyria fails
-        console.warn(`[GENERATE-AUDIO] Lyria failed, falling back to ElevenLabs: ${(lyriaErr as Error).message}`);
-        actualProvider = 'elevenlabs_fallback';
+        console.warn(`[GENERATE-AUDIO][FALLBACK] Lyria failed, falling back to ElevenLabs: ${(lyriaErr as Error).message}`);
+        actualProvider = 'elevenlabs';
+        usedFallback = true;
         try {
           const result = await generateWithElevenLabs({
             enrichedPrompt,
