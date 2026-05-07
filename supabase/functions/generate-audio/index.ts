@@ -627,7 +627,7 @@ serve(async (req) => {
           );
         }
       }
-    } else {
+    } else if (!audioBuffer) {
       // ElevenLabs path (lyrics present OR duration > 180s)
       try {
         const result = await generateWithElevenLabs({
