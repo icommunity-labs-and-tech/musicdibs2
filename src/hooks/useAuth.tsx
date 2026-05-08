@@ -76,7 +76,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
       // Use setTimeout to avoid async work directly in callback
       setTimeout(() => {
-        void initializeUser(newSession).catch(recoverFromAuthError);
+        // Always fetch fresh session to avoid stale cached data (e.g. after email change)
+        void supabase.auth.getSession()
+          .then(({ data: { session: currentSession } }) => {
+            void initializeUser(currentSession).catch(recoverFromAuthError);
+          })
+          .catch(recoverFromAuthError);
       }, 0);
     });
 
